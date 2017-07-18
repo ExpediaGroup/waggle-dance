@@ -1,0 +1,114 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.hotels</groupId>
+    <artifactId>waggle-dance</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>waggle-dance-rpm</artifactId>
+  <description>Packages Waggle Dance for deployment using RPM.</description>
+  <packaging>pom</packaging>
+
+  <properties>
+    <rpm.install.dir>/opt/waggle-dance</rpm.install.dir>
+    <rpm.install.user>waggle-dance</rpm.install.user>
+    <rpm.install.group>waggle-dance</rpm.install.group>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>waggle-dance-core</artifactId>
+      <version>${project.version}</version>
+      <classifier>exec</classifier>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.1.5</version>
+        <executions>
+          <execution>
+            <id>attach-rpm</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attached-rpm</goal>
+            </goals>
+            <configuration>
+              <description>${project.description}</description>
+              <group>Applications/Engineering</group>
+              <targetOS>Linux</targetOS>
+              <targetVendor>redhat</targetVendor>
+              <defaultUsername>${rpm.install.user}</defaultUsername>
+              <defaultGroupname>${rpm.install.group}</defaultGroupname>
+              <defaultDirmode>775</defaultDirmode>
+              <defaultFilemode>644</defaultFilemode>
+              <mappings>
+                <mapping>
+                  <!-- Jar needs to be executable for spring boot/init.d -->
+                  <filemode>775</filemode>
+                  <directory>${rpm.install.dir}/service</directory>
+                  <dependency>
+                    <includes>
+                      <include>com.hotels.bdp:*</include>
+                    </includes>
+                  </dependency>
+                  <sources>
+                    <softlinkSource>
+                      <destination>waggle-dance-core-latest-exec.jar</destination>
+                      <location>waggle-dance-core-${project.version}-exec.jar</location>
+                    </softlinkSource>
+                  </sources>
+                </mapping>
+                <mapping>
+                  <directory>${rpm.install.dir}/conf</directory>
+                  <sources>
+                    <source>
+                      <location>${basedir}/src/main/resources/</location>
+                    </source>
+                  </sources>
+                </mapping>
+                <mapping>
+                  <directory>${rpm.install.dir}/service</directory>
+                  <sources>
+                    <source>
+                      <location>${basedir}/src/main/service/waggle-dance.conf</location>
+                      <destination>waggle-dance-core-${project.version}-exec.conf</destination>
+                    </source>
+                  </sources>
+                </mapping>
+                <mapping>
+                  <directory>/var/log/waggle-dance</directory>
+                </mapping>
+                <mapping>
+                  <directory>/etc/init.d</directory>
+                  <sources>
+                    <softlinkSource>
+                      <destination>waggle-dance</destination>
+                      <location>${rpm.install.dir}/service/waggle-dance-core-latest-exec.jar</location>
+                    </softlinkSource>
+                  </sources>
+                </mapping>
+                <mapping>
+                  <directory>/etc/logrotate.d</directory>
+                  <sources>
+                    <softlinkSource>
+                      <destination>waggle-dance</destination>
+                      <location>${rpm.install.dir}/conf/waggle-dance.logrotate</location>
+                    </softlinkSource>
+                  </sources>
+                </mapping>
+              </mappings>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

@@ -1,0 +1,7 @@
+/var/log/waggle-dance/waggle-dance.log {
+    copytruncate
+    daily
+    rotate 7
+    compress
+    missingok
+}

@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Maven-GroupId: com.hotels.bdp.waggledance
+Build-Jdk: 1.7.0_40
+Built-By: developer
+Build-Version: 0.0.1-SNAPSHOT
+Maven-ArtifactId: waggle-dance
+Build-DateTime: 20170207-1535
+Created-By: Apache Maven
+Main-Class: com.hotels.bdp.waggledance.WaggleDan
+ ce
+Archiver-Version: Plexus Archiver
+

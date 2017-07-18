@@ -1,0 +1,80 @@
+/**
+ * Copyright (C) 2016-2017 Expedia Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.hotels.bdp.waggledance.api.model;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
+
+import org.junit.Test;
+
+public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore> {
+
+  public PrimaryMetaStoreTest() {
+    super(new PrimaryMetaStore());
+  }
+
+  @Test
+  public void testAccessControlTypeDefaultReadOnly() {
+    assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));
+
+    // override
+    metaStore.setAccessControlType(AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST);
+    assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST));
+  }
+
+  @Test
+  public void testFederationType() {
+    assertThat(metaStore.getFederationType(), is(FederationType.PRIMARY));
+  }
+
+  @Test
+  public void testDefaultDatabaseWhiteListIsEmpty() {
+    assertThat(metaStore.getWritableDatabaseWhiteList(), is(notNullValue()));
+    assertThat(metaStore.getWritableDatabaseWhiteList().size(), is(0));
+  }
+
+  @Test
+  public void emptyDatabasePrefix() {
+    metaStore.setDatabasePrefix("");
+    Set<ConstraintViolation<PrimaryMetaStore>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(0));
+    assertThat(metaStore.getDatabasePrefix(), is(""));
+  }
+
+  @Test
+  public void nullDatabasePrefix() {
+    metaStore.setDatabasePrefix(null);
+    Set<ConstraintViolation<PrimaryMetaStore>> violations = validator.validate(metaStore);
+    // Violation is not triggered cause EMPTY STRING is always returned. Warning is logged instead
+    assertThat(violations.size(), is(0));
+    assertThat(metaStore.getDatabasePrefix(), is(""));
+  }
+
+  @Test
+  public void nonEmptyDatabasePrefix() {
+    metaStore.setDatabasePrefix("abc");
+    Set<ConstraintViolation<PrimaryMetaStore>> violations = validator.validate(metaStore);
+    // Violation is not triggered cause EMPTY STRING is always returned. Warning is logged instead
+    assertThat(violations.size(), is(0));
+    assertThat(metaStore.getDatabasePrefix(), is(""));
+  }
+
+}

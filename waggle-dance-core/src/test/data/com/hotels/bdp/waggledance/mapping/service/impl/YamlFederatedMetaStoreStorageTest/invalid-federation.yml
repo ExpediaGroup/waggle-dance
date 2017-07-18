@@ -1,0 +1,4 @@
+federated-meta-stores:
+  -
+    remote-meta-store-uris: 
+    database-prefix: hcom
