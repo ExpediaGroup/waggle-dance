@@ -331,7 +331,7 @@ Assumes database resolution is done by adding prefixes. If database resolution i
 Created by [Elliot West](https://github.com/teabot), [Patrick Duin](https://github.com/patduin) & [Daniel del Castillo](https://github.com/ddcprg) with thanks to: [Adrian Woodhead](https://github.com/massdosage).
 
 
-#Legal
+# Legal
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
 
 Copyright 2016-2017 Expedia Inc.
