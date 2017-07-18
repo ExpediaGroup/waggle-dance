@@ -217,7 +217,7 @@ The following snippet shows a typical Graphite configuration:
 
     graphite:
       port: 2003
-      host: graphite.lab.hcom
+      host: graphite.domain
       prefix: aws.myservice.myapplication
       poll-interval: 1000
       poll-interval-time-unit: MILLISECONDS
