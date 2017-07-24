@@ -1,6 +1,0 @@
-federated-meta-stores:
-  -
-    # EMR cluster: HCOM Data Warehouse Cluster - Circus Train
-    remote-meta-store-uris: thrift://172.31.26.211:9083
-    database-prefix: hcom_aws_dw_
-    name: hcom_aws_dw
