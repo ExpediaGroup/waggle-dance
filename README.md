@@ -4,9 +4,9 @@
 ## Overview
 Waggle Dance is a request routing Hive metastore proxy that allows tables to be concurrently accessed across multiple Hive clusters. It was created to tackle the appearance of the dataset silos that arose as our large organization gradually migrated from monolithic on-premises clusters, to cloud based platforms.
 
-In short, WaggleDance allows you to describe, query, and join tables that may exist in many different Hive clusters. Such clusters may exist in disparate regions, accounts, or clouds (security and network permitting). It is not limited to Hive, and should work with any Hive metastore enabled platform; we've been successfully using it with Spark for example.
+In short, Waggle Dance allows you to describe, query, and join tables that may exist in many different Hive deployments. Such deployments may exist in disparate regions, accounts, or clouds (security and network permitting). Dataset access is not limited to the Hive query engine, and should work with any Hive metastore enabled platform. We've been successfully using it with Spark for example.
 
-More recently we've employed Waggle Dance to apply a simple security layer to cloud based platforms such as Qubole, DataBricks, and EMR. These currently provide no means to construct cross platform authentication and authorization strategies. Therefore we use a combination of Waggle Dance and network configuration to restrict writes and destructive Hive operations to specific user groups and applications.
+We also use Waggle Dance to apply a simple security layer to cloud based platforms such as Qubole, DataBricks, and EMR. These currently provide no means to construct cross platform authentication and authorization strategies. Therefore we use a combination of Waggle Dance and network configuration to restrict writes and destructive Hive operations to specific user groups and applications.
 
 ## Start using
 
