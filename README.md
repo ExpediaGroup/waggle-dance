@@ -328,7 +328,7 @@ Assumes database resolution is done by adding prefixes. If database resolution i
 
 # Credits
 
-Created by [Elliot West](https://github.com/teabot), [Patrick Duin](https://github.com/patduin) & [Daniel del Castillo](https://github.com/ddcprg) with thanks to: [Adrian Woodhead](https://github.com/massdosage) and [Dave Maughan](https://github.com/nahguam).
+Created by [Elliot West](https://github.com/teabot), [Patrick Duin](https://github.com/patduin) & [Daniel del Castillo](https://github.com/ddcprg) with thanks to: [Adrian Woodhead](https://github.com/massdosage), [Dave Maughan](https://github.com/nahguam) and [James Grant](https://github.com/Noddy76).
 
 
 # Legal
