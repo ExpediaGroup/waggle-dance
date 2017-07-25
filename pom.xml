@@ -8,10 +8,11 @@
   </parent>
 
   <artifactId>waggle-dance</artifactId>
-  <description />
   <version>2.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>waggle-dance-parent</name>
+  <name>Waggle Dance Parent</name>
+  <description>Hive Metastore federation service.</description>
+  <url>https://github.com/HotelsDotCom/waggle-dance</url>
   <inceptionYear>2016</inceptionYear>
 
   <scm>
