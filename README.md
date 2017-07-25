@@ -38,7 +38,7 @@ NOTE: by default the waggle-dance-rpm module will build an RPM artifact for inst
 
 ## Installing
 
-Waggle Dance comes in two binaries distributions: TGZ and RPM. It can either be installed on an existing EMR instance (for example the EMR cluster of your primary metastore) or on a separate EC2 instance.
+Waggle Dance is available as a RPM or TGZ package. It is intended to be installed as a service available on a machine that is accessible from wherever you want to query it from (and with access to the Hive metastore service(s) that it is federating). If you are using AWS this could be on an existing EMR instance (for example the EMR cluster of your primary Hive metastore) or on a separate EC2 instance. It would be deployed in a similar fashion for other cloud or internal platforms.
 
 ### TGZ package
 
@@ -46,18 +46,18 @@ You can uncompress the file by executing:
 
     tar -xzf waggle-dance-<version>-bin.tgz
 
-Although it's not necessary, we recommend to export the environment variable _WAGGLE_DANCE_HOME_ by setting its value to the location of the uncompressed directory:
+Although it's not necessary, we recommend exporting the environment variable _WAGGLE_DANCE_HOME_ by setting its value to wherever you extracted it to:
 
-    export export WAGGLE_DANCE_HOME=/<foo>/<var>/waggle-dance
+    export WAGGLE_DANCE_HOME=/<foo>/<var>/waggle-dance
 
 Then _cd_ into the uncompressed directory _waggle-dance_ or `$WAGGLE_DANCE_HOME` and type the following commands:
 
     cp $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml
     cp $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml
 
-Edit the property `remote-meta-store-uris` in _./conf/waggle-dance-federation.yml_ and point the URL at your own metastore.
+Edit the property `remote-meta-store-uris` in _./conf/waggle-dance-federation.yml_ and modify this to contain the URL(s) of the metastore(s) you want to federate.
 
-Refer to the [configuration](#configuration) section for details about the configuration the configuration files.
+Refer to the [configuration](#configuration) section for further details about the available configuration settings.
 
 ### Running on the command line
 
