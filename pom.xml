@@ -26,6 +26,7 @@
     <module>waggle-dance-api</module>
     <module>waggle-dance-rest</module>
     <module>waggle-dance-integration-tests</module>
+    <module>waggle-dance-package</module>
     <module>waggle-dance-rpm</module>
   </modules>
 

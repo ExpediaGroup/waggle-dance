@@ -1,0 +1,77 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.hotels</groupId>
+    <artifactId>waggle-dance</artifactId>
+    <version>2.0.1-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>waggle-dance-package</artifactId>
+  <description>Waggle Dance binaries</description>
+  <packaging>pom</packaging>
+
+  <properties>
+    <maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
+    <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>waggle-dance-core</artifactId>
+      <version>${project.version}</version>
+      <classifier>exec</classifier>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>waggle-dance-${project.version}</finalName>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>${maven-assembly-plugin.version}</version>
+        <configuration>
+          <tarLongFileMode>posix</tarLongFileMode>
+          <descriptors>
+            <descriptor>src/main/assembly/waggle-dance-package.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>${maven-install-plugin.version}</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <id>install-tgz</id>
+            <goals>
+              <goal>install-file</goal>
+            </goals>
+            <phase>install</phase>
+            <configuration>
+              <file>${project.build.directory}/waggle-dance-${project.version}-bin.tgz</file>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>waggle-dance</artifactId>
+              <version>${project.version}</version>
+              <classifier>bin</classifier>
+              <packaging>tgz</packaging>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

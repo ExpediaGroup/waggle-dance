@@ -43,11 +43,42 @@ NOTE: by default the waggle-dance-rpm module will build an RPM artifact for inst
 
 ## Installing
 
-It is intended that Waggle Dance is run as a service serving as a proxy to different metastores. The primary configured metastore is the only one to which you may also write data via Hive. It can either be installed on an existing EMR instance (for example the EMR cluster of your primary metastore) or on a separate EC2 instance.
+Waggle Dance is available as a RPM or TGZ package. It is intended to be installed as a service available on a machine that is accessible from wherever you want to query it from (and with access to the Hive metastore service(s) that it is federating). If you are using AWS this could be on an existing EMR instance (for example the EMR cluster of your primary Hive metastore) or on a separate EC2 instance. It would be deployed in a similar fashion for other cloud or internal platforms.
+
+### TGZ package
+
+You can uncompress the file by executing:
+
+    tar -xzf waggle-dance-<version>-bin.tgz
+
+Although it's not necessary, we recommend exporting the environment variable _WAGGLE_DANCE_HOME_ by setting its value to wherever you extracted it to:
+
+    export WAGGLE_DANCE_HOME=/<foo>/<var>/waggle-dance
+
+Then _cd_ into the uncompressed directory _waggle-dance_ or `$WAGGLE_DANCE_HOME` and type the following commands:
+
+    cp $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml
+    cp $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml
+
+Edit the property `remote-meta-store-uris` in _./conf/waggle-dance-federation.yml_ and modify this to contain the URL(s) of the metastore(s) you want to federate.
+
+Refer to the [configuration](#configuration) section for further details about the available configuration settings.
+
+### Running on the command line
+
+To run Waggle Dance just execute:
+
+    $WAGGLE_DANCE_HOME/bin/waggle-dance.sh --server-config=$WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml --federation-config=$WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml
+
+Log messages will be output to the standard output.
+
+### RPM package
+
+It is intended that Waggle Dance is run as a service serving as a proxy to different metastores. The primary configured metastore is the only one to which you may also write data via Hive.
 
     sudo yum install waggle-dance-rpm
 
-## Running
+### Running as a service
 
 Installing the RPM will register waggle-dance as an init.d service.
 Configuration is in _/opt/waggle-dance/conf/_

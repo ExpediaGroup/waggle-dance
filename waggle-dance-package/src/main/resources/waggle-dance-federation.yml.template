@@ -1,0 +1,8 @@
+primary-meta-store:
+  database-prefix: ''
+  name: local
+  remote-meta-store-uris: thrift://localhost:9083
+federated-meta-stores:
+- remote-meta-store-uris: thrift://10.0.0.1:9083
+  database-prefix: dw_
+  name: dw

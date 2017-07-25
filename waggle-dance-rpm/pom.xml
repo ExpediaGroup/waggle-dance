@@ -12,26 +12,43 @@
   <packaging>pom</packaging>
 
   <properties>
+    <tmp.directory>${project.build.directory}/tmp-directory</tmp.directory>
+    <rpm-sources.directory>${tmp.directory}/waggle-dance-${project.version}</rpm-sources.directory>
     <rpm.install.dir>/opt/waggle-dance</rpm.install.dir>
     <rpm.install.user>waggle-dance</rpm.install.user>
     <rpm.install.group>waggle-dance</rpm.install.group>
   </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.hotels</groupId>
-      <artifactId>waggle-dance-core</artifactId>
-      <version>${project.version}</version>
-      <classifier>exec</classifier>
-    </dependency>
-  </dependencies>
-
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>circus-train-bin</id>
+            <phase>package</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.hotels</groupId>
+                  <artifactId>waggle-dance-package</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>bin</classifier>
+                  <type>tgz</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${tmp.directory}</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.1.5</version>
         <executions>
           <execution>
             <id>attach-rpm</id>
@@ -50,35 +67,20 @@
               <defaultFilemode>644</defaultFilemode>
               <mappings>
                 <mapping>
-                  <!-- Jar needs to be executable for spring boot/init.d -->
-                  <filemode>775</filemode>
-                  <directory>${rpm.install.dir}/service</directory>
-                  <dependency>
-                    <includes>
-                      <include>com.hotels.bdp:*</include>
-                    </includes>
-                  </dependency>
-                  <sources>
-                    <softlinkSource>
-                      <destination>waggle-dance-core-latest-exec.jar</destination>
-                      <location>waggle-dance-core-${project.version}-exec.jar</location>
-                    </softlinkSource>
-                  </sources>
-                </mapping>
-                <mapping>
                   <directory>${rpm.install.dir}/conf</directory>
                   <sources>
                     <source>
-                      <location>${basedir}/src/main/resources/</location>
+                      <location>${rpm-sources.directory}/conf</location>
                     </source>
                   </sources>
                 </mapping>
                 <mapping>
+                  <!-- Jar needs to be executable for spring boot/init.d -->
+                  <filemode>775</filemode>
                   <directory>${rpm.install.dir}/service</directory>
                   <sources>
                     <source>
-                      <location>${basedir}/src/main/service/waggle-dance.conf</location>
-                      <destination>waggle-dance-core-${project.version}-exec.conf</destination>
+                      <location>${rpm-sources.directory}/service</location>
                     </source>
                   </sources>
                 </mapping>
