@@ -1,4 +1,3 @@
-# Waggle Dance
 ![Bee waggle-dancing on a hive.](logo.png "Federating Hive Meta Stores.")
 
 ## Overview
