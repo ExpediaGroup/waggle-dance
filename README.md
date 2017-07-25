@@ -117,7 +117,7 @@ Example:
 
     primary-meta-store:                                     # Primary metastore
       access-control-type: READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST
-      name: primary                                         # unique name to identify this metastory
+      name: primary                                         # unique name to identify this metastore
       remote-meta-store-uris: thrift://127.0.0.1:9083
       writable-database-white-list:
       - my_writable_db1
