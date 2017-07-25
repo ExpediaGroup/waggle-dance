@@ -366,6 +366,7 @@ Assumes database resolution is done by adding prefixes. If database resolution i
 
 Created by [Elliot West](https://github.com/teabot), [Patrick Duin](https://github.com/patduin) & [Daniel del Castillo](https://github.com/ddcprg) with thanks to: [Adrian Woodhead](https://github.com/massdosage), [Dave Maughan](https://github.com/nahguam) and [James Grant](https://github.com/Noddy76).
 
+The Waggle Dance logo uses the [Beetype Filled font](http://www.1001fonts.com/beetype-font.html) by Adrian Candela under the [Creative Commons Attribution License (CC BY)](https://creativecommons.org/licenses/by/3.0/).
 
 # Legal
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
