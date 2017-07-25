@@ -1,7 +1,7 @@
 ![Bee waggle-dancing on a hive.](logo.png "Federating Hive Meta Stores.")
 
 ## Overview
-Waggle Dance is a request routing Hive metastore proxy that allows tables to be concurrently accessed across multiple Hive deployments. It was created to tackle the appearance of the dataset silos that arose as our large organization gradually migrated from monolithic on-premises clusters, to cloud based platforms.
+Waggle Dance is a request routing Hive metastore proxy that allows tables to be concurrently accessed across multiple Hive deployments. It was created to tackle the appearance of dataset silos that arose as our large organization gradually migrated from monolithic on-premises clusters, to cloud based platforms.
 
 In short, Waggle Dance allows you to describe, query, and join tables that may exist in multiple distinct Hive deployments. Such deployments may exist in disparate regions, accounts, or clouds (security and network permitting). Dataset access is not limited to the Hive query engine, and should work with any Hive metastore enabled platform. We've been successfully using it with Spark for example.
 
