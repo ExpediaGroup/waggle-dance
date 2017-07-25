@@ -4,7 +4,7 @@
   <formats>
     <format>tgz</format>
   </formats>
-  <baseDirectory>waggle-dance</baseDirectory>
+  <baseDirectory>waggle-dance-${project.version}</baseDirectory>
   <files>
     <file>
       <source>src/main/service/waggle-dance.conf</source>

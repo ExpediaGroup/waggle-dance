@@ -13,7 +13,7 @@
 
   <properties>
     <tmp.directory>${project.build.directory}/tmp-directory</tmp.directory>
-    <rpm-sources.directory>${tmp.directory}/waggle-dance</rpm-sources.directory>
+    <rpm-sources.directory>${tmp.directory}/waggle-dance-${project.version}</rpm-sources.directory>
     <rpm.install.dir>/opt/waggle-dance</rpm.install.dir>
     <rpm.install.user>waggle-dance</rpm.install.user>
     <rpm.install.group>waggle-dance</rpm.install.group>
@@ -34,7 +34,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>com.hotels</groupId>
-                  <artifactId>waggle-dance</artifactId>
+                  <artifactId>waggle-dance-package</artifactId>
                   <version>${project.version}</version>
                   <classifier>bin</classifier>
                   <type>tgz</type>
