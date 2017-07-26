@@ -108,7 +108,6 @@ The table below describes all the available configuration values for Waggle Danc
 | `disconnect-connection-delay`     | No         | Idle metastore connection timeout. Default is `5` |
 | `disconnect-time-unit`            | No         | Idle metastore connection timeout units. Default is `MINUTES` |
 | `database-resolution`             | No         | Controls what type of database resolution to use. See the [Database Resolution](#database-resolution) section. Default is `MANUAL`. |
-| `overwrite-config-on-shutdown`    | No         | Controls whether the federations configuration must be overwritten when the server is stopped. Settings this to `false` will cause that any federations dynamically added at runtime will be lost when the server is stopped. This is also the case of databases created at runtime when `database-resolution` is set to `MANUAL`. Default is `true`. |
 
 #### Federation
 
@@ -176,6 +175,19 @@ This is controlled by the property: `primary-meta-store.access-control-type` It 
 | `READ_AND_WRITE_AND_CREATE`                           | Reads are allowed, writes are allowed on all databases, creating new databases is allowed. |
 | `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST`     | Reads are allowed, writes are allowed on database names listed in the `primary-meta-store.writable-database-white-list` property, creating new databases is allowed and they are added to the white-list automatically. |
 | `READ_AND_WRITE_ON_DATABASE_WHITELIST`                | Reads are allowed, writes are allowed on database names listed in the `primary-meta-store.writable-database-white-list` property, creating new databases is not allowed. |
+
+#### Federation configuration storage
+
+Waggle Dance reads and writes federation configuration from and to a YAML file - refer to the section [federation](#federation) for details.
+
+The following properties are configured in the server configuration file and control the behaviour of the YAML federation storage:
+
+    yaml-storage:
+      overwrite-config-on-shutdown: true
+
+| Property                          | Required   | Description |
+|:----|:----:|:----|
+| `overwrite-config-on-shutdown`    | No         | Controls whether the federations configuration must be overwritten when the server is stopped. Settings this to `false` will cause that any federations dynamically added at runtime will be lost when the server is stopped. This is also the case of databases created at runtime when `database-resolution` is set to `MANUAL`. Default is `true`. |
 
 
 #### Configuring a SSH tunnel

@@ -50,7 +50,7 @@ import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.api.model.Federations;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
-import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
 import com.hotels.bdp.waggledance.mapping.service.FederatedMetaStoreStorage;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 
@@ -143,7 +143,7 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
   @Autowired
   public YamlFederatedMetaStoreStorage(
       @Value("${federation-config}") String federationConfigLocation,
-      WaggleDanceConfiguration configuration) {
+      YamlStorageConfiguration configuration) {
     this(federationConfigLocation, new YamlMarshaller(), configuration.isOverwriteConfigOnShutdown());
   }
 

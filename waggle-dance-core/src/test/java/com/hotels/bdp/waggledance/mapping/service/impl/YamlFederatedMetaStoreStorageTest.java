@@ -44,7 +44,7 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
-import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
 
 @RunWith(MockitoJUnitRunner.class)
 public class YamlFederatedMetaStoreStorageTest {
@@ -52,7 +52,7 @@ public class YamlFederatedMetaStoreStorageTest {
   public final @Rule TemporaryFolder tmp = new TemporaryFolder();
   public final @Rule DataFolder dataFolder = new ClassDataFolder();
 
-  public @Mock WaggleDanceConfiguration configuration;
+  public @Mock YamlStorageConfiguration configuration;
 
   @Before
   public void init() {
