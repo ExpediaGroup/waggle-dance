@@ -93,6 +93,11 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       return this;
     }
 
+    public Builder overwriteConfigOnShutdown(boolean overwriteConfigOnShutdown) {
+      waggleDanceConfiguration.setOverwriteConfigOnShutdown(overwriteConfigOnShutdown);
+      return this;
+    }
+
     public Builder disconnectionDelay(int disconnectConnectionDelay, TimeUnit disconnectTimeUnit) {
       waggleDanceConfiguration.setDisconnectConnectionDelay(disconnectConnectionDelay);
       waggleDanceConfiguration.setDisconnectTimeUnit(disconnectTimeUnit);

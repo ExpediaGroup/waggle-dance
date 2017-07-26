@@ -39,6 +39,7 @@ public class WaggleDanceConfiguration {
   private @NotNull TimeUnit disconnectTimeUnit = TimeUnit.MINUTES;
   private Map<String, String> configurationProperties;
   private @NotNull DatabaseResolution databaseResolution = DatabaseResolution.MANUAL;
+  private boolean overwriteConfigOnShutdown = true;
 
   // Defaults taken from org.apache.thrift.server.TThreadPoolServer
   // Cannot set the unit but it is in seconds.
@@ -93,6 +94,15 @@ public class WaggleDanceConfiguration {
 
   public DatabaseResolution getDatabaseResolution() {
     return databaseResolution;
+  }
+
+  public void setOverwriteConfigOnShutdown(boolean overwriteConfigOnShutdown) {
+    this.overwriteConfigOnShutdown = overwriteConfigOnShutdown;
+
+  }
+
+  public boolean isOverwriteConfigOnShutdown() {
+    return overwriteConfigOnShutdown;
   }
 
   public int getThriftServerStopTimeoutValInSeconds() {
