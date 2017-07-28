@@ -27,7 +27,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 
-//@Headers({ "Content-Type: application/json", "Accept: application/json" })
 public interface FederationsAdminClient {
 
   @GET

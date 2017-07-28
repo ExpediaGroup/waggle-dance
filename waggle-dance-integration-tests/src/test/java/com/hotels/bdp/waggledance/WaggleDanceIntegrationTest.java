@@ -164,6 +164,14 @@ public class WaggleDanceIntegrationTest {
     runner.waitForService();
   }
 
+  private Federations stopServerAndGetConfiguration() throws Exception, FileNotFoundException {
+    runner.stop();
+    // Stopping the server triggers the saving of the config file.
+    Federations federations = YamlFactory.newYaml().loadAs(new FileInputStream(runner.federationConfig()),
+        Federations.class);
+    return federations;
+  }
+
   @Test
   public void typical() throws Exception {
     exit.expectSystemExitWithStatus(0);
@@ -187,7 +195,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalPrefixAlways() throws Exception {
+  public void usePrefix() throws Exception {
     exit.expectSystemExitWithStatus(0);
     runner = WaggleDanceRunner
         .builder(configLocation)
@@ -278,12 +286,6 @@ public class WaggleDanceIntegrationTest {
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table.remote.success.count 1");
   }
 
-  private void print(Set<String> metrics) {
-    for (String metric : metrics) {
-      LOG.info(">>>> {}", metric);
-    }
-  }
-
   private void assertMetric(Set<String> metrics, String partialMetric) {
     for (String metric : metrics) {
       if (metric.startsWith(partialMetric)) {
@@ -294,7 +296,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalReadWriteCreateAllowed() throws Exception {
+  public void readWriteCreateAllowed() throws Exception {
     exit.expectSystemExitWithStatus(0);
     String writableDatabase = "writable_db";
 
@@ -329,7 +331,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalDatabaseWhitelist() throws Exception {
+  public void databaseWhitelisting() throws Exception {
     exit.expectSystemExitWithStatus(0);
     String writableDatabase = "writable_db";
 
@@ -359,7 +361,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalDatabaseWhitelistCreateDatabaseUpdatesConfig() throws Exception {
+  public void createDatabaseUsingManualAndWhitelistingUpdatesConfig() throws Exception {
     exit.expectSystemExitWithStatus(0);
 
     runner = WaggleDanceRunner
@@ -385,7 +387,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalDatabaseWhitelistCreateDatabaseUpdatesConfigAlwaysPrefix() throws Exception {
+  public void createDatabaseDatabaseUsingPrefixAndWhitelistingUpdates() throws Exception {
     exit.expectSystemExitWithStatus(0);
 
     runner = WaggleDanceRunner
@@ -411,14 +413,6 @@ public class WaggleDanceIntegrationTest {
     assertThat(metaStore.getWritableDatabaseWhiteList().get(0), is("newdb"));
   }
 
-  private Federations stopServerAndGetConfiguration() throws Exception, FileNotFoundException {
-    runner.stop();
-    // Stopping the server triggers the saving of the config file.
-    Federations federations = YamlFactory.newYaml().loadAs(new FileInputStream(runner.federationConfig()),
-        Federations.class);
-    return federations;
-  }
-
   @Test
   public void doesNotOverwriteConfigOnShutdownManualMode() throws Exception {
     // Note a similar test for PREFIX is not required
@@ -442,6 +436,11 @@ public class WaggleDanceIntegrationTest {
 
     Federations federations = stopServerAndGetConfiguration();
 
+    PrimaryMetaStore primaryMetastore = federations.getPrimaryMetaStore();
+    List<String> writableDatabases = primaryMetastore.getWritableDatabaseWhiteList();
+    assertThat(writableDatabases.size(), is(0));
+
+    // Double check federated metastores
     List<FederatedMetaStore> federatedMetastores = federations.getFederatedMetaStores();
     assertThat(federatedMetastores.size(), is(1));
 
