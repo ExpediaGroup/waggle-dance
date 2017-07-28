@@ -187,7 +187,7 @@ The following properties are configured in the server configuration file and con
 
 | Property                          | Required   | Description |
 |:----|:----:|:----|
-| `overwrite-config-on-shutdown`    | No         | Controls whether the federations configuration must be overwritten when the server is stopped. Settings this to `false` will cause that any federations dynamically added at runtime will be lost when the server is stopped. This is also the case of databases created at runtime when `database-resolution` is set to `MANUAL`. Default is `true`. |
+| `overwrite-config-on-shutdown`    | No         | Controls whether the federations configuration must be overwritten when the server is stopped. Settings this to `false` will cause any federations dynamically added at runtime to be lost when the server is stopped. This is also the case of databases created at runtime when `database-resolution` is set to `MANUAL`. Default is `true`. |
 
 
 #### Configuring a SSH tunnel
