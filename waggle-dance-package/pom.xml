@@ -14,6 +14,8 @@
   <properties>
     <maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
     <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
+    <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+    <artifact.location>${project.build.directory}/waggle-dance-${project.version}-bin.tgz</artifact.location>
   </properties>
 
   <dependencies>
@@ -61,7 +63,31 @@
             </goals>
             <phase>install</phase>
             <configuration>
-              <file>${project.build.directory}/waggle-dance-${project.version}-bin.tgz</file>
+              <file>${artifact.location}</file>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>waggle-dance</artifactId>
+              <version>${project.version}</version>
+              <classifier>bin</classifier>
+              <packaging>tgz</packaging>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${maven-deploy-plugin.version}</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <id>deploy-tgz</id>
+            <goals>
+              <goal>deploy-file</goal>
+            </goals>
+            <phase>deploy</phase>
+            <configuration>
+              <file>${artifact.location}</file>
               <groupId>${project.groupId}</groupId>
               <artifactId>waggle-dance</artifactId>
               <version>${project.version}</version>

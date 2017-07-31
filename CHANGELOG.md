@@ -1,3 +1,13 @@
+## [2.0.2]
+### Added
+* Flag to prevent flushing the federation configuration out when the server stops.
+### Changed
+* Configure Maven deploy plug-in.
+
+## [2.0.1]
+### Changed
+* Few extra notes in README.
+
 ## [2.0.0]
 ### Added
 * Allow database name patterns in DDL.
