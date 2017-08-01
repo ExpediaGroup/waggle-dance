@@ -50,6 +50,7 @@ import com.hotels.bdp.waggledance.api.model.Federations;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 
@@ -66,6 +67,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
   public static class Builder {
     private final File workingDirectory;
     private final WaggleDanceConfiguration waggleDanceConfiguration = new WaggleDanceConfiguration();
+    private final YamlStorageConfiguration yamlStorageConfiguration = new YamlStorageConfiguration();
     private final GraphiteConfiguration graphiteConfiguration = new GraphiteConfiguration();
     private final List<FederatedMetaStore> federatedMetaStores = new ArrayList<>();
     private PrimaryMetaStore primaryMetaStore;
@@ -90,6 +92,11 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
     public Builder databaseResolution(DatabaseResolution databaseResolution) {
       waggleDanceConfiguration.setDatabaseResolution(databaseResolution);
+      return this;
+    }
+
+    public Builder overwriteConfigOnShutdown(boolean overwriteConfigOnShutdown) {
+      yamlStorageConfiguration.setOverwriteConfigOnShutdown(overwriteConfigOnShutdown);
       return this;
     }
 
@@ -162,6 +169,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
       HashMap<String, Object> extraConfig = new HashMap<>();
       extraConfig.put("graphite", graphiteConfiguration);
+      extraConfig.put("yaml-storage", yamlStorageConfiguration);
       File serverConfig = marshall(yaml, SERVER_CONFIG + ".yml", waggleDanceConfiguration, extraConfig);
 
       Federations federations = new Federations(primaryMetaStore, federatedMetaStores);

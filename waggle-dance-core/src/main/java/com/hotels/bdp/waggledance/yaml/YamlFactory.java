@@ -37,6 +37,7 @@ import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.Federations;
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
 
 public final class YamlFactory {
 
@@ -57,6 +58,7 @@ public final class YamlFactory {
     representer.addClassTag(Federations.class, Tag.MAP);
     representer.addClassTag(AbstractMetaStore.class, Tag.MAP);
     representer.addClassTag(WaggleDanceConfiguration.class, Tag.MAP);
+    representer.addClassTag(YamlStorageConfiguration.class, Tag.MAP);
     representer.addClassTag(GraphiteConfiguration.class, Tag.MAP);
 
     DumperOptions dumperOptions = new DumperOptions();

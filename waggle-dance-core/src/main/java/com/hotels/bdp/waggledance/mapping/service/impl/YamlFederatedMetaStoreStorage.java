@@ -50,6 +50,7 @@ import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.api.model.Federations;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
+import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
 import com.hotels.bdp.waggledance.mapping.service.FederatedMetaStoreStorage;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 
@@ -137,14 +138,21 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
   private final YamlMarshaller yamlMarshaller;
   private Map<String, AbstractMetaStore> federationsMap;
   private PrimaryMetaStore primaryMetaStore;
+  private boolean writeConfigOnShutdown;
 
   @Autowired
-  public YamlFederatedMetaStoreStorage(@Value("${federation-config}") String federationConfigLocation) {
-    this(federationConfigLocation, new YamlMarshaller());
+  public YamlFederatedMetaStoreStorage(
+      @Value("${federation-config}") String federationConfigLocation,
+      YamlStorageConfiguration configuration) {
+    this(federationConfigLocation, new YamlMarshaller(), configuration.isOverwriteConfigOnShutdown());
   }
 
-  YamlFederatedMetaStoreStorage(String federationConfigLocation, YamlMarshaller yamlSerializer) {
+  YamlFederatedMetaStoreStorage(
+      String federationConfigLocation,
+      YamlMarshaller yamlSerializer,
+      boolean writeConfigOnShutdown) {
     this.federationConfigLocation = federationConfigLocation;
+    this.writeConfigOnShutdown = writeConfigOnShutdown;
     yamlMarshaller = yamlSerializer;
     federationsMap = new LinkedHashMap<>();
   }
@@ -175,8 +183,10 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
 
   @PreDestroy
   public void saveFederation() {
-    yamlMarshaller.marshall(federationConfigLocation,
-        new Federations(getPrimaryMetaStore(), getAllFederatedMetaStores()));
+    if (writeConfigOnShutdown) {
+      yamlMarshaller.marshall(federationConfigLocation,
+          new Federations(getPrimaryMetaStore(), getAllFederatedMetaStores()));
+    }
   }
 
   @Override

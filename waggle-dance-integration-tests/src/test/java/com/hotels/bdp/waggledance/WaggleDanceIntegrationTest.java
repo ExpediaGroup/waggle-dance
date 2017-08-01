@@ -54,11 +54,16 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import feign.Feign;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
+import feign.jaxrs.JAXRSContract;
 import fm.last.commons.test.file.ClassDataFolder;
 import fm.last.commons.test.file.DataFolder;
 
 import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
+import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.Federations;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.junit.ServerSocketRule;
@@ -79,6 +84,7 @@ public class WaggleDanceIntegrationTest {
   public @Rule TemporaryFolder temporaryFolder = new TemporaryFolder();
   public @Rule ThriftHiveMetaStoreJUnitRule localServer = new ThriftHiveMetaStoreJUnitRule(LOCAL_DATABASE);
   public @Rule ThriftHiveMetaStoreJUnitRule remoteServer = new ThriftHiveMetaStoreJUnitRule(REMOTE_DATABASE);
+  public @Rule ThriftHiveMetaStoreJUnitRule newRemoteServer = new ThriftHiveMetaStoreJUnitRule();
   public @Rule DataFolder dataFolder = new ClassDataFolder();
 
   private ExecutorService executor;
@@ -158,6 +164,14 @@ public class WaggleDanceIntegrationTest {
     runner.waitForService();
   }
 
+  private Federations stopServerAndGetConfiguration() throws Exception, FileNotFoundException {
+    runner.stop();
+    // Stopping the server triggers the saving of the config file.
+    Federations federations = YamlFactory.newYaml().loadAs(new FileInputStream(runner.federationConfig()),
+        Federations.class);
+    return federations;
+  }
+
   @Test
   public void typical() throws Exception {
     exit.expectSystemExitWithStatus(0);
@@ -181,7 +195,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalPrefixAlways() throws Exception {
+  public void usePrefix() throws Exception {
     exit.expectSystemExitWithStatus(0);
     runner = WaggleDanceRunner
         .builder(configLocation)
@@ -272,12 +286,6 @@ public class WaggleDanceIntegrationTest {
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table.remote.success.count 1");
   }
 
-  private void print(Set<String> metrics) {
-    for (String metric : metrics) {
-      LOG.info(">>>> {}", metric);
-    }
-  }
-
   private void assertMetric(Set<String> metrics, String partialMetric) {
     for (String metric : metrics) {
       if (metric.startsWith(partialMetric)) {
@@ -288,7 +296,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalReadWriteCreateAllowed() throws Exception {
+  public void readWriteCreateAllowed() throws Exception {
     exit.expectSystemExitWithStatus(0);
     String writableDatabase = "writable_db";
 
@@ -323,7 +331,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalDatabaseWhitelist() throws Exception {
+  public void databaseWhitelisting() throws Exception {
     exit.expectSystemExitWithStatus(0);
     String writableDatabase = "writable_db";
 
@@ -353,7 +361,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalDatabaseWhitelistCreateDatabaseUpdatesConfig() throws Exception {
+  public void createDatabaseUsingManualAndWhitelistingUpdatesConfig() throws Exception {
     exit.expectSystemExitWithStatus(0);
 
     runner = WaggleDanceRunner
@@ -379,7 +387,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void typicalDatabaseWhitelistCreateDatabaseUpdatesConfigAlwaysPrefix() throws Exception {
+  public void createDatabaseDatabaseUsingPrefixAndWhitelistingUpdates() throws Exception {
     exit.expectSystemExitWithStatus(0);
 
     runner = WaggleDanceRunner
@@ -405,12 +413,115 @@ public class WaggleDanceIntegrationTest {
     assertThat(metaStore.getWritableDatabaseWhiteList().get(0), is("newdb"));
   }
 
-  private Federations stopServerAndGetConfiguration() throws Exception, FileNotFoundException {
-    runner.stop();
-    // Stopping the server triggers the saving of the config file.
-    Federations federations = YamlFactory.newYaml().loadAs(new FileInputStream(runner.federationConfig()),
-        Federations.class);
-    return federations;
+  @Test
+  public void doesNotOverwriteConfigOnShutdownManualMode() throws Exception {
+    // Note a similar test for PREFIX is not required
+    exit.expectSystemExitWithStatus(0);
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.MANUAL)
+        .overwriteConfigOnShutdown(false)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .federate("waggle_remote", remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
+    Database newDB = proxy.getDatabase("newDB");
+    assertNotNull(newDB);
+
+    Federations federations = stopServerAndGetConfiguration();
+
+    PrimaryMetaStore primaryMetastore = federations.getPrimaryMetaStore();
+    List<String> writableDatabases = primaryMetastore.getWritableDatabaseWhiteList();
+    assertThat(writableDatabases.size(), is(0));
+
+    // Double check federated metastores
+    List<FederatedMetaStore> federatedMetastores = federations.getFederatedMetaStores();
+    assertThat(federatedMetastores.size(), is(1));
+
+    List<String> mappedDatabases = federatedMetastores.get(0).getMappedDatabases();
+    assertThat(mappedDatabases.size(), is(1));
+    assertThat(mappedDatabases.get(0), is(REMOTE_DATABASE));
+  }
+
+  @Test
+  public void overwritesConfigOnShutdownAfterAddingFederation() throws Exception {
+    exit.expectSystemExitWithStatus(0);
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .federate("waggle_remote", remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    FederationsAdminClient restClient = Feign
+        .builder()
+        .contract(new JAXRSContract())
+        .encoder(new JacksonEncoder())
+        .decoder(new JacksonDecoder())
+        .target(FederationsAdminClient.class, "http://localhost:18000/");
+
+    FederatedMetaStore newFederation = new FederatedMetaStore("new_waggle_remote",
+        newRemoteServer.getThriftConnectionUri());
+    restClient.add(newFederation);
+
+    Federations federations = stopServerAndGetConfiguration();
+
+    List<FederatedMetaStore> federatedMetastores = federations.getFederatedMetaStores();
+    assertThat(federatedMetastores.size(), is(2));
+
+    FederatedMetaStore remoteMetastore = federatedMetastores.get(0);
+    assertThat(remoteMetastore.getName(), is("waggle_remote"));
+    assertThat(remoteMetastore.getMappedDatabases().size(), is(1));
+    assertThat(remoteMetastore.getMappedDatabases().get(0), is(REMOTE_DATABASE));
+
+    FederatedMetaStore newRemoteMetastore = federatedMetastores.get(1);
+    assertThat(newRemoteMetastore.getName(), is("new_waggle_remote"));
+    assertThat(newRemoteMetastore.getMappedDatabases().size(), is(0));
+  }
+
+  @Test
+  public void doesNotOverwriteConfigOnShutdownAfterAddingFederation() throws Exception {
+    exit.expectSystemExitWithStatus(0);
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .overwriteConfigOnShutdown(false)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .federate("waggle_remote", remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    FederationsAdminClient restClient = Feign
+        .builder()
+        .contract(new JAXRSContract())
+        .encoder(new JacksonEncoder())
+        .decoder(new JacksonDecoder())
+        .target(FederationsAdminClient.class, "http://localhost:18000/");
+
+    FederatedMetaStore newFederation = new FederatedMetaStore("new_waggle_remote",
+        newRemoteServer.getThriftConnectionUri());
+    restClient.add(newFederation);
+
+    Federations federations = stopServerAndGetConfiguration();
+
+    List<FederatedMetaStore> federatedMetastores = federations.getFederatedMetaStores();
+    assertThat(federatedMetastores.size(), is(1));
+
+    FederatedMetaStore remoteMetastore = federatedMetastores.get(0);
+    assertThat(remoteMetastore.getName(), is("waggle_remote"));
+    assertThat(remoteMetastore.getMappedDatabases().size(), is(1));
+    assertThat(remoteMetastore.getMappedDatabases().get(0), is(REMOTE_DATABASE));
   }
 
 }
