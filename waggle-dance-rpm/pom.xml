@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -13,6 +14,7 @@
 
   <properties>
     <tmp.directory>${project.build.directory}/tmp-directory</tmp.directory>
+    <rpm.maven.plugin.version>2.1.5</rpm.maven.plugin.version>
     <rpm-sources.directory>${tmp.directory}/waggle-dance-${project.version}</rpm-sources.directory>
     <rpm.install.dir>/opt/waggle-dance</rpm.install.dir>
     <rpm.install.user>waggle-dance</rpm.install.user>
@@ -49,6 +51,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
+        <version>${rpm.maven.plugin.version}</version>
         <executions>
           <execution>
             <id>attach-rpm</id>
@@ -65,6 +68,9 @@
               <defaultGroupname>${rpm.install.group}</defaultGroupname>
               <defaultDirmode>775</defaultDirmode>
               <defaultFilemode>644</defaultFilemode>
+              <keyPassphrase>
+                <passphrase>${gpg.passphrase}</passphrase>
+              </keyPassphrase>
               <mappings>
                 <mapping>
                   <directory>${rpm.install.dir}/conf</directory>
