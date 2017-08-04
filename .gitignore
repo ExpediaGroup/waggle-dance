@@ -40,3 +40,6 @@ derby.log
 # Job Specific Config
 circus-train.yml
 
+# Ignore GPG files
+**/*.gpg
+**/*.key
