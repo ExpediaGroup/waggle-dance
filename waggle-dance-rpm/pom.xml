@@ -68,9 +68,6 @@
               <defaultGroupname>${rpm.install.group}</defaultGroupname>
               <defaultDirmode>775</defaultDirmode>
               <defaultFilemode>644</defaultFilemode>
-              <keyPassphrase>
-                <passphrase>${gpg.passphrase}</passphrase>
-              </keyPassphrase>
               <mappings>
                 <mapping>
                   <directory>${rpm.install.dir}/conf</directory>
@@ -118,5 +115,29 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>sonatype-oss-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>rpm-maven-plugin</artifactId>
+            <version>${rpm.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <configuration>
+                  <keyPassphrase>
+                    <passphrase>${gpg.passphrase}</passphrase>
+                  </keyPassphrase>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
