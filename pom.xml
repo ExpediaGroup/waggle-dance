@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>hotels-oss-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
   </parent>
 
   <artifactId>waggle-dance-parent</artifactId>
@@ -194,6 +194,18 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>travis</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eluder.coveralls</groupId>
+            <artifactId>coveralls-maven-plugin</artifactId>
+            <version>4.3.0</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>sonatype-oss-release</id>
       <build>
