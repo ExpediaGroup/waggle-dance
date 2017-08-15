@@ -21,7 +21,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -41,7 +40,7 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     private final CloseableThriftHiveMetastoreIface client;
 
     private TunnelingMetastoreClientInvocationHandler(TunnelConnectionManager tunnelConnectionManager,
-        CloseableThriftHiveMetastoreIface client) {
+                                                      CloseableThriftHiveMetastoreIface client) {
       this.tunnelConnectionManager = tunnelConnectionManager;
       this.client = client;
     }
@@ -61,25 +60,23 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
         return method.invoke(client, args);
       }
     }
-
   }
 
   private final SessionFactorySupplierFactory sessionFactorySupplierFactory = new SessionFactorySupplierFactory();
 
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    CloseableThriftHiveMetastoreIface client = super.newInstance(hiveConf, name, reconnectionRetries);
     if (hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname) != null) {
       TunnelConnectionManagerFactory tunnelConnectionManagerFactory = new TunnelConnectionManagerFactory(
           sessionFactorySupplierFactory.newInstance(hiveConf));
-      client = tunnel(client, hiveConf, tunnelConnectionManagerFactory);
+      return tunnel(hiveConf, tunnelConnectionManagerFactory, name, reconnectionRetries);
     }
-    return client;
+    return super.newInstance(hiveConf, name, reconnectionRetries);
   }
 
-  private CloseableThriftHiveMetastoreIface tunnel(CloseableThriftHiveMetastoreIface client, HiveConf hiveConf,
-      TunnelConnectionManagerFactory tunnelConnectionManagerFactory) {
-
+  private CloseableThriftHiveMetastoreIface tunnel(HiveConf hiveConf,
+                                                   TunnelConnectionManagerFactory tunnelConnectionManagerFactory,
+                                                   String name, int reconnectionRetries) {
     URI metaStoreUri = URI.create(hiveConf.getVar(ConfVars.METASTOREURIS));
     String remoteHost = metaStoreUri.getHost();
     int remotePort = metaStoreUri.getPort();
@@ -100,6 +97,8 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
       localHiveConf.setVar(ConfVars.METASTOREURIS, proxyMetaStoreUris);
       LOG.info("Metastore URI {} is being proxied to {}", hiveConf.getVar(ConfVars.METASTOREURIS), proxyMetaStoreUris);
 
+      CloseableThriftHiveMetastoreIface client = super.newInstance(localHiveConf, name, reconnectionRetries);
+
       TunnelingMetastoreClientInvocationHandler tunneledHandler = new TunnelingMetastoreClientInvocationHandler(
           tunnelConnectionManager, client);
       return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
@@ -110,5 +109,4 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
       throw new WaggleDanceException(message, e);
     }
   }
-
 }
