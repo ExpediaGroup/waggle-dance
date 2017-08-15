@@ -4,7 +4,7 @@
 
   <parent>
     <groupId>com.hotels</groupId>
-    <artifactId>waggle-dance</artifactId>
+    <artifactId>waggle-dance-parent</artifactId>
     <version>2.0.3-SNAPSHOT</version>
   </parent>
 
@@ -36,7 +36,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>com.hotels</groupId>
-                  <artifactId>waggle-dance-package</artifactId>
+                  <artifactId>waggle-dance</artifactId>
                   <version>${project.version}</version>
                   <classifier>bin</classifier>
                   <type>tgz</type>
@@ -68,9 +68,6 @@
               <defaultGroupname>${rpm.install.group}</defaultGroupname>
               <defaultDirmode>775</defaultDirmode>
               <defaultFilemode>644</defaultFilemode>
-              <keyPassphrase>
-                <passphrase>${gpg.passphrase}</passphrase>
-              </keyPassphrase>
               <mappings>
                 <mapping>
                   <directory>${rpm.install.dir}/conf</directory>
@@ -118,5 +115,29 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>sonatype-oss-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>rpm-maven-plugin</artifactId>
+            <version>${rpm.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <configuration>
+                  <keyPassphrase>
+                    <passphrase>${gpg.passphrase}</passphrase>
+                  </keyPassphrase>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
