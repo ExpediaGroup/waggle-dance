@@ -39,8 +39,9 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     private final TunnelConnectionManager tunnelConnectionManager;
     private final CloseableThriftHiveMetastoreIface client;
 
-    private TunnelingMetastoreClientInvocationHandler(TunnelConnectionManager tunnelConnectionManager,
-                                                      CloseableThriftHiveMetastoreIface client) {
+    private TunnelingMetastoreClientInvocationHandler(
+        TunnelConnectionManager tunnelConnectionManager,
+        CloseableThriftHiveMetastoreIface client) {
       this.tunnelConnectionManager = tunnelConnectionManager;
       this.client = client;
     }
@@ -74,9 +75,10 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     return super.newInstance(hiveConf, name, reconnectionRetries);
   }
 
-  private CloseableThriftHiveMetastoreIface tunnel(HiveConf hiveConf,
-                                                   TunnelConnectionManagerFactory tunnelConnectionManagerFactory,
-                                                   String name, int reconnectionRetries) {
+  private CloseableThriftHiveMetastoreIface tunnel(
+      HiveConf hiveConf,
+      TunnelConnectionManagerFactory tunnelConnectionManagerFactory,
+      String name, int reconnectionRetries) {
     URI metaStoreUri = URI.create(hiveConf.getVar(ConfVars.METASTOREURIS));
     String remoteHost = metaStoreUri.getHost();
     int remotePort = metaStoreUri.getPort();
