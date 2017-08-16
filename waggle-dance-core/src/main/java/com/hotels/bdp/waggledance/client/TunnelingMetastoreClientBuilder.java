@@ -28,14 +28,14 @@ import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
 public class TunnelingMetastoreClientBuilder {
 
-  private HiveConf hiveConf = new HiveConf();
-  private String name = "";
-  private Integer reconnectionRetries = 1;
-  private TunnelConnectionManagerFactory tunnelConnectionManagerFactory = null;
-  private String remoteHost = "thrift://localhost:9083";
-  private String sshRoute = "";
-  private String localHost = "thrift://localhost:9083";
-  private Integer remotePort = 9083;
+  private HiveConf hiveConf;
+  private String name;
+  private Integer reconnectionRetries;
+  private TunnelConnectionManagerFactory tunnelConnectionManagerFactory;
+  private String remoteHost;
+  private String sshRoute;
+  private String localHost;
+  private Integer remotePort;
 
   public CloseableThriftHiveMetastoreIface build() {
     TunnelConnectionManager tunnelConnectionManager = tunnelConnectionManagerFactory.create(sshRoute, localHost,
@@ -43,7 +43,12 @@ public class TunnelingMetastoreClientBuilder {
     WaggleDanceTunnel waggleDanceTunnel = new WaggleDanceTunnel(hiveConf, tunnelConnectionManager, sshRoute, localHost,
         remoteHost, remotePort);
     HiveConf localHiveConf = waggleDanceTunnel.create();
+    return clientFromLocalHiveConf(tunnelConnectionManager, localHiveConf);
+  }
 
+  private CloseableThriftHiveMetastoreIface clientFromLocalHiveConf(
+      TunnelConnectionManager tunnelConnectionManager,
+      HiveConf localHiveConf) {
     CloseableThriftHiveMetastoreIface client = new MetaStoreClientFactory().newInstance(localHiveConf, name,
         reconnectionRetries);
     TunnelingMetastoreClientInvocationHandler tunneledHandler = new TunnelingMetastoreClientInvocationHandler(

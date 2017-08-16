@@ -16,8 +16,10 @@
 package com.hotels.bdp.waggledance.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,14 +30,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.pastdev.jsch.tunnel.Tunnel;
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(TunnelingMetastoreClientBuilder.class)
 public class TunnelingMetastoreClientBuilderTest {
-  private TunnelingMetastoreClientBuilder tunnelingMetastoreClientBuilder = new TunnelingMetastoreClientBuilder();
+  private @Spy TunnelingMetastoreClientBuilder tunnelingMetastoreClientBuilder = new TunnelingMetastoreClientBuilder();
   private @Mock TunnelConnectionManagerFactory tunnelConnectionManagerFactory;
   private @Spy HiveConf hiveConf = new HiveConf();
   private @Mock TunnelConnectionManager tunnelConnectionManager;
@@ -66,6 +71,12 @@ public class TunnelingMetastoreClientBuilderTest {
 
     verify(tunnelConnectionManager, times(2)).getTunnel(anyString(), anyInt());
     verify(tunnelConnectionManager).open();
+
+    //Check that Client is being created from a hiveConf different to that passed into the builder
+    PowerMockito.verifyPrivate(tunnelingMetastoreClientBuilder, times(0))
+                .invoke("clientFromLocalHiveConf", tunnelConnectionManager, hiveConf);
+    PowerMockito.verifyPrivate(tunnelingMetastoreClientBuilder, times(1))
+                .invoke("clientFromLocalHiveConf", eq(tunnelConnectionManager), any(HiveConf.class));
   }
 
   @Test

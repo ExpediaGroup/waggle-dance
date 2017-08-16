@@ -26,8 +26,10 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
   private final SessionFactorySupplierFactory sessionFactorySupplierFactory;
   private final TunnelingMetastoreClientBuilder tunnelingMetastoreClientBuilder;
 
-  public TunnelingMetaStoreClientFactory(TunnelingMetastoreClientBuilder tunnelingMetastoreClientBuilder) {
-    this.sessionFactorySupplierFactory = new SessionFactorySupplierFactory();
+  public TunnelingMetaStoreClientFactory(
+      SessionFactorySupplierFactory sessionFactorySupplierFactory,
+      TunnelingMetastoreClientBuilder tunnelingMetastoreClientBuilder) {
+    this.sessionFactorySupplierFactory = sessionFactorySupplierFactory;
     this.tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder;
   }
 
