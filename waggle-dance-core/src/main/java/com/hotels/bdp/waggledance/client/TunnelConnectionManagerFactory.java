@@ -93,7 +93,7 @@ public class TunnelConnectionManagerFactory {
       LOG.debug("Creating SSH tunnel connection manager for expression {}", tunnelExpression);
       return new TunnelConnectionManager(sessionFactorySupplier.get(), tunnelExpression);
     } catch (Exception e) {
-      throw new WaggleDanceException("Unable to create a TunnelConnectionManager: " + tunnelExpression, e);
+      throw new WaggleDanceException("Unable to getConf a TunnelConnectionManager: " + tunnelExpression, e);
     } finally {
       LOG.debug("SSH tunnel connection manager for expression {} has been created", tunnelExpression);
     }

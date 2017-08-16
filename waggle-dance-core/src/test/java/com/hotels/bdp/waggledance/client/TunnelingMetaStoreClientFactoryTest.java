@@ -46,26 +46,26 @@ public class TunnelingMetaStoreClientFactoryTest {
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS,
         "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:9083");
 
-    when(builder.withHiveConf(any(HiveConf.class))).thenReturn(builder);
-    when(builder.withLocalHost(anyString())).thenReturn(builder);
-    when(builder.withName(anyString())).thenReturn(builder);
-    when(builder.withReconnectionRetries(anyInt())).thenReturn(builder);
-    when(builder.withRemoteHost(anyString())).thenReturn(builder);
-    when(builder.withRemotePort(anyInt())).thenReturn(builder);
-    when(builder.withSSHRoute(anyString())).thenReturn(builder);
-    when(builder.withTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class))).thenReturn(builder);
+    when(builder.setHiveConf(any(HiveConf.class))).thenReturn(builder);
+    when(builder.setLocalHost(anyString())).thenReturn(builder);
+    when(builder.setName(anyString())).thenReturn(builder);
+    when(builder.setReconnectionRetries(anyInt())).thenReturn(builder);
+    when(builder.setRemoteHost(anyString())).thenReturn(builder);
+    when(builder.setRemotePort(anyInt())).thenReturn(builder);
+    when(builder.setSSHRoute(anyString())).thenReturn(builder);
+    when(builder.setTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class))).thenReturn(builder);
     when(builder.build()).thenReturn(client);
 
     factory.newInstance(hiveConf, "test", 10);
 
-    verify(builder).withRemotePort(anyInt());
-    verify(builder).withLocalHost(anyString());
-    verify(builder).withSSHRoute(anyString());
-    verify(builder).withRemoteHost(anyString());
-    verify(builder).withName(anyString());
-    verify(builder).withReconnectionRetries(anyInt());
-    verify(builder).withHiveConf(any(HiveConf.class));
-    verify(builder).withTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class));
+    verify(builder).setRemotePort(anyInt());
+    verify(builder).setLocalHost(anyString());
+    verify(builder).setSSHRoute(anyString());
+    verify(builder).setRemoteHost(anyString());
+    verify(builder).setName(anyString());
+    verify(builder).setReconnectionRetries(anyInt());
+    verify(builder).setHiveConf(any(HiveConf.class));
+    verify(builder).setTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class));
     verify(builder).build();
   }
 
@@ -78,14 +78,14 @@ public class TunnelingMetaStoreClientFactoryTest {
 
     factory.newInstance(hiveConf, "test", 10);
 
-    verify(builder, times(0)).withRemotePort(anyInt());
-    verify(builder, times(0)).withLocalHost(anyString());
-    verify(builder, times(0)).withSSHRoute(anyString());
-    verify(builder, times(0)).withRemoteHost(anyString());
-    verify(builder, times(0)).withName(anyString());
-    verify(builder, times(0)).withReconnectionRetries(anyInt());
-    verify(builder, times(0)).withHiveConf(any(HiveConf.class));
-    verify(builder, times(0)).withTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class));
+    verify(builder, times(0)).setRemotePort(anyInt());
+    verify(builder, times(0)).setLocalHost(anyString());
+    verify(builder, times(0)).setSSHRoute(anyString());
+    verify(builder, times(0)).setRemoteHost(anyString());
+    verify(builder, times(0)).setName(anyString());
+    verify(builder, times(0)).setReconnectionRetries(anyInt());
+    verify(builder, times(0)).setHiveConf(any(HiveConf.class));
+    verify(builder, times(0)).setTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class));
     verify(builder, times(0)).build();
   }
 }

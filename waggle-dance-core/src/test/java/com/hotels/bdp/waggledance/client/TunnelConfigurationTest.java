@@ -34,14 +34,14 @@ import com.pastdev.jsch.tunnel.Tunnel;
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
 @RunWith(MockitoJUnitRunner.class)
-public class WaggleDanceTunnelTest {
+public class TunnelConfigurationTest {
 
   private @Spy HiveConf hiveConf = new HiveConf();
   private @Mock TunnelConnectionManager tunnelConnectionManager;
   private @Mock Tunnel tunnel;
 
   @Test
-  public void create() throws Exception {
+  public void getConf() throws Exception {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "hcom@ec2-12-345-678-91.compute-1.amazonaws.com");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
     String originalMetastoreUri = "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:9083";
@@ -49,9 +49,10 @@ public class WaggleDanceTunnelTest {
 
     when(tunnelConnectionManager.getTunnel(anyString(), anyInt())).thenReturn(tunnel);
     doNothing().when(tunnelConnectionManager).open();
-    WaggleDanceTunnel waggleDanceTunnel = new WaggleDanceTunnel(hiveConf, tunnelConnectionManager, "route", "localhost",
+    TunnelConfiguration tunnelConfiguration = new TunnelConfiguration(hiveConf, tunnelConnectionManager, "route",
+        "localhost",
         "remotehost", 9083);
-    HiveConf localHiveConf = waggleDanceTunnel.create();
+    HiveConf localHiveConf = tunnelConfiguration.getConf();
     assertNotEquals(originalMetastoreUri, localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
     assertNotEquals(hiveConf, localHiveConf);
     verify(tunnelConnectionManager, times(2)).getTunnel(anyString(), anyInt());

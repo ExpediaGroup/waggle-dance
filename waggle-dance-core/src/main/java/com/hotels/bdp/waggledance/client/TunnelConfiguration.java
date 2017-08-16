@@ -24,9 +24,9 @@ import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 
-public class WaggleDanceTunnel {
+public class TunnelConfiguration {
 
-  private static final Logger LOG = LoggerFactory.getLogger(WaggleDanceTunnel.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TunnelConfiguration.class);
 
   private final HiveConf hiveConf;
   private final TunnelConnectionManager tunnelConnectionManager;
@@ -35,7 +35,7 @@ public class WaggleDanceTunnel {
   private final String remoteHost;
   private final int remotePort;
 
-  public WaggleDanceTunnel(
+  public TunnelConfiguration(
       HiveConf hiveConf,
       TunnelConnectionManager tunnelConnectionManager,
       String sshRoute,
@@ -50,7 +50,7 @@ public class WaggleDanceTunnel {
     this.remotePort = remotePort;
   }
 
-  public HiveConf create() {
+  public HiveConf getConf() {
     try {
       LOG.debug("Creating tunnel: {}:? -> {} -> {}:{}", localHost, sshRoute, remoteHost, remotePort);
       int localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();

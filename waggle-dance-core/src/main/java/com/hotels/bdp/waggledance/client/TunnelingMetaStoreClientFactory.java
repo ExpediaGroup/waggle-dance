@@ -46,14 +46,14 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     String sshRoute = hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
     String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, "localhost");
     return tunnelingMetastoreClientBuilder
-        .withHiveConf(hiveConf)
-        .withName(name)
-        .withReconnectionRetries(reconnectionRetries)
-        .withTunnelConnectionManagerFactory(tunnelConnectionManagerFactory)
-        .withRemoteHost(remoteHost)
-        .withSSHRoute(sshRoute)
-        .withLocalHost(localHost)
-        .withRemotePort(remotePort)
+        .setHiveConf(hiveConf)
+        .setName(name)
+        .setReconnectionRetries(reconnectionRetries)
+        .setTunnelConnectionManagerFactory(tunnelConnectionManagerFactory)
+        .setRemoteHost(remoteHost)
+        .setSSHRoute(sshRoute)
+        .setLocalHost(localHost)
+        .setRemotePort(remotePort)
         .build();
   }
 }

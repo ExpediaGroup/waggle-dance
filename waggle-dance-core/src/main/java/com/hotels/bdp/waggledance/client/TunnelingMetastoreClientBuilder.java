@@ -40,9 +40,9 @@ public class TunnelingMetastoreClientBuilder {
   public CloseableThriftHiveMetastoreIface build() {
     TunnelConnectionManager tunnelConnectionManager = tunnelConnectionManagerFactory.create(sshRoute, localHost,
         FIRST_AVAILABLE_PORT, remoteHost, remotePort);
-    WaggleDanceTunnel waggleDanceTunnel = new WaggleDanceTunnel(hiveConf, tunnelConnectionManager, sshRoute, localHost,
+    TunnelConfiguration tunnelConfiguration = new TunnelConfiguration(hiveConf, tunnelConnectionManager, sshRoute, localHost,
         remoteHost, remotePort);
-    HiveConf localHiveConf = waggleDanceTunnel.create();
+    HiveConf localHiveConf = tunnelConfiguration.getConf();
     return clientFromLocalHiveConf(tunnelConnectionManager, localHiveConf);
   }
 
@@ -57,43 +57,43 @@ public class TunnelingMetastoreClientBuilder {
         tunneledHandler);
   }
 
-  public TunnelingMetastoreClientBuilder withHiveConf(HiveConf hiveConf) {
+  public TunnelingMetastoreClientBuilder setHiveConf(HiveConf hiveConf) {
     this.hiveConf = hiveConf;
     return this;
   }
 
-  public TunnelingMetastoreClientBuilder withName(String name) {
+  public TunnelingMetastoreClientBuilder setName(String name) {
     this.name = name;
     return this;
   }
 
-  public TunnelingMetastoreClientBuilder withReconnectionRetries(Integer reconnectionRetries) {
+  public TunnelingMetastoreClientBuilder setReconnectionRetries(Integer reconnectionRetries) {
     this.reconnectionRetries = reconnectionRetries;
     return this;
   }
 
-  public TunnelingMetastoreClientBuilder withTunnelConnectionManagerFactory(
+  public TunnelingMetastoreClientBuilder setTunnelConnectionManagerFactory(
       TunnelConnectionManagerFactory tunnelConnectionManagerFactory) {
     this.tunnelConnectionManagerFactory = tunnelConnectionManagerFactory;
     return this;
   }
 
-  public TunnelingMetastoreClientBuilder withRemoteHost(String remoteHost) {
+  public TunnelingMetastoreClientBuilder setRemoteHost(String remoteHost) {
     this.remoteHost = remoteHost;
     return this;
   }
 
-  public TunnelingMetastoreClientBuilder withSSHRoute(String sshRoute) {
+  public TunnelingMetastoreClientBuilder setSSHRoute(String sshRoute) {
     this.sshRoute = sshRoute;
     return this;
   }
 
-  public TunnelingMetastoreClientBuilder withLocalHost(String localHost) {
+  public TunnelingMetastoreClientBuilder setLocalHost(String localHost) {
     this.localHost = localHost;
     return this;
   }
 
-  public TunnelingMetastoreClientBuilder withRemotePort(Integer remotePort) {
+  public TunnelingMetastoreClientBuilder setRemotePort(Integer remotePort) {
     this.remotePort = remotePort;
     return this;
   }

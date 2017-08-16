@@ -310,7 +310,7 @@ public class WaggleDanceIntegrationTest {
     runWaggleDance(runner);
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
-    // create rights
+    // getConf rights
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Database newDB = proxy.getDatabase("newDB");
     assertNotNull(newDB);

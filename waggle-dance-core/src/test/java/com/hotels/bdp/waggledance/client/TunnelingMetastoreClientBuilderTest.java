@@ -2,7 +2,7 @@
  * Copyright (C) 2016-2017 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you may not use this file except in compliance set the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -59,18 +59,20 @@ public class TunnelingMetastoreClientBuilderTest {
     doNothing().when(tunnelConnectionManager).open();
 
     tunnelingMetastoreClientBuilder
-        .withHiveConf(hiveConf)
-        .withName("name")
-        .withReconnectionRetries(10)
-        .withTunnelConnectionManagerFactory(tunnelConnectionManagerFactory)
-        .withRemoteHost("remote")
-        .withSSHRoute("route")
-        .withLocalHost("local")
-        .withRemotePort(9083)
+        .setHiveConf(hiveConf)
+        .setName("name")
+        .setReconnectionRetries(10)
+        .setTunnelConnectionManagerFactory(tunnelConnectionManagerFactory)
+        .setRemoteHost("remote")
+        .setSSHRoute("route")
+        .setLocalHost("local")
+        .setRemotePort(9083)
         .build();
 
     verify(tunnelConnectionManager, times(2)).getTunnel(anyString(), anyInt());
     verify(tunnelConnectionManager).open();
+
+    new HiveConf(hiveConf);
 
     //Check that Client is being created from a hiveConf different to that passed into the builder
     PowerMockito.verifyPrivate(tunnelingMetastoreClientBuilder, times(0))
@@ -80,60 +82,60 @@ public class TunnelingMetastoreClientBuilderTest {
   }
 
   @Test
-  public void withHiveConf() throws Exception {
+  public void setHiveConf() throws Exception {
     HiveConf hiveConf = new HiveConf();
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, "test");
-    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.withHiveConf(hiveConf);
+    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.setHiveConf(hiveConf);
     HiveConf copy = tunnelingMetastoreClientBuilder.getHiveConf();
     assertEquals(hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS), copy.getVar(HiveConf.ConfVars.METASTOREURIS));
   }
 
   @Test
-  public void withName() throws Exception {
+  public void setName() throws Exception {
     String name = "name";
-    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.withName(name);
+    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.setName(name);
     assertEquals(name, tunnelingMetastoreClientBuilder.getName());
   }
 
   @Test
-  public void withReconnectionRetries() throws Exception {
+  public void setReconnectionRetries() throws Exception {
     Integer retries = 5;
-    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.withReconnectionRetries(retries);
+    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.setReconnectionRetries(retries);
     assertEquals(retries, tunnelingMetastoreClientBuilder.getReconnectionRetries());
   }
 
   @Test
-  public void withTunnelConnectionManagerFactory() throws Exception {
-    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.withTunnelConnectionManagerFactory(
+  public void setTunnelConnectionManagerFactory() throws Exception {
+    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.setTunnelConnectionManagerFactory(
         tunnelConnectionManagerFactory);
     assertEquals(tunnelConnectionManagerFactory, tunnelingMetastoreClientBuilder.getTunnelConnectionManagerFactory());
   }
 
   @Test
-  public void withRemoteHost() throws Exception {
+  public void setRemoteHost() throws Exception {
     String host = "host";
-    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.withRemoteHost(host);
+    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.setRemoteHost(host);
     assertEquals(host, tunnelingMetastoreClientBuilder.getRemoteHost());
   }
 
   @Test
-  public void withSSHRoute() throws Exception {
+  public void setSSHRoute() throws Exception {
     String route = "route";
-    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.withSSHRoute(route);
+    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.setSSHRoute(route);
     assertEquals(route, tunnelingMetastoreClientBuilder.getSSHRoute());
   }
 
   @Test
-  public void withLocalHost() throws Exception {
+  public void setLocalHost() throws Exception {
     String host = "host";
-    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.withLocalHost(host);
+    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.setLocalHost(host);
     assertEquals(host, tunnelingMetastoreClientBuilder.getLocalHost());
   }
 
   @Test
-  public void withRemotePort() throws Exception {
+  public void setRemotePort() throws Exception {
     Integer port = 9083;
-    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.withRemotePort(port);
+    tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.setRemotePort(port);
     assertEquals(port, tunnelingMetastoreClientBuilder.getRemotePort());
   }
 }

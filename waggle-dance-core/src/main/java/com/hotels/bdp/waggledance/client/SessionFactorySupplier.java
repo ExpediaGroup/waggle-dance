@@ -56,7 +56,7 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
         sessionFactory.setIdentitiesFromPrivateKeys(identityKeys);
       } catch (JSchException | RuntimeException e) {
         throw new WaggleDanceException(
-            "Unable to create factory with knownHosts=" + knownHosts + " and identityKeys=" + identityKeys, e);
+            "Unable to getConf factory with knownHosts=" + knownHosts + " and identityKeys=" + identityKeys, e);
       }
     }
     return sessionFactory;
