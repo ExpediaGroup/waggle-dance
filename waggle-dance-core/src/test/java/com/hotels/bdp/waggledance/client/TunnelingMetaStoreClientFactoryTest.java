@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.client;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,7 +37,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Spy HiveConf hiveConf = new HiveConf();
 
   @Test
-  public void newInstance() throws Exception {
+  public void newInstanceWithTunneling() throws Exception {
     TunnelingMetaStoreClientFactory factory = new TunnelingMetaStoreClientFactory(builder);
 
     hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "hcom@ec2-12-345-678-91.compute-1.amazonaws.com");
@@ -65,5 +66,24 @@ public class TunnelingMetaStoreClientFactoryTest {
     verify(builder).withHiveConf(any(HiveConf.class));
     verify(builder).withTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class));
     verify(builder).build();
+  }
+
+  @Test
+  public void newInstanceWithoutTunneling() throws Exception {
+    hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS,
+        "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:9083");
+    TunnelingMetaStoreClientFactory factory = new TunnelingMetaStoreClientFactory(builder);
+
+    factory.newInstance(hiveConf, "test", 10);
+
+    verify(builder, times(0)).withRemotePort(anyInt());
+    verify(builder, times(0)).withLocalHost(anyString());
+    verify(builder, times(0)).withSSHRoute(anyString());
+    verify(builder, times(0)).withRemoteHost(anyString());
+    verify(builder, times(0)).withName(anyString());
+    verify(builder, times(0)).withReconnectionRetries(anyInt());
+    verify(builder, times(0)).withHiveConf(any(HiveConf.class));
+    verify(builder, times(0)).withTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class));
+    verify(builder, times(0)).build();
   }
 }

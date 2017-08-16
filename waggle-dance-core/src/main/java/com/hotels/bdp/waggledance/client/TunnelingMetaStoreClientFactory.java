@@ -15,10 +15,11 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+import static org.springframework.util.StringUtils.isEmpty;
+
 import java.net.URI;
 
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
 public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
 
@@ -32,25 +33,25 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
 
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    if (hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname) != null) {
-      TunnelConnectionManagerFactory tunnelConnectionManagerFactory = new TunnelConnectionManagerFactory(
-          sessionFactorySupplierFactory.newInstance(hiveConf));
-      URI metaStoreUri = URI.create(hiveConf.getVar(ConfVars.METASTOREURIS));
-      String remoteHost = metaStoreUri.getHost();
-      Integer remotePort = metaStoreUri.getPort();
-      String sshRoute = hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
-      String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, "localhost");
-      tunnelingMetastoreClientBuilder
-          .withHiveConf(hiveConf)
-          .withName(name)
-          .withReconnectionRetries(reconnectionRetries)
-          .withTunnelConnectionManagerFactory(tunnelConnectionManagerFactory)
-          .withRemoteHost(remoteHost)
-          .withSSHRoute(sshRoute)
-          .withLocalHost(localHost)
-          .withRemotePort(remotePort)
-          .build();
+    if (isEmpty(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))) {
+      return super.newInstance(hiveConf, name, reconnectionRetries);
     }
-    return super.newInstance(hiveConf, name, reconnectionRetries);
+    TunnelConnectionManagerFactory tunnelConnectionManagerFactory = new TunnelConnectionManagerFactory(
+        sessionFactorySupplierFactory.newInstance(hiveConf));
+    URI metaStoreUri = URI.create(hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
+    String remoteHost = metaStoreUri.getHost();
+    Integer remotePort = metaStoreUri.getPort();
+    String sshRoute = hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
+    String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, "localhost");
+    return tunnelingMetastoreClientBuilder
+        .withHiveConf(hiveConf)
+        .withName(name)
+        .withReconnectionRetries(reconnectionRetries)
+        .withTunnelConnectionManagerFactory(tunnelConnectionManagerFactory)
+        .withRemoteHost(remoteHost)
+        .withSSHRoute(sshRoute)
+        .withLocalHost(localHost)
+        .withRemotePort(remotePort)
+        .build();
   }
 }
