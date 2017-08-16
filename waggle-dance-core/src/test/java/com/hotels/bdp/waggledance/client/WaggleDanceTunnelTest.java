@@ -53,6 +53,7 @@ public class WaggleDanceTunnelTest {
         "remotehost", 9083);
     HiveConf localHiveConf = waggleDanceTunnel.create();
     assertNotEquals(originalMetastoreUri, localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
+    assertNotEquals(hiveConf, localHiveConf);
     verify(tunnelConnectionManager, times(2)).getTunnel(anyString(), anyInt());
     verify(tunnelConnectionManager).open();
   }
