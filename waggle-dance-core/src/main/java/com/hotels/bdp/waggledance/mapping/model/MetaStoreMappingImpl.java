@@ -103,7 +103,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
       getClient().create_database(database);
       accessControlHandler.databaseCreatedNotification(database.getName());
     } else {
-      throw new NotAllowedException("You cannot getConf the database '" + database.getName() + "'.");
+      throw new NotAllowedException("You cannot create the database '" + database.getName() + "'.");
     }
   }
 

@@ -44,7 +44,7 @@ public class AccessControlHandlerFactory {
       if (federatedMetaStore.getFederationType() == FederationType.PRIMARY) {
         return new ReadWriteCreateAccessControlHandler();
       } else {
-        // Should never be possible to getConf this state. If this is thrown it is a bug.
+        // Should never be possible to configure this state. If this is thrown it is a bug.
         throw new IllegalStateException("Write access on anything other then a 'primary' metastore is not allowed");
       }
     case READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST:
@@ -52,7 +52,7 @@ public class AccessControlHandlerFactory {
         return new DatabaseWhitelistAccessControlHandler((PrimaryMetaStore) federatedMetaStore, federationService,
             CAN_CREATE);
       } else {
-        // Should never be possible to getConf this state. If this is thrown it is a bug.
+        // Should never be possible to configure this state. If this is thrown it is a bug.
         throw new IllegalStateException("Write access on anything other then a 'primary' metastore is not allowed");
       }
     case READ_AND_WRITE_ON_DATABASE_WHITELIST:
@@ -60,7 +60,7 @@ public class AccessControlHandlerFactory {
         return new DatabaseWhitelistAccessControlHandler((PrimaryMetaStore) federatedMetaStore, federationService,
             CANNOT_CREATE);
       } else {
-        // Should never be possible to getConf this state. If this is thrown it is a bug.
+        // Should never be possible to configure this state. If this is thrown it is a bug.
         throw new IllegalStateException("Write access on anything other then a 'primary' metastore is not allowed");
       }
     default:

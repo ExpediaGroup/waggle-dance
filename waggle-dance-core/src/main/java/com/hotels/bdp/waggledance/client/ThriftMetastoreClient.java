@@ -140,7 +140,7 @@ class ThriftMetastoreClient implements Closeable {
                     transport, MetaStoreUtils.getMetaStoreSaslProperties(conf));
               }
             } catch (IOException ioe) {
-              LOG.error("Couldn't getConf client transport", ioe);
+              LOG.error("Couldn't create client transport", ioe);
               throw new MetaException(ioe.toString());
             }
           } else if (useFramedTransport) {
