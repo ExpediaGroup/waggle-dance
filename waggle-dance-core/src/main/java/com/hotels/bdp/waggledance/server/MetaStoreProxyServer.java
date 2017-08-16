@@ -146,7 +146,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       AtomicBoolean startedServing)
     throws Throwable {
     try {
-      // Server will getConf new threads up to max as necessary. After an idle
+      // Server will create new threads up to max as necessary. After an idle
       // period, it will destory threads to keep the number of threads in the
       // pool to min.
       int minWorkerThreads = hiveConf.getIntVar(ConfVars.METASTORESERVERMINTHREADS);

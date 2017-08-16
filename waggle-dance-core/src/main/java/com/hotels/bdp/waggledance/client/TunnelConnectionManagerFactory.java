@@ -35,7 +35,7 @@ public class TunnelConnectionManagerFactory {
 
   public static final int FIRST_AVAILABLE_PORT = 0;
 
-  private static Supplier<SessionFactory> sessionFactorySupplier;
+  private final Supplier<SessionFactory> sessionFactorySupplier;
 
   public TunnelConnectionManagerFactory(Supplier<SessionFactory> sessionFactorySupplier) {
     this.sessionFactorySupplier = sessionFactorySupplier;
