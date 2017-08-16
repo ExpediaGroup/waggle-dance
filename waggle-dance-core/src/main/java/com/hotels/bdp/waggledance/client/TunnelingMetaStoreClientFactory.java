@@ -19,17 +19,19 @@ import java.net.URI;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
 
-  private final SessionFactorySupplierFactory sessionFactorySupplierFactory = new SessionFactorySupplierFactory();
+  private final SessionFactorySupplierFactory sessionFactorySupplierFactory;
+  private final TunnelingMetastoreClientBuilder tunnelingMetastoreClientBuilder;
 
-  private @Autowired TunnelingMetastoreClientBuilder tunnelingMetastoreClientBuilder;
+  public TunnelingMetaStoreClientFactory(TunnelingMetastoreClientBuilder tunnelingMetastoreClientBuilder) {
+    this.sessionFactorySupplierFactory = new SessionFactorySupplierFactory();
+    this.tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder;
+  }
 
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-
     if (hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname) != null) {
       TunnelConnectionManagerFactory tunnelConnectionManagerFactory = new TunnelConnectionManagerFactory(
           sessionFactorySupplierFactory.newInstance(hiveConf));

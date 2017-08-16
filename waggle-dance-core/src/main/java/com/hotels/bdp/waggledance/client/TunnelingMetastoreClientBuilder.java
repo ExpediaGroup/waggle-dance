@@ -23,11 +23,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.springframework.stereotype.Component;
 
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
-@Component
 public class TunnelingMetastoreClientBuilder {
 
   private HiveConf hiveConf = new HiveConf();
@@ -42,15 +40,20 @@ public class TunnelingMetastoreClientBuilder {
   public CloseableThriftHiveMetastoreIface build() {
     TunnelConnectionManager tunnelConnectionManager = tunnelConnectionManagerFactory.create(sshRoute, localHost,
         FIRST_AVAILABLE_PORT, remoteHost, remotePort);
-    WaggleDanceTunnel tunnel = new WaggleDanceTunnel(hiveConf, tunnelConnectionManager, sshRoute, localHost, remoteHost,
-        remotePort);
-    HiveConf localHiveConf = tunnel.create();
-    return new TunnelingMetastoreClientInvocationHandler(tunnelConnectionManager,
-        new MetaStoreClientFactory().newInstance(localHiveConf, name, reconnectionRetries)).newInstance();
+    WaggleDanceTunnel waggleDanceTunnel = new WaggleDanceTunnel(hiveConf, tunnelConnectionManager, sshRoute, localHost,
+        remoteHost, remotePort);
+    HiveConf localHiveConf = waggleDanceTunnel.create();
+
+    CloseableThriftHiveMetastoreIface client = new MetaStoreClientFactory().newInstance(localHiveConf, name,
+        reconnectionRetries);
+    TunnelingMetastoreClientInvocationHandler tunneledHandler = new TunnelingMetastoreClientInvocationHandler(
+        tunnelConnectionManager, client);
+    return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
+        tunneledHandler);
   }
 
   public TunnelingMetastoreClientBuilder withHiveConf(HiveConf hiveConf) {
-    this.hiveConf = new HiveConf(hiveConf);
+    this.hiveConf = hiveConf;
     return this;
   }
 
@@ -148,13 +151,6 @@ public class TunnelingMetastoreClientBuilder {
       default:
         return method.invoke(client, args);
       }
-    }
-
-    private CloseableThriftHiveMetastoreIface newInstance() {
-      TunnelingMetastoreClientInvocationHandler tunneledHandler = new TunnelingMetastoreClientInvocationHandler(
-          tunnelConnectionManager, client);
-      return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
-          tunneledHandler);
     }
   }
 }

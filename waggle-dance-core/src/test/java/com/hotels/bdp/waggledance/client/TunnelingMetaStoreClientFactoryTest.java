@@ -21,12 +21,9 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.net.URISyntaxException;
-
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -38,13 +35,10 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Mock CloseableThriftHiveMetastoreIface client;
   private @Spy HiveConf hiveConf = new HiveConf();
 
-  @InjectMocks
-  private TunnelingMetaStoreClientFactory factory = new TunnelingMetaStoreClientFactory();
-
-  public TunnelingMetaStoreClientFactoryTest() throws URISyntaxException {}
-
   @Test
   public void newInstance() throws Exception {
+    TunnelingMetaStoreClientFactory factory = new TunnelingMetaStoreClientFactory(builder);
+
     hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "hcom@ec2-12-345-678-91.compute-1.amazonaws.com");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS,

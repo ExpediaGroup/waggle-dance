@@ -42,7 +42,7 @@ public class WaggleDanceTunnel {
       String localHost,
       String remoteHost,
       int remotePort) {
-    this.hiveConf = new HiveConf(hiveConf);
+    this.hiveConf = hiveConf;
     this.tunnelConnectionManager = tunnelConnectionManager;
     this.sshRoute = sshRoute;
     this.localHost = localHost;
@@ -55,17 +55,19 @@ public class WaggleDanceTunnel {
       LOG.debug("Creating tunnel: {}:? -> {} -> {}:{}", localHost, sshRoute, remoteHost, remotePort);
       int localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();
       tunnelConnectionManager.open();
-      LOG.debug("WaggleDanceTunnel created: {}:{} -> {} -> {}:{}", localHost, localPort, sshRoute, remoteHost, remotePort);
+      LOG.debug("Tunnel created: {}:{} -> {} -> {}:{}", localHost, localPort, sshRoute, remoteHost, remotePort);
+
       localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();
+      HiveConf localHiveConf = new HiveConf(hiveConf);
       String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
-      hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
+      localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
       LOG.info("Metastore URI {} is being proxied to {}", hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
-          proxyMetaStoreUris);
+          localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
+      return localHiveConf;
     } catch (JSchException | RuntimeException e) {
       String message = String.format("Unable to establish SSH tunnel: '%s:?' -> '%s' -> '%s:%s'", localHost, sshRoute,
           remoteHost, remotePort);
       throw new WaggleDanceException(message, e);
     }
-    return hiveConf;
   }
 }
