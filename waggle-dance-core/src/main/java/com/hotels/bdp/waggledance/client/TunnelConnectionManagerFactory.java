@@ -35,7 +35,7 @@ public class TunnelConnectionManagerFactory {
 
   public static final int FIRST_AVAILABLE_PORT = 0;
 
-  private final Supplier<SessionFactory> sessionFactorySupplier;
+  private static Supplier<SessionFactory> sessionFactorySupplier;
 
   public TunnelConnectionManagerFactory(Supplier<SessionFactory> sessionFactorySupplier) {
     this.sessionFactorySupplier = sessionFactorySupplier;
@@ -98,5 +98,4 @@ public class TunnelConnectionManagerFactory {
       LOG.debug("SSH tunnel connection manager for expression {} has been created", tunnelExpression);
     }
   }
-
 }
