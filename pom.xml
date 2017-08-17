@@ -84,20 +84,13 @@
         <artifactId>hive-metastore</artifactId>
         <version>${hive.version}</version>
         <scope>compile</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derby</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derbyclient</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derbynet</artifactId>
-          </exclusion>
-        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derby</artifactId>
+        <!-- we should use whatever hive-metastore is using. Cannot rely on the transitive dep because we want it test scoped. -->
+        <version>10.10.2.0</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
