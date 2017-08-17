@@ -41,10 +41,10 @@ public class TunnelingMetaStoreClientFactoryTest {
     TunnelingMetaStoreClientFactory factory = new TunnelingMetaStoreClientFactory(new SessionFactorySupplierFactory(),
         builder);
 
-    hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "hcom@ec2-12-345-678-91.compute-1.amazonaws.com");
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "user@ec2-12-345-678-91.compute-1.amazonaws.com");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS,
-        "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:9083");
+        "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:1234");
 
     when(builder.setHiveConf(any(HiveConf.class))).thenReturn(builder);
     when(builder.setLocalHost(anyString())).thenReturn(builder);
@@ -72,7 +72,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   @Test
   public void newInstanceWithoutTunneling() throws Exception {
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS,
-        "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:9083");
+        "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:1234");
     TunnelingMetaStoreClientFactory factory = new TunnelingMetaStoreClientFactory(new SessionFactorySupplierFactory(),
         builder);
 
