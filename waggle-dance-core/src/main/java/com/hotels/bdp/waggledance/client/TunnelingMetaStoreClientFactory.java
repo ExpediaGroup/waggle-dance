@@ -40,9 +40,8 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
   private String localHost;
   private TunnelConnectionManager tunnelConnectionManager;
 
-  public TunnelingMetaStoreClientFactory(
-      SessionFactorySupplierFactory sessionFactorySupplierFactory) {
-    this.sessionFactorySupplierFactory = sessionFactorySupplierFactory;
+  public TunnelingMetaStoreClientFactory() {
+    this.sessionFactorySupplierFactory = new SessionFactorySupplierFactory();
   }
 
   @Override

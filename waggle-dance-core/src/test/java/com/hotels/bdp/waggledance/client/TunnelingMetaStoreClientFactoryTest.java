@@ -37,8 +37,7 @@ import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 @PrepareForTest({ TunnelHandler.class, TunnelingMetaStoreClientFactory.class })
 public class TunnelingMetaStoreClientFactoryTest {
 
-  private @Spy TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(
-      new SessionFactorySupplierFactory());
+  private @Spy TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory();
   private @Mock CloseableThriftHiveMetastoreIface client;
   private @Mock TunnelConnectionManager tunnelConnectionManager;
   private @Spy HiveConf hiveConf = new HiveConf();
