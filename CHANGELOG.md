@@ -1,3 +1,8 @@
+## Unreleased
+### Changed
+* Hive dependency updated to 2.1.1 (Needed corresponding BeeJU dependency update as well)
+
+
 ## [2.0.2]
 ### Added
 * Flag to prevent flushing the federation configuration out when the server stops.
