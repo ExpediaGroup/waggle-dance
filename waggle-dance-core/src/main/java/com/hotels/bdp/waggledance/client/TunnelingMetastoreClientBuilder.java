@@ -23,12 +23,19 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.jcraft.jsch.JSchException;
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
+
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
 
 public class TunnelingMetastoreClientBuilder {
 
-  private HiveConf hiveConf;
+  private static final Logger LOG = LoggerFactory.getLogger(TunnelingMetastoreClientBuilder.class);
+
+  private HiveConf localHiveConf;
   private String name;
   private Integer reconnectionRetries;
   private TunnelConnectionManagerFactory tunnelConnectionManagerFactory;
@@ -36,13 +43,12 @@ public class TunnelingMetastoreClientBuilder {
   private String sshRoute;
   private String localHost;
   private Integer remotePort;
+  private TunnelConnectionManager tunnelConnectionManager;
 
   public CloseableThriftHiveMetastoreIface build() {
-    TunnelConnectionManager tunnelConnectionManager = tunnelConnectionManagerFactory.create(sshRoute, localHost,
+    tunnelConnectionManager = tunnelConnectionManagerFactory.create(sshRoute, localHost,
         FIRST_AVAILABLE_PORT, remoteHost, remotePort);
-    TunnelConfiguration tunnelConfiguration = new TunnelConfiguration(hiveConf, tunnelConnectionManager, sshRoute, localHost,
-        remoteHost, remotePort);
-    HiveConf localHiveConf = tunnelConfiguration.getConf();
+    openTunnel();
     return clientFromLocalHiveConf(tunnelConnectionManager, localHiveConf);
   }
 
@@ -57,8 +63,27 @@ public class TunnelingMetastoreClientBuilder {
         tunneledHandler);
   }
 
+  private void openTunnel() {
+    try {
+      LOG.debug("Creating tunnel: {}:? -> {} -> {}:{}", localHost, sshRoute, remoteHost, remotePort);
+      int localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();
+      tunnelConnectionManager.open();
+      LOG.debug("Tunnel created: {}:{} -> {} -> {}:{}", localHost, localPort, sshRoute, remoteHost, remotePort);
+
+      localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();
+      String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
+      localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
+      LOG.info("Metastore URI {} is being proxied to {}", this.localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
+          localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
+    } catch (JSchException | RuntimeException e) {
+      String message = String.format("Unable to establish SSH tunnel: '%s:?' -> '%s' -> '%s:%s'", localHost, sshRoute,
+          remoteHost, remotePort);
+      throw new WaggleDanceException(message, e);
+    }
+  }
+
   public TunnelingMetastoreClientBuilder setHiveConf(HiveConf hiveConf) {
-    this.hiveConf = hiveConf;
+    this.localHiveConf = new HiveConf(hiveConf);
     return this;
   }
 
@@ -99,7 +124,7 @@ public class TunnelingMetastoreClientBuilder {
   }
 
   public HiveConf getHiveConf() {
-    return hiveConf;
+    return localHiveConf;
   }
 
   public String getName() {

@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -50,7 +51,7 @@ public class TunnelingMetastoreClientBuilderTest {
   public void build() throws Exception {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "user@ec2-12-345-678-91.compute-1.amazonaws.com");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
-    String originalMetastoreUri = "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:1234";
+    String originalMetastoreUri = "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:9083";
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, originalMetastoreUri);
 
     when(tunnelConnectionManagerFactory.create(anyString(), anyString(), anyInt(), anyString(), anyInt())).thenReturn(
@@ -71,7 +72,8 @@ public class TunnelingMetastoreClientBuilderTest {
 
     verify(tunnelConnectionManager, times(2)).getTunnel(anyString(), anyInt());
     verify(tunnelConnectionManager).open();
-
+    PowerMockito.verifyPrivate(tunnelingMetastoreClientBuilder, times(1))
+                .invoke("openTunnel");
     //Check that Client is being created from a hiveConf different to that passed into the builder
     PowerMockito.verifyPrivate(tunnelingMetastoreClientBuilder, times(0))
                 .invoke("clientFromLocalHiveConf", tunnelConnectionManager, hiveConf);
@@ -84,7 +86,7 @@ public class TunnelingMetastoreClientBuilderTest {
     HiveConf hiveConf = new HiveConf();
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, "test");
     tunnelingMetastoreClientBuilder = tunnelingMetastoreClientBuilder.setHiveConf(hiveConf);
-    assertEquals(hiveConf, tunnelingMetastoreClientBuilder.getHiveConf());
+    assertNotEquals(hiveConf, tunnelingMetastoreClientBuilder.getHiveConf());
   }
 
   @Test
