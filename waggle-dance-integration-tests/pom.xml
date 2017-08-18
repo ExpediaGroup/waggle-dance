@@ -93,7 +93,6 @@
     <dependency>
       <groupId>com.hotels</groupId>
       <artifactId>beeju</artifactId>
-      <version>${beeju.version}</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
