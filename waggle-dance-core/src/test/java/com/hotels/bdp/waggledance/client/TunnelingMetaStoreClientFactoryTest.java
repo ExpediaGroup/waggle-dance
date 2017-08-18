@@ -18,8 +18,8 @@ package com.hotels.bdp.waggledance.client;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -27,65 +27,55 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+import com.pastdev.jsch.tunnel.TunnelConnectionManager;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ TunnelHandler.class, TunnelingMetaStoreClientFactory.class })
 public class TunnelingMetaStoreClientFactoryTest {
 
-  private @Mock TunnelingMetastoreClientBuilder builder;
+  private @Spy TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(
+      new SessionFactorySupplierFactory());
   private @Mock CloseableThriftHiveMetastoreIface client;
+  private @Mock TunnelConnectionManager tunnelConnectionManager;
   private @Spy HiveConf hiveConf = new HiveConf();
+  private @Spy HiveConf localHiveConf = new HiveConf();
 
   @Test
   public void newInstanceWithTunneling() throws Exception {
-    TunnelingMetaStoreClientFactory factory = new TunnelingMetaStoreClientFactory(new SessionFactorySupplierFactory(),
-        builder);
-
     hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "user@ec2-12-345-678-91.compute-1.amazonaws.com");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS,
         "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:1234");
 
-    when(builder.setHiveConf(any(HiveConf.class))).thenReturn(builder);
-    when(builder.setLocalHost(anyString())).thenReturn(builder);
-    when(builder.setName(anyString())).thenReturn(builder);
-    when(builder.setReconnectionRetries(anyInt())).thenReturn(builder);
-    when(builder.setRemoteHost(anyString())).thenReturn(builder);
-    when(builder.setRemotePort(anyInt())).thenReturn(builder);
-    when(builder.setSSHRoute(anyString())).thenReturn(builder);
-    when(builder.setTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class))).thenReturn(builder);
-    when(builder.build()).thenReturn(client);
+    PowerMockito.mockStatic(TunnelHandler.class);
 
-    factory.newInstance(hiveConf, "test", 10);
+    when(TunnelHandler.openTunnel(any(HiveConf.class), any(TunnelConnectionManager.class), anyString(), anyString(),
+        anyString(), anyInt())).thenReturn(localHiveConf);
 
-    verify(builder).setRemotePort(anyInt());
-    verify(builder).setLocalHost(anyString());
-    verify(builder).setSSHRoute(anyString());
-    verify(builder).setRemoteHost(anyString());
-    verify(builder).setName(anyString());
-    verify(builder).setReconnectionRetries(anyInt());
-    verify(builder).setHiveConf(any(HiveConf.class));
-    verify(builder).setTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class));
-    verify(builder).build();
+    PowerMockito.doReturn(tunnelConnectionManager)
+                .when(tunnelingMetaStoreClientFactory, "createTunnelConnectionManager");
+    PowerMockito.doReturn(client)
+                .when(tunnelingMetaStoreClientFactory, "createTunnelingMetastoreClient", eq(localHiveConf), anyString(),
+                    anyInt());
+
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, "test", 10);
+
+    PowerMockito.verifyPrivate(tunnelingMetaStoreClientFactory, times(1)).invoke("createTunnelConnectionManager");
+    PowerMockito.verifyPrivate(tunnelingMetaStoreClientFactory, times(1))
+                .invoke("createTunnelingMetastoreClient", eq(localHiveConf), anyString(), anyInt());
   }
 
   @Test
   public void newInstanceWithoutTunneling() throws Exception {
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS,
         "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:1234");
-    TunnelingMetaStoreClientFactory factory = new TunnelingMetaStoreClientFactory(new SessionFactorySupplierFactory(),
-        builder);
 
-    factory.newInstance(hiveConf, "test", 10);
-
-    verify(builder, times(0)).setRemotePort(anyInt());
-    verify(builder, times(0)).setLocalHost(anyString());
-    verify(builder, times(0)).setSSHRoute(anyString());
-    verify(builder, times(0)).setRemoteHost(anyString());
-    verify(builder, times(0)).setName(anyString());
-    verify(builder, times(0)).setReconnectionRetries(anyInt());
-    verify(builder, times(0)).setHiveConf(any(HiveConf.class));
-    verify(builder, times(0)).setTunnelConnectionManagerFactory(any(TunnelConnectionManagerFactory.class));
-    verify(builder, times(0)).build();
+    PowerMockito.verifyPrivate(tunnelingMetaStoreClientFactory, times(0)).invoke("createTunnelConnectionManager");
+    PowerMockito.verifyPrivate(tunnelingMetaStoreClientFactory, times(0))
+                .invoke("createTunnelingMetastoreClient", eq(localHiveConf), anyString(), anyInt());
   }
 }
