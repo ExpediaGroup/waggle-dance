@@ -37,7 +37,6 @@ import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.HiveConfFactory;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
-import com.hotels.bdp.waggledance.client.SessionFactorySupplierFactory;
 import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
@@ -70,9 +69,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   public MetaStoreMappingFactoryImpl(
       PrefixNamingStrategy prefixNamingStrategy,
       AccessControlHandlerFactory accessControlHandlerFactory) {
-    this(prefixNamingStrategy,
-        new TunnelingMetaStoreClientFactory(new SessionFactorySupplierFactory()),
-        accessControlHandlerFactory);
+    this(prefixNamingStrategy, new TunnelingMetaStoreClientFactory(), accessControlHandlerFactory);
   }
 
   @VisibleForTesting
@@ -113,4 +110,5 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   public String prefixNameFor(AbstractMetaStore federatedMetaStore) {
     return prefixNamingStrategy.apply(federatedMetaStore);
   }
+
 }
