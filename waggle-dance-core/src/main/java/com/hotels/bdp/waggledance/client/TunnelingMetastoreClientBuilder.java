@@ -46,8 +46,6 @@ public class TunnelingMetastoreClientBuilder {
   private TunnelConnectionManager tunnelConnectionManager;
 
   public CloseableThriftHiveMetastoreIface build() {
-    tunnelConnectionManager = tunnelConnectionManagerFactory.create(sshRoute, localHost,
-        FIRST_AVAILABLE_PORT, remoteHost, remotePort);
     openTunnel();
     return clientFromLocalHiveConf(tunnelConnectionManager, localHiveConf);
   }
@@ -65,6 +63,8 @@ public class TunnelingMetastoreClientBuilder {
 
   private void openTunnel() {
     try {
+      tunnelConnectionManager = tunnelConnectionManagerFactory.create(sshRoute, localHost,
+          FIRST_AVAILABLE_PORT, remoteHost, remotePort);
       LOG.debug("Creating tunnel: {}:? -> {} -> {}:{}", localHost, sshRoute, remoteHost, remotePort);
       int localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();
       tunnelConnectionManager.open();
