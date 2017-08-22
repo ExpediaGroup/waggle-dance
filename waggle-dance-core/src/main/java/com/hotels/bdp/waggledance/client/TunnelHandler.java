@@ -46,7 +46,7 @@ public class TunnelHandler {
       String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
       HiveConf localHiveConf = new HiveConf(hiveConf);
       localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
-      LOG.info("Metastore URI {} is being proxied to {}", localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
+      LOG.info("Metastore URI {} is being proxied to {}", hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
           localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
       return localHiveConf;
     } catch (JSchException | RuntimeException e) {
