@@ -34,7 +34,6 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
 
   private static final Logger LOG = LoggerFactory.getLogger(TunnelingMetaStoreClientFactory.class);
 
-
   private final SessionFactorySupplierFactory sessionFactorySupplierFactory;
 
   private TunnelConnectionManagerFactory tunnelConnectionManagerFactory;
