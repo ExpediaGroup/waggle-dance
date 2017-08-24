@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -28,12 +27,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.pastdev.jsch.tunnel.Tunnel;
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
-@RunWith(PowerMockRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class TunnelHandlerTest {
   private @Spy HiveConf hiveConf = new HiveConf();
   private @Mock TunnelConnectionManager tunnelConnectionManager;
@@ -41,20 +40,14 @@ public class TunnelHandlerTest {
 
   @Test
   public void openTunnel() throws Exception {
-    hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "hcom@ec2-12-345-678-91.compute-1.amazonaws.com");
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "foo@whatever-12-345-678-91.compute-1.amazonaws.com");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
-    String originalMetastoreUri = "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:9083";
+    String originalMetastoreUri = "thrift://internal-foo-baz-metastore-1234567891.made-up-region-1.elb.amazonaws.com:1234";
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, originalMetastoreUri);
-
     when(tunnelConnectionManager.getTunnel(anyString(), anyInt())).thenReturn(tunnel);
     doNothing().when(tunnelConnectionManager).open();
-
-    HiveConf localHiveConf = TunnelHandler.openTunnel(hiveConf, tunnelConnectionManager, "route", "localhost",
-        "remotehost", 9083);
-
-    assertNotEquals(originalMetastoreUri, localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
-    assertNotEquals(hiveConf, localHiveConf);
-    verify(tunnelConnectionManager, times(2)).getTunnel(anyString(), anyInt());
+    TunnelHandler.openTunnel(tunnelConnectionManager, "route", "localhost", "remotehost", 1234);
+    verify(tunnelConnectionManager, times(1)).getTunnel(anyString(), anyInt());
     verify(tunnelConnectionManager).open();
   }
 }

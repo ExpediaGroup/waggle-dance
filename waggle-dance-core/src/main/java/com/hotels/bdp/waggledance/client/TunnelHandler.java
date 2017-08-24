@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import org.apache.hadoop.hive.conf.HiveConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,27 +27,18 @@ public class TunnelHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(TunnelHandler.class);
 
-  private TunnelHandler() {}
-
-  public static HiveConf openTunnel(
-      HiveConf hiveConf,
+  static void openTunnel(
       TunnelConnectionManager tunnelConnectionManager,
       String sshRoute,
       String localHost,
       String remoteHost,
-      int remotePort) {
+      int remotePort
+  ) {
     try {
       LOG.debug("Creating tunnel: {}:? -> {} -> {}:{}", localHost, sshRoute, remoteHost, remotePort);
       int localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();
       tunnelConnectionManager.open();
       LOG.debug("Tunnel created: {}:{} -> {} -> {}:{}", localHost, localPort, sshRoute, remoteHost, remotePort);
-      localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();
-      String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
-      HiveConf localHiveConf = new HiveConf(hiveConf);
-      localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
-      LOG.info("Metastore URI {} is being proxied to {}", hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
-          localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
-      return localHiveConf;
     } catch (JSchException | RuntimeException e) {
       String message = String.format("Unable to establish SSH tunnel: '%s:?' -> '%s' -> '%s:%s'", localHost, sshRoute,
           remoteHost, remotePort);

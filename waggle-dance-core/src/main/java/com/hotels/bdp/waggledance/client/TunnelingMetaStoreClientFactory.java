@@ -18,7 +18,6 @@ package com.hotels.bdp.waggledance.client;
 import static org.springframework.util.StringUtils.isEmpty;
 
 import static com.hotels.bdp.waggledance.client.TunnelConnectionManagerFactory.FIRST_AVAILABLE_PORT;
-import static com.hotels.bdp.waggledance.client.TunnelHandler.openTunnel;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -26,14 +25,20 @@ import java.lang.reflect.Proxy;
 import java.net.URI;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
 public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
 
+  private static final Logger LOG = LoggerFactory.getLogger(TunnelingMetaStoreClientFactory.class);
+
+
   private final SessionFactorySupplierFactory sessionFactorySupplierFactory;
 
   private TunnelConnectionManagerFactory tunnelConnectionManagerFactory;
+  private HiveConf hiveConf;
   private String remoteHost;
   private Integer remotePort;
   private String sshRoute;
@@ -45,7 +50,8 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
   }
 
   @Override
-  public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
+  public CloseableThriftHiveMetastoreIface newInstance(HiveConf conf, String name, int reconnectionRetries) {
+    hiveConf = conf;
     if (isEmpty(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))) {
       return super.newInstance(hiveConf, name, reconnectionRetries);
     }
@@ -57,8 +63,10 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     sshRoute = hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
     localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, "localhost");
     tunnelConnectionManager = createTunnelConnectionManager();
-
-    HiveConf localHiveConf = openTunnel(hiveConf, tunnelConnectionManager, sshRoute, localHost, remoteHost, remotePort);
+    TunnelHandler.openTunnel(tunnelConnectionManager, sshRoute, localHost, remoteHost, remotePort);
+    HiveConf localHiveConf = createLocalHiveConf();
+    LOG.info("Metastore URI {} is being proxied to {}", hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
+        localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
     return createTunnelingMetastoreClient(localHiveConf, name, reconnectionRetries);
   }
 
@@ -74,6 +82,14 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
         tunnelConnectionManager, super.newInstance(localHiveConf, name, reconnectionRetries));
     return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
         tunneledHandler);
+  }
+
+  private HiveConf createLocalHiveConf() {
+    int localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();
+    String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
+    HiveConf localHiveConf = new HiveConf(hiveConf);
+    localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
+    return localHiveConf;
   }
 
   private class TunnelingMetastoreClientInvocationHandler implements InvocationHandler {
