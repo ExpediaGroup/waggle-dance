@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -37,11 +38,12 @@
     <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
     <spring-platform.version>2.0.8.RELEASE</spring-platform.version>
     <hadoop.version>2.7.2</hadoop.version>
-    <hive.version>2.1.0</hive.version>
+    <hive.version>2.1.1</hive.version>
     <dropwizard.version>1.0.5</dropwizard.version>
     <aspectj-maven-plugin.version>1.9</aspectj-maven-plugin.version>
     <jdk.version>1.7</jdk.version>
     <aspectj.version>1.8.9</aspectj.version>
+    <beeju.version>1.1.0</beeju.version>
   </properties>
 
   <dependencyManagement>
@@ -83,20 +85,19 @@
         <artifactId>hive-metastore</artifactId>
         <version>${hive.version}</version>
         <scope>compile</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derby</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derbyclient</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derbynet</artifactId>
-          </exclusion>
-        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derby</artifactId>
+        <!-- we should use whatever hive-metastore is using. Cannot rely on the transitive dep because we want it test scoped. -->
+        <version>10.10.2.0</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.hotels</groupId>
+        <artifactId>beeju</artifactId>
+        <version>${beeju.version}</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
