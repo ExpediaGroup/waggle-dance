@@ -17,38 +17,52 @@ package com.hotels.bdp.waggledance.client;
 
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.apache.hadoop.hive.conf.HiveConf;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.jcraft.jsch.JSchException;
 import com.pastdev.jsch.tunnel.Tunnel;
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
+
 @RunWith(MockitoJUnitRunner.class)
 public class TunnelHandlerTest {
-  private @Spy HiveConf hiveConf = new HiveConf();
   private @Mock TunnelConnectionManager tunnelConnectionManager;
   private @Mock Tunnel tunnel;
 
-  @Test
-  public void openTunnel() throws Exception {
-    hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "foo@whatever-12-345-678-91.compute-1.amazonaws.com");
-    hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
-    String originalMetastoreUri = "thrift://internal-foo-baz-metastore-1234567891.made-up-region-1.elb.amazonaws.com:1234";
-    hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, originalMetastoreUri);
+  private TunnelHandler tunnelHandler = new TunnelHandler();
+
+  @Before
+  public void init() {
     when(tunnelConnectionManager.getTunnel(anyString(), anyInt())).thenReturn(tunnel);
-    doNothing().when(tunnelConnectionManager).open();
-    TunnelHandler.openTunnel(tunnelConnectionManager, "route", "localhost", "remotehost", 1234);
+  }
+
+  @Test
+  public void openTunnel() throws JSchException {
+    tunnelHandler.openTunnel(tunnelConnectionManager, "route", "localhost", "remotehost", 1234);
     verify(tunnelConnectionManager, times(1)).getTunnel(anyString(), anyInt());
     verify(tunnelConnectionManager).open();
   }
-}
 
+  @Test(expected = WaggleDanceException.class)
+  public void openThrowsJSchException() throws JSchException {
+    doThrow(new JSchException()).when(tunnelConnectionManager).open();
+    tunnelHandler.openTunnel(tunnelConnectionManager, "route", "localhost", "remotehost", 1234);
+  }
+
+  @Test(expected = WaggleDanceException.class)
+  public void openThrowsRuntimeException() throws JSchException {
+    doThrow(new RuntimeException()).when(tunnelConnectionManager).open();
+    tunnelHandler.openTunnel(tunnelConnectionManager, "route", "localhost", "remotehost", 1234);
+  }
+
+}

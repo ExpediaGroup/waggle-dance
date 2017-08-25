@@ -1,3 +1,9 @@
+## unreleased
+### Changed
+* Fixed bug where tunnel configuration wasn't being applied.
+### Removed
+* Removed SessionFactorySupplierFactory.
+
 ## [2.0.2]
 ### Added
 * Flag to prevent flushing the federation configuration out when the server stops.

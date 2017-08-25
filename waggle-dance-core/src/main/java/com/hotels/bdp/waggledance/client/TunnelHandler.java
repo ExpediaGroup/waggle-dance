@@ -27,13 +27,12 @@ public class TunnelHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(TunnelHandler.class);
 
-  static void openTunnel(
+  void openTunnel(
       TunnelConnectionManager tunnelConnectionManager,
       String sshRoute,
       String localHost,
       String remoteHost,
-      int remotePort
-  ) {
+      int remotePort) {
     try {
       LOG.debug("Creating tunnel: {}:? -> {} -> {}:{}", localHost, sshRoute, remoteHost, remotePort);
       int localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();

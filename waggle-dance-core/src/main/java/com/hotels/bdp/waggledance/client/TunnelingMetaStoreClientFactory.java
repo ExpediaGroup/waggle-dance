@@ -17,23 +17,28 @@ package com.hotels.bdp.waggledance.client;
 
 import static org.springframework.util.StringUtils.isEmpty;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import static com.hotels.bdp.waggledance.client.TunnelConnectionManagerFactory.FIRST_AVAILABLE_PORT;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
+import java.util.Arrays;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
 public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
   private static final Logger LOG = LoggerFactory.getLogger(TunnelingMetaStoreClientFactory.class);
 
-  private class TunnelingMetastoreClientInvocationHandler implements InvocationHandler {
+  private static class TunnelingMetastoreClientInvocationHandler implements InvocationHandler {
     private final TunnelConnectionManager tunnelConnectionManager;
     private final CloseableThriftHiveMetastoreIface client;
 
@@ -61,56 +66,65 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     }
   }
 
-  private final SessionFactorySupplierFactory sessionFactorySupplierFactory;
-
-  private TunnelConnectionManagerFactory tunnelConnectionManagerFactory;
-  private HiveConf hiveConf;
-  private String remoteHost;
-  private Integer remotePort;
-  private String sshRoute;
-  private String localHost;
-  private TunnelConnectionManager tunnelConnectionManager;
+  private TunnelHandler tunnelHandler;
 
   public TunnelingMetaStoreClientFactory() {
-    this.sessionFactorySupplierFactory = new SessionFactorySupplierFactory();
+    this(new TunnelHandler());
+  }
+
+  public TunnelingMetaStoreClientFactory(TunnelHandler tunnelHandler) {
+    this.tunnelHandler = tunnelHandler;
   }
 
   @Override
-  public CloseableThriftHiveMetastoreIface newInstance(HiveConf conf, String name, int reconnectionRetries) {
-    hiveConf = conf;
+  public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
     if (isEmpty(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))) {
       return super.newInstance(hiveConf, name, reconnectionRetries);
     }
-    tunnelConnectionManagerFactory = new TunnelConnectionManagerFactory(
-        sessionFactorySupplierFactory.newInstance(hiveConf));
+    TunnelConnectionManagerFactory tunnelConnectionManagerFactory = createTunnelConnectionManagerFactory(hiveConf);
     URI metaStoreUri = URI.create(hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
-    remoteHost = metaStoreUri.getHost();
-    remotePort = metaStoreUri.getPort();
-    sshRoute = hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
-    localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, "localhost");
-    tunnelConnectionManager = createTunnelConnectionManager();
-    TunnelHandler.openTunnel(tunnelConnectionManager, sshRoute, localHost, remoteHost, remotePort);
-    HiveConf localHiveConf = createLocalHiveConf();
+    String remoteHost = metaStoreUri.getHost();
+    int remotePort = metaStoreUri.getPort();
+    String sshRoute = hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
+    String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, "localhost");
+    TunnelConnectionManager tunnelConnectionManager = tunnelConnectionManagerFactory.create(sshRoute, localHost,
+        FIRST_AVAILABLE_PORT, remoteHost, remotePort);
+
+    tunnelHandler.openTunnel(tunnelConnectionManager, sshRoute, localHost, remoteHost, remotePort);
+    HiveConf localHiveConf = createLocalHiveConf(tunnelConnectionManager, localHost, remoteHost, remotePort, hiveConf);
     LOG.info("Metastore URI {} is being proxied to {}", hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
         localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
-    return createTunnelingMetastoreClient(localHiveConf, name, reconnectionRetries);
-  }
 
-  private TunnelConnectionManager createTunnelConnectionManager() {
-    return tunnelConnectionManagerFactory.create(sshRoute, localHost, FIRST_AVAILABLE_PORT, remoteHost, remotePort);
-  }
-
-  private CloseableThriftHiveMetastoreIface createTunnelingMetastoreClient(
-      HiveConf localHiveConf,
-      String name,
-      Integer reconnectionRetries) {
     TunnelingMetastoreClientInvocationHandler tunneledHandler = new TunnelingMetastoreClientInvocationHandler(
         tunnelConnectionManager, super.newInstance(localHiveConf, name, reconnectionRetries));
     return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
         tunneledHandler);
   }
 
-  private HiveConf createLocalHiveConf() {
+  // the code in this method is problematic for testing so we spy it out in the test, ideally we'd refactor this
+  // elsewhere to remove the need for that
+  @VisibleForTesting
+  TunnelConnectionManagerFactory createTunnelConnectionManagerFactory(HiveConf hiveConf) {
+    int sshPort = hiveConf.getInt(WaggleDanceHiveConfVars.SSH_PORT.varname, 22);
+    String knownHosts = hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname);
+    String privateKeys = hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname);
+
+    checkArgument(sshPort > 0 && sshPort <= 65536,
+        WaggleDanceHiveConfVars.SSH_PORT.varname + " must be a number between 1 and 65536");
+    checkArgument(!isNullOrEmpty(privateKeys), WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname + " cannot be null");
+
+    SessionFactorySupplier sessionFactorySupplier = new SessionFactorySupplier(sshPort, knownHosts,
+        Arrays.asList(privateKeys.split(",")));
+
+    return new TunnelConnectionManagerFactory(sessionFactorySupplier);
+  }
+
+  private HiveConf createLocalHiveConf(
+      TunnelConnectionManager tunnelConnectionManager,
+      String localHost,
+      String remoteHost,
+      int remotePort,
+      HiveConf hiveConf) {
     int localPort = tunnelConnectionManager.getTunnel(remoteHost, remotePort).getAssignedLocalPort();
     String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
     HiveConf localHiveConf = new HiveConf(hiveConf);
