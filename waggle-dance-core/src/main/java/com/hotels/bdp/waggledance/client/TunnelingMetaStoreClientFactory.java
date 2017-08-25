@@ -31,8 +31,35 @@ import org.slf4j.LoggerFactory;
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
 public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
-
   private static final Logger LOG = LoggerFactory.getLogger(TunnelingMetaStoreClientFactory.class);
+
+  private class TunnelingMetastoreClientInvocationHandler implements InvocationHandler {
+    private final TunnelConnectionManager tunnelConnectionManager;
+    private final CloseableThriftHiveMetastoreIface client;
+
+    private TunnelingMetastoreClientInvocationHandler(
+        TunnelConnectionManager tunnelConnectionManager,
+        CloseableThriftHiveMetastoreIface client) {
+      this.tunnelConnectionManager = tunnelConnectionManager;
+      this.client = client;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      switch (method.getName()) {
+      case "close":
+        method.invoke(client, args);
+        tunnelConnectionManager.close();
+        return null;
+      case "open":
+      case "reconnect":
+        tunnelConnectionManager.ensureOpen();
+        return method.invoke(client, args);
+      default:
+        return method.invoke(client, args);
+      }
+    }
+  }
 
   private final SessionFactorySupplierFactory sessionFactorySupplierFactory;
 
@@ -89,34 +116,5 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     HiveConf localHiveConf = new HiveConf(hiveConf);
     localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
     return localHiveConf;
-  }
-
-  private class TunnelingMetastoreClientInvocationHandler implements InvocationHandler {
-
-    private final TunnelConnectionManager tunnelConnectionManager;
-    private final CloseableThriftHiveMetastoreIface client;
-
-    private TunnelingMetastoreClientInvocationHandler(
-        TunnelConnectionManager tunnelConnectionManager,
-        CloseableThriftHiveMetastoreIface client) {
-      this.tunnelConnectionManager = tunnelConnectionManager;
-      this.client = client;
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-      switch (method.getName()) {
-      case "close":
-        method.invoke(client, args);
-        tunnelConnectionManager.close();
-        return null;
-      case "open":
-      case "reconnect":
-        tunnelConnectionManager.ensureOpen();
-        return method.invoke(client, args);
-      default:
-        return method.invoke(client, args);
-      }
-    }
   }
 }
