@@ -1,7 +1,9 @@
 ## Unreleased
 ### Changed
+* Fixed bug where tunnel configuration wasn't being applied.
 * Hive dependency updated to 2.1.1 (Needed corresponding BeeJU dependency update as well)
-
+### Removed
+* Removed SessionFactorySupplierFactory.
 
 ## [2.0.2]
 ### Added
