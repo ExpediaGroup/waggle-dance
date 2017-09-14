@@ -17,9 +17,9 @@
   <inceptionYear>2016</inceptionYear>
 
   <scm>
-    <connection>scm:git:git@github.com:HotelsDotCom/${project.artifactId}.git</connection>
-    <developerConnection>scm:git:git@github.com:HotelsDotCom/${project.artifactId}.git</developerConnection>
-    <url>https://github.com/HotelsDotCom/${project.artifactId}</url>
+    <connection>scm:git:git@github.com:HotelsDotCom/waggle-dance.git</connection>
+    <developerConnection>scm:git:git@github.com:HotelsDotCom/waggle-dance.git</developerConnection>
+    <url>https://github.com/HotelsDotCom/waggle-dance</url>
     <tag>HEAD</tag>
   </scm>
 
