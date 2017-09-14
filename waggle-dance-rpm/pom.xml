@@ -127,6 +127,7 @@
             <version>${rpm.maven.plugin.version}</version>
             <executions>
               <execution>
+                <id>attach-rpm</id>
                 <configuration>
                   <keyPassphrase>
                     <passphrase>${gpg.passphrase}</passphrase>
