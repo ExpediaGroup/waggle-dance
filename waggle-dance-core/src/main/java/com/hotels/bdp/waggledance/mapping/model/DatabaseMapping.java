@@ -30,6 +30,10 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.Function;
+import org.apache.hadoop.hive.metastore.api.GetTableRequest;
+import org.apache.hadoop.hive.metastore.api.GetTableResult;
+import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
+import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -128,4 +132,13 @@ public interface DatabaseMapping extends MetaStoreMapping {
   Database transformInboundDatabase(Database database);
 
   List<PartitionSpec> transformInboundPartitionSpecs(List<PartitionSpec> partitionSpecs);
+
+  GetTableRequest transformInboundGetTableRequest(GetTableRequest request);
+
+  GetTableResult transformOutboundGetTableResult(GetTableResult result);
+
+  GetTablesRequest transformInboundGetTablesRequest(GetTablesRequest req);
+
+  GetTablesResult transformOutboundGetTablesResult(GetTablesResult result);
+
 }

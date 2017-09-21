@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
@@ -40,6 +41,10 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.Function;
+import org.apache.hadoop.hive.metastore.api.GetTableRequest;
+import org.apache.hadoop.hive.metastore.api.GetTableResult;
+import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
+import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -72,9 +77,9 @@ public class DatabaseMappingImplTest {
   private final static String DB_NAME = "db";
   private final static String IN_DB_NAME = "in_db";
   private final static String OUT_DB_NAME = "out_db";
+  private final static String TABLE_NAME = "table";
 
-  @Mock
-  private MetaStoreMapping metastoreMapping;
+  private @Mock MetaStoreMapping metastoreMapping;
 
   private DatabaseMappingImpl databaseMapping;
   private Partition partition;
@@ -599,6 +604,55 @@ public class DatabaseMappingImplTest {
     Partition partitionResult = partitions.get(0);
     assertThat(partitionResult, is(not(sameInstance(partition))));
     assertThat(partitionResult.getDbName(), is(expectedDatabaseName));
+  }
+
+  @Test
+  public void transformInboundGetTableRequest() throws Exception {
+    GetTableRequest request = new GetTableRequest();
+    request.setDbName(DB_NAME);
+    request.setTblName(TABLE_NAME);
+    GetTableRequest transformedRequest = databaseMapping.transformInboundGetTableRequest(request);
+    assertThat(transformedRequest, is(not(sameInstance(request))));
+    assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
+    assertThat(transformedRequest.getTblName(), is(TABLE_NAME));
+  }
+
+  @Test
+  public void transformOutboundGetTableResult() throws Exception {
+    Table table = new Table();
+    table.setDbName(DB_NAME);
+    table.setTableName(TABLE_NAME);
+    GetTableResult result = new GetTableResult();
+    result.setTable(table);
+    GetTableResult transformedResult = databaseMapping.transformOutboundGetTableResult(result);
+    assertThat(transformedResult, is(not(sameInstance(result))));
+    assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
+    assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
+  }
+
+  @Test
+  public void transformInboundGetTablesRequest() throws Exception {
+    GetTablesRequest request = new GetTablesRequest();
+    request.setDbName(DB_NAME);
+    request.setTblNames(Arrays.asList(TABLE_NAME));
+    GetTablesRequest transformedRequest = databaseMapping.transformInboundGetTablesRequest(request);
+    assertThat(transformedRequest, is(not(sameInstance(request))));
+    assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
+    assertThat(transformedRequest.getTblNames(), is(Arrays.asList(TABLE_NAME)));
+  }
+
+  @Test
+  public void transformOutboundGetTablesResult() throws Exception {
+    Table table = new Table();
+    table.setDbName(DB_NAME);
+    table.setTableName(TABLE_NAME);
+    GetTablesResult result = new GetTablesResult();
+    result.setTables(Arrays.asList(table));
+    GetTablesResult transformedResult = databaseMapping.transformOutboundGetTablesResult(result);
+    assertThat(transformedResult, is(not(sameInstance(result))));
+    assertThat(transformedResult.getTables().size(), is(1));
+    assertThat(transformedResult.getTables().get(0).getDbName(), is(OUT_DB_NAME));
+    assertThat(transformedResult.getTables().get(0).getTableName(), is(TABLE_NAME));
   }
 
 }

@@ -32,6 +32,10 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.Function;
+import org.apache.hadoop.hive.metastore.api.GetTableRequest;
+import org.apache.hadoop.hive.metastore.api.GetTableResult;
+import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
+import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -312,6 +316,26 @@ public class IdentityMapping implements DatabaseMapping {
   @Override
   public List<PartitionSpec> transformInboundPartitionSpecs(List<PartitionSpec> partitionSpecs) {
     return partitionSpecs;
+  }
+
+  @Override
+  public GetTableRequest transformInboundGetTableRequest(GetTableRequest request) {
+    return request;
+  }
+
+  @Override
+  public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
+    return result;
+  }
+
+  @Override
+  public GetTablesRequest transformInboundGetTablesRequest(GetTablesRequest request) {
+    return request;
+  }
+
+  @Override
+  public GetTablesResult transformOutboundGetTablesResult(GetTablesResult result) {
+    return result;
   }
 
 }

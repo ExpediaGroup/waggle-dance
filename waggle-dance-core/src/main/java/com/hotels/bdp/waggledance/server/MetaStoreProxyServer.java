@@ -23,6 +23,8 @@
  */
 package com.hotels.bdp.waggledance.server;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
@@ -31,6 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PreDestroy;
 
+import org.apache.hadoop.hive.common.auth.HiveAuthUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.TServerSocketKeepAlive;
@@ -153,8 +156,30 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       int maxWorkerThreads = hiveConf.getIntVar(ConfVars.METASTORESERVERMAXTHREADS);
       boolean tcpKeepAlive = hiveConf.getBoolVar(ConfVars.METASTORE_TCP_KEEP_ALIVE);
       boolean useFramedTransport = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT);
+      boolean useSSL = hiveConf.getBoolVar(ConfVars.HIVE_METASTORE_USE_SSL);
 
-      TServerTransport serverTransport = tcpKeepAlive ? new TServerSocketKeepAlive(waggleDanceConfiguration.getPort())
+      TServerSocket serverSocket = null;
+
+      // enable SSL support for HMS
+      List<String> sslVersionBlacklist = new ArrayList<>();
+      for (String sslVersion : hiveConf.getVar(ConfVars.HIVE_SSL_PROTOCOL_BLACKLIST).split(",")) {
+        sslVersionBlacklist.add(sslVersion);
+      }
+      if (!useSSL) {
+        serverSocket = HiveAuthUtils.getServerSocket(null, waggleDanceConfiguration.getPort());
+      } else {
+        String keyStorePath = hiveConf.getVar(ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PATH).trim();
+        if (keyStorePath.isEmpty()) {
+          throw new IllegalArgumentException(
+              ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PASSWORD.varname + " Not configured for SSL connection");
+        }
+        String keyStorePassword = ShimLoader.getHadoopShims().getPassword(hiveConf,
+            HiveConf.ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PASSWORD.varname);
+        serverSocket = HiveAuthUtils.getServerSSLSocket(null, waggleDanceConfiguration.getPort(), keyStorePath,
+            keyStorePassword, sslVersionBlacklist);
+      }
+
+      TServerTransport serverTransport = tcpKeepAlive ? new TServerSocketKeepAlive(serverSocket)
           : new TServerSocket(waggleDanceConfiguration.getPort());
 
       TTransportFactory transFactory = useFramedTransport ? new TFramedTransport.Factory() : new TTransportFactory();
