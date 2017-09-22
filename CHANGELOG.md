@@ -1,5 +1,6 @@
 ## Unreleased
 ### Changed
+* Depend on latest parent with test.argument build parameter
 * Fixed bug where tunnel configuration wasn't being applied.
 * Hive dependency updated to 2.1.1 (Needed corresponding BeeJU dependency update as well)
 ### Removed
