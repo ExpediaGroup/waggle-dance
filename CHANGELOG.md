@@ -1,5 +1,6 @@
-## Unreleased
+## [2.0.4]
 ### Changed
+* Upgrade Hive from 2.1.0 to 2.3.0.
 * Fixed bug where tunnel configuration wasn't being applied.
 * Hive dependency updated to 2.1.1 (Needed corresponding BeeJU dependency update as well)
 ### Removed
