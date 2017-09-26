@@ -23,6 +23,7 @@
  */
 package com.hotels.bdp.waggledance.server;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +46,7 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TServerTransport;
+import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,34 +159,16 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       boolean useFramedTransport = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT);
       boolean useSSL = hiveConf.getBoolVar(ConfVars.HIVE_METASTORE_USE_SSL);
 
-      TServerSocket serverSocket = null;
+      TServerSocket serverSocket = createServerSocket(useSSL, waggleDanceConfiguration.getPort());
 
-      // enable SSL support for HMS
-      List<String> sslVersionBlacklist = new ArrayList<>();
-      for (String sslVersion : hiveConf.getVar(ConfVars.HIVE_SSL_PROTOCOL_BLACKLIST).split(",")) {
-        sslVersionBlacklist.add(sslVersion);
+      if (tcpKeepAlive) {
+        serverSocket = new TServerSocketKeepAlive(serverSocket);
       }
-      if (!useSSL) {
-        serverSocket = HiveAuthUtils.getServerSocket(null, waggleDanceConfiguration.getPort());
-      } else {
-        String keyStorePath = hiveConf.getVar(ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PATH).trim();
-        if (keyStorePath.isEmpty()) {
-          throw new IllegalArgumentException(
-              ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PASSWORD.varname + " Not configured for SSL connection");
-        }
-        String keyStorePassword = ShimLoader.getHadoopShims().getPassword(hiveConf,
-            HiveConf.ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PASSWORD.varname);
-        serverSocket = HiveAuthUtils.getServerSSLSocket(null, waggleDanceConfiguration.getPort(), keyStorePath,
-            keyStorePassword, sslVersionBlacklist);
-      }
-
-      TServerTransport serverTransport = tcpKeepAlive ? new TServerSocketKeepAlive(serverSocket)
-          : new TServerSocket(waggleDanceConfiguration.getPort());
 
       TTransportFactory transFactory = useFramedTransport ? new TFramedTransport.Factory() : new TTransportFactory();
       LOG.info("Starting WaggleDance Server");
 
-      TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverTransport)
+      TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverSocket)
           .processorFactory(tSetIpAddressProcessorFactory)
           .transportFactory(transFactory)
           .protocolFactory(new TBinaryProtocol.Factory())
@@ -210,6 +193,28 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       throw x;
     }
     LOG.info("Waggle Dance has stopped");
+  }
+
+  private TServerSocket createServerSocket(boolean useSSL, int port) throws IOException, TTransportException {
+    TServerSocket serverSocket = null;
+    // enable SSL support for HMS
+    List<String> sslVersionBlacklist = new ArrayList<>();
+    for (String sslVersion : hiveConf.getVar(ConfVars.HIVE_SSL_PROTOCOL_BLACKLIST).split(",")) {
+      sslVersionBlacklist.add(sslVersion);
+    }
+    if (!useSSL) {
+      serverSocket = HiveAuthUtils.getServerSocket(null, port);
+    } else {
+      String keyStorePath = hiveConf.getVar(ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PATH).trim();
+      if (keyStorePath.isEmpty()) {
+        throw new IllegalArgumentException(
+            ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PASSWORD.varname + " Not configured for SSL connection");
+      }
+      String keyStorePassword = ShimLoader.getHadoopShims().getPassword(hiveConf,
+          HiveConf.ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PASSWORD.varname);
+      serverSocket = HiveAuthUtils.getServerSSLSocket(null, port, keyStorePath, keyStorePassword, sslVersionBlacklist);
+    }
+    return serverSocket;
   }
 
   private void signalOtherThreadsToStart(
