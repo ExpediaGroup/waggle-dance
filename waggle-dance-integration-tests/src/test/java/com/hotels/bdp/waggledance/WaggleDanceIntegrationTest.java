@@ -265,8 +265,8 @@ public class WaggleDanceIntegrationTest {
 
     // Execute a couple of requests
     proxy.getAllDatabases();
-    proxy.getAllDatabases();
     proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    proxy.getAllDatabases();
     proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
     runner.stop();
 
@@ -277,13 +277,13 @@ public class WaggleDanceIntegrationTest {
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.success.count 2");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table.primary.calls.count 1");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.primary.calls.count 1");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table.primary.success.count 1");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.primary.success.count 1");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table.remote.calls.count 1");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.calls.count 1");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table.remote.success.count 1");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success.count 1");
   }
 
   private void assertMetric(Set<String> metrics, String partialMetric) {
