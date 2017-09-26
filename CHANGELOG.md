@@ -1,4 +1,4 @@
-## [2.0.4]
+## [2.1.0]
 ### Changed
 * Upgrade Hive from 2.1.0 to 2.3.0.
 * Depend on latest parent with test.arguments build parameter
