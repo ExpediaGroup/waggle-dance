@@ -16,7 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.never;
@@ -62,8 +62,8 @@ public class MetaStoreMappingImplTest {
   public void transformOutboundDatabase() {
     when(database.getName()).thenReturn("My_Database");
     Database outboundDatabase = metaStoreMapping.transformOutboundDatabase(database);
-    assertThat(outboundDatabase, is(not(database)));
-    assertThat(outboundDatabase.getName(), is("prefix_my_database"));
+    assertThat(outboundDatabase, is(sameInstance(database)));
+    verify(outboundDatabase).setName("prefix_my_database");
   }
 
   @Test

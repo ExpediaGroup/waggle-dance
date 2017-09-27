@@ -460,7 +460,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     DropPartitionsResult result = mapping
         .getClient()
         .drop_partitions_req(mapping.transformInboundDropPartitionRequest(req));
-    return mapping.transforOutboundDropPartitionsResult(result);
+    return mapping.transformOutboundDropPartitionsResult(result);
   }
 
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
@@ -1382,7 +1382,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public ForeignKeysResponse get_foreign_keys(ForeignKeysRequest request)
     throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(request.getParent_db_name());
-    return mapping.getClient().get_foreign_keys(mapping.transformInboundForeignKeysRequest(request));
+    return mapping.transformOutboundForeignKeysResponse(
+        mapping.getClient().get_foreign_keys(mapping.transformInboundForeignKeysRequest(request)));
   }
 
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
@@ -1411,7 +1412,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public PrimaryKeysResponse get_primary_keys(PrimaryKeysRequest request)
     throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(request.getDb_name());
-    return mapping.getClient().get_primary_keys(mapping.transformInboundPrimaryKeysRequest(request));
+    return mapping.transformOutboundPrimaryKeysResponse(
+        mapping.getClient().get_primary_keys(mapping.transformInboundPrimaryKeysRequest(request)));
   }
 
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
@@ -1464,6 +1466,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   // Hive 2.3.0 methods
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   @Override
   public List<String> get_tables_by_type(String db_name, String pattern, String tableType)
     throws MetaException, TException {
@@ -1471,6 +1474,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     return mapping.getClient().get_tables_by_type(mapping.transformInboundDatabaseName(db_name), pattern, tableType);
   }
 
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   @Override
   public GetTableResult get_table_req(GetTableRequest req) throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(req.getDbName());
@@ -1478,6 +1482,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     return mapping.transformOutboundGetTableResult(result);
   }
 
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   @Override
   public GetTablesResult get_table_objects_by_name_req(GetTablesRequest req)
     throws MetaException, InvalidOperationException, UnknownDBException, TException {
@@ -1488,6 +1493,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     return mapping.transformOutboundGetTablesResult(result);
   }
 
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   @Override
   public CompactionResponse compact2(CompactionRequest rqst) throws TException {
     DatabaseMapping mapping = databaseMappingService.primaryDatabaseMapping();

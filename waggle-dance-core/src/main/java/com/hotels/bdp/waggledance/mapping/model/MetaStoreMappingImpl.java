@@ -58,9 +58,8 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public Database transformOutboundDatabase(Database database) {
-    Database outbound = new Database(database);
-    outbound.setName(transformOutboundDatabaseName(database.getName()));
-    return outbound;
+    database.setName(transformOutboundDatabaseName(database.getName()));
+    return database;
   }
 
   @Override

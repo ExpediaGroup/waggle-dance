@@ -31,6 +31,7 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
+import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
@@ -49,6 +50,7 @@ import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -183,8 +185,18 @@ public class IdentityMapping implements DatabaseMapping {
   }
 
   @Override
+  public ForeignKeysResponse transformOutboundForeignKeysResponse(ForeignKeysResponse response) {
+    return response;
+  }
+
+  @Override
   public PrimaryKeysRequest transformInboundPrimaryKeysRequest(PrimaryKeysRequest request) {
     return request;
+  }
+
+  @Override
+  public PrimaryKeysResponse transformOutboundPrimaryKeysResponse(PrimaryKeysResponse response) {
+    return response;
   }
 
   @Override
@@ -233,7 +245,7 @@ public class IdentityMapping implements DatabaseMapping {
   }
 
   @Override
-  public DropPartitionsResult transforOutboundDropPartitionsResult(DropPartitionsResult dropPartitionsResult) {
+  public DropPartitionsResult transformOutboundDropPartitionsResult(DropPartitionsResult dropPartitionsResult) {
     return dropPartitionsResult;
   }
 

@@ -3,7 +3,7 @@
  *
  * This code is based on Hive's HiveMetaStore:
  *
- * https://github.com/apache/hive/blob/rel/release-2.3.0/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStore.java
+ * https://github.com/apache/hive/blob/rel/release-2.1.0/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStore.java
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -157,8 +157,9 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       int maxWorkerThreads = hiveConf.getIntVar(ConfVars.METASTORESERVERMAXTHREADS);
       boolean tcpKeepAlive = hiveConf.getBoolVar(ConfVars.METASTORE_TCP_KEEP_ALIVE);
       boolean useFramedTransport = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT);
+      boolean useSSL = hiveConf.getBoolVar(ConfVars.HIVE_METASTORE_USE_SSL);
 
-      TServerSocket serverSocket = createServerSocket(waggleDanceConfiguration.getPort());
+      TServerSocket serverSocket = createServerSocket(useSSL, waggleDanceConfiguration.getPort());
 
       if (tcpKeepAlive) {
         serverSocket = new TServerSocketKeepAlive(serverSocket);
@@ -194,9 +195,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
     LOG.info("Waggle Dance has stopped");
   }
 
-  private TServerSocket createServerSocket(int port) throws IOException, TTransportException {
-    boolean useSSL = hiveConf.getBoolVar(ConfVars.HIVE_METASTORE_USE_SSL);
-
+  private TServerSocket createServerSocket(boolean useSSL, int port) throws IOException, TTransportException {
     TServerSocket serverSocket = null;
     // enable SSL support for HMS
     List<String> sslVersionBlacklist = new ArrayList<>();
