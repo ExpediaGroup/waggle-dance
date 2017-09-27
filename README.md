@@ -11,7 +11,7 @@ We also use Waggle Dance to apply a simple security layer to cloud based platfor
 
 You can obtain Waggle Dance from Maven Central:
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance/badge.svg?subject=com.hotels:waggle-dance)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance) ![GitHub license](https://img.shields.io/github/license/HotelsDotCom/waggle-dance.svg)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance/badge.svg?subject=com.hotels:waggle-dance)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance) [![Build Status](https://travis-ci.org/HotelsDotCom/waggle-dance.svg?branch=master)](https://travis-ci.org/HotelsDotCom/waggle-dance) [![Coverage Status](https://coveralls.io/repos/github/HotelsDotCom/waggle-dance/badge.svg?branch=master)](https://coveralls.io/github/HotelsDotCom/waggle-dance?branch=master) ![GitHub license](https://img.shields.io/github/license/HotelsDotCom/waggle-dance.svg)
 
 
 ## Premise
