@@ -1463,4 +1463,36 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     getPrimaryClient().update_master_key(seq_number, key);
   }
 
+  // Hive 2.3.0 methods
+  @Override
+  public List<String> get_tables_by_type(String db_name, String pattern, String tableType)
+    throws MetaException, TException {
+    DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
+    return mapping.getClient().get_tables_by_type(mapping.transformInboundDatabaseName(db_name), pattern, tableType);
+  }
+
+  @Override
+  public GetTableResult get_table_req(GetTableRequest req) throws MetaException, NoSuchObjectException, TException {
+    DatabaseMapping mapping = databaseMappingService.databaseMapping(req.getDbName());
+    GetTableResult result = mapping.getClient().get_table_req(mapping.transformInboundGetTableRequest(req));
+    return mapping.transformOutboundGetTableResult(result);
+  }
+
+  @Override
+  public GetTablesResult get_table_objects_by_name_req(GetTablesRequest req)
+    throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    DatabaseMapping mapping = databaseMappingService.databaseMapping(req.getDbName());
+    GetTablesResult result = mapping
+        .getClient()
+        .get_table_objects_by_name_req(mapping.transformInboundGetTablesRequest(req));
+    return mapping.transformOutboundGetTablesResult(result);
+  }
+
+  @Override
+  public CompactionResponse compact2(CompactionRequest rqst) throws TException {
+    DatabaseMapping mapping = databaseMappingService.primaryDatabaseMapping();
+    mapping.checkWritePermissions(rqst.getDbname());
+    return mapping.getClient().compact2(mapping.transformInboundCompactionRequest(rqst));
+  }
+
 }

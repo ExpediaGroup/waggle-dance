@@ -33,6 +33,10 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.Function;
+import org.apache.hadoop.hive.metastore.api.GetTableRequest;
+import org.apache.hadoop.hive.metastore.api.GetTableResult;
+import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
+import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -444,4 +448,35 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     }
     return inbound;
   }
+
+  @Override
+  public GetTableRequest transformInboundGetTableRequest(GetTableRequest request) {
+    GetTableRequest inbound = new GetTableRequest(request);
+    inbound.setDbName(metaStoreMapping.transformInboundDatabaseName(inbound.getDbName()));
+    return inbound;
+  }
+
+  @Override
+  public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
+    GetTableResult outbound = new GetTableResult(result);
+    outbound.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(outbound.getTable().getDbName()));
+    return outbound;
+  }
+
+  @Override
+  public GetTablesRequest transformInboundGetTablesRequest(GetTablesRequest request) {
+    GetTablesRequest inbound = new GetTablesRequest(request);
+    inbound.setDbName(metaStoreMapping.transformInboundDatabaseName(inbound.getDbName()));
+    return inbound;
+  }
+
+  @Override
+  public GetTablesResult transformOutboundGetTablesResult(GetTablesResult result) {
+    GetTablesResult outbound = new GetTablesResult(result);
+    for (Table table : outbound.getTables()) {
+      table.setDbName(metaStoreMapping.transformOutboundDatabaseName(table.getDbName()));
+    }
+    return outbound;
+  }
+
 }

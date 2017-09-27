@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>2.0.3-SNAPSHOT</version>
+    <version>2.1.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-core</artifactId>
@@ -253,7 +253,6 @@
     <dependency>
       <groupId>com.hotels</groupId>
       <artifactId>beeju</artifactId>
-      <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -285,6 +284,16 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot-maven-plugin.version}</version>
         <configuration>
+          <requiresUnpack>
+            <!-- We are hitting an issue introduced in hive-common-2.1.1 and fixed in https://issues.apache.org/jira/browse/HIVE-17155
+              The HiveConf class tries loading conf (e.g. hive-site.xml) from the uberjar and fails. Unpacking it with this 
+              setting fixes that problem.
+            -->
+            <dependency>
+              <groupId>org.apache.hive</groupId>
+              <artifactId>hive-common</artifactId>
+            </dependency>
+          </requiresUnpack>
           <executable>true</executable>
           <classifier>exec</classifier>
           <excludeGroupIds>org.mortbay.jetty,org.eclipse.jetty,org.eclipse.jetty.aggregate,org.eclipse.jetty.orbit</excludeGroupIds>

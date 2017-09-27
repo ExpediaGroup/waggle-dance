@@ -1,10 +1,21 @@
-## [2.0.2]
+## [2.1.0] TBD
+### Changed
+* Upgrade Hive from 2.1.0 to 2.3.0.
+* Depend on latest parent with test.arguments build parameter
+* Fixed bug where tunnel configuration wasn't being applied.
+* Hive dependency updated to 2.1.1 (Needed corresponding BeeJU dependency update as well)
+### Removed
+* Removed SessionFactorySupplierFactory.
+
+## [2.0.3] 2017-09-25 [YANKED]
+
+## [2.0.2] 2017-08-01
 ### Added
 * Flag to prevent flushing the federation configuration out when the server stops.
 ### Changed
 * Configure Maven deploy plug-in.
 
-## [2.0.1]
+## [2.0.1] 2017-07-27
 ### Changed
 * Few extra notes in README.
 
