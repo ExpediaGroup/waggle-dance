@@ -1,5 +1,6 @@
-## [2.1.0] TBD
+## [2.1.0] 2017-10-02
 ### Changed
+* Changed the default GC settings, tuning for our environment
 * Upgrade Hive from 2.1.0 to 2.3.0.
 * Depend on latest parent with test.arguments build parameter
 * Fixed bug where tunnel configuration wasn't being applied.
