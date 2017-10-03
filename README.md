@@ -260,7 +260,7 @@ The following configuration snippets show a few examples of valid tunnel express
 
 #### Metrics
 
-Waggle Dance exposes a set of metrics that can be accessed on the `/metrics` end-point. These metrics include a few standard JVM and Spring plus per-federation metrics which include per-metastore number of calls and invocation duration. If a Graphite server is provided in the server configuration then all the metrics will be exposed in the endpoint and Graphite.
+Waggle Dance exposes a set of metrics that can be accessed on the `/metrics` end-point. These metrics include a few standard JVM, Spring and per-federation metrics which include per-metastore number of calls and invocation duration. If a Graphite server is provided in the server configuration then all the metrics will be exposed in the endpoint and Graphite.
 
 The following snippet shows a typical Graphite configuration:
 
