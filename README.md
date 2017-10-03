@@ -11,7 +11,7 @@ We also use Waggle Dance to apply a simple security layer to cloud based platfor
 
 You can obtain Waggle Dance from Maven Central:
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance/badge.svg?subject=com.hotels:waggle-dance)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance) ![GitHub license](https://img.shields.io/github/license/HotelsDotCom/waggle-dance.svg)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance/badge.svg?subject=com.hotels:waggle-dance)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance) [![Build Status](https://travis-ci.org/HotelsDotCom/waggle-dance.svg?branch=master)](https://travis-ci.org/HotelsDotCom/waggle-dance) [![Coverage Status](https://coveralls.io/repos/github/HotelsDotCom/waggle-dance/badge.svg?branch=master)](https://coveralls.io/github/HotelsDotCom/waggle-dance?branch=master) ![GitHub license](https://img.shields.io/github/license/HotelsDotCom/waggle-dance.svg)
 
 
 ## Premise
@@ -260,7 +260,7 @@ The following configuration snippets show a few examples of valid tunnel express
 
 #### Metrics
 
-Waggle Dance exposes a set of metrics that can be accessed on the `/metrics` end-point. These metrics include a few standard JVM and Spring plus per-federation metrics which include per-metastore number of calls and invocation duration. If a Graphite server is provided in the server configuration then all the metrics will be exposed in the endpoint and Graphite.
+Waggle Dance exposes a set of metrics that can be accessed on the `/metrics` end-point. These metrics include a few standard JVM, Spring and per-federation metrics which include per-metastore number of calls and invocation duration. If a Graphite server is provided in the server configuration then all the metrics will be exposed in the endpoint and Graphite.
 
 The following snippet shows a typical Graphite configuration:
 
