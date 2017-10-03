@@ -1,4 +1,4 @@
-## [2.1.0] 2017-10-02
+## [2.1.0] 2017-10-03
 ### Changed
 * Changed the default GC settings, less heap, more reserved percentage, works better with large requests.
 * Upgrade Hive from 2.1.0 to 2.3.0.
