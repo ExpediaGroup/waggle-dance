@@ -35,13 +35,13 @@
     <cobertura.version>2.0.3</cobertura.version>
     <cobertura.maven.plugin.version>2.6</cobertura.maven.plugin.version>
     <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
-    <spring-platform.version>2.0.8.RELEASE</spring-platform.version>
+    <spring-platform.version>Brussels-SR5</spring-platform.version>
     <hadoop.version>2.7.2</hadoop.version>
     <hive.version>2.3.0</hive.version>
     <dropwizard.version>1.0.5</dropwizard.version>
-    <aspectj-maven-plugin.version>1.9</aspectj-maven-plugin.version>
+    <aspectj-maven-plugin.version>1.10</aspectj-maven-plugin.version>
     <jdk.version>1.7</jdk.version>
-    <aspectj.version>1.8.9</aspectj.version>
+    <aspectj.version>1.8.10</aspectj.version>
     <beeju.version>1.2.0</beeju.version>
   </properties>
 

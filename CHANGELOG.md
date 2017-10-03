@@ -1,7 +1,7 @@
 ## [2.1.1]
 ### Changed
 * `DatabaseMapping`s no longer make copies of the Thrift objects, it mutates the original objects instead.
-* Upgrade BeeJU
+* Upgrade Spring, BeeJU and other dependencies
 
 ## [2.1.0]
 ### Changed
