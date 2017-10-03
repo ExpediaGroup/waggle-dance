@@ -1,9 +1,10 @@
 ## [2.1.0]
 ### Changed
 * Upgrade Hive from 2.1.0 to 2.3.0.
-* Depend on latest parent with test.arguments build parameter
+* Depend on latest parent with test.arguments build parameter.
 * Fixed bug where tunnel configuration wasn't being applied.
-* Hive dependency updated to 2.1.1 (Needed corresponding BeeJU dependency update as well)
+* Hive dependency updated to 2.1.1 (Needed corresponding BeeJU dependency update as well).
+* `DatabaseMapping`s no longer make copies of the Thrift objects, it mutates the original objects instead.
 ### Removed
 * Removed SessionFactorySupplierFactory.
 
