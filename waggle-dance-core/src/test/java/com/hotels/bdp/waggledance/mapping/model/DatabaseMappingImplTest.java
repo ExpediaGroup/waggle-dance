@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertFalse;
@@ -40,6 +39,7 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
+import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
@@ -58,7 +58,10 @@ import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
+import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
+import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
@@ -119,7 +122,7 @@ public class DatabaseMappingImplTest {
     Table table = new Table();
     table.setDbName(DB_NAME);
     Table result = databaseMapping.transformOutboundTable(table);
-    assertThat(result, is(not(sameInstance(table))));
+    assertThat(result, is(sameInstance(table)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
   }
 
@@ -128,35 +131,35 @@ public class DatabaseMappingImplTest {
     Table table = new Table();
     table.setDbName(DB_NAME);
     Table result = databaseMapping.transformInboundTable(table);
-    assertThat(result, is(not(sameInstance(table))));
+    assertThat(result, is(sameInstance(table)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
   @Test
   public void transformOutboundPartition() throws Exception {
     Partition result = databaseMapping.transformOutboundPartition(partition);
-    assertThat(result, is(not(sameInstance(partition))));
+    assertThat(result, is(sameInstance(partition)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
   }
 
   @Test
   public void transformInboundPartition() throws Exception {
     Partition result = databaseMapping.transformInboundPartition(partition);
-    assertThat(result, is(not(sameInstance(partition))));
+    assertThat(result, is(sameInstance(partition)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
   @Test
   public void transformOutboundIndex() throws Exception {
     Index result = databaseMapping.transformOutboundIndex(index);
-    assertThat(result, is(not(sameInstance(index))));
+    assertThat(result, is(sameInstance(index)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
   }
 
   @Test
   public void transformInboundIndex() throws Exception {
     Index result = databaseMapping.transformInboundIndex(index);
-    assertThat(result, is(not(sameInstance(index))));
+    assertThat(result, is(sameInstance(index)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
@@ -165,14 +168,14 @@ public class DatabaseMappingImplTest {
     Function function = new Function();
     function.setDbName(DB_NAME);
     Function result = databaseMapping.transformOutboundFunction(function);
-    assertThat(result, is(not(sameInstance(function))));
+    assertThat(result, is(sameInstance(function)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
   }
 
   @Test
   public void transformInboundHiveObjectRef() throws Exception {
     HiveObjectRef result = databaseMapping.transformInboundHiveObjectRef(hiveObjectRef);
-    assertThat(result, is(not(sameInstance(hiveObjectRef))));
+    assertThat(result, is(sameInstance(hiveObjectRef)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
     assertThat(result.getObjectName(), is(IN_DB_NAME));
   }
@@ -182,7 +185,7 @@ public class DatabaseMappingImplTest {
     hiveObjectRef.setObjectType(HiveObjectType.TABLE);
     hiveObjectRef.setObjectName("table");
     HiveObjectRef result = databaseMapping.transformInboundHiveObjectRef(hiveObjectRef);
-    assertThat(result, is(not(sameInstance(hiveObjectRef))));
+    assertThat(result, is(sameInstance(hiveObjectRef)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
     assertThat(result.getObjectName(), is("table"));
   }
@@ -190,7 +193,7 @@ public class DatabaseMappingImplTest {
   @Test
   public void transformOutboundHiveObjectRef() throws Exception {
     HiveObjectRef result = databaseMapping.transformOutboundHiveObjectRef(hiveObjectRef);
-    assertThat(result, is(not(sameInstance(hiveObjectRef))));
+    assertThat(result, is(sameInstance(hiveObjectRef)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
     assertThat(result.getObjectName(), is(OUT_DB_NAME));
   }
@@ -200,7 +203,7 @@ public class DatabaseMappingImplTest {
     hiveObjectRef.setObjectType(HiveObjectType.TABLE);
     hiveObjectRef.setObjectName("table");
     HiveObjectRef result = databaseMapping.transformOutboundHiveObjectRef(hiveObjectRef);
-    assertThat(result, is(not(sameInstance(hiveObjectRef))));
+    assertThat(result, is(sameInstance(hiveObjectRef)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
     assertThat(result.getObjectName(), is("table"));
   }
@@ -208,7 +211,7 @@ public class DatabaseMappingImplTest {
   @Test
   public void transformOutboundPartitionSpec() throws Exception {
     PartitionSpec result = databaseMapping.transformOutboundPartitionSpec(partitionSpec);
-    assertThat(result, is(not(sameInstance(partitionSpec))));
+    assertThat(result, is(sameInstance(partitionSpec)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
   }
 
@@ -217,7 +220,7 @@ public class DatabaseMappingImplTest {
     PartitionsStatsRequest partitionStatsRequest = new PartitionsStatsRequest();
     partitionStatsRequest.setDbName(DB_NAME);
     PartitionsStatsRequest result = databaseMapping.transformInboundPartitionsStatsRequest(partitionStatsRequest);
-    assertThat(result, is(not(sameInstance(partitionStatsRequest))));
+    assertThat(result, is(sameInstance(partitionStatsRequest)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
@@ -226,7 +229,7 @@ public class DatabaseMappingImplTest {
     TableStatsRequest tableStatsRequest = new TableStatsRequest();
     tableStatsRequest.setDbName(DB_NAME);
     TableStatsRequest result = databaseMapping.transformInboundTableStatsRequest(tableStatsRequest);
-    assertThat(result, is(not(sameInstance(tableStatsRequest))));
+    assertThat(result, is(sameInstance(tableStatsRequest)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
@@ -235,7 +238,7 @@ public class DatabaseMappingImplTest {
     PartitionsByExprRequest partitionsByExprRequest = new PartitionsByExprRequest();
     partitionsByExprRequest.setDbName(DB_NAME);
     PartitionsByExprRequest result = databaseMapping.transformInboundPartitionsByExprRequest(partitionsByExprRequest);
-    assertThat(result, is(not(sameInstance(partitionsByExprRequest))));
+    assertThat(result, is(sameInstance(partitionsByExprRequest)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
@@ -244,7 +247,7 @@ public class DatabaseMappingImplTest {
     PartitionsByExprResult partitionsByExprResult = new PartitionsByExprResult();
     partitionsByExprResult.setPartitions(partitions);
     PartitionsByExprResult result = databaseMapping.transformOutboundPartitionsByExprResult(partitionsByExprResult);
-    assertThat(result, is(not(sameInstance(partitionsByExprResult))));
+    assertThat(result, is(sameInstance(partitionsByExprResult)));
     assertPartitions(result.getPartitions(), OUT_DB_NAME);
   }
 
@@ -288,7 +291,7 @@ public class DatabaseMappingImplTest {
     cacheFileMetadataRequest.setDbName(DB_NAME);
     CacheFileMetadataRequest result = databaseMapping
         .transformInboundCacheFileMetadataRequest(cacheFileMetadataRequest);
-    assertThat(result, is(not(sameInstance(cacheFileMetadataRequest))));
+    assertThat(result, is(sameInstance(cacheFileMetadataRequest)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
@@ -297,7 +300,7 @@ public class DatabaseMappingImplTest {
     FireEventRequest fireEventRequest = new FireEventRequest();
     fireEventRequest.setDbName(DB_NAME);
     FireEventRequest result = databaseMapping.transformInboundFireEventRequest(fireEventRequest);
-    assertThat(result, is(not(sameInstance(fireEventRequest))));
+    assertThat(result, is(sameInstance(fireEventRequest)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
@@ -308,9 +311,23 @@ public class DatabaseMappingImplTest {
     foreignKeysRequest.setForeign_db_name(DB_NAME);
 
     ForeignKeysRequest result = databaseMapping.transformInboundForeignKeysRequest(foreignKeysRequest);
-    assertThat(result, is(not(sameInstance(foreignKeysRequest))));
+    assertThat(result, is(sameInstance(foreignKeysRequest)));
     assertThat(result.getParent_db_name(), is(IN_DB_NAME));
     assertThat(result.getForeign_db_name(), is(IN_DB_NAME));
+  }
+
+  @Test
+  public void transformOutboundForeignKeysResponse() throws Exception {
+    SQLForeignKey foreignKey = new SQLForeignKey();
+    foreignKey.setPktable_db(DB_NAME);
+    foreignKey.setFktable_db(DB_NAME);
+    ForeignKeysResponse foreignKeysResponse = new ForeignKeysResponse(Arrays.asList(foreignKey));
+    ForeignKeysResponse result = databaseMapping.transformOutboundForeignKeysResponse(foreignKeysResponse);
+    assertThat(result, is(sameInstance(foreignKeysResponse)));
+    assertThat(result.getForeignKeys().size(), is(1));
+    assertThat(result.getForeignKeys().get(0), is(sameInstance(foreignKeysResponse.getForeignKeys().get(0))));
+    assertThat(result.getForeignKeys().get(0).getPktable_db(), is(OUT_DB_NAME));
+    assertThat(result.getForeignKeys().get(0).getFktable_db(), is(OUT_DB_NAME));
   }
 
   @Test
@@ -318,8 +335,20 @@ public class DatabaseMappingImplTest {
     PrimaryKeysRequest primaryKeysRequest = new PrimaryKeysRequest();
     primaryKeysRequest.setDb_name(DB_NAME);
     PrimaryKeysRequest result = databaseMapping.transformInboundPrimaryKeysRequest(primaryKeysRequest);
-    assertThat(result, is(not(sameInstance(primaryKeysRequest))));
+    assertThat(result, is(sameInstance(primaryKeysRequest)));
     assertThat(result.getDb_name(), is(IN_DB_NAME));
+  }
+
+  @Test
+  public void transformOutboundPrimaryKeysResponse() throws Exception {
+    SQLPrimaryKey primaryKey = new SQLPrimaryKey();
+    primaryKey.setTable_db(DB_NAME);
+    PrimaryKeysResponse primaryKeysResponse = new PrimaryKeysResponse(Arrays.asList(primaryKey));
+    PrimaryKeysResponse result = databaseMapping.transformOutboundPrimaryKeysResponse(primaryKeysResponse);
+    assertThat(result, is(sameInstance(primaryKeysResponse)));
+    assertThat(result.getPrimaryKeys().size(), is(1));
+    assertThat(result.getPrimaryKeys().get(0), is(sameInstance(primaryKeysResponse.getPrimaryKeys().get(0))));
+    assertThat(result.getPrimaryKeys().get(0).getTable_db(), is(OUT_DB_NAME));
   }
 
   @Test
@@ -327,7 +356,7 @@ public class DatabaseMappingImplTest {
     TableMeta tableMeta = new TableMeta();
     tableMeta.setDbName(DB_NAME);
     TableMeta result = databaseMapping.transformOutboundTableMeta(tableMeta);
-    assertThat(result, is(not(sameInstance(tableMeta))));
+    assertThat(result, is(sameInstance(tableMeta)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
   }
 
@@ -336,7 +365,7 @@ public class DatabaseMappingImplTest {
     AddDynamicPartitions addDynamicPartitions = new AddDynamicPartitions();
     addDynamicPartitions.setDbname(DB_NAME);
     AddDynamicPartitions result = databaseMapping.transformInboundAddDynamicPartitions(addDynamicPartitions);
-    assertThat(result, is(not(sameInstance(addDynamicPartitions))));
+    assertThat(result, is(sameInstance(addDynamicPartitions)));
     assertThat(result.getDbname(), is(IN_DB_NAME));
   }
 
@@ -363,7 +392,7 @@ public class DatabaseMappingImplTest {
     DropConstraintRequest dropConstraintRequest = new DropConstraintRequest();
     dropConstraintRequest.setDbname(DB_NAME);
     DropConstraintRequest result = databaseMapping.transformInboundDropConstraintRequest(dropConstraintRequest);
-    assertThat(result, is(not(sameInstance(dropConstraintRequest))));
+    assertThat(result, is(sameInstance(dropConstraintRequest)));
     assertThat(result.getDbname(), is(IN_DB_NAME));
   }
 
@@ -373,7 +402,7 @@ public class DatabaseMappingImplTest {
     addPartitionsRequest.setDbName(DB_NAME);
     addPartitionsRequest.setParts(partitions);
     AddPartitionsRequest result = databaseMapping.transformInboundAddPartitionsRequest(addPartitionsRequest);
-    assertThat(result, is(not(sameInstance(addPartitionsRequest))));
+    assertThat(result, is(sameInstance(addPartitionsRequest)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
     assertPartitions(result.getParts(), IN_DB_NAME);
   }
@@ -383,7 +412,7 @@ public class DatabaseMappingImplTest {
     AddPartitionsResult addPartitionsResult = new AddPartitionsResult();
     addPartitionsResult.setPartitions(partitions);
     AddPartitionsResult result = databaseMapping.transformOutboundAddPartitionsResult(addPartitionsResult);
-    assertThat(result, is(not(sameInstance(addPartitionsResult))));
+    assertThat(result, is(sameInstance(addPartitionsResult)));
     assertPartitions(result.getPartitions(), OUT_DB_NAME);
   }
 
@@ -392,16 +421,16 @@ public class DatabaseMappingImplTest {
     DropPartitionsRequest dropPartitionsRequest = new DropPartitionsRequest();
     dropPartitionsRequest.setDbName(DB_NAME);
     DropPartitionsRequest result = databaseMapping.transformInboundDropPartitionRequest(dropPartitionsRequest);
-    assertThat(result, is(not(sameInstance(dropPartitionsRequest))));
+    assertThat(result, is(sameInstance(dropPartitionsRequest)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
   @Test
-  public void transforOutboundDropPartitionsResult() throws Exception {
+  public void transformOutboundDropPartitionsResult() throws Exception {
     DropPartitionsResult dropPartitionsResult = new DropPartitionsResult();
     dropPartitionsResult.setPartitions(partitions);
-    DropPartitionsResult result = databaseMapping.transforOutboundDropPartitionsResult(dropPartitionsResult);
-    assertThat(result, is(not(sameInstance(dropPartitionsResult))));
+    DropPartitionsResult result = databaseMapping.transformOutboundDropPartitionsResult(dropPartitionsResult);
+    assertThat(result, is(sameInstance(dropPartitionsResult)));
     assertPartitions(result.getPartitions(), OUT_DB_NAME);
   }
 
@@ -410,9 +439,9 @@ public class DatabaseMappingImplTest {
     List<PartitionSpec> partitionSpecs = new ArrayList<>();
     partitionSpecs.add(partitionSpec);
     List<PartitionSpec> result = databaseMapping.transformOutboundPartitionSpecs(partitionSpecs);
-    assertThat(result, is(not(sameInstance(partitionSpecs))));
+    assertThat(result, is(sameInstance(partitionSpecs)));
     PartitionSpec resultSpec = result.get(0);
-    assertThat(resultSpec, is(not(sameInstance(partitionSpec))));
+    assertThat(resultSpec, is(sameInstance(partitionSpec)));
     assertThat(resultSpec.getDbName(), is(OUT_DB_NAME));
   }
 
@@ -421,9 +450,9 @@ public class DatabaseMappingImplTest {
     List<Index> indexes = new ArrayList<>();
     indexes.add(index);
     List<Index> result = databaseMapping.transformOutboundIndexes(indexes);
-    assertThat(result, is(not(sameInstance(indexes))));
+    assertThat(result, is(sameInstance(indexes)));
     Index resultIndex = result.get(0);
-    assertThat(resultIndex, is(not(sameInstance(index))));
+    assertThat(resultIndex, is(sameInstance(index)));
     assertThat(resultIndex.getDbName(), is(OUT_DB_NAME));
   }
 
@@ -434,8 +463,8 @@ public class DatabaseMappingImplTest {
     statsDesc.setDbName(DB_NAME);
     columnStatistics.setStatsDesc(statsDesc);
     ColumnStatistics result = databaseMapping.transformInboundColumnStatistics(columnStatistics);
-    assertThat(result, is(not(sameInstance(columnStatistics))));
-    assertThat(result.getStatsDesc(), is(not(sameInstance(columnStatistics.getStatsDesc()))));
+    assertThat(result, is(sameInstance(columnStatistics)));
+    assertThat(result.getStatsDesc(), is(sameInstance(columnStatistics.getStatsDesc())));
     assertThat(result.getStatsDesc().getDbName(), is(IN_DB_NAME));
   }
 
@@ -446,8 +475,8 @@ public class DatabaseMappingImplTest {
     statsDesc.setDbName(DB_NAME);
     columnStatistics.setStatsDesc(statsDesc);
     ColumnStatistics result = databaseMapping.transformOutboundColumnStatistics(columnStatistics);
-    assertThat(result, is(not(sameInstance(columnStatistics))));
-    assertThat(result.getStatsDesc(), is(not(sameInstance(columnStatistics.getStatsDesc()))));
+    assertThat(result, is(sameInstance(columnStatistics)));
+    assertThat(result.getStatsDesc(), is(sameInstance(columnStatistics.getStatsDesc())));
     assertThat(result.getStatsDesc().getDbName(), is(OUT_DB_NAME));
   }
 
@@ -459,13 +488,12 @@ public class DatabaseMappingImplTest {
     statsDesc.setDbName(DB_NAME);
     columnStatistics.setStatsDesc(statsDesc);
     setPartitionsStatsRequest.setColStats(Lists.newArrayList(columnStatistics));
-    ;
     SetPartitionsStatsRequest result = databaseMapping
         .transformInboundSetPartitionStatsRequest(setPartitionsStatsRequest);
-    assertThat(result, is(not(sameInstance(setPartitionsStatsRequest))));
+    assertThat(result, is(sameInstance(setPartitionsStatsRequest)));
     ColumnStatistics resultColStats = result.getColStats().get(0);
-    assertThat(resultColStats, is(not(sameInstance(columnStatistics))));
-    assertThat(resultColStats.getStatsDesc(), is(not(sameInstance(statsDesc))));
+    assertThat(resultColStats, is(sameInstance(columnStatistics)));
+    assertThat(resultColStats.getStatsDesc(), is(sameInstance(statsDesc)));
     assertThat(resultColStats.getStatsDesc().getDbName(), is(IN_DB_NAME));
   }
 
@@ -474,7 +502,7 @@ public class DatabaseMappingImplTest {
     SetPartitionsStatsRequest setPartitionsStatsRequest = new SetPartitionsStatsRequest();
     SetPartitionsStatsRequest result = databaseMapping
         .transformInboundSetPartitionStatsRequest(setPartitionsStatsRequest);
-    assertThat(result, is(not(sameInstance(setPartitionsStatsRequest))));
+    assertThat(result, is(sameInstance(setPartitionsStatsRequest)));
     assertFalse(result.isSetColStats());
   }
 
@@ -483,7 +511,7 @@ public class DatabaseMappingImplTest {
     Function function = new Function();
     function.setDbName(DB_NAME);
     Function result = databaseMapping.transformInboundFunction(function);
-    assertThat(result, is(not(sameInstance(function))));
+    assertThat(result, is(sameInstance(function)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
@@ -498,7 +526,7 @@ public class DatabaseMappingImplTest {
     PrivilegeBag privilegeBag = new PrivilegeBag();
     privilegeBag.setPrivileges(hiveObjectPrivileges);
     PrivilegeBag result = databaseMapping.transformInboundPrivilegeBag(privilegeBag);
-    assertThat(result, is(not(sameInstance(privilegeBag))));
+    assertThat(result, is(sameInstance(privilegeBag)));
     assertHiveObjectPrivileges(result.getPrivileges(), IN_DB_NAME);
   }
 
@@ -506,7 +534,7 @@ public class DatabaseMappingImplTest {
   public void transformInboundPrivilegeBagPriviligesNotSet() throws Exception {
     PrivilegeBag privilegeBag = new PrivilegeBag();
     PrivilegeBag result = databaseMapping.transformInboundPrivilegeBag(privilegeBag);
-    assertThat(result, is(not(sameInstance(privilegeBag))));
+    assertThat(result, is(sameInstance(privilegeBag)));
     assertFalse(result.isSetPrivileges());
   }
 
@@ -518,9 +546,9 @@ public class DatabaseMappingImplTest {
     grantRevokePrivilegeRequest.setPrivileges(privilegeBag);
     GrantRevokePrivilegeRequest result = databaseMapping
         .transformInboundGrantRevokePrivilegesRequest(grantRevokePrivilegeRequest);
-    assertThat(result, is(not(sameInstance(grantRevokePrivilegeRequest))));
+    assertThat(result, is(sameInstance(grantRevokePrivilegeRequest)));
     PrivilegeBag resultPriviligeBag = result.getPrivileges();
-    assertThat(resultPriviligeBag, is(not(sameInstance(privilegeBag))));
+    assertThat(resultPriviligeBag, is(sameInstance(privilegeBag)));
     assertHiveObjectPrivileges(resultPriviligeBag.getPrivileges(), IN_DB_NAME);
   }
 
@@ -529,7 +557,7 @@ public class DatabaseMappingImplTest {
     GrantRevokePrivilegeRequest grantRevokePrivilegeRequest = new GrantRevokePrivilegeRequest();
     GrantRevokePrivilegeRequest result = databaseMapping
         .transformInboundGrantRevokePrivilegesRequest(grantRevokePrivilegeRequest);
-    assertThat(result, is(not(sameInstance(grantRevokePrivilegeRequest))));
+    assertThat(result, is(sameInstance(grantRevokePrivilegeRequest)));
     assertFalse(result.isSetPrivileges());
   }
 
@@ -541,11 +569,11 @@ public class DatabaseMappingImplTest {
     List<LockComponent> components = Lists.newArrayList(lockComponent);
     lockRequest.setComponent(components);
     LockRequest result = databaseMapping.transformInboundLockRequest(lockRequest);
-    assertThat(result, is(not(sameInstance(lockRequest))));
+    assertThat(result, is(sameInstance(lockRequest)));
     List<LockComponent> resultComponents = result.getComponent();
-    assertThat(resultComponents, is(not(sameInstance(components))));
+    assertThat(resultComponents, is(sameInstance(components)));
     LockComponent resultComponent = resultComponents.get(0);
-    assertThat(resultComponent, is(not(sameInstance(lockComponent))));
+    assertThat(resultComponent, is(sameInstance(lockComponent)));
     assertThat(resultComponent.getDbname(), is(IN_DB_NAME));
   }
 
@@ -553,7 +581,7 @@ public class DatabaseMappingImplTest {
   public void transformInboundLockRequestLockComponentsNotSet() throws Exception {
     LockRequest lockRequest = new LockRequest();
     LockRequest result = databaseMapping.transformInboundLockRequest(lockRequest);
-    assertThat(result, is(not(sameInstance(lockRequest))));
+    assertThat(result, is(sameInstance(lockRequest)));
     assertFalse(result.isSetComponent());
   }
 
@@ -562,7 +590,7 @@ public class DatabaseMappingImplTest {
     CompactionRequest compactionRequest = new CompactionRequest();
     compactionRequest.setDbname(DB_NAME);
     CompactionRequest result = databaseMapping.transformInboundCompactionRequest(compactionRequest);
-    assertThat(result, is(not(sameInstance(compactionRequest))));
+    assertThat(result, is(sameInstance(compactionRequest)));
     assertThat(result.getDbname(), is(IN_DB_NAME));
   }
 
@@ -575,7 +603,7 @@ public class DatabaseMappingImplTest {
   @Test
   public void transformInboundDatabase() throws Exception {
     Database result = databaseMapping.transformInboundDatabase(database);
-    assertThat(result, is(not(sameInstance(database))));
+    assertThat(result, is(sameInstance(database)));
     assertThat(result.getName(), is(IN_DB_NAME));
   }
 
@@ -583,18 +611,18 @@ public class DatabaseMappingImplTest {
   public void transformInboundPartitionSpecs() throws Exception {
     List<PartitionSpec> partitionSpecs = Lists.newArrayList(partitionSpec);
     List<PartitionSpec> result = databaseMapping.transformInboundPartitionSpecs(partitionSpecs);
-    assertThat(result, is(not(sameInstance(partitionSpecs))));
+    assertThat(result, is(sameInstance(partitionSpecs)));
     PartitionSpec resultSpec = result.get(0);
-    assertThat(resultSpec, is(not(sameInstance(partitionSpec))));
+    assertThat(resultSpec, is(sameInstance(partitionSpec)));
     assertThat(resultSpec.getDbName(), is(IN_DB_NAME));
   }
 
   private void assertHiveObjectPrivileges(List<HiveObjectPrivilege> result, String expectedDatabaseName) {
-    assertThat(result, is(not(sameInstance(hiveObjectPrivileges))));
+    assertThat(result, is(sameInstance(hiveObjectPrivileges)));
     HiveObjectPrivilege resultPrivilege = result.get(0);
-    assertThat(resultPrivilege, is(not(sameInstance(hiveObjectPrivileges.get(0)))));
+    assertThat(resultPrivilege, is(sameInstance(hiveObjectPrivileges.get(0))));
     HiveObjectRef resultHiveObjectRef = resultPrivilege.getHiveObject();
-    assertThat(resultHiveObjectRef, is(not(sameInstance(hiveObjectRef))));
+    assertThat(resultHiveObjectRef, is(sameInstance(hiveObjectRef)));
     assertThat(resultHiveObjectRef.getDbName(), is(expectedDatabaseName));
     assertThat(resultHiveObjectRef.getObjectName(), is(expectedDatabaseName));
   }
@@ -602,7 +630,7 @@ public class DatabaseMappingImplTest {
   private void assertPartitions(List<Partition> partitions, String expectedDatabaseName) {
     assertThat(partitions.size(), is(1));
     Partition partitionResult = partitions.get(0);
-    assertThat(partitionResult, is(not(sameInstance(partition))));
+    assertThat(partitionResult, is(sameInstance(partition)));
     assertThat(partitionResult.getDbName(), is(expectedDatabaseName));
   }
 
@@ -612,7 +640,7 @@ public class DatabaseMappingImplTest {
     request.setDbName(DB_NAME);
     request.setTblName(TABLE_NAME);
     GetTableRequest transformedRequest = databaseMapping.transformInboundGetTableRequest(request);
-    assertThat(transformedRequest, is(not(sameInstance(request))));
+    assertThat(transformedRequest, is(sameInstance(request)));
     assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
     assertThat(transformedRequest.getTblName(), is(TABLE_NAME));
   }
@@ -625,7 +653,8 @@ public class DatabaseMappingImplTest {
     GetTableResult result = new GetTableResult();
     result.setTable(table);
     GetTableResult transformedResult = databaseMapping.transformOutboundGetTableResult(result);
-    assertThat(transformedResult, is(not(sameInstance(result))));
+    assertThat(transformedResult, is(sameInstance(result)));
+    assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
     assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
   }
@@ -636,7 +665,7 @@ public class DatabaseMappingImplTest {
     request.setDbName(DB_NAME);
     request.setTblNames(Arrays.asList(TABLE_NAME));
     GetTablesRequest transformedRequest = databaseMapping.transformInboundGetTablesRequest(request);
-    assertThat(transformedRequest, is(not(sameInstance(request))));
+    assertThat(transformedRequest, is(sameInstance(request)));
     assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
     assertThat(transformedRequest.getTblNames(), is(Arrays.asList(TABLE_NAME)));
   }
@@ -649,8 +678,9 @@ public class DatabaseMappingImplTest {
     GetTablesResult result = new GetTablesResult();
     result.setTables(Arrays.asList(table));
     GetTablesResult transformedResult = databaseMapping.transformOutboundGetTablesResult(result);
-    assertThat(transformedResult, is(not(sameInstance(result))));
+    assertThat(transformedResult, is(sameInstance(result)));
     assertThat(transformedResult.getTables().size(), is(1));
+    assertThat(transformedResult.getTables().get(0), is(sameInstance(result.getTables().get(0))));
     assertThat(transformedResult.getTables().get(0).getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTables().get(0).getTableName(), is(TABLE_NAME));
   }

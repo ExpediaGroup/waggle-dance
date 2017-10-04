@@ -38,6 +38,7 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
+import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
@@ -54,6 +55,7 @@ import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -245,10 +247,24 @@ public class IdentityMappingTest {
   }
 
   @Test
+  public void transformOutboundForeignKeysResponse() throws Exception {
+    ForeignKeysResponse foreignKeysResponse = new ForeignKeysResponse();
+    ForeignKeysResponse result = databaseMapping.transformOutboundForeignKeysResponse(foreignKeysResponse);
+    assertThat(result, is(sameInstance(foreignKeysResponse)));
+  }
+
+  @Test
   public void transformInboundPrimaryKeysRequest() throws Exception {
     PrimaryKeysRequest primaryKeysRequest = new PrimaryKeysRequest();
     PrimaryKeysRequest result = databaseMapping.transformInboundPrimaryKeysRequest(primaryKeysRequest);
     assertThat(result, is(sameInstance(primaryKeysRequest)));
+  }
+
+  @Test
+  public void transformOutboundPrimaryKeysResponse() throws Exception {
+    PrimaryKeysResponse primaryKeysResponse = new PrimaryKeysResponse();
+    PrimaryKeysResponse result = databaseMapping.transformOutboundPrimaryKeysResponse(primaryKeysResponse);
+    assertThat(result, is(sameInstance(primaryKeysResponse)));
   }
 
   @Test
@@ -312,9 +328,9 @@ public class IdentityMappingTest {
   }
 
   @Test
-  public void transforOutboundDropPartitionsResult() throws Exception {
+  public void transformOutboundDropPartitionsResult() throws Exception {
     DropPartitionsResult dropPartitionsResult = new DropPartitionsResult();
-    DropPartitionsResult result = databaseMapping.transforOutboundDropPartitionsResult(dropPartitionsResult);
+    DropPartitionsResult result = databaseMapping.transformOutboundDropPartitionsResult(dropPartitionsResult);
     assertThat(result, is(sameInstance(dropPartitionsResult)));
   }
 

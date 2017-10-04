@@ -16,7 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -295,7 +295,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   @Test
   public void panopticOperationsHandlerGetTableMeta() throws Exception {
     List<String> tblTypes = Lists.newArrayList();
-    TableMeta tableMeta = mockTableMeta("federated_db");
+    TableMeta tableMeta = new TableMeta("federated_db", "tbl", null);
 
     Iface federatedDatabaseClient = mock(Iface.class);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
@@ -306,9 +306,10 @@ public class PrefixBasedDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<TableMeta> tableMetas = handler.getTableMeta("name_federated_*", "*", tblTypes);
     assertThat(tableMetas.size(), is(1));
-    TableMeta tableMetaCopy = tableMetas.get(0);
-    assertThat(tableMetaCopy, not(is(tableMeta)));
-    assertThat(tableMetaCopy.getDbName(), is("name_federated_db"));
+    TableMeta tableMetaResult = tableMetas.get(0);
+    assertThat(tableMetaResult, is(sameInstance(tableMeta)));
+    assertThat(tableMetaResult.getDbName(), is("name_federated_db"));
+    assertThat(tableMetaResult.getTableName(), is("tbl"));
 
     verify(primaryDatabaseClient).get_table_meta("name_federated_*", "*", tblTypes);
     verify(primaryDatabaseClient, never()).get_table_meta("federated_*", "*", tblTypes);
@@ -327,12 +328,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.setUgi(user, groups);
     assertThat(result, containsInAnyOrder("ugi", "ugi2"));
-  }
-
-  private TableMeta mockTableMeta(String databaseName) {
-    TableMeta tableMeta = mock(TableMeta.class);
-    when(tableMeta.getDbName()).thenReturn(databaseName);
-    return tableMeta;
   }
 
 }

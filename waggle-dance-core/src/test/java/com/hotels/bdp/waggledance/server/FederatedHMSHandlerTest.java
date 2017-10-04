@@ -24,18 +24,27 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.CompactionRequest;
+import org.apache.hadoop.hive.metastore.api.CompactionResponse;
+import org.apache.hadoop.hive.metastore.api.CompactionType;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.GetTableRequest;
+import org.apache.hadoop.hive.metastore.api.GetTableResult;
+import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
+import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
@@ -83,6 +92,7 @@ public class FederatedHMSHandlerTest {
     handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService);
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
     when(primaryMapping.getClient()).thenReturn(primaryClient);
+    when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn(DB_P);
     when(databaseMappingService.databaseMapping(DB_P)).thenReturn(primaryMapping);
   }
 
@@ -537,7 +547,7 @@ public class FederatedHMSHandlerTest {
     DropPartitionsResult outbound = new DropPartitionsResult();
     when(primaryMapping.transformInboundDropPartitionRequest(req)).thenReturn(inbound);
     when(primaryClient.drop_partitions_req(inbound)).thenReturn(dropPartitionResult);
-    when(primaryMapping.transforOutboundDropPartitionsResult(dropPartitionResult)).thenReturn(outbound);
+    when(primaryMapping.transformOutboundDropPartitionsResult(dropPartitionResult)).thenReturn(outbound);
     DropPartitionsResult result = handler.drop_partitions_req(req);
     assertThat(result, is(outbound));
     verify(primaryMapping).checkWritePermissions(DB_P);
@@ -765,4 +775,64 @@ public class FederatedHMSHandlerTest {
     assertThat(result.size(), is(1));
     assertThat(result, contains("returned"));
   }
+
+  // Hive 2.3.0 methods
+  @Test
+  public void get_tables_by_type() throws MetaException, TException {
+    when(primaryClient.get_tables_by_type(DB_P, "tbl*", "EXTERNAL_TABLE")).thenReturn(Arrays.asList("tbl0", "tbl1"));
+    List<String> tables = handler.get_tables_by_type(DB_P, "tbl*", TableType.EXTERNAL_TABLE.name());
+    verify(primaryClient).get_tables_by_type(DB_P, "tbl*", "EXTERNAL_TABLE");
+    assertThat(tables.size(), is(2));
+    assertThat(tables.get(0), is("tbl0"));
+    assertThat(tables.get(1), is("tbl1"));
+  }
+
+  @Test
+  public void get_table_req() throws MetaException, NoSuchObjectException, TException {
+    Table table = new Table();
+    table.setDbName(DB_P);
+    table.setTableName("table");
+    GetTableRequest request = new GetTableRequest(table.getDbName(), table.getTableName());
+    GetTableResult response = new GetTableResult(table);
+    when(primaryClient.get_table_req(request)).thenReturn(response);
+    when(primaryMapping.transformInboundGetTableRequest(request)).thenReturn(request);
+    when(primaryMapping.transformOutboundGetTableResult(response)).thenReturn(response);
+    GetTableResult result = handler.get_table_req(request);
+    assertThat(result.getTable().getDbName(), is(DB_P));
+    assertThat(result.getTable().getTableName(), is("table"));
+  }
+
+  @Test
+  public void get_table_objects_by_name_req()
+    throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    Table table0 = new Table();
+    table0.setDbName(DB_P);
+    table0.setTableName("table0");
+    Table table1 = new Table();
+    table1.setDbName(DB_P);
+    table1.setTableName("table1");
+    GetTablesRequest request = new GetTablesRequest(DB_P);
+    request.setTblNames(Arrays.asList(table0.getTableName(), table1.getTableName()));
+    GetTablesResult response = new GetTablesResult(Arrays.asList(table0, table1));
+    when(primaryClient.get_table_objects_by_name_req(request)).thenReturn(response);
+    when(primaryMapping.transformInboundGetTablesRequest(request)).thenReturn(request);
+    when(primaryMapping.transformOutboundGetTablesResult(response)).thenReturn(response);
+    GetTablesResult result = handler.get_table_objects_by_name_req(request);
+    assertThat(result.getTables().size(), is(2));
+    assertThat(result.getTables().get(0).getDbName(), is(DB_P));
+    assertThat(result.getTables().get(0).getTableName(), is("table0"));
+    assertThat(result.getTables().get(1).getDbName(), is(DB_P));
+    assertThat(result.getTables().get(1).getTableName(), is("table1"));
+  }
+
+  @Test
+  public void compact2() throws TException {
+    CompactionRequest request = new CompactionRequest(DB_P, "table", CompactionType.MAJOR);
+    CompactionResponse response = new CompactionResponse(0, "state", true);
+    when(primaryClient.compact2(request)).thenReturn(response);
+    when(primaryMapping.transformInboundCompactionRequest(request)).thenReturn(request);
+    CompactionResponse result = handler.compact2(request);
+    assertThat(result, is(response));
+  }
+
 }

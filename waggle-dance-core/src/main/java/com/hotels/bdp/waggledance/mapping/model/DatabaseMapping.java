@@ -29,6 +29,7 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
+import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
@@ -45,6 +46,7 @@ import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -87,7 +89,11 @@ public interface DatabaseMapping extends MetaStoreMapping {
 
   ForeignKeysRequest transformInboundForeignKeysRequest(ForeignKeysRequest request);
 
+  ForeignKeysResponse transformOutboundForeignKeysResponse(ForeignKeysResponse response);
+
   PrimaryKeysRequest transformInboundPrimaryKeysRequest(PrimaryKeysRequest request);
+
+  PrimaryKeysResponse transformOutboundPrimaryKeysResponse(PrimaryKeysResponse response);
 
   TableMeta transformOutboundTableMeta(TableMeta tableMeta);
 
@@ -101,7 +107,7 @@ public interface DatabaseMapping extends MetaStoreMapping {
 
   DropPartitionsRequest transformInboundDropPartitionRequest(DropPartitionsRequest req);
 
-  DropPartitionsResult transforOutboundDropPartitionsResult(DropPartitionsResult dropPartitionsResult);
+  DropPartitionsResult transformOutboundDropPartitionsResult(DropPartitionsResult dropPartitionsResult);
 
   List<Partition> transformOutboundPartitions(List<Partition> partitions);
 
