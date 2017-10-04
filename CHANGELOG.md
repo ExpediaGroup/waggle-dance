@@ -1,13 +1,13 @@
-## [2.1.1]
+## [2.2.0] Unreleased
 ### Changed
 * `DatabaseMapping`s no longer make copies of the Thrift objects, it mutates the original objects instead.
-* Upgrade Spring, BeeJU and other dependencies
+* Upgrade Spring, BeeJU and other dependencies.
 
 ## [2.1.0] 2017-10-03
 ### Changed
 * Changed the default GC settings, less heap, more reserved percentage, works better with large requests.
 * Upgrade Hive from 2.1.0 to 2.3.0.
-* Depend on latest parent with test.arguments build parameter.
+* Depend on latest parent with `test.arguments` build parameter.
 * Fixed bug where tunnel configuration wasn't being applied.
 * Hive dependency updated to 2.1.1 (Needed corresponding BeeJU dependency update as well).
 ### Removed

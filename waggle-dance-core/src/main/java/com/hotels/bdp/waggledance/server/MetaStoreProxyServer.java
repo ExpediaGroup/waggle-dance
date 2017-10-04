@@ -3,7 +3,7 @@
  *
  * This code is based on Hive's HiveMetaStore:
  *
- * https://github.com/apache/hive/blob/rel/release-2.1.0/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStore.java
+ * https://github.com/apache/hive/blob/rel/release-2.3.0/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStore.java
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
