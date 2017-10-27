@@ -28,9 +28,8 @@ So when we do the following in a Hive CLI client connected to a Waggle Dance ins
     select *
     from mydb.table;
 
-We are actually performing the query against the `thrift://host:port/` metastore. All metastore calls will be forwarded and data will be fetched and processed locally.
-
-This makes is possible to read and join data from different Hive clusters via a single Hive CLI.
+We are actually performing the query against the `thrift://host:port/` metastore. All metastore calls will be forwarded and data will be fetched and processed locally. 
+This makes it possible to read and join data from different Hive clusters via a single Hive CLI.
 
 ## System architecture
 
