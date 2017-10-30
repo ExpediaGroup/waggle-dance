@@ -35,6 +35,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -76,11 +77,13 @@ public class FederationsAdminControllerTest {
   public void getAll() throws Exception {
     when(federationService.getAll()).thenReturn(Lists.newArrayList(metastore));
 
-    String expected = Jackson2ObjectMapperBuilder
-        .json()
-        .build()
-        .writeValueAsString(new AbstractMetaStore[] { metastore });
-    mockMvc.perform(get("/api/admin/federations/")).andExpect(status().isOk()).andExpect(content().json(expected));
+    String expected = "[{\"databasePrefix\":\"\",\"name\":\"primary\",\"remoteMetaStoreUris\":\"uri\",\"metastoreTunnel\":null,\"accessControlType\":\"READ_AND_WRITE_AND_CREATE\",\"status\":\"AVAILABLE\",\"federationType\":\"PRIMARY\",\"writableDatabaseWhiteList\":[]}]";
+
+    mockMvc
+        .perform(get("/api/admin/federations/"))
+        .andExpect(status().isOk())
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(content().json(expected));
   }
 
   @Test
