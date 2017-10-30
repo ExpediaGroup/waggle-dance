@@ -1,3 +1,7 @@
+## [2.2.1] 2017-10-30
+### Fixed
+* Metastore status was missing from api/admin/federations rest endpoint. #issue-29
+
 ## [2.2.0] 2017-10-05
 ### Changed
 * `DatabaseMapping`s no longer make copies of the Thrift objects, it mutates the original objects instead.

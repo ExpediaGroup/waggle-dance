@@ -22,6 +22,7 @@ import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -38,7 +39,7 @@ public abstract class AbstractMetaStore {
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
-  private transient @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
+  private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
 
   public AbstractMetaStore() {}
 
