@@ -379,7 +379,7 @@ Assumes database resolution is done by adding prefixes. If database resolution i
 ### Mailing List
 If you would like to ask any questions about or discuss Waggle Dance please join our mailing list at 
 
-: [https://groups.google.com/forum/#!forum/waggle-dance-user](https://groups.google.com/forum/#!forum/waggle-dance-user)
+  [https://groups.google.com/forum/#!forum/waggle-dance-user](https://groups.google.com/forum/#!forum/waggle-dance-user)
 
 ## Credits
 
