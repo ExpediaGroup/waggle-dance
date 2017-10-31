@@ -374,14 +374,20 @@ Assumes database resolution is done by adding prefixes. If database resolution i
  * Metadata read operations are routed only. Write and destructive operations can be performed on the local metastore only.
  * When using Spark to read tables with a big number of partitions it may be necessary to set `spark.sql.hive.metastorePartitionPruning=true` to enable partition pruning. If this property is `false` Spark will try to fetch all the partitions of the tables in the query which may result on a `OutOfMemoryError` in Waggle Dance.
 
+## Contact
 
-# Credits
+### Mailing List
+If you would like to ask any questions about or discuss Waggle Dance please join our mailing list at 
+
+  [https://groups.google.com/forum/#!forum/waggle-dance-user](https://groups.google.com/forum/#!forum/waggle-dance-user)
+
+## Credits
 
 Created by [Elliot West](https://github.com/teabot), [Patrick Duin](https://github.com/patduin) & [Daniel del Castillo](https://github.com/ddcprg) with thanks to: [Adrian Woodhead](https://github.com/massdosage), [Dave Maughan](https://github.com/nahguam) and [James Grant](https://github.com/Noddy76).
 
 The Waggle Dance logo uses the [Beetype Filled font](http://www.1001fonts.com/beetype-font.html) by Adrian Candela under the [Creative Commons Attribution License (CC BY)](https://creativecommons.org/licenses/by/3.0/).
 
-# Legal
+## Legal
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
 
 Copyright 2016-2017 Expedia Inc.
