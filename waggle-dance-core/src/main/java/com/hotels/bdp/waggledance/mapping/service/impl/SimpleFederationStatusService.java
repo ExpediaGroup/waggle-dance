@@ -18,6 +18,8 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
@@ -25,6 +27,8 @@ import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 
 @Service
 public class SimpleFederationStatusService implements FederationStatusService {
+
+  private final static Logger log = LoggerFactory.getLogger(SimpleFederationStatusService.class);
 
   private HiveConf newHiveConf(String metaStoreUris) {
     HiveConf hiveConf = new HiveConf();
@@ -50,12 +54,14 @@ public class SimpleFederationStatusService implements FederationStatusService {
     try {
       client = new HiveMetaStoreClient(hiveConf);
     } catch (Exception e) {
+      log.debug("Status check for {} is UNAVAILABLE", metaStoreUris);
       return MetaStoreStatus.UNAVAILABLE;
     } finally {
       if (client != null) {
         client.close();
       }
     }
+    log.debug("Status check for {} is AVAILABLE", metaStoreUris);
     return MetaStoreStatus.AVAILABLE;
   }
 
