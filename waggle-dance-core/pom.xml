@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -19,6 +20,10 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-pool2</artifactId>
+    </dependency>
     <!-- Spring Boot -->
     <dependency>
       <groupId>org.springframework</groupId>
@@ -286,7 +291,7 @@
         <configuration>
           <requiresUnpack>
             <!-- We are hitting an issue introduced in hive-common-2.1.1 and fixed in https://issues.apache.org/jira/browse/HIVE-17155
-              The HiveConf class tries loading conf (e.g. hive-site.xml) from the uberjar and fails. Unpacking it with this 
+              The HiveConf class tries loading conf (e.g. hive-site.xml) from the uberjar and fails. Unpacking it with this
               setting fixes that problem.
             -->
             <dependency>

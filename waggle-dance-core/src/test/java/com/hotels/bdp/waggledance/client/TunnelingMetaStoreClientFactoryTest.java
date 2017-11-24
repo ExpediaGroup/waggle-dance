@@ -43,12 +43,13 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Mock Tunnel tunnel;
   private @Mock TunnelHandler tunnelHandler;
   private @Mock TunnelConnectionManagerFactory tunnelConnectionManagerFactory;
-  private HiveConf hiveConf = new HiveConf();
+  private final HiveConf hiveConf = new HiveConf();
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
 
   @Before
   public void init() {
-    tunnelingMetaStoreClientFactory = spy(new TunnelingMetaStoreClientFactory(tunnelHandler));
+    tunnelingMetaStoreClientFactory = spy(
+        new TunnelingMetaStoreClientFactory(tunnelHandler, new MetaStoreClientFactory()));
     when(tunnelConnectionManager.getTunnel(anyString(), anyInt())).thenReturn(tunnel);
     when(tunnelConnectionManagerFactory.create(anyString(), anyString(), anyInt(), anyString(), anyInt()))
         .thenReturn(tunnelConnectionManager);
@@ -62,8 +63,9 @@ public class TunnelingMetaStoreClientFactoryTest {
 
   @Test
   public void newInstanceWithTunneling() throws Exception {
-    doReturn(tunnelConnectionManagerFactory).when(tunnelingMetaStoreClientFactory).createTunnelConnectionManagerFactory(
-        any(HiveConf.class));
+    doReturn(tunnelConnectionManagerFactory)
+        .when(tunnelingMetaStoreClientFactory)
+        .createTunnelConnectionManagerFactory(any(HiveConf.class));
     tunnelingMetaStoreClientFactory.newInstance(hiveConf, "test", 10);
     verify(tunnelHandler).openTunnel(eq(tunnelConnectionManager), anyString(), anyString(), anyString(), anyInt());
   }
@@ -73,8 +75,9 @@ public class TunnelingMetaStoreClientFactoryTest {
     hiveConf.unset(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname);
     hiveConf.unset(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
     hiveConf.unset(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname);
-    doReturn(tunnelConnectionManagerFactory).when(tunnelingMetaStoreClientFactory).createTunnelConnectionManagerFactory(
-        any(HiveConf.class));
+    doReturn(tunnelConnectionManagerFactory)
+        .when(tunnelingMetaStoreClientFactory)
+        .createTunnelConnectionManagerFactory(any(HiveConf.class));
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS,
         "thrift://internal-foo-baz-metastore-1234567891.made-up-region-1.elb.amazonaws.com:1234");
 

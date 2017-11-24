@@ -21,7 +21,6 @@ import java.util.List;
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 
 public class DelegatingFederationService implements FederationService {
 
@@ -66,11 +65,7 @@ public class DelegatingFederationService implements FederationService {
   }
 
   private AbstractMetaStore populate(AbstractMetaStore metaStore) {
-    MetaStoreStatus status = MetaStoreStatus.AVAILABLE; // TODO PD we need to support tunnelled checks
-    if (metaStore.getMetastoreTunnel() == null) {
-      status = federationStatusService.checkStatus(metaStore.getRemoteMetaStoreUris());
-    }
-    metaStore.setStatus(status);
+    metaStore.setStatus(federationStatusService.checkStatus(metaStore));
     return metaStore;
   }
 

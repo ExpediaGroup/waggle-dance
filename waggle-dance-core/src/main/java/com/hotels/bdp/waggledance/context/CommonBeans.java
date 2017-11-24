@@ -17,10 +17,20 @@ package com.hotels.bdp.waggledance.context;
 
 import java.util.Map;
 
+import org.apache.commons.pool2.KeyedObjectPool;
+import org.apache.commons.pool2.PoolUtils;
+import org.apache.commons.pool2.impl.GenericKeyedObjectPool;
+import org.apache.commons.pool2.impl.GenericKeyedObjectPoolConfig;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.context.annotation.Bean;
 
+import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceFactory;
+import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.client.pool.MetaStoreClientPool;
+import com.hotels.bdp.waggledance.client.pool.PooledMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
@@ -45,6 +55,22 @@ public class CommonBeans {
   @Bean
   public PrefixNamingStrategy prefixNamingStrategy(WaggleDanceConfiguration waggleDanceConfiguration) {
     return new LowerCasePrefixNamingStrategy();
+  }
+
+  @Bean
+  public CloseableThriftHiveMetastoreIfaceFactory metaStoreClientFactory() {
+    return new TunnelingMetaStoreClientFactory();
+  }
+
+  @Bean
+  public MetaStoreClientPool metaStoreClientPool(
+      CloseableThriftHiveMetastoreIfaceFactory metaStoreClientFactory,
+      WaggleDanceConfiguration waggleDanceConfiguration) {
+    GenericKeyedObjectPoolConfig config = new GenericKeyedObjectPoolConfig();
+    config.setMaxTotalPerKey(waggleDanceConfiguration.getClientPoolMaxTotalPerKey());
+    KeyedObjectPool<AbstractMetaStore, CloseableThriftHiveMetastoreIface> erodingPool = PoolUtils
+        .erodingPool(new GenericKeyedObjectPool<>(new PooledMetaStoreClientFactory(metaStoreClientFactory), config));
+    return new MetaStoreClientPool(erodingPool);
   }
 
 }

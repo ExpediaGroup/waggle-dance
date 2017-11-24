@@ -21,9 +21,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
-
-import java.io.IOException;
 
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.junit.Before;
@@ -32,7 +31,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
+import com.hotels.bdp.waggledance.client.pool.MetaStoreClientPool;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
@@ -45,12 +46,16 @@ public class MetaStoreMappingImplTest {
   private @Mock CloseableThriftHiveMetastoreIface client;
   private @Mock Database database;
   private @Mock AccessControlHandler accessControlHandler;
+  private @Mock MetaStoreClientPool metaStoreClientPool;
 
   private MetaStoreMapping metaStoreMapping;
+  private AbstractMetaStore metaStore;
 
   @Before
-  public void init() {
-    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler);
+  public void init() throws Exception {
+    metaStore = AbstractMetaStore.newPrimaryInstance(NAME, "uri");
+    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, metaStore, metaStoreClientPool, accessControlHandler);
+    when(metaStoreClientPool.borrowObjectUnchecked(metaStore)).thenReturn(client);
   }
 
   @Test
@@ -87,9 +92,16 @@ public class MetaStoreMappingImplTest {
   }
 
   @Test
-  public void close() throws IOException {
+  public void close() throws Exception {
+    metaStoreMapping.getClient();
     metaStoreMapping.close();
-    verify(client).close();
+    verify(metaStoreClientPool).returnObjectUnchecked(metaStore, client);
+  }
+
+  @Test
+  public void closeUninitialised() throws Exception {
+    metaStoreMapping.close();
+    verifyZeroInteractions(metaStoreClientPool);
   }
 
   @Test

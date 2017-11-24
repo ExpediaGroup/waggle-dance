@@ -25,9 +25,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MetaStoreClientFactory {
-
-  static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
+public class MetaStoreClientFactory implements CloseableThriftHiveMetastoreIfaceFactory {
 
   private static class ReconnectingMetastoreClientInvocationHandler implements InvocationHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ReconnectingMetastoreClientInvocationHandler.class);
@@ -105,6 +103,7 @@ public class MetaStoreClientFactory {
 
   }
 
+  @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
     ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
         hiveConf, name, reconnectionRetries);

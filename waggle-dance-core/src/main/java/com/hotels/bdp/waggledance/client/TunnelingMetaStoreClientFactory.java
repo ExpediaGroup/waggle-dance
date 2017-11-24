@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.pastdev.jsch.tunnel.TunnelConnectionManager;
 
-public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
+public class TunnelingMetaStoreClientFactory implements CloseableThriftHiveMetastoreIfaceFactory {
   private static final Logger LOG = LoggerFactory.getLogger(TunnelingMetaStoreClientFactory.class);
 
   private static class TunnelingMetastoreClientInvocationHandler implements InvocationHandler {
@@ -66,20 +66,22 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     }
   }
 
-  private TunnelHandler tunnelHandler;
+  private final TunnelHandler tunnelHandler;
+  private final MetaStoreClientFactory metaStoreClientFactory;
 
   public TunnelingMetaStoreClientFactory() {
-    this(new TunnelHandler());
+    this(new TunnelHandler(), new MetaStoreClientFactory());
   }
 
-  public TunnelingMetaStoreClientFactory(TunnelHandler tunnelHandler) {
+  public TunnelingMetaStoreClientFactory(TunnelHandler tunnelHandler, MetaStoreClientFactory metaStoreClientFactory) {
     this.tunnelHandler = tunnelHandler;
+    this.metaStoreClientFactory = metaStoreClientFactory;
   }
 
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
     if (isEmpty(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))) {
-      return super.newInstance(hiveConf, name, reconnectionRetries);
+      return metaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
     }
     TunnelConnectionManagerFactory tunnelConnectionManagerFactory = createTunnelConnectionManagerFactory(hiveConf);
     URI metaStoreUri = URI.create(hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
@@ -96,7 +98,7 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
         localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
 
     TunnelingMetastoreClientInvocationHandler tunneledHandler = new TunnelingMetastoreClientInvocationHandler(
-        tunnelConnectionManager, super.newInstance(localHiveConf, name, reconnectionRetries));
+        tunnelConnectionManager, metaStoreClientFactory.newInstance(localHiveConf, name, reconnectionRetries));
     return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
         tunneledHandler);
   }
