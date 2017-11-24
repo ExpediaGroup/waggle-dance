@@ -15,10 +15,11 @@
  */
 package com.hotels.bdp.waggledance.api.federation.service;
 
+import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 
 public interface FederationStatusService {
 
-  MetaStoreStatus checkStatus(String metaStoreUris);
+  MetaStoreStatus checkStatus(AbstractMetaStore metaStore);
 
 }

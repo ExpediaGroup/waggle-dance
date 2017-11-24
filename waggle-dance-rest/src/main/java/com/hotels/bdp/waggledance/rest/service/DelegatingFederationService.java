@@ -25,8 +25,8 @@ import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 
 public class DelegatingFederationService implements FederationService {
 
-  private FederationService federationService;
-  private FederationStatusService federationStatusService;
+  private final FederationService federationService;
+  private final FederationStatusService federationStatusService;
 
   public DelegatingFederationService(
       FederationService federationService,
@@ -66,7 +66,7 @@ public class DelegatingFederationService implements FederationService {
   }
 
   private AbstractMetaStore populate(AbstractMetaStore metaStore) {
-    MetaStoreStatus status = federationStatusService.checkStatus(metaStore.getRemoteMetaStoreUris());
+    MetaStoreStatus status = federationStatusService.checkStatus(metaStore);
     metaStore.setStatus(status);
     return metaStore;
   }

@@ -15,21 +15,23 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
+import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 
 @Service
 public class SimpleFederationStatusService implements FederationStatusService {
 
-  private HiveConf newHiveConf(String metaStoreUris) {
-    HiveConf hiveConf = new HiveConf();
-    hiveConf.setVar(ConfVars.METASTOREURIS, metaStoreUris);
-    return hiveConf;
+  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
+
+  @Autowired
+  public SimpleFederationStatusService(CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory) {
+    this.metaStoreClientFactory = metaStoreClientFactory;
   }
 
   /**
@@ -44,17 +46,13 @@ public class SimpleFederationStatusService implements FederationStatusService {
    *         returns {@code MetaStoreStatus.UNAVAILABLE}
    */
   @Override
-  public MetaStoreStatus checkStatus(String metaStoreUris) {
-    HiveConf hiveConf = newHiveConf(metaStoreUris);
-    HiveMetaStoreClient client = null;
-    try {
-      client = new HiveMetaStoreClient(hiveConf);
+  public MetaStoreStatus checkStatus(AbstractMetaStore abstractMetaStore) {
+    try (CloseableThriftHiveMetastoreIface client = metaStoreClientFactory.newInstance(abstractMetaStore)) {
+      if (!client.isOpen()) {
+        return MetaStoreStatus.UNAVAILABLE;
+      }
     } catch (Exception e) {
       return MetaStoreStatus.UNAVAILABLE;
-    } finally {
-      if (client != null) {
-        client.close();
-      }
     }
     return MetaStoreStatus.AVAILABLE;
   }
