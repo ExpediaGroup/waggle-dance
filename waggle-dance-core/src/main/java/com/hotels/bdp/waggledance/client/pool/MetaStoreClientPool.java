@@ -31,7 +31,7 @@ import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
  */
 public class MetaStoreClientPool implements KeyedObjectPool<AbstractMetaStore, CloseableThriftHiveMetastoreIface> {
 
-  private final static Logger log = LoggerFactory.getLogger(MetaStoreClientPool.class);
+  private final static Logger LOG = LoggerFactory.getLogger(MetaStoreClientPool.class);
 
   private final KeyedObjectPool<AbstractMetaStore, CloseableThriftHiveMetastoreIface> pool;
 
@@ -52,6 +52,7 @@ public class MetaStoreClientPool implements KeyedObjectPool<AbstractMetaStore, C
 
   @Override
   public void invalidateObject(AbstractMetaStore key, CloseableThriftHiveMetastoreIface obj) throws Exception {
+    obj.close();
     pool.invalidateObject(key, obj);
   }
 
@@ -96,18 +97,18 @@ public class MetaStoreClientPool implements KeyedObjectPool<AbstractMetaStore, C
   }
 
   public void returnObjectUnchecked(AbstractMetaStore metaStore, CloseableThriftHiveMetastoreIface client) {
-    log.debug("returning client to pool for key: {}, activeCount (total): {} ({}), idleCount (total): {} ({})",
+    LOG.debug("returning client to pool for key: {}, activeCount (total): {} ({}), idleCount (total): {} ({})",
         metaStore.getName(), getNumActive(metaStore), getNumActive(), getNumIdle(metaStore), getNumIdle());
     try {
       pool.returnObject(metaStore, client);
     } catch (Exception e) {
-      log.warn("Could not return object to the pool, metastore is '" + metaStore.getName() + "'", e);
+      LOG.warn("Could not return object to the pool, metastore is '" + metaStore.getName() + "'", e);
     }
 
   }
 
   public CloseableThriftHiveMetastoreIface borrowObjectUnchecked(AbstractMetaStore metaStore) {
-    log.debug("borrow client to pool for key: {}, activeCount (total): {} ({}), idleCount (total): {} ({})",
+    LOG.debug("borrow client to pool for key: {}, activeCount (total): {} ({}), idleCount (total): {} ({})",
         metaStore.getName(), getNumActive(metaStore), getNumActive(), getNumIdle(metaStore), getNumIdle());
     try {
       return pool.borrowObject(metaStore);

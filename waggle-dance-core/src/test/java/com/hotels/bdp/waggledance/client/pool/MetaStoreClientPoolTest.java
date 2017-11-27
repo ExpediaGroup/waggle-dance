@@ -82,9 +82,11 @@ public class MetaStoreClientPoolTest {
     doThrow(new Exception()).when(delegate).returnObject(key, client);
   }
 
+  @Test
   public void invalidateObject() throws Exception {
     pool.invalidateObject(key, client);
     verify(delegate).invalidateObject(key, client);
+    verify(client).close();
   }
 
   @Test

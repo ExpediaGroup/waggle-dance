@@ -29,7 +29,7 @@ import com.hotels.bdp.waggledance.client.pool.MetaStoreClientPool;
 @Service
 public class ConnectionRecyclingFederationStatusService implements FederationStatusService {
 
-  private final static Logger log = LoggerFactory.getLogger(ConnectionRecyclingFederationStatusService.class);
+  private final static Logger LOG = LoggerFactory.getLogger(ConnectionRecyclingFederationStatusService.class);
   private final MetaStoreClientPool metaStoreClientPool;
 
   @Autowired
@@ -50,14 +50,14 @@ public class ConnectionRecyclingFederationStatusService implements FederationSta
     try {
       client = metaStoreClientPool.borrowObjectUnchecked(metaStore);
       if (client.isOpen()) {
-        log.debug("Status check for {} is AVAILABLE", metaStore);
+        LOG.debug("Status check for {} is AVAILABLE", metaStore);
         return MetaStoreStatus.AVAILABLE;
       } else {
-        log.debug("Status check for {} is UNAVAILABLE", metaStore);
+        LOG.debug("Status check for {} is UNAVAILABLE", metaStore);
         return MetaStoreStatus.UNAVAILABLE;
       }
     } catch (Exception e) {
-      log.debug("Status check for {} is UNAVAILABLE", metaStore);
+      LOG.debug("Status check for {} is UNAVAILABLE", metaStore);
       return MetaStoreStatus.UNAVAILABLE;
     } finally {
       metaStoreClientPool.returnObjectUnchecked(metaStore, client);

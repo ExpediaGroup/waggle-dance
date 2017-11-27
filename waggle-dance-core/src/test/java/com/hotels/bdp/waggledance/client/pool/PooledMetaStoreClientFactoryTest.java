@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
+import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.junit.Before;
@@ -38,11 +39,11 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceFactory;
 import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
-import com.hotels.bdp.waggledance.client.pool.PooledMetaStoreClientFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PooledMetaStoreClientFactoryTest {
@@ -63,7 +64,7 @@ public class PooledMetaStoreClientFactoryTest {
   }
 
   @Test
-  public void hiveConf() throws Exception {
+  public void makeObjectHiveConf() throws Exception {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
 
     poolFactory.makeObject(newFederatedInstance(NAME, THRIFT_URI));
@@ -79,7 +80,7 @@ public class PooledMetaStoreClientFactoryTest {
   }
 
   @Test
-  public void hiveConfForTunneling() throws Exception {
+  public void makeObjectHiveConfForTunneling() throws Exception {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
 
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
@@ -103,4 +104,16 @@ public class PooledMetaStoreClientFactoryTest {
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is("privateKeys"));
   }
 
+  @Test
+  public void destroyObject() throws Exception {
+    FederatedMetaStore federatedMetaStore = newFederatedInstance(NAME, THRIFT_URI);
+    poolFactory.destroyObject(federatedMetaStore, new DefaultPooledObject<>(client));
+    verify(client).close();
+  }
+
+  @Test
+  public void destroyObjectNullSafe() throws Exception {
+    FederatedMetaStore federatedMetaStore = newFederatedInstance(NAME, THRIFT_URI);
+    poolFactory.destroyObject(federatedMetaStore, new DefaultPooledObject<>((CloseableThriftHiveMetastoreIface) null));
+  }
 }

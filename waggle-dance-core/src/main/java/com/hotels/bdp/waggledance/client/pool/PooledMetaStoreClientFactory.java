@@ -56,6 +56,14 @@ public class PooledMetaStoreClientFactory
     return new DefaultPooledObject<>(value);
   }
 
+  @Override
+  public void destroyObject(AbstractMetaStore key, PooledObject<CloseableThriftHiveMetastoreIface> p) throws Exception {
+    if (p.getObject() != null) {
+      p.getObject().close();
+    }
+    super.destroyObject(key, p);
+  }
+
   private CloseableThriftHiveMetastoreIface createClient(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
     String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
