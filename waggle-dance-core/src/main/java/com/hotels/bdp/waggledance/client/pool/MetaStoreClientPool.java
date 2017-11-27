@@ -96,6 +96,8 @@ public class MetaStoreClientPool implements KeyedObjectPool<AbstractMetaStore, C
   }
 
   public void returnObjectUnchecked(AbstractMetaStore metaStore, CloseableThriftHiveMetastoreIface client) {
+    log.debug("returning client to pool for key: {}, activeCount (total): {} ({}), idleCount (total): {} ({})",
+        metaStore.getName(), getNumActive(metaStore), getNumActive(), getNumIdle(metaStore), getNumIdle());
     try {
       pool.returnObject(metaStore, client);
     } catch (Exception e) {
@@ -105,6 +107,8 @@ public class MetaStoreClientPool implements KeyedObjectPool<AbstractMetaStore, C
   }
 
   public CloseableThriftHiveMetastoreIface borrowObjectUnchecked(AbstractMetaStore metaStore) {
+    log.debug("borrow client to pool for key: {}, activeCount (total): {} ({}), idleCount (total): {} ({})",
+        metaStore.getName(), getNumActive(metaStore), getNumActive(), getNumIdle(metaStore), getNumIdle());
     try {
       return pool.borrowObject(metaStore);
     } catch (Exception e) {
