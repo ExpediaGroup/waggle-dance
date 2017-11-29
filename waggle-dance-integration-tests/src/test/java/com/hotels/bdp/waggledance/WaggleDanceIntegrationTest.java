@@ -528,7 +528,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
-  public void restAPIGetStatus() throws Exception {
+  public void restApiGetStatus() throws Exception {
     exit.expectSystemExitWithStatus(0);
 
     runner = WaggleDanceRunner

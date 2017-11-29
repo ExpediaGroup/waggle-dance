@@ -68,6 +68,10 @@ public class CommonBeans {
       WaggleDanceConfiguration waggleDanceConfiguration) {
     GenericKeyedObjectPoolConfig config = new GenericKeyedObjectPoolConfig();
     config.setMaxTotalPerKey(waggleDanceConfiguration.getClientPoolMaxTotalPerKey());
+    // time to wait for the pool to release an object. Default is forever which very quickly leads to clients locking
+    // up, going for a short wait and failing fast. If clients are waiting and failing we need to increase the
+    // MaxTotalPerKey to handle more simultaneous connections.
+    config.setMaxWaitMillis(100);
     KeyedObjectPool<AbstractMetaStore, CloseableThriftHiveMetastoreIface> erodingPool = PoolUtils
         .erodingPool(new GenericKeyedObjectPool<>(new PooledMetaStoreClientFactory(metaStoreClientFactory), config));
     return new MetaStoreClientPool(erodingPool);

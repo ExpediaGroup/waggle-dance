@@ -45,7 +45,8 @@ public class WaggleDanceConfiguration {
   private int thriftServerStopTimeoutValInSeconds = 60;
   private int thriftServerRequestTimeout = 20;
   private TimeUnit thriftServerRequestTimeoutUnit = TimeUnit.SECONDS;
-  private int clientPoolMaxTotalPerKey = 100;
+
+  private int clientPoolMaxTotalPerKey = 200;
 
   public Integer getPort() {
     return port;

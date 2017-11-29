@@ -97,10 +97,11 @@ public class MetaStoreClientPool implements KeyedObjectPool<AbstractMetaStore, C
   }
 
   public void returnObjectUnchecked(AbstractMetaStore metaStore, CloseableThriftHiveMetastoreIface client) {
-    LOG.debug("returning client to pool for key: {}, activeCount (total): {} ({}), idleCount (total): {} ({})",
-        metaStore.getName(), getNumActive(metaStore), getNumActive(), getNumIdle(metaStore), getNumIdle());
     try {
       pool.returnObject(metaStore, client);
+      LOG.debug(
+          "returned client to pool for key: {}, activeCount for key : {}, activeCount for all keys {}, idleCount for key: {}, idleCount for all keys {}",
+          metaStore.getName(), getNumActive(metaStore), getNumActive(), getNumIdle(metaStore), getNumIdle());
     } catch (Exception e) {
       LOG.warn("Could not return object to the pool, metastore is '" + metaStore.getName() + "'", e);
     }
@@ -108,10 +109,12 @@ public class MetaStoreClientPool implements KeyedObjectPool<AbstractMetaStore, C
   }
 
   public CloseableThriftHiveMetastoreIface borrowObjectUnchecked(AbstractMetaStore metaStore) {
-    LOG.debug("borrow client to pool for key: {}, activeCount (total): {} ({}), idleCount (total): {} ({})",
-        metaStore.getName(), getNumActive(metaStore), getNumActive(), getNumIdle(metaStore), getNumIdle());
     try {
-      return pool.borrowObject(metaStore);
+      CloseableThriftHiveMetastoreIface client = pool.borrowObject(metaStore);
+      LOG.debug(
+          "borrowed client from pool for key: {}, activeCount for key : {}, activeCount for all keys {}, idleCount for key: {}, idleCount for all keys {}",
+          metaStore.getName(), getNumActive(metaStore), getNumActive(), getNumIdle(metaStore), getNumIdle());
+      return client;
     } catch (Exception e) {
       throw new WaggleDanceException("Cannot get a client from the pool", e);
     }
