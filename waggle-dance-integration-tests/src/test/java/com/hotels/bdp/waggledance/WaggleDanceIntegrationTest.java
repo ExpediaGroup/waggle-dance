@@ -53,6 +53,8 @@ import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.RestTemplate;
 
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
@@ -65,6 +67,7 @@ import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.Federations;
+import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.junit.ServerSocketRule;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
@@ -524,4 +527,24 @@ public class WaggleDanceIntegrationTest {
     assertThat(remoteMetastore.getMappedDatabases().get(0), is(REMOTE_DATABASE));
   }
 
+  @Test
+  public void restApiGetStatus() throws Exception {
+    exit.expectSystemExitWithStatus(0);
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate("waggle_remote", remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+
+    RestTemplate rest = new RestTemplateBuilder().build();
+    PrimaryMetaStore primaryMetastore = rest.getForObject("http://localhost:18000/api/admin/federations/primary",
+        PrimaryMetaStore.class);
+    assertThat(primaryMetastore.getStatus(), is(MetaStoreStatus.AVAILABLE));
+    FederatedMetaStore federatedMetastore = rest
+        .getForObject("http://localhost:18000/api/admin/federations/waggle_remote", FederatedMetaStore.class);
+    assertThat(federatedMetastore.getStatus(), is(MetaStoreStatus.AVAILABLE));
+  }
 }

@@ -26,7 +26,7 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>circus-train-bin</id>
+            <id>waggle-dance-bin</id>
             <phase>package</phase>
             <goals>
               <goal>unpack</goal>
