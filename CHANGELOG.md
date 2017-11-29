@@ -1,6 +1,6 @@
 ## TBD
 ### Fixed
-* Metastore status didn't work for tunneled connections. #issue-34
+* Metastore status check now works for tunneled connections. #issue-34
 
 ## [2.2.1] 2017-10-30
 ### Fixed
