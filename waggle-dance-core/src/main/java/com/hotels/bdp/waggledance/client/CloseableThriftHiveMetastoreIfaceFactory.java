@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.api.federation.service;
+package com.hotels.bdp.waggledance.client;
 
-import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
+import org.apache.hadoop.hive.conf.HiveConf;
 
-public interface FederationStatusService {
+public interface CloseableThriftHiveMetastoreIfaceFactory {
+  static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
 
-  MetaStoreStatus checkStatus(AbstractMetaStore metaStore);
-
+  CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
 }

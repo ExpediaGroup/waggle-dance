@@ -35,9 +35,6 @@ import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 @RunWith(MockitoJUnitRunner.class)
 public class DelegatingFederationServiceTest {
 
-  private static final String FEDERATED_METASTORE1_URI = "thrift://federatedMetaStore1:9083";
-  private static final String FEDERATED_METASTORE2_URI = "thrift://federatedMetaStore2:9083";
-
   private @Mock FederationService federationService;
   private @Mock FederationStatusService federationStatusService;
   private @Mock AbstractMetaStore federatedMetaStore1;
@@ -47,13 +44,11 @@ public class DelegatingFederationServiceTest {
 
   @Before
   public void init() {
-    when(federatedMetaStore1.getRemoteMetaStoreUris()).thenReturn(FEDERATED_METASTORE1_URI);
-    when(federatedMetaStore2.getRemoteMetaStoreUris()).thenReturn(FEDERATED_METASTORE2_URI);
     when(federationService.get("federatedMetaStore1")).thenReturn(federatedMetaStore1);
     when(federationService.get("federatedMetaStore2")).thenReturn(federatedMetaStore2);
     when(federationService.getAll()).thenReturn(Arrays.asList(federatedMetaStore1, federatedMetaStore2));
-    when(federationStatusService.checkStatus(FEDERATED_METASTORE1_URI)).thenReturn(MetaStoreStatus.AVAILABLE);
-    when(federationStatusService.checkStatus(FEDERATED_METASTORE2_URI)).thenReturn(MetaStoreStatus.UNAVAILABLE);
+    when(federationStatusService.checkStatus(federatedMetaStore1)).thenReturn(MetaStoreStatus.AVAILABLE);
+    when(federationStatusService.checkStatus(federatedMetaStore2)).thenReturn(MetaStoreStatus.UNAVAILABLE);
     service = new DelegatingFederationService(federationService, federationStatusService);
   }
 
@@ -82,7 +77,7 @@ public class DelegatingFederationServiceTest {
   public void get() {
     service.get("federatedMetaStore1");
     verify(federationService).get("federatedMetaStore1");
-    verify(federationStatusService).checkStatus(FEDERATED_METASTORE1_URI);
+    verify(federationStatusService).checkStatus(federatedMetaStore1);
     verify(federatedMetaStore1).setStatus(MetaStoreStatus.AVAILABLE);
   }
 
@@ -90,9 +85,9 @@ public class DelegatingFederationServiceTest {
   public void getAll() {
     service.getAll();
     verify(federationService).getAll();
-    verify(federationStatusService).checkStatus(FEDERATED_METASTORE1_URI);
+    verify(federationStatusService).checkStatus(federatedMetaStore1);
     verify(federatedMetaStore1).setStatus(MetaStoreStatus.AVAILABLE);
-    verify(federationStatusService).checkStatus(FEDERATED_METASTORE2_URI);
+    verify(federationStatusService).checkStatus(federatedMetaStore2);
     verify(federatedMetaStore2).setStatus(MetaStoreStatus.UNAVAILABLE);
   }
 

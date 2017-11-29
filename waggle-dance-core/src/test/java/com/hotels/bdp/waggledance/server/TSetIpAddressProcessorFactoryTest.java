@@ -68,4 +68,10 @@ public class TSetIpAddressProcessorFactoryTest {
     assertThat(transportCaptor.getValue(), is(transport));
     assertThat(handlerCaptor.getValue(), is(instanceOf(FederatedHMSHandler.class)));
   }
+
+  @Test
+  public void getProcessor() throws Exception {
+    TProcessor processor = factory.getProcessor(transport);
+    assertThat(processor, instanceOf(HMSHandlerProcessor.class));
+  }
 }

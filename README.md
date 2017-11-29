@@ -108,6 +108,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `disconnect-connection-delay`     | No         | Idle metastore connection timeout. Default is `5` |
 | `disconnect-time-unit`            | No         | Idle metastore connection timeout units. Default is `MINUTES` |
 | `database-resolution`             | No         | Controls what type of database resolution to use. See the [Database Resolution](#database-resolution) section. Default is `MANUAL`. |
+| `client-pool-max-total-per-key`   | No         | Controls the max total number of clients connections made. Client connections are pooled and reused. Default is `200` |
 
 #### Federation
 

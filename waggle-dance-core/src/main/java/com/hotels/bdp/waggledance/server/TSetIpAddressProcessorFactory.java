@@ -51,7 +51,7 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
       IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
           false);
       transportMonitor.monitor(transport, baseHandler);
-      return new TSetIpAddressProcessor<>(handler);
+      return new HMSHandlerProcessor(handler, new TSetIpAddressProcessor<>(handler));
     } catch (MetaException | ReflectiveOperationException | RuntimeException e) {
       throw new RuntimeException("Error creating TProcessor", e);
     }

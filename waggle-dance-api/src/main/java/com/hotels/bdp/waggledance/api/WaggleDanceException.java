@@ -26,4 +26,8 @@ public class WaggleDanceException extends RuntimeException {
     super(message, cause);
   }
 
+  public WaggleDanceException(Throwable cause) {
+    super(cause);
+  }
+
 }

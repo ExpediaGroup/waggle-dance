@@ -24,25 +24,28 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.thrift.TException;
 
+import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
+import com.hotels.bdp.waggledance.client.pool.MetaStoreClientPool;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
 class MetaStoreMappingImpl implements MetaStoreMapping {
 
   private final String databasePrefix;
-  private final CloseableThriftHiveMetastoreIface client;
+  private CloseableThriftHiveMetastoreIface client;
   private final AccessControlHandler accessControlHandler;
-  private final String name;
+  private final MetaStoreClientPool metaStoreClientPool;
+  private final AbstractMetaStore metaStore;
 
   MetaStoreMappingImpl(
       String databasePrefix,
-      String name,
-      CloseableThriftHiveMetastoreIface client,
+      AbstractMetaStore metaStore,
+      MetaStoreClientPool metaStoreClientPool,
       AccessControlHandler accessControlHandler) {
     this.databasePrefix = databasePrefix;
-    this.name = name;
-    this.client = client;
+    this.metaStore = metaStore;
+    this.metaStoreClientPool = metaStoreClientPool;
     this.accessControlHandler = accessControlHandler;
   }
 
@@ -53,6 +56,9 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public ThriftHiveMetastore.Iface getClient() {
+    if (client == null) {
+      client = metaStoreClientPool.borrowObjectUnchecked(metaStore);
+    }
     return client;
   }
 
@@ -78,11 +84,18 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public void close() throws IOException {
-    client.close();
+    if (client != null) {
+      try {
+        metaStoreClientPool.returnObjectUnchecked(metaStore, client);
+      } finally {
+        client = null;
+      }
+    }
   }
 
   @Override
   public boolean isAvailable() {
+    getClient();
     return client.isOpen();
   }
 
@@ -108,6 +121,6 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public String getMetastoreMappingName() {
-    return name;
+    return metaStore.getName();
   }
 }
