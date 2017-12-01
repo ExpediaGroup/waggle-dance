@@ -1,3 +1,7 @@
+## TBD
+### Fixed
+* Metastore status check now works for tunneled connections. #issue-34
+
 ## [2.2.1] 2017-10-30
 ### Fixed
 * Metastore status was missing from api/admin/federations rest endpoint. #issue-29

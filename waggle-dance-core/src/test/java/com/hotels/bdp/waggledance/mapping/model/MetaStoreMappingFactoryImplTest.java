@@ -17,11 +17,8 @@ package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,22 +26,18 @@ import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederate
 
 import java.util.Arrays;
 
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
-import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
-import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
@@ -57,8 +50,9 @@ public class MetaStoreMappingFactoryImplTest {
   public final @Rule ThriftHiveMetaStoreJUnitRule thrift = new ThriftHiveMetaStoreJUnitRule(TEST_DB);
 
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
-  private @Mock MetaStoreClientFactory metaStoreClientFactory;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
+  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceClientFactory(
+      new TunnelingMetaStoreClientFactory());;
 
   private MetaStoreMappingFactoryImpl factory;
 
@@ -70,7 +64,8 @@ public class MetaStoreMappingFactoryImplTest {
         return invocation.getArgumentAt(0, AbstractMetaStore.class).getDatabasePrefix();
       }
     });
-    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, accessControlHandlerFactory);
+    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClientFactory,
+        accessControlHandlerFactory);
   }
 
   @Test
@@ -99,52 +94,6 @@ public class MetaStoreMappingFactoryImplTest {
     // simulate disconnection
     thrift.client().reconnect();
     assertThat(mapping.getClient().get_all_databases(), is(Arrays.asList("default", "test_db")));
-  }
-
-  @Test
-  public void hiveConf() throws Exception {
-    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
-
-    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClientFactory,
-        accessControlHandlerFactory);
-    factory.newInstance(newFederatedInstance("fed1", thrift.getThriftConnectionUri()));
-    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
-
-    HiveConf hiveConf = hiveConfCaptor.getValue();
-    assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(thrift.getThriftConnectionUri()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PORT.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is(nullValue()));
-  }
-
-  @Test
-  public void hiveConfForTunneling() throws Exception {
-    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
-
-    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClientFactory,
-        accessControlHandlerFactory);
-
-    MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
-    metastoreTunnel.setLocalhost("local-machine");
-    metastoreTunnel.setPort(2222);
-    metastoreTunnel.setRoute("a -> b -> c");
-    metastoreTunnel.setKnownHosts("knownHosts");
-    metastoreTunnel.setPrivateKeys("privateKeys");
-    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
-    federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
-
-    factory.newInstance(federatedMetaStore);
-    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
-
-    HiveConf hiveConf = hiveConfCaptor.getValue();
-    assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(thrift.getThriftConnectionUri()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname), is("local-machine"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PORT.varname), is("2222"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname), is("a -> b -> c"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname), is("knownHosts"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is("privateKeys"));
   }
 
 }
