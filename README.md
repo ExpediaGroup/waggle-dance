@@ -72,21 +72,23 @@ To run Waggle Dance just execute:
 
 Log messages will be output to the standard output.
 
-### RPM package
-
-It is intended that Waggle Dance is run as a service serving as a proxy to different metastores. The primary configured metastore is the only one to which you may also write data via Hive.
-
-    sudo yum install waggle-dance-rpm
 
 ### Running as a service
 
+It is intended that Waggle Dance is run as a service serving as a proxy to different metastores. The primary configured metastore is the only one to which you may also write data via Hive.
+
+An RPM version of WaggleDance is available for download from [here](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.hotels&a=waggle-dance-rpm&p=rpm&v=RELEASE). Once downloaded this can be installed using your distribution's packaging tool, e.g. yum:
+
+    sudo yum install <waggle-dance-rpm-file>
+
 Installing the RPM will register waggle-dance as an init.d service.
+
 Configuration is in _/opt/waggle-dance/conf/_
 After the first installation configuration needs to be manually changed and then service needs to be started:
 
     sudo service waggle-dance start
 
-Currently any changes to the configuration require restarting the service in order for the changes to come into effect:
+Currently any changes to the configuration require restarting the service in order for the changes to come into effect (exception to this is the log4j2.xml changes will be picked up while running):
 
     sudo service waggle-dance restart
 
