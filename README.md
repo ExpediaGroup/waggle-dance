@@ -77,7 +77,7 @@ Log messages will be output to the standard output.
 
 It is intended that Waggle Dance is run as a service serving as a proxy to different metastores. The primary configured metastore is the only one to which you may also write data via Hive.
 
-The RPM package needs to be downloaded and is available in Maven Central the file can be installed using `yum`.
+The RPM package needs to be downloaded and is available in [![Maven Central RPM](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm/badge.svg?subject=com.hotels:waggle-dance.rpm)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm) (it is not available in any rpm repo) the file can be installed using `yum`.
 
     sudo yum install <waggle-dance-rpm-file>
 
