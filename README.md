@@ -28,7 +28,7 @@ So when we do the following in a Hive CLI client connected to a Waggle Dance ins
     select *
     from mydb.table;
 
-We are actually performing the query against the `thrift://host:port/` metastore. All metastore calls will be forwarded and data will be fetched and processed locally. 
+We are actually performing the query against the `thrift://host:port/` metastore. All metastore calls will be forwarded and data will be fetched and processed locally.
 This makes it possible to read and join data from different Hive clusters via a single Hive CLI.
 
 ## System architecture
@@ -182,7 +182,7 @@ This is controlled by the property: `primary-meta-store.access-control-type` It 
 
 Waggle Dance reads and writes federation configuration from and to a YAML file - refer to the section [federation](#federation) for details.
 
-The following properties are configured in the server configuration file and control the behaviour of the YAML federation storage:
+The following properties are configured in the server configuration file(waggle-dance-server.yml) and control the behaviour of the YAML federation storage:
 
     yaml-storage:
       overwrite-config-on-shutdown: true
@@ -379,7 +379,7 @@ Assumes database resolution is done by adding prefixes. If database resolution i
 ## Contact
 
 ### Mailing List
-If you would like to ask any questions about or discuss Waggle Dance please join our mailing list at 
+If you would like to ask any questions about or discuss Waggle Dance please join our mailing list at
 
   [https://groups.google.com/forum/#!forum/waggle-dance-user](https://groups.google.com/forum/#!forum/waggle-dance-user)
 
@@ -393,4 +393,3 @@ The Waggle Dance logo uses the [Beetype Filled font](http://www.1001fonts.com/be
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
 
 Copyright 2016-2017 Expedia Inc.
-
