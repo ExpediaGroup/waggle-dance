@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,12 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import com.pastdev.jsch.DefaultSessionFactory;
 import com.pastdev.jsch.SessionFactory;
 
@@ -31,15 +34,40 @@ import com.hotels.bdp.waggledance.api.WaggleDanceException;
 public class SessionFactorySupplier implements Supplier<SessionFactory> {
   private static final Logger LOG = LoggerFactory.getLogger(SessionFactorySupplier.class);
 
+  @VisibleForTesting
+  static class CustomSessionFactory extends DefaultSessionFactory {
+    final int sshTimeout;
+
+    private CustomSessionFactory(int sshTimeout) {
+      this.sshTimeout = sshTimeout;
+    }
+
+    @Override
+    public Session newSession() throws JSchException {
+      Session session = super.newSession();
+      session.setTimeout(sshTimeout);
+      return session;
+    }
+  }
+
   private final int sshPort;
   private final String knownHosts;
   private final List<String> identityKeys;
+  private final int sshTimeout;
   private DefaultSessionFactory sessionFactory = null;
 
+  @Deprecated
   public SessionFactorySupplier(int sshPort, String knownHosts, List<String> identityKeys) {
+    this(sshPort, knownHosts, identityKeys, 0);
+  }
+
+  public SessionFactorySupplier(int sshPort, String knownHosts, List<String> identityKeys, int sshTimeout) {
+    Preconditions.checkArgument(0 <= sshPort && sshPort <= 65535, "Invalid SSH port number " + sshPort);
+    Preconditions.checkArgument(sshTimeout >= 0, "Invalid SSH session timeout " + sshTimeout);
     this.sshPort = sshPort;
     this.knownHosts = knownHosts;
     this.identityKeys = ImmutableList.copyOf(identityKeys);
+    this.sshTimeout = sshTimeout;
   }
 
   @Override
@@ -48,7 +76,7 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
       try {
         synchronized (this) {
           System.setProperty(DefaultSessionFactory.PROPERTY_JSCH_KNOWN_HOSTS_FILE, knownHosts);
-          sessionFactory = new DefaultSessionFactory();
+          sessionFactory = new CustomSessionFactory(sshTimeout);
           sessionFactory.setPort(sshPort);
           LOG.debug("Session factory created for {}@{}:{}", sessionFactory.getUsername(), sessionFactory.getHostname(),
               sessionFactory.getPort());

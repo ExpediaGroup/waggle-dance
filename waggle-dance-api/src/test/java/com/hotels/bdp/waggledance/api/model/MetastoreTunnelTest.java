@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,20 @@ public class MetastoreTunnelTest {
     tunnel.setKnownHosts("knownHosts");
     tunnel.setPrivateKeys("privateKey");
     tunnel.setRoute("hostA -> hostB");
+    tunnel.setTimeout(123);
   }
 
   @Test
   public void typical() {
+    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+
+    assertThat(violations.size(), is(0));
+  }
+
+  @Test
+  public void infiniteTimeout() {
+    tunnel.setTimeout(0);
+
     Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(0));
@@ -142,6 +152,15 @@ public class MetastoreTunnelTest {
   @Test
   public void blankPrivateKey() {
     tunnel.setPrivateKeys(" ");
+
+    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+
+    assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void negativeTunnel() {
+    tunnel.setTimeout(-1);
 
     Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
 

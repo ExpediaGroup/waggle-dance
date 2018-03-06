@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname), is(nullValue()));
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname), is(nullValue()));
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is(nullValue()));
+    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname), is(nullValue()));
   }
 
   @Test
@@ -75,6 +76,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     metastoreTunnel.setRoute("a -> b -> c");
     metastoreTunnel.setKnownHosts("knownHosts");
     metastoreTunnel.setPrivateKeys("privateKeys");
+    metastoreTunnel.setTimeout(123);
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
 
@@ -88,5 +90,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname), is("a -> b -> c"));
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname), is("knownHosts"));
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is("privateKeys"));
+    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname), is("123"));
   }
 }

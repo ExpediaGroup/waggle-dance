@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     }
   }
 
-  private TunnelHandler tunnelHandler;
+  private final TunnelHandler tunnelHandler;
 
   public TunnelingMetaStoreClientFactory() {
     this(new TunnelHandler());
@@ -108,13 +108,14 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     int sshPort = hiveConf.getInt(WaggleDanceHiveConfVars.SSH_PORT.varname, 22);
     String knownHosts = hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname);
     String privateKeys = hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname);
+    int sshTimeout = hiveConf.getInt(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, 0);
 
     checkArgument(sshPort > 0 && sshPort <= 65536,
         WaggleDanceHiveConfVars.SSH_PORT.varname + " must be a number between 1 and 65536");
     checkArgument(!isNullOrEmpty(privateKeys), WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname + " cannot be null");
 
     SessionFactorySupplier sessionFactorySupplier = new SessionFactorySupplier(sshPort, knownHosts,
-        Arrays.asList(privateKeys.split(",")));
+        Arrays.asList(privateKeys.split(",")), sshTimeout);
 
     return new TunnelConnectionManagerFactory(sessionFactorySupplier);
   }
