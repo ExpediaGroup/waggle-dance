@@ -147,8 +147,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store.database-prefix`                  | No       | This will be ignored for the primary metastore and an empty string will always be used instead. |
 | `primary-meta-store.access-control-type`              | No       | Sets how the client access controls should be handled. Default is `READ_ONLY` Other options `READ_AND_WRITE_AND_CREATE`, `READ_AND_WRITE_ON_DATABASE_WHITELIST` and `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST` see Access Control section below. |
 | `primary-meta-store.writable-database-white-list`     | No       | White-list of databases used to verify write access used in conjunction with `primary-meta-store.access-control-type`. The list of databases should be listed without any `primary-meta-store.database-prefix`. |
-| `primary-meta-store.metastore-tunnel`                 | No       | The address on which to bind the local end of the tunnel. Default is '`localhost`'. |
-| `primary-meta-store.metastore-tunnel.port`            | No       | See metastore tunnel configuration values below. |
+| `primary-meta-store.metastore-tunnel`                 | No       | See metastore tunnel configuration values below. |
 | `federated-meta-stores`                               | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`     | Yes      | Thrift URIs of the federated read-only metastore. |
 | `federated-meta-stores[n].name`                       | Yes      | Name that uniquely identifies this metastore, used internally. Cannot be empty. |
@@ -165,6 +164,7 @@ The table below describes the metastore tunnel configuration values:
 | `*.metastore-tunnel.route`                              | No       | A SSH tunnel can be used to connect to federated metastores. The tunnel may consist of one or more hops which must be declared in this property. See [Configuring a SSH tunnel](#configuring-a-ssh-tunnel) for details. |
 | `*.metastore-tunnel.known-hosts`                        | No       | Path to a known hosts file. |
 | `*.metastore-tunnel.private-keys`                       | No       | A comma-separated list of paths to any SSH keys required in order to set up the SSH tunnel. |
+| `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds. Default is `60000` milliseconds, i.e. 1 minute. |
 
 ###### Access Control
 
