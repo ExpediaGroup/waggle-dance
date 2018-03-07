@@ -159,7 +159,7 @@ public class MetastoreTunnelTest {
   }
 
   @Test
-  public void negativeTunnel() {
+  public void negativeTimeout() {
     tunnel.setTimeout(-1);
 
     Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);

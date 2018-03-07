@@ -1,3 +1,7 @@
+## TBD
+### Added
+* Configurable SSH session timeout for SSH tunnels.
+
 ## [2.2.2] 2017-12-01
 ### Fixed
 * Metastore status check now works for tunneled connections. #issue-34

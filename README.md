@@ -164,7 +164,7 @@ The table below describes the metastore tunnel configuration values:
 | `*.metastore-tunnel.route`                              | No       | A SSH tunnel can be used to connect to federated metastores. The tunnel may consist of one or more hops which must be declared in this property. See [Configuring a SSH tunnel](#configuring-a-ssh-tunnel) for details. |
 | `*.metastore-tunnel.known-hosts`                        | No       | Path to a known hosts file. |
 | `*.metastore-tunnel.private-keys`                       | No       | A comma-separated list of paths to any SSH keys required in order to set up the SSH tunnel. |
-| `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds. Default is `60000` milliseconds, i.e. 1 minute. |
+| `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds, `0` means no timeout. Default is `60000` milliseconds, i.e. 1 minute. |
 
 ###### Access Control
 
