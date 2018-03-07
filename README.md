@@ -205,9 +205,13 @@ As outlined above the `metastore-tunnel` property is used to configure Waggle Da
 
 For example, if the Hive metastore runs on the host _hive-server-box_ which can only be reached first via _bastion-host_ and then _jump-box_ then the SSH tunnel route expression will be `bastion-host -> jump-box -> hive-server-box`. If _bastion-host_ is only accessible by user _ec2-user_, _jump-box_ by user _user-a_ and _hive-server-box_ by user _hadoop_ then the expression above becomes `ec2-user@bastion-host -> user-a@jump-box -> hadoop@hive-server-box`.
 
-Once the tunnel is established Waggle Dance will set up port forwarding from the local machine specified in `metastore-tunnel.localhost` to the remote machine specified in `remote-meta-store-uris`. The last node in the tunnel expression doesn't need to be the Thrift server, the only requirement is that the this last node must be able to communicate with the Thrift service. Sometimes this is not possible due to firewall restrictions so in these cases they must be the same.
+Once the tunnel is established Waggle Dance will set up port forwarding from the local machine specified in `metastore-tunnel.localhost` to the remote machine specified in `remote-meta-store-uris`. The last node in the tunnel expression doesn't need to be the Thrift server, the only requirement is that this last node must be able to communicate with the Thrift service. Sometimes this is not possible due to firewall restrictions so in these cases they must be the same.
 
 Note that all the machines in the tunnel expression must be included in the *known_hosts* file and the keys required to access each box must be set in `metastore-tunnel.private-keys`. For example, if _bastion-host_ is authenticated with _bastion.pem_ and both _jump-box_ and _hive-server-box_ are authenticated with _emr.pem_ then the property must be set as`metastore-tunnel.private-keys=<path-to-ssh-keys>/bastion.pem, <path-to-ssh-keys>/emr.pem`.
+
+To add the fingerprint of _remote-box_ in to the _known___hosts_ file the following command can be used:
+
+    ssh-keyscan -t rsa remote-box >> .ssh/known_hosts
 
 The following configuration snippets show a few examples of valid tunnel expressions.
 
