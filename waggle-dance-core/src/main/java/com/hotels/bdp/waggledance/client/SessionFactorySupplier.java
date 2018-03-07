@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.client;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +26,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Proxy;
 import com.jcraft.jsch.Session;
 import com.pastdev.jsch.DefaultSessionFactory;
 import com.pastdev.jsch.SessionFactory;
+import com.pastdev.jsch.SessionFactory.SessionFactoryBuilder;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 
@@ -35,26 +38,103 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
   private static final Logger LOG = LoggerFactory.getLogger(SessionFactorySupplier.class);
 
   @VisibleForTesting
-  static class CustomSessionFactory extends DefaultSessionFactory {
+  static class DelegatingSessionFactoryBuilder extends SessionFactoryBuilder {
+    private final SessionFactoryBuilder delegate;
     final int sshTimeout;
 
-    private CustomSessionFactory(int sshTimeout) {
+    DelegatingSessionFactoryBuilder(SessionFactoryBuilder delegate, int sshTimeout) {
+      super(null, null, null, -1, null, null);
+      this.delegate = delegate;
       this.sshTimeout = sshTimeout;
     }
 
     @Override
+    public SessionFactoryBuilder setConfig(Map<String, String> config) {
+      this.config = config;
+      return this;
+    }
+
+    @Override
+    public SessionFactoryBuilder setHostname(String hostname) {
+      delegate.setHostname(hostname);
+      return this;
+    }
+
+    @Override
+    public SessionFactoryBuilder setPort(int port) {
+      delegate.setPort(port);
+      return this;
+    }
+
+    @Override
+    public SessionFactoryBuilder setProxy(Proxy proxy) {
+      delegate.setProxy(proxy);
+      return this;
+    }
+
+    @Override
+    public SessionFactoryBuilder setUsername(String username) {
+      delegate.setUsername(username);
+      return this;
+    }
+
+    @Override
+    public SessionFactory build() {
+      return new DelegatingSessionFactory(delegate.build(), sshTimeout);
+    }
+  }
+
+  @VisibleForTesting
+  static class DelegatingSessionFactory implements SessionFactory {
+    private final SessionFactory delegate;
+    final int sshTimeout;
+
+    DelegatingSessionFactory(SessionFactory delegate, int sshTimeout) {
+      this.delegate = delegate;
+      this.sshTimeout = sshTimeout;
+    }
+
+    @Override
+    public String getHostname() {
+      return delegate.getHostname();
+    }
+
+    @Override
+    public int getPort() {
+      return delegate.getPort();
+    }
+
+    @Override
+    public Proxy getProxy() {
+      return delegate.getProxy();
+    }
+
+    @Override
+    public String getUsername() {
+      return delegate.getUsername();
+    }
+
+    @Override
     public Session newSession() throws JSchException {
-      Session session = super.newSession();
+      Session session = delegate.newSession();
+      LOG.info("Setting SSH session timeout to {}", sshTimeout);
       session.setTimeout(sshTimeout);
       return session;
     }
+
+    @Override
+    public SessionFactoryBuilder newSessionFactoryBuilder() {
+      SessionFactoryBuilder builder = delegate.newSessionFactoryBuilder();
+      return new DelegatingSessionFactoryBuilder(builder, sshTimeout);
+    }
+
   }
 
   private final int sshPort;
   private final String knownHosts;
   private final List<String> identityKeys;
   private final int sshTimeout;
-  private DefaultSessionFactory sessionFactory = null;
+  private SessionFactory sessionFactory = null;
 
   @Deprecated
   public SessionFactorySupplier(int sshPort, String knownHosts, List<String> identityKeys) {
@@ -76,12 +156,13 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
       try {
         synchronized (this) {
           System.setProperty(DefaultSessionFactory.PROPERTY_JSCH_KNOWN_HOSTS_FILE, knownHosts);
-          sessionFactory = new CustomSessionFactory(sshTimeout);
-          sessionFactory.setPort(sshPort);
+          DefaultSessionFactory defaultSessionFactory = new DefaultSessionFactory();
+          defaultSessionFactory.setIdentitiesFromPrivateKeys(identityKeys);
+          defaultSessionFactory.setPort(sshPort);
+          sessionFactory = new DelegatingSessionFactory(defaultSessionFactory, sshTimeout);
           LOG.debug("Session factory created for {}@{}:{}", sessionFactory.getUsername(), sessionFactory.getHostname(),
               sessionFactory.getPort());
         }
-        sessionFactory.setIdentitiesFromPrivateKeys(identityKeys);
       } catch (JSchException | RuntimeException e) {
         throw new WaggleDanceException(
             "Unable to create factory with knownHosts=" + knownHosts + " and identityKeys=" + identityKeys, e);

@@ -31,7 +31,7 @@ import com.jcraft.jsch.KeyPair;
 import com.pastdev.jsch.SessionFactory;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
-import com.hotels.bdp.waggledance.client.SessionFactorySupplier.CustomSessionFactory;
+import com.hotels.bdp.waggledance.client.SessionFactorySupplier.DelegatingSessionFactory;
 
 public class SessionFactorySupplierTest {
 
@@ -67,8 +67,8 @@ public class SessionFactorySupplierTest {
   public void typical() {
     SessionFactory sessionFactory = new SessionFactorySupplier(SSH_PORT, knownHosts.getAbsolutePath(),
         ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath()), SSH_TIMEOUT).get();
-    assertThat(sessionFactory.getClass().isAssignableFrom(CustomSessionFactory.class), is(true));
-    assertThat(((CustomSessionFactory) sessionFactory).sshTimeout, is(SSH_TIMEOUT));
+    assertThat(sessionFactory.getClass().isAssignableFrom(DelegatingSessionFactory.class), is(true));
+    assertThat(((DelegatingSessionFactory) sessionFactory).sshTimeout, is(SSH_TIMEOUT));
   }
 
   @Test(expected = IllegalArgumentException.class)
