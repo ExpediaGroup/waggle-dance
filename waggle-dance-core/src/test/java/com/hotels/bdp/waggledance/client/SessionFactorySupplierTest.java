@@ -31,7 +31,6 @@ import com.jcraft.jsch.KeyPair;
 import com.pastdev.jsch.SessionFactory;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
-import com.hotels.bdp.waggledance.client.SessionFactorySupplier.DelegatingSessionFactory;
 
 public class SessionFactorySupplierTest {
 
