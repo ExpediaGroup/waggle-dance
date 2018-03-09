@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.ImmutableList;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.KeyPair;
-import com.pastdev.jsch.DefaultSessionFactory;
 import com.pastdev.jsch.SessionFactory;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
@@ -39,6 +38,7 @@ public class SessionFactorySupplierTest {
   private static final String KNOWN_HOSTS = "knownHosts";
   private static final String IDENTITY_KEY_1 = "K1";
   private static final String IDENTITY_KEY_2 = "K2";
+  private static final int SSH_TIMEOUT = 1000;
 
   public @Rule TemporaryFolder tmpFolder = new TemporaryFolder();
 
@@ -65,31 +65,38 @@ public class SessionFactorySupplierTest {
   @Test
   public void typical() {
     SessionFactory sessionFactory = new SessionFactorySupplier(SSH_PORT, knownHosts.getAbsolutePath(),
-        ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath())).get();
-    assertThat(sessionFactory.getClass().isAssignableFrom(DefaultSessionFactory.class), is(true));
+        ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath()), SSH_TIMEOUT).get();
+    assertThat(sessionFactory.getClass().isAssignableFrom(DelegatingSessionFactory.class), is(true));
+    assertThat(((DelegatingSessionFactory) sessionFactory).sshTimeout, is(SSH_TIMEOUT));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void invalidPort() {
     new SessionFactorySupplier(-1, "hosts",
-        ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath())).get();
+        ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath()), SSH_TIMEOUT).get();
   }
 
   @Test
   public void invalidKnownHosts() {
     new SessionFactorySupplier(SSH_PORT, "hosts",
-        ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath())).get();
+        ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath()), SSH_TIMEOUT).get();
   }
 
   @Test(expected = WaggleDanceException.class)
   public void invalidIdentityKey() {
-    new SessionFactorySupplier(SSH_PORT, knownHosts.getAbsolutePath(), ImmutableList.of("K1")).get();
+    new SessionFactorySupplier(SSH_PORT, knownHosts.getAbsolutePath(), ImmutableList.of("K1"), SSH_TIMEOUT).get();
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void invalidTimeout() {
+    new SessionFactorySupplier(SSH_PORT, knownHosts.getAbsolutePath(),
+        ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath()), -1).get();
   }
 
   @Test
   public void singleInstance() {
     SessionFactorySupplier sessionFactorySupplier = new SessionFactorySupplier(SSH_PORT, knownHosts.getAbsolutePath(),
-        ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath()));
+        ImmutableList.of(identityKey1.getAbsolutePath(), identityKey2.getAbsolutePath()), SSH_TIMEOUT);
     SessionFactory sessionFactoryA = sessionFactorySupplier.get();
     SessionFactory sessionFactoryB = sessionFactorySupplier.get();
     assertThat(sessionFactoryA, is(sessionFactoryB));

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,14 @@ public class MetastoreTunnel {
 
   private static final int DEFAULT_PORT = 22;
   private static final String DEFAULT_LOCALHOST = "localhost";
+  private static final int DEFAULT_TIMEOUT_MILLIS = 60000; // 1 minute
 
   private @NotBlank @TunnelRoute String route;
   private @Min(1) @Max(65535) int port = DEFAULT_PORT;
   private String localhost = DEFAULT_LOCALHOST;
   private @NotBlank String privateKeys;
   private @NotBlank String knownHosts;
+  private @Min(0) int timeout = DEFAULT_TIMEOUT_MILLIS;
 
   public String getRoute() {
     return route;
@@ -71,6 +73,14 @@ public class MetastoreTunnel {
 
   public void setKnownHosts(String knownHosts) {
     this.knownHosts = knownHosts;
+  }
+
+  public int getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(int timeout) {
+    this.timeout = timeout;
   }
 
 }

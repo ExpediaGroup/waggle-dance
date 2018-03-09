@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ public enum WaggleDanceHiveConfVars {
   SSH_PORT("com.hotels.bdp.waggledance.client.ssh.port"),
   SSH_ROUTE("com.hotels.bdp.waggledance.client.ssh.route"),
   SSH_PRIVATE_KEYS("com.hotels.bdp.waggledance.client.ssh.private_keys"),
-  SSH_KNOWN_HOSTS("com.hotels.bdp.waggledance.client.ssh.known_hosts");
+  SSH_KNOWN_HOSTS("com.hotels.bdp.waggledance.client.ssh.known_hosts"),
+  SSH_SESSION_TIMEOUT("com.hotels.bdp.waggledance.client.ssh.session_timeout");
 
   public final String varname;
 
