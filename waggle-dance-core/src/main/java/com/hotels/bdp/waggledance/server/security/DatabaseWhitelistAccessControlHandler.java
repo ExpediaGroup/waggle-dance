@@ -58,7 +58,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
       return true;
     }
     databaseName = cleanString(databaseName);
-    if (databaseWhiteList.contains(databaseName)) {
+    if (databaseWhiteList.contains(databaseName) || databaseWhiteList.contains("*")) {
       return true;
     }
 

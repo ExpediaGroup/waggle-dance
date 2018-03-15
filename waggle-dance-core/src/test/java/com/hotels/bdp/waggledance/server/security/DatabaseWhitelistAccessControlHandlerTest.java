@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -67,6 +68,19 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     assertTrue(handler.hasWritePermission("regexdb2"));
     assertFalse(handler.hasWritePermission("regex"));
     assertFalse(handler.hasWritePermission("nonregexdb1"));
+  }
+
+  @Test
+  public void hasRegexGrantedWritePermissionMatchingAllDatabases() throws Exception {
+    DatabaseWhitelistAccessControlHandler handlerTwo;
+    List<String> whitelistTwo = newArrayList("*");
+    PrimaryMetaStore primaryMetaStoreTwo = mock(PrimaryMetaStore.class);
+    when(primaryMetaStoreTwo.getWritableDatabaseWhiteList()).thenReturn(whitelistTwo);
+    handlerTwo = new DatabaseWhitelistAccessControlHandler(primaryMetaStoreTwo, federationService, true);
+    assertTrue(handlerTwo.hasWritePermission("regexDB1"));
+    assertTrue(handlerTwo.hasWritePermission("regexdb2"));
+    assertTrue(handlerTwo.hasWritePermission("writableDB"));
+    assertFalse(handlerTwo.hasWritePermission("nonWritableDB"));
   }
 
   @Test
