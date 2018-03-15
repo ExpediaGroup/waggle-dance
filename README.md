@@ -124,6 +124,7 @@ Example:
       writable-database-white-list:
       - my_writable_db1
       - my_writable_db2
+      - user_db_*
       - ...
     federated-meta-stores:                                  # List of read only metastores to federate
     - remote-meta-store-uris: thrift://10.0.0.1:9083

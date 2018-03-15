@@ -46,7 +46,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
   @Mock
   private FederationService federationService;
   private DatabaseWhitelistAccessControlHandler handler;
-  private final List<String> whitelist = newArrayList("writabledb");
+  private final List<String> whitelist = newArrayList("writabledb", "regexdb*");
 
   @Before
   public void setUp() {
@@ -59,6 +59,14 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     assertTrue(handler.hasWritePermission("writableDB"));
     assertTrue(handler.hasWritePermission(null));
     assertFalse(handler.hasWritePermission("nonWritableDB"));
+  }
+
+  @Test
+  public void hasRegexGrantedWritePermission() throws Exception {
+    assertTrue(handler.hasWritePermission("regexDB1"));
+    assertTrue(handler.hasWritePermission("regexdb2"));
+    assertFalse(handler.hasWritePermission("regex"));
+    assertFalse(handler.hasWritePermission("nonregexdb1"));
   }
 
   @Test
