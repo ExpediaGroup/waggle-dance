@@ -45,10 +45,10 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
   }
 
   private void add(String databaseName) {
-    databaseWhiteList.add(cleanString(databaseName));
+    databaseWhiteList.add(trimToLowerCase(databaseName));
   }
 
-  private String cleanString(String string) {
+  private String trimToLowerCase(String string) {
     return string.trim().toLowerCase();
   }
 
@@ -57,17 +57,17 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     if (databaseName == null) {
       return true;
     }
-    databaseName = cleanString(databaseName);
+    databaseName = trimToLowerCase(databaseName);
     if (databaseWhiteList.contains(databaseName) || databaseWhiteList.contains("*")) {
       return true;
     }
 
-    char firstLetter = databaseName.charAt(0);
-    char secondLetter = (char) ((char) firstLetter + 1);
-    Set<String> sortedSubSet = databaseWhiteList.subSet(String.valueOf(firstLetter), String.valueOf(secondLetter));
+    char firstLetterOfDatabaseName = databaseName.charAt(0);
+    char nextLexicographicalLetter = (char) ((char) firstLetterOfDatabaseName + 1);
+    Set<String> sortedSubSet = databaseWhiteList.subSet(String.valueOf(firstLetterOfDatabaseName), String.valueOf(nextLexicographicalLetter));
     for (String whiteListEntry : sortedSubSet) {
       if (whiteListEntry.endsWith("*")) {
-        Matcher matcher = Pattern.compile(cleanString(whiteListEntry)).matcher(databaseName);
+        Matcher matcher = Pattern.compile(trimToLowerCase(whiteListEntry)).matcher(databaseName);
         if (matcher.find()) {
           return true;
         }
