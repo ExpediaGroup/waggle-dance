@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,20 +145,22 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
     private File marshall(Yaml yaml, String fileName, Object... objects) {
       File config = new File(workingDirectory, fileName);
 
-      FileSystemManager fsManager = null;
-      try {
-        fsManager = VFS.getManager();
-      } catch (FileSystemException e) {
-        throw new RuntimeException("Unable to initialize Virtual File System", e);
-      }
-
-      try (FileObject target = fsManager.resolveFile(config.toURI());
-          Writer writer = new OutputStreamWriter(target.getContent().getOutputStream())) {
-        for (Object object : objects) {
-          yaml.dump(object, writer);
+      if (!config.exists()) {
+        FileSystemManager fsManager = null;
+        try {
+          fsManager = VFS.getManager();
+        } catch (FileSystemException e) {
+          throw new RuntimeException("Unable to initialize Virtual File System", e);
         }
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to write federations to '" + config.toURI() + "'", e);
+
+        try (FileObject target = fsManager.resolveFile(config.toURI());
+            Writer writer = new OutputStreamWriter(target.getContent().getOutputStream())) {
+          for (Object object : objects) {
+            yaml.dump(object, writer);
+          }
+        } catch (IOException e) {
+          throw new RuntimeException("Unable to write federations to '" + config.toURI() + "'", e);
+        }
       }
 
       return config;
