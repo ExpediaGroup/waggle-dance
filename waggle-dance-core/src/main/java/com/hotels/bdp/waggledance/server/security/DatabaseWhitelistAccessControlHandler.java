@@ -84,7 +84,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
   @Override
   public void databaseCreatedNotification(String name) {
     List<String> whiteList = new ArrayList<>(primaryMetaStore.getWritableDatabaseWhiteList());
-    String nameLowerCase = name.trim().toLowerCase();
+    String nameLowerCase = trimToLowerCase(name);
     if (!whiteList.contains(nameLowerCase)) {
       whiteList.add(nameLowerCase);
     }
