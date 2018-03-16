@@ -1,7 +1,7 @@
 ## TBD
 ### Added
 * Configurable SSH session timeout for SSH tunnels.
-* Wild Cards enabled in writable database whitelist
+* Regexes enabled in writable database whitelist
 
 ## [2.2.2] 2017-12-01
 ### Fixed

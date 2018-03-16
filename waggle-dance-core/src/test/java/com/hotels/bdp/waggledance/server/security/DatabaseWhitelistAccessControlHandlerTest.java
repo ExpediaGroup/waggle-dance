@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -47,7 +46,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
   @Mock
   private FederationService federationService;
   private DatabaseWhitelistAccessControlHandler handler;
-  private final List<String> whitelist = newArrayList("writabledb", "regexdb*");
+  private final List<String> whitelist = newArrayList("writabledb", "regexdb.*");
 
   @Before
   public void setUp() {
@@ -67,19 +66,6 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     assertTrue(handler.hasWritePermission("regexDB1"));
     assertTrue(handler.hasWritePermission("regexdb2"));
     assertFalse(handler.hasWritePermission("regex"));
-    assertFalse(handler.hasWritePermission("nonregexdb1"));
-  }
-
-  @Test
-  public void hasRegexGrantedWritePermissionMatchingAllDatabases() throws Exception {
-    DatabaseWhitelistAccessControlHandler handlerTwo;
-    List<String> whitelistTwo = newArrayList("*");
-    PrimaryMetaStore primaryMetaStoreTwo = mock(PrimaryMetaStore.class);
-    when(primaryMetaStoreTwo.getWritableDatabaseWhiteList()).thenReturn(whitelistTwo);
-    handlerTwo = new DatabaseWhitelistAccessControlHandler(primaryMetaStoreTwo, federationService, true);
-    assertTrue(handlerTwo.hasWritePermission("regexDB1"));
-    assertTrue(handlerTwo.hasWritePermission("regexdb2"));
-    assertTrue(handlerTwo.hasWritePermission("writableDB"));
   }
 
   @Test
@@ -96,7 +82,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     verify(federationService).update(eq(primaryMetaStore), captor.capture());
     PrimaryMetaStore updatedMetastore = captor.getValue();
     assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(3));
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "regexdb*", "newdb"));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "regexdb.*", "newdb"));
   }
 
   @Test
@@ -106,7 +92,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     verify(federationService).update(eq(primaryMetaStore), captor.capture());
     PrimaryMetaStore updatedMetastore = captor.getValue();
     assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(2));
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "regexdb*"));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "regexdb.*"));
   }
 
 }

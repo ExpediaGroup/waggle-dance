@@ -16,9 +16,9 @@
 package com.hotels.bdp.waggledance.server.security;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +27,7 @@ import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
-  private final TreeSet<String> databaseWhiteList = new TreeSet<>();
+  private final Set<Pattern> databaseWhiteList = new HashSet<>();
   private final FederationService federationService;
   private PrimaryMetaStore primaryMetaStore;
   private final boolean hasCreatePermission;
@@ -45,7 +45,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
   }
 
   private void add(String databaseName) {
-    databaseWhiteList.add(trimToLowerCase(databaseName));
+    databaseWhiteList.add(Pattern.compile(trimToLowerCase(databaseName)));
   }
 
   private String trimToLowerCase(String string) {
@@ -58,20 +58,14 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
       return true;
     }
     databaseName = trimToLowerCase(databaseName);
-    if (databaseWhiteList.contains(databaseName) || databaseWhiteList.contains("*")) {
+    if (databaseWhiteList.contains(databaseName)) {
       return true;
     }
 
-    char firstLetterOfDatabaseName = databaseName.charAt(0);
-    char nextLexicographicalLetter = (char) ((char) firstLetterOfDatabaseName + 1);
-    Set<String> sortedSubSet = databaseWhiteList.subSet(String.valueOf(firstLetterOfDatabaseName),
-        String.valueOf(nextLexicographicalLetter));
-    for (String whiteListEntry : sortedSubSet) {
-      if (whiteListEntry.endsWith("*")) {
-        Matcher matcher = Pattern.compile(trimToLowerCase(whiteListEntry)).matcher(databaseName);
-        if (matcher.find()) {
-          return true;
-        }
+    for (Pattern whiteListEntry : databaseWhiteList) {
+      Matcher matcher = whiteListEntry.matcher(databaseName);
+      if (matcher.matches()) {
+        return true;
       }
     }
     return false;
