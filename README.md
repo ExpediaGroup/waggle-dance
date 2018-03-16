@@ -1,12 +1,5 @@
 ![Bee waggle-dancing on a hive.](logo.png "Federating Hive Meta Stores.")
 
-## Overview
-Waggle Dance is a request routing Hive metastore proxy that allows tables to be concurrently accessed across multiple Hive deployments. It was created to tackle the appearance of dataset silos that arose as our large organization gradually migrated from monolithic on-premises clusters, to cloud based platforms.
-
-In short, Waggle Dance provides a unified end point with which you can describe, query, and join tables that may exist in multiple distinct Hive deployments. Such deployments may exist in disparate regions, accounts, or clouds (security and network permitting). Dataset access is not limited to the Hive query engine, and should work with any Hive metastore enabled platform. We've been successfully using it with Spark for example.
-
-We also use Waggle Dance to apply a simple security layer to cloud based platforms such as Qubole, DataBricks, and EMR. These currently provide no means to construct cross platform authentication and authorization strategies. Therefore we use a combination of Waggle Dance and network configuration to restrict writes and destructive Hive operations to specific user groups and applications.
-
 ## Start using
 
 You can obtain Waggle Dance from Maven Central:
@@ -14,8 +7,13 @@ You can obtain Waggle Dance from Maven Central:
 [![Maven Central TGZ](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance/badge.svg?subject=com.hotels:waggle-dance-bin.tgz)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance)
 [![Maven Central RPM](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm/badge.svg?subject=com.hotels:waggle-dance.rpm)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm)  [![Build Status](https://travis-ci.org/HotelsDotCom/waggle-dance.svg?branch=master)](https://travis-ci.org/HotelsDotCom/waggle-dance) [![Coverage Status](https://coveralls.io/repos/github/HotelsDotCom/waggle-dance/badge.svg?branch=master)](https://coveralls.io/github/HotelsDotCom/waggle-dance?branch=master) ![GitHub license](https://img.shields.io/github/license/HotelsDotCom/waggle-dance.svg)
 
+## Overview
 
-## Premise
+Waggle Dance is a request routing Hive metastore proxy that allows tables to be concurrently accessed across multiple Hive deployments. It was created to tackle the appearance of dataset silos that arose as our large organization gradually migrated from monolithic on-premises clusters to cloud based platforms.
+
+In short, Waggle Dance provides a unified end point with which you can describe, query, and join tables that may exist in multiple distinct Hive deployments. Such deployments may exist in disparate regions, accounts, or clouds (security and network permitting). Dataset access is not limited to the Hive query engine, and should work with any Hive metastore enabled platform. We've been successfully using it with Spark for example.
+
+We also use Waggle Dance to apply a simple security layer to cloud based platforms such as Qubole, DataBricks, and EMR. These currently provide no means to construct cross platform authentication and authorization strategies. Therefore we use a combination of Waggle Dance and network configuration to restrict writes and destructive Hive operations to specific user groups and applications.
 
 We maintain a mapping of virtual database names to federated metastore instances. These virtual names are resolved by Waggle Dance during execution and requests are forwarded to the mapped metastore instance.
 
@@ -35,71 +33,68 @@ This makes it possible to read and join data from different Hive clusters via a 
 
 ![Waggle Dance system diagram.](system-diagram.png "Routing of requests via virtual databases.")
 
-## Building
+## Install
 
-    mvn clean package
+Waggle Dance is intended to be installed and set up as a service that is constantly running and should be installed on a machine that is accessible from wherever you want to query it from and which also has access to the Hive metastore service(s) that it is federating. Waggle Dance is available as a RPM or TGZ package, steps for installation of both are covered below.  
 
-NOTE: by default the waggle-dance-rpm module will build an RPM artifact for installation. This is done via the [maven rpm plugin](http://www.mojohaus.org/rpm-maven-plugin/) which requires the 'rpm' command to be available on the command line. So please make sure that this is installed (for example on mac-OSX do `brew install rpm` to install the package).
+### TGZ version
 
-## Installing
+The TGZ package provides a "vanilla" version of Waggle Dance that is easy to get started with but will require some additional scaffolding in order to turn it into a fully-fledged service.
 
-Waggle Dance is available as a RPM or TGZ package. It is intended to be installed as a service available on a machine that is accessible from wherever you want to query it from (and with access to the Hive metastore service(s) that it is federating). If you are using AWS this could be on an existing EMR instance (for example the EMR cluster of your primary Hive metastore) or on a separate EC2 instance. It would be deployed in a similar fashion for other cloud or internal platforms.
-
-### TGZ package
-
-You can uncompress the file by executing:
+[Download the TGZ](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.hotels&a=waggle-dance&p=tgz&v=RELEASE&c=bin) from Maven central and then uncompress the file by executing:
 
     tar -xzf waggle-dance-<version>-bin.tgz
 
-Although it's not necessary, we recommend exporting the environment variable _WAGGLE_DANCE_HOME_ by setting its value to wherever you extracted it to:
+Although it's not necessary, we recommend exporting the environment variable `WAGGLE_DANCE_HOME` by setting its value to wherever you extracted it to:
 
-    export WAGGLE_DANCE_HOME=/<foo>/<var>/waggle-dance
+    export WAGGLE_DANCE_HOME=/<foo>/<bar>/waggle-dance
+    
+Refer to the [configuration](#configuration) section below on what is needed to customise the configuration files before continuing.
 
-Then _cd_ into the uncompressed directory _waggle-dance_ or `$WAGGLE_DANCE_HOME` and type the following commands:
-
-    cp $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml
-    cp $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml
-
-Edit the property `remote-meta-store-uris` in _./conf/waggle-dance-federation.yml_ and modify this to contain the URL(s) of the metastore(s) you want to federate.
-
-Refer to the [configuration](#configuration) section for further details about the available configuration settings.
-
-### Running on the command line
+#### Running on the command line
 
 To run Waggle Dance just execute:
 
     $WAGGLE_DANCE_HOME/bin/waggle-dance.sh --server-config=$WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml --federation-config=$WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml
 
-Log messages will be output to the standard output.
+Log messages will by default be output to the standard output.
 
+### RPM version
 
-### Running as a service
+The RPM package provides a fully-fledged service version of Waggle Dance.
 
-It is intended that Waggle Dance is run as a service serving as a proxy to different metastores. The primary configured metastore is the only one to which you may also write data via Hive.
-
-An RPM version of WaggleDance is available for download from [here](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.hotels&a=waggle-dance-rpm&p=rpm&v=RELEASE). Once downloaded this can be installed using your distribution's packaging tool, e.g. yum:
+[Download the RPM](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.hotels&a=waggle-dance-rpm&p=rpm&v=RELEASE) from Maven Central and install it using your distribution's packaging tool, e.g. yum:
 
     sudo yum install <waggle-dance-rpm-file>
 
-Installing the RPM will register waggle-dance as an init.d service.
+This will install Waggle Dance into `/opt/waggle-dance` (this location is referred to as `$WAGGLE_DANCE_HOME` in this documentation). It will also create a log file output folder in `/var/log/waggle-dance` and register Waggle Dance as an init.d service.
 
-Configuration is in _/opt/waggle-dance/conf/_
-After the first installation configuration needs to be manually changed and then service needs to be started:
+Refer to the [configuration](#configuration) section below on what is needed to customise the configuration files before continuing.
+
+#### Running as a service
+
+Once configured, the service needs to be started:
 
     sudo service waggle-dance start
 
-Currently any changes to the configuration require restarting the service in order for the changes to come into effect (exception to this is the log4j2.xml changes will be picked up while running):
+Currently any changes to the configuration files require restarting the service in order for the changes to take effect (the exception to this is any changes to the `log4j2.xml` logging config file which will  be picked up while running):
 
     sudo service waggle-dance restart
 
-Log messages can be found in _/var/log/waggle-dance/waggle-dance.log_
-
+Log messages can be found in `/var/log/waggle-dance/waggle-dance.log`.
 
 ## Configuration
 
-#### Server
+In order to start using Waggle Dance it must first be configured for your environment. The simplest way to do this is to copy and then modify the template configuration files that are provided by the Waggle Dance package, i.e.:  
 
-Server config is by default located in _/opt/waggle-dance/conf/waggle-dance-server.yml_
+    cp $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml
+    cp $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml
+
+This sets up the default YAML configuration files which need to be customised for your use case. Now edit the property `remote-meta-store-uris` in `$WAGGLE_DANCE_HOM/conf/waggle-dance-federation.yml` and modify this to contain the URL(s) of the metastore(s) you want to federate. The sections below contain further details about the available configuration settings and should be used to  customise the rest of the values in these files accordingly.
+
+### Server
+
+Server config is by default located in `$WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml`.
 
 The table below describes all the available configuration values for Waggle Dance server:
 
@@ -111,9 +106,9 @@ The table below describes all the available configuration values for Waggle Danc
 | `disconnect-time-unit`            | No         | Idle metastore connection timeout units. Default is `MINUTES` |
 | `database-resolution`             | No         | Controls what type of database resolution to use. See the [Database Resolution](#database-resolution) section. Default is `MANUAL`. |
 
-#### Federation
+### Federation
 
-Server config is by default located in: _/opt/waggle-dance/conf/waggle-dance-federation.yml_
+Federation config is by default located in: `$WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml`.
 
 Example:
 
@@ -166,7 +161,7 @@ The table below describes the metastore tunnel configuration values:
 | `*.metastore-tunnel.private-keys`                       | No       | A comma-separated list of paths to any SSH keys required in order to set up the SSH tunnel. |
 | `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds, `0` means no timeout. Default is `60000` milliseconds, i.e. 1 minute. |
 
-###### Access Control
+#### Access Control
 
 The primary metastore is the only proxied metastore that can be configured to have write access.
 This is controlled by the property: `primary-meta-store.access-control-type` It can have the following values:
@@ -190,7 +185,6 @@ The following properties are configured in the server configuration file(waggle-
 | Property                          | Required   | Description |
 |:----|:----:|:----|
 | `overwrite-config-on-shutdown`    | No         | Controls whether the federations configuration must be overwritten when the server is stopped. Settings this to `false` will cause any federations dynamically added at runtime to be lost when the server is stopped. This is also the case of databases created at runtime when `database-resolution` is set to `MANUAL`. Default is `true`. |
-
 
 #### Configuring a SSH tunnel
 
@@ -263,7 +257,6 @@ The following configuration snippets show a few examples of valid tunnel express
           private-keys: /home/run-as-user/.ssh/bastionuser-key-pair.pem, /home/run-as-user/.ssh/user-key-pair.pem, /home/run-as-user/.ssh/hive-key-pair.pem
           known-hosts: /home/run-as-user/.ssh/known_hosts
 
-
 #### Metrics
 
 Waggle Dance exposes a set of metrics that can be accessed on the `/metrics` end-point. These metrics include a few standard JVM, Spring and per-federation metrics which include per-metastore number of calls and invocation duration. If a Graphite server is provided in the server configuration then all the metrics will be exposed in the endpoint and Graphite.
@@ -287,17 +280,17 @@ The following snippet shows a typical Graphite configuration:
 
 #### Database Resolution
 
-Waggle Dance presents a view over multiple (federated) Hive metastores and therefore could potentially encounter the same database in different metastores. Waggle Dance has two ways of resolving this situation, the choice of which can be configured in _waggle-dance-server.yml_ via the property `database-resolution`. This property can have two possible values `MANUAL` and `PREFIXED`. These are explained below in more detail.
+Waggle Dance presents a view over multiple (federated) Hive metastores and therefore could potentially encounter the same database in different metastores. Waggle Dance has two ways of resolving this situation, the choice of which can be configured in `waggle-dance-server.yml` via the property `database-resolution`. This property can have two possible values `MANUAL` and `PREFIXED`. These are explained below in more detail.
 
 ##### Database resolution: `MANUAL`
 
-Waggle Dance can be configured to use a static list of databases in the configuration _waggle-dance-federations.yml_:`federated-meta-stores[n].mapped-databases`. It is up to the user to make sure there are no conflicting database names with the primary-metastore or other federated metastores. If Waggle Dance encounters a duplicate database it will throw an error and won't start. Example configuration:
+Waggle Dance can be configured to use a static list of databases in the configuration `waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases`. It is up to the user to make sure there are no conflicting database names with the primary-metastore or other federated metastores. If Waggle Dance encounters a duplicate database it will throw an error and won't start. Example configuration:
 
-_waggle-dance-server.yml_:
+`waggle-dance-server.yml`:
 
     database-resolution: MANUAL
 
-_waggle-dance-federation.yml_:
+`waggle-dance-federation.yml`:
 
     primary-meta-store:
       name: primary
@@ -321,11 +314,11 @@ NOTE: in the case of manual database resolution the configuration still requires
 
 Waggle Dance can be configured to use a prefix when resolving the names of databases in its primary or federated metastores. All queries issued to Waggle Dance need to use fully qualified database names and the database names need to use the same prefixes configured here.
 
-_waggle-dance-server.yml_:
+`waggle-dance-server.yml`:
 
     database-resolution: PREFIXED
 
-_waggle-dance-federation.yml_:
+`waggle-dance-federation.yml`:
 
     primary-meta-store:
       name: primary
@@ -338,7 +331,6 @@ Using this example Waggle Dance will prefix all databases and will require the p
 The query: `select * from waggle_prod_etldata` will effectively be this query: `select * from etldata` on the federated metastore. If a database is encountered that is not prefixed the primary metastore is used to resolve the database name. Any duplicate database name is made unique by prefixing it.
 
 Newly created databases are immediately accessible - no service restart is necessary.
-
 
 ## Sample run through
 
@@ -370,7 +362,6 @@ Assumes database resolution is done by adding prefixes. If database resolution i
        and h.hour = 1
     ;
 
-
 ## Notes
 
  * Only the metadata communications are rerouted.
@@ -379,6 +370,14 @@ Assumes database resolution is done by adding prefixes. If database resolution i
  * All data processing occurs in the client cluster, not the external clusters. Data is simply pulled into the client cluster that connect to Waggle Dance.
  * Metadata read operations are routed only. Write and destructive operations can be performed on the local metastore only.
  * When using Spark to read tables with a big number of partitions it may be necessary to set `spark.sql.hive.metastorePartitionPruning=true` to enable partition pruning. If this property is `false` Spark will try to fetch all the partitions of the tables in the query which may result on a `OutOfMemoryError` in Waggle Dance.
+
+## Building
+
+Waggle Dance can be built from source using Maven:
+
+    mvn clean package
+
+This will produce a .tgz in the `waggle-dance` module and an rpm in the `waggle-dance-rpm`. This RPM is built using the [maven rpm plugin](http://www.mojohaus.org/rpm-maven-plugin/) which requires the 'rpm' program to be available on the command line. So please make sure that this is installed (for example on Mac-OSX do `brew install rpm` to install the package).
 
 ## Contact
 
@@ -396,4 +395,4 @@ The Waggle Dance logo uses the [Beetype Filled font](http://www.1001fonts.com/be
 ## Legal
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
 
-Copyright 2016-2017 Expedia Inc.
+Copyright 2016-2018 Expedia Inc.
