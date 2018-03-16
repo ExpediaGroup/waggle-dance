@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,6 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     assertTrue(handlerTwo.hasWritePermission("regexDB1"));
     assertTrue(handlerTwo.hasWritePermission("regexdb2"));
     assertTrue(handlerTwo.hasWritePermission("writableDB"));
-    assertFalse(handlerTwo.hasWritePermission("nonWritableDB"));
   }
 
   @Test
@@ -96,8 +95,8 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     ArgumentCaptor<PrimaryMetaStore> captor = ArgumentCaptor.forClass(PrimaryMetaStore.class);
     verify(federationService).update(eq(primaryMetaStore), captor.capture());
     PrimaryMetaStore updatedMetastore = captor.getValue();
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(2));
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "newdb"));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(3));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "regexdb*", "newdb"));
   }
 
   @Test
@@ -106,8 +105,8 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     ArgumentCaptor<PrimaryMetaStore> captor = ArgumentCaptor.forClass(PrimaryMetaStore.class);
     verify(federationService).update(eq(primaryMetaStore), captor.capture());
     PrimaryMetaStore updatedMetastore = captor.getValue();
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(1));
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb"));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(2));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "regexdb*"));
   }
 
 }

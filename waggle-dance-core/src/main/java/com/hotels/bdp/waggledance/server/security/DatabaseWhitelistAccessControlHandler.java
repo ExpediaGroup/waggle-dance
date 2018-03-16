@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,8 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
 
     char firstLetterOfDatabaseName = databaseName.charAt(0);
     char nextLexicographicalLetter = (char) ((char) firstLetterOfDatabaseName + 1);
-    Set<String> sortedSubSet = databaseWhiteList.subSet(String.valueOf(firstLetterOfDatabaseName), String.valueOf(nextLexicographicalLetter));
+    Set<String> sortedSubSet = databaseWhiteList.subSet(String.valueOf(firstLetterOfDatabaseName),
+        String.valueOf(nextLexicographicalLetter));
     for (String whiteListEntry : sortedSubSet) {
       if (whiteListEntry.endsWith("*")) {
         Matcher matcher = Pattern.compile(trimToLowerCase(whiteListEntry)).matcher(databaseName);
