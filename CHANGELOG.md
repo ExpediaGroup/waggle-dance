@@ -1,6 +1,7 @@
 ## TBD
 ### Added
 * Configurable SSH session timeout for SSH tunnels.
+* Persist config file during process restart
 
 ## [2.2.2] 2017-12-01
 ### Fixed
