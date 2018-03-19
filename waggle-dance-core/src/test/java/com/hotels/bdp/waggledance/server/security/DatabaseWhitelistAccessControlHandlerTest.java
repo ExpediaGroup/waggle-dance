@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
   @Mock
   private FederationService federationService;
   private DatabaseWhitelistAccessControlHandler handler;
-  private final List<String> whitelist = newArrayList("writabledb");
+  private final List<String> whitelist = newArrayList("writabledb", "userdb.*");
 
   @Before
   public void setUp() {
@@ -62,6 +62,13 @@ public class DatabaseWhitelistAccessControlHandlerTest {
   }
 
   @Test
+  public void hasRegexGrantedWritePermission() throws Exception {
+    assertTrue(handler.hasWritePermission("userDB1"));
+    assertTrue(handler.hasWritePermission("userdb2"));
+    assertFalse(handler.hasWritePermission("user"));
+  }
+
+  @Test
   public void hasCreatePermission() throws Exception {
     assertTrue(handler.hasCreatePermission());
     assertTrue(handler.hasWritePermission(null));
@@ -74,8 +81,8 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     ArgumentCaptor<PrimaryMetaStore> captor = ArgumentCaptor.forClass(PrimaryMetaStore.class);
     verify(federationService).update(eq(primaryMetaStore), captor.capture());
     PrimaryMetaStore updatedMetastore = captor.getValue();
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(2));
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "newdb"));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(3));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "userdb.*", "newdb"));
   }
 
   @Test
@@ -84,8 +91,8 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     ArgumentCaptor<PrimaryMetaStore> captor = ArgumentCaptor.forClass(PrimaryMetaStore.class);
     verify(federationService).update(eq(primaryMetaStore), captor.capture());
     PrimaryMetaStore updatedMetastore = captor.getValue();
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(1));
-    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb"));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(2));
+    assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "userdb.*"));
   }
 
 }

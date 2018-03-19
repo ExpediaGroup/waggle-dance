@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,22 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
-  private final Set<String> databaseWhiteList = new HashSet<>();
+  private final Set<Pattern> databaseWhiteList = new HashSet<>();
   private final FederationService federationService;
   private PrimaryMetaStore primaryMetaStore;
   private final boolean hasCreatePermission;
 
-  public DatabaseWhitelistAccessControlHandler(PrimaryMetaStore primaryMetaStore, FederationService federationService,
+  public DatabaseWhitelistAccessControlHandler(
+      PrimaryMetaStore primaryMetaStore,
+      FederationService federationService,
       boolean hasCreatePermission) {
     this.primaryMetaStore = primaryMetaStore;
     this.federationService = federationService;
@@ -41,7 +45,11 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
   }
 
   private void add(String databaseName) {
-    databaseWhiteList.add(databaseName.trim().toLowerCase());
+    databaseWhiteList.add(Pattern.compile(trimToLowerCase(databaseName)));
+  }
+
+  private String trimToLowerCase(String string) {
+    return string.trim().toLowerCase();
   }
 
   @Override
@@ -49,7 +57,15 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     if (databaseName == null) {
       return true;
     }
-    return databaseWhiteList.contains(databaseName.trim().toLowerCase());
+    databaseName = trimToLowerCase(databaseName);
+
+    for (Pattern whiteListEntry : databaseWhiteList) {
+      Matcher matcher = whiteListEntry.matcher(databaseName);
+      if (matcher.matches()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -60,7 +76,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
   @Override
   public void databaseCreatedNotification(String name) {
     List<String> whiteList = new ArrayList<>(primaryMetaStore.getWritableDatabaseWhiteList());
-    String nameLowerCase = name.trim().toLowerCase();
+    String nameLowerCase = trimToLowerCase(name);
     if (!whiteList.contains(nameLowerCase)) {
       whiteList.add(nameLowerCase);
     }
