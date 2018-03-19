@@ -16,7 +16,9 @@
 package com.hotels.bdp.waggledance.server.security;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,7 +27,7 @@ import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
-  private final List<Pattern> databaseWhiteList = new ArrayList<>();
+  private final Set<Pattern> databaseWhiteList = new HashSet<>();
   private final FederationService federationService;
   private PrimaryMetaStore primaryMetaStore;
   private final boolean hasCreatePermission;
