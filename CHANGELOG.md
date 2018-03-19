@@ -1,15 +1,15 @@
 ## TBD
 ### Added
 * Configurable SSH session timeout for SSH tunnels.
-* Regexes enabled in writable database whitelist. #issue-43
+* Regexes enabled in writable database whitelist. See [#43](https://github.com/HotelsDotCom/waggle-dance/issues/43).
 
 ## [2.2.2] 2017-12-01
 ### Fixed
-* Metastore status check now works for tunneled connections. #issue-34
+* Metastore status check now works for tunneled connections. See [#34](https://github.com/HotelsDotCom/waggle-dance/issues/34).
 
 ## [2.2.1] 2017-10-30
 ### Fixed
-* Metastore status was missing from api/admin/federations rest endpoint. #issue-29
+* Metastore status was missing from api/admin/federations rest endpoint. See [#29](https://github.com/HotelsDotCom/waggle-dance/issues/29).
 
 ## [2.2.0] 2017-10-05
 ### Changed
