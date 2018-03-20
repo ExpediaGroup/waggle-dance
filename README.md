@@ -47,7 +47,7 @@ The TGZ package provides a "vanilla" version of Waggle Dance that is easy to get
 
 Although it's not necessary, we recommend exporting the environment variable `WAGGLE_DANCE_HOME` by setting its value to wherever you extracted it to:
 
-    export WAGGLE_DANCE_HOME=/<foo>/<bar>/waggle-dance
+    export WAGGLE_DANCE_HOME=/<foo>/<bar>/waggle-dance-<version>
     
 Refer to the [configuration](#configuration) section below on what is needed to customise the configuration files before continuing.
 
