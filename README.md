@@ -53,21 +53,21 @@ Refer to the [configuration](#configuration) section below on what is needed to 
 
 #### Running on the command line
 
-To run Waggle Dance just execute:
+To run Waggle Dance execute:
 
     $WAGGLE_DANCE_HOME/bin/waggle-dance.sh --server-config=$WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml --federation-config=$WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml
 
-Log messages will by default be output to the standard output.
+Log messages will be output to the standard output by default.
 
 ### RPM version
 
 The RPM package provides a fully-fledged service version of Waggle Dance.
 
-[Download the RPM](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.hotels&a=waggle-dance-rpm&p=rpm&v=RELEASE) from Maven Central and install it using your distribution's packaging tool, e.g. yum:
+[Download the RPM](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.hotels&a=waggle-dance-rpm&p=rpm&v=RELEASE) from Maven Central and install it using your distribution's packaging tool, e.g. `yum`:
 
     sudo yum install <waggle-dance-rpm-file>
 
-This will install Waggle Dance into `/opt/waggle-dance` (this location is referred to as `$WAGGLE_DANCE_HOME` in this documentation). It will also create a log file output folder in `/var/log/waggle-dance` and register Waggle Dance as an init.d service.
+This will install Waggle Dance into `/opt/waggle-dance` (this location is referred to as `$WAGGLE_DANCE_HOME` in this documentation). It will also create a log file output folder in `/var/log/waggle-dance` and register Waggle Dance as an `init.d` service.
 
 Refer to the [configuration](#configuration) section below on what is needed to customise the configuration files before continuing.
 
@@ -90,7 +90,7 @@ In order to start using Waggle Dance it must first be configured for your enviro
     cp $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-server.yml
     cp $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml.template $WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml
 
-This sets up the default YAML configuration files which need to be customised for your use case. Now edit the property `remote-meta-store-uris` in `$WAGGLE_DANCE_HOM/conf/waggle-dance-federation.yml` and modify this to contain the URL(s) of the metastore(s) you want to federate. The sections below contain further details about the available configuration settings and should be used to  customise the rest of the values in these files accordingly.
+This sets up the default YAML configuration files which need to be customised for your use case. Now edit the property `remote-meta-store-uris` in `$WAGGLE_DANCE_HOM/conf/waggle-dance-federation.yml` and modify this to contain the URI(s) of the metastore(s) you want to federate. The sections below contain further details about the available configuration settings and should be used to  customise the rest of the values in these files accordingly.
 
 ### Server
 
@@ -377,7 +377,7 @@ Waggle Dance can be built from source using Maven:
 
     mvn clean package
 
-This will produce a .tgz in the `waggle-dance` module and an rpm in the `waggle-dance-rpm`. This RPM is built using the [maven rpm plugin](http://www.mojohaus.org/rpm-maven-plugin/) which requires the 'rpm' program to be available on the command line. So please make sure that this is installed (for example on Mac-OSX do `brew install rpm` to install the package).
+This will produce a .tgz in the `waggle-dance` module and an rpm in the `waggle-dance-rpm`. This RPM is built using the [maven rpm plugin](http://www.mojohaus.org/rpm-maven-plugin/) which requires the 'rpm' program to be available on the command line. On OSX this can be accomplished by using the Brew package manager like so `brew install rpm`.
 
 ## Contact
 
