@@ -149,7 +149,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `federated-meta-stores[n].name`                       | Yes      | Name that uniquely identifies this metastore, used internally. Cannot be empty. |
 | `federated-meta-stores[n].database-prefix`            | No       | Prefix used to access this particular metastore and differentiate databases in it from databases in another metastore. Typically used if databases have the same name across metastores but federated access to them is still needed. Default prefix is {federated-meta-stores[n].name} lowercased and postfixed with an underscore. For example if the metastore name was configured as "waggle" and no database prefix was provided but `PREFIXED` database resolution was used then the value of `database-prefix` would be "waggle_". |
 | `federated-meta-stores[n].metastore-tunnel`           | No       | See metastore tunnel configuration values below. |
-| `federated-meta-stores[n].mapped-databases`           | No       | List of databases to federate from this federated metastore, all other databases will be ignored. Used in conjunction with _waggle-dance-server.yml_:`database-resolution:MANUAL`. |
+| `federated-meta-stores[n].mapped-databases`           | No       | List of databases to federate from this federated metastore, all other databases will be ignored. |
 
 The table below describes the metastore tunnel configuration values:
 
@@ -301,7 +301,7 @@ Waggle Dance can be configured to use a static list of databases in the configur
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
         mapped-databases:
         - etldata
-          mydata
+        - mydata
 
 Using this example Waggle Dance can be used to access all databases in the primary metastore and `etldata`/`mydata` from the federated metastore. The databases listed must not be present in the primary metastore otherwise Waggle Dance will throw an error on start up. If you have multiple federated metastores listed a database can only be uniquely configured for one metastore. Following the example configuration a query `select * from etldata` will be resolved to the federated metastore. Any database that is not mapped in the config is assumed to be in the primary metastore.
 
@@ -328,10 +328,28 @@ Waggle Dance can be configured to use a prefix when resolving the names of datab
       - name: waggle_prod
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
 
-Using this example Waggle Dance will prefix all databases and will require the prefix to be present in queries in order to map to correct metastores.
-The query: `select * from waggle_prod_etldata` will effectively be this query: `select * from etldata` on the federated metastore. If a database is encountered that is not prefixed the primary metastore is used to resolve the database name. Any duplicate database name is made unique by prefixing it.
+Using this example Waggle Dance will prefix all databases and will require the prefix to be present in queries in order to map to correct metastores. The query: `select * from waggle_prod_etldata` will effectively be this query: `select * from etldata` on the federated metastore. If a database is encountered that is not prefixed the primary metastore is used to resolve the database name. Any duplicate database name is made unique by prefixing it.
 
 Newly created databases are immediately accessible - no service restart is necessary.
+
+Alternatively, Waggle Dance can be configured to use a static list of unprefixed databases in the configuration `waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases`. Example configuration:
+
+`waggle-dance-server.yml`:
+
+    database-resolution: PREFIXED
+
+`waggle-dance-federation.yml`:
+
+    primary-meta-store:
+      name: primary
+      remote-meta-store-uris: thrift://primaryLocalMetastore:9083
+    federated-meta-stores:
+      - name: waggle_prod
+        remote-meta-store-uris: thrift://federatedProdMetastore:9083
+        mapped-databases:
+        - etldata
+
+In this scenario, like in the previous example, the query: `select * from waggle_prod_etldata` will effectively be this query: `select * from etldata` on the federated metastore. If a another database exists in `waggle_prod` this won't be visible to clients.
 
 ## Sample run through
 

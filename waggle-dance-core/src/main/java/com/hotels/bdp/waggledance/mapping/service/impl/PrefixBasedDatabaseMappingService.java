@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.validation.constraints.NotNull;
 
@@ -43,6 +44,7 @@ import com.google.common.collect.ImmutableList.Builder;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
@@ -61,6 +63,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByPrefix;
+  private Map<String, List<String>> whitelistedDbByPrefix;
   private final MetaStoreMappingFactory metaStoreMappingFactory;
 
   public PrefixBasedDatabaseMappingService(
@@ -68,11 +71,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       List<AbstractMetaStore> initialMetastores) {
     this.metaStoreMappingFactory = metaStoreMappingFactory;
     init(initialMetastores);
-
   }
 
   private void init(List<AbstractMetaStore> federatedMetaStores) {
     mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<String, DatabaseMapping>());
+    whitelistedDbByPrefix = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
       add(federatedMetaStore);
     }
@@ -85,7 +88,23 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
     } else {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
+      List<String> whitelist = null;
+      if (FederatedMetaStore.class.isAssignableFrom(federatedMetaStore.getClass())) {
+        whitelist = getWhitelistedDatabases((FederatedMetaStore) federatedMetaStore);
+      }
+      whitelistedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), whitelist);
     }
+  }
+
+  private List<String> getWhitelistedDatabases(FederatedMetaStore federatedMetaStore) {
+    Builder<String> whitelistBuilder = ImmutableList.<String> builder();
+    List<String> mappedDatabases = federatedMetaStore.getMappedDatabases();
+    if (mappedDatabases != null && !mappedDatabases.isEmpty()) {
+      for (String mappedDatabase : mappedDatabases) {
+        whitelistBuilder.add(mappedDatabase.trim().toLowerCase());
+      }
+    }
+    return whitelistBuilder.build();
   }
 
   private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
@@ -155,6 +174,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     return metaStoreMapping != null && metaStoreMapping.isAvailable();
   }
 
+  private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
+    return includeInResults(metaStoreMapping)
+        && isWhitelisted(metaStoreMapping.getDatabasePrefix(),
+            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
+  }
+
   @Override
   public DatabaseMapping databaseMapping(@NotNull String databaseName) {
     // Find a Metastore with a prefix
@@ -162,7 +187,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
         DatabaseMapping databaseMapping = mappingsByPrefix.get(metastorePrefix);
         LOG.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
-        if (includeInResults(databaseMapping)) {
+        if (includeInResults(databaseMapping, databaseName)) {
           return databaseMapping;
         }
       }
@@ -171,7 +196,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     DatabaseMapping databaseMapping = mappingsByPrefix.get(EMPTY_PREFIX);
     if (databaseMapping != null) {
       LOG.debug("Database Name `{}` maps to metastore with EMPTY_PREFIX", databaseName);
-      if (includeInResults(databaseMapping)) {
+      if (includeInResults(databaseMapping, databaseName)) {
         return databaseMapping;
       }
     }
@@ -198,7 +223,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private Map<DatabaseMapping, String> databaseMappingsByDbPattern(@NotNull String databasePatterns) {
     Map<DatabaseMapping, String> mappings = new HashMap<>();
-    Map<String, String> matchingPrefixes = GrammarUtils.selectMatchingPrefixes(mappingsByPrefix.keySet(), databasePatterns);
+    Map<String, String> matchingPrefixes = GrammarUtils.selectMatchingPrefixes(mappingsByPrefix.keySet(),
+        databasePatterns);
     for (Entry<String, String> prefixWithPattern : matchingPrefixes.entrySet()) {
       DatabaseMapping mapping = mappingsByPrefix.get(prefixWithPattern.getKey());
       if (mapping == null) {
@@ -207,6 +233,15 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       mappings.put(mapping, prefixWithPattern.getValue());
     }
     return mappings;
+  }
+
+  private boolean isWhitelisted(String databasePrefix, String database) {
+    List<String> whitelist = whitelistedDbByPrefix.get(databasePrefix);
+    if (whitelist == null || whitelist.isEmpty()) {
+      // Accept everything
+      return true;
+    }
+    return whitelist.contains(database);
   }
 
   @Override
@@ -222,7 +257,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             String patterns = mappingWithPattern.getValue();
             List<TableMeta> tables = mapping.getClient().get_table_meta(patterns, tbl_patterns, tbl_types);
             for (TableMeta tableMeta : tables) {
-              combined.add(mapping.transformOutboundTableMeta(tableMeta));
+              if (isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName())) {
+                combined.add(mapping.transformOutboundTableMeta(tableMeta));
+              }
             }
           } catch (TException e) {
             LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
@@ -241,7 +278,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             String pattern = mappingWithPattern.getValue();
             List<String> databases = mapping.getClient().get_databases(pattern);
             for (String database : databases) {
-              combined.add(mapping.transformOutboundDatabaseName(database));
+              if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
+                combined.add(mapping.transformOutboundDatabaseName(database));
+              }
             }
           } catch (TException e) {
             LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
@@ -257,7 +296,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           try {
             List<String> databases = mapping.getClient().get_all_databases();
             for (String database : databases) {
-              combined.add(mapping.transformOutboundDatabaseName(database));
+              if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
+                combined.add(mapping.transformOutboundDatabaseName(database));
+              }
             }
           } catch (TException e) {
             LOG.warn("Can't fetch databases: {}", e.getMessage());
