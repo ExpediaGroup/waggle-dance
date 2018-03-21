@@ -349,7 +349,7 @@ Alternatively, Waggle Dance can be configured to use a static list of unprefixed
         mapped-databases:
         - etldata
 
-In this scenario, like in the previous example, the query: `select * from waggle_prod_etldata` will effectively be this query: `select * from etldata` on the federated metastore. If a another database exists in `waggle_prod` this won't be visible to clients.
+In this scenario, like in the previous example, the query: `select * from waggle_prod_etldata` will effectively be this query: `select * from etldata` on the federated metastore. If another database exists in `waggle_prod` this won't be visible to clients.
 
 ## Sample run through
 
