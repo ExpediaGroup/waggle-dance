@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import com.google.common.collect.ImmutableSet;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
@@ -64,7 +65,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   private PrefixBasedDatabaseMappingService service;
   private final AbstractMetaStore primaryMetastore = newPrimaryInstance("primary", URI);
-  private final AbstractMetaStore federatedMetastore = newFederatedInstance(METASTORE_NAME, URI);
+  private final FederatedMetaStore federatedMetastore = newFederatedInstance(METASTORE_NAME, URI);
   private @Mock Iface primaryDatabaseClient;
   private MetaStoreMapping metaStoreMappingPrimary;
   private MetaStoreMapping metaStoreMappingFederated;
@@ -276,6 +277,25 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
+  public void panopticOperationsHandlerGetAllDatabasesWithMappedDatabases() throws Exception {
+    federatedMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore));
+
+    when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
+
+    Iface federatedClient = mock(Iface.class);
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedClient);
+    when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
+    when(federatedClient.get_all_databases())
+        .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<String> allDatabases = Lists.newArrayList("primary_db", "federated_db");
+    assertThat(handler.getAllDatabases(), is(allDatabases));
+  }
+
+  @Test
   public void panopticStoreOperationsHandlerGetAllDatabasesByPattern() throws Exception {
     String pattern = "*_db";
     when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
@@ -284,6 +304,28 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
     when(federatedDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("federated_db"));
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<String> allDatabases = handler.getAllDatabases(pattern);
+    assertThat(allDatabases.size(), is(2));
+    assertThat(allDatabases.contains("primary_db"), is(true));
+    assertThat(allDatabases.contains("federated_db"), is(true));
+  }
+
+  @Test
+  public void panopticStoreOperationsHandlerGetAllDatabasesByPatternWithMappedDatabases() throws Exception {
+    federatedMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore));
+
+    String pattern = "*_db";
+    when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
+
+    Iface federatedDatabaseClient = mock(Iface.class);
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
+    when(federatedDatabaseClient.get_databases(pattern))
+        .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped_and_ends_with_db"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> allDatabases = handler.getAllDatabases(pattern);

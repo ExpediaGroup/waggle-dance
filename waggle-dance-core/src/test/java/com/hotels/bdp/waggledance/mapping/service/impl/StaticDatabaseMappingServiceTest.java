@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,8 @@ public class StaticDatabaseMappingServiceTest {
 
   @Before
   public void init() throws Exception {
-    federatedMetastore.setMappedDatabases(Lists.newArrayList("federatedDB"));
+    federatedMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
+
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
@@ -101,7 +102,7 @@ public class StaticDatabaseMappingServiceTest {
 
   @Test
   public void databaseMappingFederated() {
-    DatabaseMapping databaseMapping = service.databaseMapping("federatedDB");
+    DatabaseMapping databaseMapping = service.databaseMapping("federated_DB");
     assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
     assertTrue(databaseMapping instanceof IdentityMapping);
   }
@@ -133,7 +134,7 @@ public class StaticDatabaseMappingServiceTest {
   @Test
   public void onUpdate() {
     FederatedMetaStore newMetastore = newFederatedInstance(FEDERATED_NAME, "abc");
-    newMetastore.setMappedDatabases(Lists.newArrayList("db1", "federatedDB"));
+    newMetastore.setMappedDatabases(Lists.newArrayList("db1", "federated_DB"));
     MetaStoreMapping newMapping = mockNewMapping(true, newMetastore);
     when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
     service.onUpdate(federatedMetastore, newMetastore);
@@ -141,7 +142,7 @@ public class StaticDatabaseMappingServiceTest {
     DatabaseMapping databaseMapping = service.databaseMapping("db1");
     assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
     assertTrue(databaseMapping instanceof IdentityMapping);
-    databaseMapping = service.databaseMapping("federatedDB");
+    databaseMapping = service.databaseMapping("federated_DB");
     assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
     assertTrue(databaseMapping instanceof IdentityMapping);
   }
@@ -162,7 +163,7 @@ public class StaticDatabaseMappingServiceTest {
     assertTrue(databaseMapping instanceof IdentityMapping);
 
     // unchanged
-    databaseMapping = service.databaseMapping("federateddb");
+    databaseMapping = service.databaseMapping("federated_db");
     assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
   }
 
@@ -170,13 +171,13 @@ public class StaticDatabaseMappingServiceTest {
   public void onUpdateDifferentName() {
     String newName = "new";
     FederatedMetaStore newMetastore = newFederatedInstance(newName, "abc");
-    newMetastore.setMappedDatabases(Lists.newArrayList("federatedDB"));
+    newMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
     MetaStoreMapping newMapping = mockNewMapping(true, newMetastore);
     when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
 
     service.onUpdate(federatedMetastore, newMetastore);
 
-    DatabaseMapping databaseMapping = service.databaseMapping("federatedDB");
+    DatabaseMapping databaseMapping = service.databaseMapping("federated_DB");
     assertThat(databaseMapping.getMetastoreMappingName(), is(newName));
     assertTrue(databaseMapping instanceof IdentityMapping);
   }
@@ -201,7 +202,7 @@ public class StaticDatabaseMappingServiceTest {
   @Test
   public void onUnregister() {
     service.onUnregister(federatedMetastore);
-    DatabaseMapping databaseMapping = service.databaseMapping("federatedDB");
+    DatabaseMapping databaseMapping = service.databaseMapping("federated_DB");
     assertThat(databaseMapping.getMetastoreMappingName(), is(PRIMARY_NAME));
   }
 
@@ -260,7 +261,7 @@ public class StaticDatabaseMappingServiceTest {
   @Test
   public void panopticOperationsHandlerGetAllDatabases() {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> allDatabases = Lists.newArrayList("primary_db", "federateddb");
+    List<String> allDatabases = Lists.newArrayList("primary_db", "federated_db");
     assertThat(handler.getAllDatabases(), is(allDatabases));
   }
 
@@ -272,10 +273,10 @@ public class StaticDatabaseMappingServiceTest {
     Iface federatedDatabaseClient = mock(Iface.class);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(federatedDatabaseClient.get_databases(pattern))
-        .thenReturn(Lists.newArrayList("federateddb", "another_db_that_is_not_mapped"));
+        .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> allDatabases = Lists.newArrayList("primary_db", "federateddb");
+    List<String> allDatabases = Lists.newArrayList("primary_db", "federated_db");
     assertThat(handler.getAllDatabases(pattern), is(allDatabases));
   }
 
@@ -284,7 +285,7 @@ public class StaticDatabaseMappingServiceTest {
     String pattern = "pattern";
     List<String> tblTypes = Lists.newArrayList();
     TableMeta tableMeta1 = mockTableMeta("primary_db");
-    TableMeta tableMeta2 = mockTableMeta("federateddb");
+    TableMeta tableMeta2 = mockTableMeta("federated_db");
     TableMeta tableMeta3Ignored = mockTableMeta("non_mapped_db");
 
     when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(Lists.newArrayList(tableMeta1));
