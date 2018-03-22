@@ -1,4 +1,4 @@
-## TBD
+## [2.3.0] 2018-03-22
 ### Added
 * Configurable SSH session timeout for SSH tunnels. See [#49](https://github.com/HotelsDotCom/waggle-dance/issues/49).
 * Regexes enabled in writable database whitelist. See [#43](https://github.com/HotelsDotCom/waggle-dance/issues/43).
