@@ -207,7 +207,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public ForeignKeysRequest transformInboundForeignKeysRequest(ForeignKeysRequest request) {
     // request.getParent_db_name(); is null, resolve parent_db_name from foreign_db_name using metaStoreMapping
     String parent_db_name = metaStoreMapping.transformInboundDatabaseName(request.getForeign_db_name());
-    String foreign_db_name = request.getForeign_db_name();
+    String foreign_db_name = metaStoreMapping.transformInboundDatabaseName(request.getForeign_db_name());
     request.setParent_db_name(parent_db_name);
     request.setForeign_db_name(foreign_db_name);
     return request;
