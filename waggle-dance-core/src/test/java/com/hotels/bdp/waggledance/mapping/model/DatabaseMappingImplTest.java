@@ -313,7 +313,7 @@ public class DatabaseMappingImplTest {
     ForeignKeysRequest result = databaseMapping.transformInboundForeignKeysRequest(foreignKeysRequest);
     assertThat(result, is(sameInstance(foreignKeysRequest)));
     assertThat(result.getParent_db_name(), is(IN_DB_NAME));
-    assertThat(result.getForeign_db_name(), is(IN_DB_NAME));
+    assertThat(result.getForeign_db_name(), is(DB_NAME));
   }
 
   @Test
