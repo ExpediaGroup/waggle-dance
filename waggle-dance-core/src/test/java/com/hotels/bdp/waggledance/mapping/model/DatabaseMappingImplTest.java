@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -314,6 +315,30 @@ public class DatabaseMappingImplTest {
     assertThat(result, is(sameInstance(foreignKeysRequest)));
     assertThat(result.getParent_db_name(), is(IN_DB_NAME));
     assertThat(result.getForeign_db_name(), is(IN_DB_NAME));
+  }
+
+  @Test
+  public void transformNullParentDBInboundForeignKeysRequest() throws Exception {
+    ForeignKeysRequest foreignKeysRequest = new ForeignKeysRequest();
+    foreignKeysRequest.setParent_db_name(null);
+    foreignKeysRequest.setForeign_db_name(DB_NAME);
+
+    ForeignKeysRequest result = databaseMapping.transformInboundForeignKeysRequest(foreignKeysRequest);
+    assertThat(result, is(sameInstance(foreignKeysRequest)));
+    assertNull(result.getParent_db_name());
+    assertThat(result.getForeign_db_name(), is(IN_DB_NAME));
+  }
+
+  @Test
+  public void transformNullForeignDBInboundForeignKeysRequest() throws Exception {
+    ForeignKeysRequest foreignKeysRequest = new ForeignKeysRequest();
+    foreignKeysRequest.setParent_db_name(DB_NAME);
+    foreignKeysRequest.setForeign_db_name(null);
+
+    ForeignKeysRequest result = databaseMapping.transformInboundForeignKeysRequest(foreignKeysRequest);
+    assertThat(result, is(sameInstance(foreignKeysRequest)));
+    assertThat(result.getParent_db_name(), is(IN_DB_NAME));
+    assertNull(result.getForeign_db_name());
   }
 
   @Test
