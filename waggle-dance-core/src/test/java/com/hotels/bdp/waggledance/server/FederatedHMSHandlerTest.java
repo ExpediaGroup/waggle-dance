@@ -836,18 +836,19 @@ public class FederatedHMSHandlerTest {
     request.setForeign_db_name(DB_S);
     request.setForeign_tbl_name("table");
     SQLForeignKey key = new SQLForeignKey();
-    key.setFktable_db(DB_P);
+    key.setFktable_db(DB_S);
     key.setFktable_name("table");
-    ForeignKeysResponse response = new ForeignKeysResponse(Arrays.asList(new SQLForeignKey()));
+    ForeignKeysResponse response = new ForeignKeysResponse(Arrays.asList(key));
 
     when(databaseMappingService.databaseMapping(request.getForeign_db_name())).thenReturn(primaryMapping);
     when(primaryMapping.transformInboundForeignKeysRequest(request)).thenReturn(request);
     when(primaryClient.get_foreign_keys(request)).thenReturn(response);
+    response.getForeignKeys().get(0).setFktable_db(DB_P);
     when(primaryMapping.transformOutboundForeignKeysResponse(response)).thenReturn(response);
 
     ForeignKeysResponse result = handler.get_foreign_keys(request);
-    assertThat(key.getFktable_db(), is(DB_P));
-    assertThat(key.getFktable_name(), is("table"));
+    assertThat(result.getForeignKeys().get(0).getFktable_db(), is(DB_P));
+    assertThat(result.getForeignKeys().get(0).getFktable_name(), is("table"));
   }
 
   @Test
