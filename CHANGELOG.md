@@ -1,3 +1,7 @@
+## [TBD]
+### Fixed
+* DESCRIBE FORMATTED queries on federated tables now works. See [#60](https://github.com/HotelsDotCom/waggle-dance/issues/60).
+
 ## [2.3.0] 2018-03-22
 ### Added
 * Configurable SSH session timeout for SSH tunnels. See [#49](https://github.com/HotelsDotCom/waggle-dance/issues/49).
