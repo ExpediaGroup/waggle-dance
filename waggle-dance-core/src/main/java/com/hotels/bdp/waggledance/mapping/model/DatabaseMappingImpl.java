@@ -205,16 +205,14 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public ForeignKeysRequest transformInboundForeignKeysRequest(ForeignKeysRequest request) {
-    request.setParent_db_name(transformOrEmpty(request.getParent_db_name()));
-    request.setForeign_db_name(transformOrEmpty(request.getForeign_db_name()));
-    return request;
-  }
+    String parentDbName = request.getParent_db_name() == null ? null
+        : metaStoreMapping.transformInboundDatabaseName(request.getParent_db_name());
+    String foreignDbName = request.getForeign_db_name() == null ? null
+        : metaStoreMapping.transformInboundDatabaseName(request.getForeign_db_name());
 
-  private String transformOrEmpty(String dbName) {
-    if (dbName == null) {
-      return "";
-    }
-    return metaStoreMapping.transformInboundDatabaseName(dbName);
+    request.setParent_db_name(parentDbName);
+    request.setForeign_db_name(foreignDbName);
+    return request;
   }
 
   @Override
