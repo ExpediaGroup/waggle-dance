@@ -40,6 +40,8 @@ import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
+import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
+import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
@@ -54,6 +56,7 @@ import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
+import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -823,6 +826,28 @@ public class FederatedHMSHandlerTest {
     assertThat(result.getTables().get(0).getTableName(), is("table0"));
     assertThat(result.getTables().get(1).getDbName(), is(DB_P));
     assertThat(result.getTables().get(1).getTableName(), is("table1"));
+  }
+
+  @Test
+  public void get_foreign_keys() throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    ForeignKeysRequest request = new ForeignKeysRequest();
+    request.setParent_db_name(null);
+    request.setParent_tbl_name(null);
+    request.setForeign_db_name(DB_S);
+    request.setForeign_tbl_name("table");
+    SQLForeignKey key = new SQLForeignKey();
+    key.setFktable_db(DB_P);
+    key.setFktable_name("table");
+    ForeignKeysResponse response = new ForeignKeysResponse(Arrays.asList(new SQLForeignKey()));
+
+    when(databaseMappingService.databaseMapping(request.getForeign_db_name())).thenReturn(primaryMapping);
+    when(primaryMapping.transformInboundForeignKeysRequest(request)).thenReturn(request);
+    when(primaryClient.get_foreign_keys(request)).thenReturn(response);
+    when(primaryMapping.transformOutboundForeignKeysResponse(response)).thenReturn(response);
+
+    ForeignKeysResponse result = handler.get_foreign_keys(request);
+    assertThat(key.getFktable_db(), is(DB_P));
+    assertThat(key.getFktable_name(), is("table"));
   }
 
   @Test
