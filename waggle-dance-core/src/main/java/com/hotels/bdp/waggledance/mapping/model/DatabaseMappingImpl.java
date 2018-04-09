@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,8 +205,13 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public ForeignKeysRequest transformInboundForeignKeysRequest(ForeignKeysRequest request) {
-    request.setParent_db_name(metaStoreMapping.transformInboundDatabaseName(request.getParent_db_name()));
-    request.setForeign_db_name(metaStoreMapping.transformInboundDatabaseName(request.getForeign_db_name()));
+    String parentDbName = request.getParent_db_name() == null ? null
+        : metaStoreMapping.transformInboundDatabaseName(request.getParent_db_name());
+    String foreignDbName = request.getForeign_db_name() == null ? null
+        : metaStoreMapping.transformInboundDatabaseName(request.getForeign_db_name());
+
+    request.setParent_db_name(parentDbName);
+    request.setForeign_db_name(foreignDbName);
     return request;
   }
 

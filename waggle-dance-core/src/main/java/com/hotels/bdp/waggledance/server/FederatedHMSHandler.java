@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1380,8 +1380,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   @Override
   public ForeignKeysResponse get_foreign_keys(ForeignKeysRequest request)
-    throws MetaException, NoSuchObjectException, TException {
-    DatabaseMapping mapping = databaseMappingService.databaseMapping(request.getParent_db_name());
+      throws MetaException, NoSuchObjectException, TException {
+    DatabaseMapping mapping = databaseMappingService.databaseMapping(request.getForeign_db_name());
     return mapping.transformOutboundForeignKeysResponse(
         mapping.getClient().get_foreign_keys(mapping.transformInboundForeignKeysRequest(request)));
   }
