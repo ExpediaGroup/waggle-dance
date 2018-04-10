@@ -1,4 +1,4 @@
-## [TBD]
+## [2.3.1] 2018-08-09
 ### Fixed
 * DESCRIBE FORMATTED query against federated tables now works. See [#60](https://github.com/HotelsDotCom/waggle-dance/issues/60).
 
