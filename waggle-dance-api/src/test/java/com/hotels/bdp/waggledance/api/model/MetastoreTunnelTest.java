@@ -194,5 +194,9 @@ public class MetastoreTunnelTest {
   @Test
   public void strictHostKeyCheckingDefaultsToYes() {
     assertEquals("yes", tunnel.getStrictHostKeyChecking());
+
+    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+
+    assertThat(violations.size(), is(0));
   }
 }
