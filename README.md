@@ -131,6 +131,7 @@ Example:
       mapped-databases:
       - prod_db1
       - prod_db2
+      - dev_group_1.*
     - ...
 
 The table below describes all the available configuration values for Waggle Dance federations:
