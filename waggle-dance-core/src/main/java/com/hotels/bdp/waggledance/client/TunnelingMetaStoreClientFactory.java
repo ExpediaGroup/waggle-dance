@@ -109,7 +109,7 @@ public class TunnelingMetaStoreClientFactory extends MetaStoreClientFactory {
     String knownHosts = hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname);
     String privateKeys = hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname);
     int sshTimeout = hiveConf.getInt(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, 0);
-    String strictHostKeyChecking = hiveConf.get(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "no");
+    String strictHostKeyChecking = hiveConf.get(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname);
 
     checkArgument(sshPort > 0 && sshPort <= 65536,
         WaggleDanceHiveConfVars.SSH_PORT.varname + " must be a number between 1 and 65536");
