@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.api.model;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -34,6 +35,8 @@ public class MetastoreTunnel {
   private @NotBlank String privateKeys;
   private @NotBlank String knownHosts;
   private @Min(0) int timeout = DEFAULT_TIMEOUT_MILLIS;
+  @Pattern(regexp = "^(?i:yes\\b|no\\b)", message = "StrictHostKeyChecking can be set to 'yes' or 'no'")
+  private String strictHostKeyChecking = "yes";
 
   public String getRoute() {
     return route;
@@ -83,4 +86,11 @@ public class MetastoreTunnel {
     this.timeout = timeout;
   }
 
+  public String getStrictHostKeyChecking() {
+    return strictHostKeyChecking;
+  }
+
+  public void setStrictHostKeyChecking(String strictHostKeyChecking) {
+    this.strictHostKeyChecking = strictHostKeyChecking;
+  }
 }

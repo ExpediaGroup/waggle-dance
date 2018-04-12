@@ -31,11 +31,13 @@ import com.hotels.bdp.waggledance.api.WaggleDanceException;
 
 public class SessionFactorySupplier implements Supplier<SessionFactory> {
   static final Logger LOG = LoggerFactory.getLogger(SessionFactorySupplier.class);
+  private static final String PROPERTY_JSCH_STRICT_HOST_KEY_CHECKING = "StrictHostKeyChecking";
 
   private final int sshPort;
   private final String knownHosts;
   private final List<String> identityKeys;
   private final int sshTimeout;
+  private String strictHostKeyChecking = "yes";
   private SessionFactory sessionFactory = null;
 
   @Deprecated
@@ -52,6 +54,19 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
     this.sshTimeout = sshTimeout;
   }
 
+  public SessionFactorySupplier(
+      int sshPort,
+      String knownHosts,
+      List<String> identityKeys,
+      int sshTimeout,
+      String strictHostKeyChecking) {
+    this(sshPort, knownHosts, identityKeys, sshTimeout);
+    strictHostKeyChecking = strictHostKeyChecking.toLowerCase();
+    Preconditions.checkArgument(strictHostKeyChecking.equals("yes") || strictHostKeyChecking.equals("no"),
+        "Invalid Strict Host Key Checking setting " + sshPort + " must be 'yes' or 'no'");
+    this.strictHostKeyChecking = strictHostKeyChecking;
+  }
+
   @Override
   public SessionFactory get() {
     if (sessionFactory == null) {
@@ -61,6 +76,7 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
           DefaultSessionFactory defaultSessionFactory = new DefaultSessionFactory();
           defaultSessionFactory.setIdentitiesFromPrivateKeys(identityKeys);
           defaultSessionFactory.setPort(sshPort);
+          defaultSessionFactory.setConfig(PROPERTY_JSCH_STRICT_HOST_KEY_CHECKING, strictHostKeyChecking);
           sessionFactory = new DelegatingSessionFactory(defaultSessionFactory, sshTimeout);
           LOG.debug("Session factory created for {}@{}:{}", sessionFactory.getUsername(), sessionFactory.getHostname(),
               sessionFactory.getPort());
