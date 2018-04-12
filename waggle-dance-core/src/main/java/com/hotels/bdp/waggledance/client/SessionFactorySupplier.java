@@ -61,10 +61,7 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
       int sshTimeout,
       String strictHostKeyChecking) {
     this(sshPort, knownHosts, identityKeys, sshTimeout);
-    strictHostKeyChecking = strictHostKeyChecking.toLowerCase();
-    Preconditions.checkArgument(strictHostKeyChecking.equals("yes") || strictHostKeyChecking.equals("no"),
-        "Invalid Strict Host Key Checking setting " + sshPort + " must be 'yes' or 'no'");
-    this.strictHostKeyChecking = strictHostKeyChecking;
+    this.strictHostKeyChecking = strictHostKeyChecking.toLowerCase();
   }
 
   @Override
