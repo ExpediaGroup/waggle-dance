@@ -37,7 +37,7 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
   private final String knownHosts;
   private final List<String> identityKeys;
   private final int sshTimeout;
-  private String strictHostKeyChecking = "yes";
+  private final String strictHostKeyChecking;
   private SessionFactory sessionFactory = null;
 
   @Deprecated
@@ -52,6 +52,7 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
     this.knownHosts = knownHosts;
     this.identityKeys = ImmutableList.copyOf(identityKeys);
     this.sshTimeout = sshTimeout;
+    this.strictHostKeyChecking = "yes";
   }
 
   public SessionFactorySupplier(
@@ -60,8 +61,16 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
       List<String> identityKeys,
       int sshTimeout,
       String strictHostKeyChecking) {
-    this(sshPort, knownHosts, identityKeys, sshTimeout);
-    this.strictHostKeyChecking = strictHostKeyChecking.toLowerCase();
+    Preconditions.checkArgument(0 <= sshPort && sshPort <= 65535, "Invalid SSH port number " + sshPort);
+    Preconditions.checkArgument(sshTimeout >= 0, "Invalid SSH session timeout " + sshTimeout);
+    strictHostKeyChecking = strictHostKeyChecking.toLowerCase();
+    Preconditions.checkArgument(strictHostKeyChecking.equals("yes") || strictHostKeyChecking.equals("no"),
+        "Invalid StrictHostKeyChecking setting " + strictHostKeyChecking);
+    this.sshPort = sshPort;
+    this.knownHosts = knownHosts;
+    this.identityKeys = ImmutableList.copyOf(identityKeys);
+    this.sshTimeout = sshTimeout;
+    this.strictHostKeyChecking = strictHostKeyChecking;
   }
 
   @Override
