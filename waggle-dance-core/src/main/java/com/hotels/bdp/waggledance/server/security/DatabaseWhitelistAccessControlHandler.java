@@ -16,21 +16,18 @@
 package com.hotels.bdp.waggledance.server.security;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
+import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
-  private final Set<Pattern> databaseWhiteList = new HashSet<>();
   private final FederationService federationService;
   private PrimaryMetaStore primaryMetaStore;
   private final boolean hasCreatePermission;
+  private final Whitelist whitelist;
 
   public DatabaseWhitelistAccessControlHandler(
       PrimaryMetaStore primaryMetaStore,
@@ -39,13 +36,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     this.primaryMetaStore = primaryMetaStore;
     this.federationService = federationService;
     this.hasCreatePermission = hasCreatePermission;
-    for (String databaseName : primaryMetaStore.getWritableDatabaseWhiteList()) {
-      add(databaseName);
-    }
-  }
-
-  private void add(String databaseName) {
-    databaseWhiteList.add(Pattern.compile(trimToLowerCase(databaseName)));
+    this.whitelist = new Whitelist(primaryMetaStore.getWritableDatabaseWhiteList());
   }
 
   private String trimToLowerCase(String string) {
@@ -54,18 +45,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
 
   @Override
   public boolean hasWritePermission(String databaseName) {
-    if (databaseName == null) {
-      return true;
-    }
-    databaseName = trimToLowerCase(databaseName);
-
-    for (Pattern whiteListEntry : databaseWhiteList) {
-      Matcher matcher = whiteListEntry.matcher(databaseName);
-      if (matcher.matches()) {
-        return true;
-      }
-    }
-    return false;
+    return whitelist.contains(databaseName);
   }
 
   @Override
@@ -84,7 +64,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     newPrimaryMetastore.setWritableDatabaseWhiteList(whiteList);
     federationService.update(primaryMetaStore, newPrimaryMetastore);
     primaryMetaStore = newPrimaryMetastore;
-    add(nameLowerCase);
+    whitelist.add(nameLowerCase);
   }
 
 }
