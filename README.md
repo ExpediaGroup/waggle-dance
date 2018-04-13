@@ -203,7 +203,7 @@ For example, if the Hive metastore runs on the host _hive-server-box_ which can 
 
 Once the tunnel is established Waggle Dance will set up port forwarding from the local machine specified in `metastore-tunnel.localhost` to the remote machine specified in `remote-meta-store-uris`. The last node in the tunnel expression doesn't need to be the Thrift server, the only requirement is that this last node must be able to communicate with the Thrift service. Sometimes this is not possible due to firewall restrictions so in these cases they must be the same.
 
-Note that all the machines in the tunnel expression must be included in the *known_hosts* file and the keys required to access each box must be set in `metastore-tunnel.private-keys`. For example, if _bastion-host_ is authenticated with _bastion.pem_ and both _jump-box_ and _hive-server-box_ are authenticated with _emr.pem_ then the property must be set as`metastore-tunnel.private-keys=<path-to-ssh-keys>/bastion.pem, <path-to-ssh-keys>/emr.pem`.
+Note that all the machines in the tunnel expression can be included in the *known_hosts* file and in this case the keys required to access each box should be set in `metastore-tunnel.private-keys`. For example, if _bastion-host_ is authenticated with _bastion.pem_ and both _jump-box_ and _hive-server-box_ are authenticated with _emr.pem_ then the property must be set as`metastore-tunnel.private-keys=<path-to-ssh-keys>/bastion.pem, <path-to-ssh-keys>/emr.pem`. Alternatively `metastore-tunnel.strict-host-key-checking` can be set to no.
 
 To add the fingerprint of _remote-box_ in to the _known___hosts_ file the following command can be used:
 
