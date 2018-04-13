@@ -161,6 +161,7 @@ The table below describes the metastore tunnel configuration values:
 | `*.metastore-tunnel.known-hosts`                        | No       | Path to a known hosts file. |
 | `*.metastore-tunnel.private-keys`                       | No       | A comma-separated list of paths to any SSH keys required in order to set up the SSH tunnel. |
 | `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds, `0` means no timeout. Default is `60000` milliseconds, i.e. 1 minute. |
+| `*.metastore-tunnel.strict-host-key-checking`           | No       | Whether the SSH tunnel should be created with strict host key checking. Can be set to `yes` or `no`. The default is `yes`. |
 
 #### Access Control
 
@@ -202,7 +203,9 @@ For example, if the Hive metastore runs on the host _hive-server-box_ which can 
 
 Once the tunnel is established Waggle Dance will set up port forwarding from the local machine specified in `metastore-tunnel.localhost` to the remote machine specified in `remote-meta-store-uris`. The last node in the tunnel expression doesn't need to be the Thrift server, the only requirement is that this last node must be able to communicate with the Thrift service. Sometimes this is not possible due to firewall restrictions so in these cases they must be the same.
 
-Note that all the machines in the tunnel expression must be included in the *known_hosts* file and the keys required to access each box must be set in `metastore-tunnel.private-keys`. For example, if _bastion-host_ is authenticated with _bastion.pem_ and both _jump-box_ and _hive-server-box_ are authenticated with _emr.pem_ then the property must be set as`metastore-tunnel.private-keys=<path-to-ssh-keys>/bastion.pem, <path-to-ssh-keys>/emr.pem`.
+All the machines in the tunnel expression can be included in the *known_hosts* file and in this case the keys required to access each box should be set in `metastore-tunnel.private-keys`. For example, if _bastion-host_ is authenticated with _bastion.pem_ and both _jump-box_ and _hive-server-box_ are authenticated with _emr.pem_ then the property must be set as`metastore-tunnel.private-keys=<path-to-ssh-keys>/bastion.pem, <path-to-ssh-keys>/emr.pem`.
+
+If all machines in the tunnel expression are not included in the known_hosts file then `metastore-tunnel.strict-host-key-checking` should be set to no.
 
 To add the fingerprint of _remote-box_ in to the _known___hosts_ file the following command can be used:
 

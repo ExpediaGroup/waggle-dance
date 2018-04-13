@@ -51,6 +51,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
       properties.put(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, metastoreTunnel.getKnownHosts());
       properties.put(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, metastoreTunnel.getPrivateKeys());
       properties.put(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, String.valueOf(metastoreTunnel.getTimeout()));
+      properties.put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, metastoreTunnel.getStrictHostKeyChecking());
     }
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
     return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);

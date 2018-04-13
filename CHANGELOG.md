@@ -1,4 +1,6 @@
 ## [2.3.1] 2018-08-09
+### Added
+* Configure StrictHostKeyChecking for MetastoreTunnel in YAML configuration. See [#33](https://github.com/HotelsDotCom/waggle-dance/issues/33).
 ### Fixed
 * DESCRIBE FORMATTED query against federated tables now works. See [#60](https://github.com/HotelsDotCom/waggle-dance/issues/60).
 

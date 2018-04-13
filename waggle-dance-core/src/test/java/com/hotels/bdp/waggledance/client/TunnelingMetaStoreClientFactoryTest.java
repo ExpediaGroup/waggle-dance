@@ -124,4 +124,9 @@ public class TunnelingMetaStoreClientFactoryTest {
     tunnelingMetaStoreClientFactory.createTunnelConnectionManagerFactory(hiveConf);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void incorrectStrictHostKeyCheckingSetting() {
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "foo");
+    tunnelingMetaStoreClientFactory.createTunnelConnectionManagerFactory(hiveConf);
+  }
 }

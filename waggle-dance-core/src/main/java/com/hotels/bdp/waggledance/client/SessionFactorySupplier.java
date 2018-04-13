@@ -31,11 +31,13 @@ import com.hotels.bdp.waggledance.api.WaggleDanceException;
 
 public class SessionFactorySupplier implements Supplier<SessionFactory> {
   static final Logger LOG = LoggerFactory.getLogger(SessionFactorySupplier.class);
+  private static final String PROPERTY_JSCH_STRICT_HOST_KEY_CHECKING = "StrictHostKeyChecking";
 
   private final int sshPort;
   private final String knownHosts;
   private final List<String> identityKeys;
   private final int sshTimeout;
+  private final String strictHostKeyChecking;
   private SessionFactory sessionFactory = null;
 
   @Deprecated
@@ -44,12 +46,25 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
   }
 
   public SessionFactorySupplier(int sshPort, String knownHosts, List<String> identityKeys, int sshTimeout) {
+    this(sshPort, knownHosts, identityKeys, sshTimeout, "yes");
+  }
+
+  public SessionFactorySupplier(
+      int sshPort,
+      String knownHosts,
+      List<String> identityKeys,
+      int sshTimeout,
+      String strictHostKeyChecking) {
     Preconditions.checkArgument(0 <= sshPort && sshPort <= 65535, "Invalid SSH port number " + sshPort);
     Preconditions.checkArgument(sshTimeout >= 0, "Invalid SSH session timeout " + sshTimeout);
+    strictHostKeyChecking = strictHostKeyChecking.toLowerCase();
+    Preconditions.checkArgument(strictHostKeyChecking.equals("yes") || strictHostKeyChecking.equals("no"),
+        "Invalid StrictHostKeyChecking setting " + strictHostKeyChecking);
     this.sshPort = sshPort;
     this.knownHosts = knownHosts;
     this.identityKeys = ImmutableList.copyOf(identityKeys);
     this.sshTimeout = sshTimeout;
+    this.strictHostKeyChecking = strictHostKeyChecking;
   }
 
   @Override
@@ -61,6 +76,7 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
           DefaultSessionFactory defaultSessionFactory = new DefaultSessionFactory();
           defaultSessionFactory.setIdentitiesFromPrivateKeys(identityKeys);
           defaultSessionFactory.setPort(sshPort);
+          defaultSessionFactory.setConfig(PROPERTY_JSCH_STRICT_HOST_KEY_CHECKING, strictHostKeyChecking);
           sessionFactory = new DelegatingSessionFactory(defaultSessionFactory, sshTimeout);
           LOG.debug("Session factory created for {}@{}:{}", sessionFactory.getUsername(), sessionFactory.getHostname(),
               sessionFactory.getPort());

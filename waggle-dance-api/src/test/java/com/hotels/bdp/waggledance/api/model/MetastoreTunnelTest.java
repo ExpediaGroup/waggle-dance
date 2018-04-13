@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.api.model;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.Set;
@@ -167,4 +168,35 @@ public class MetastoreTunnelTest {
     assertThat(violations.size(), is(1));
   }
 
+  @Test
+  public void strictHostKeyCheckingSetToYes() {
+    tunnel.setStrictHostKeyChecking("yes");
+    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    assertThat(violations.size(), is(0));
+  }
+
+  @Test
+  public void strictHostKeyCheckingSetToNo() {
+    tunnel.setStrictHostKeyChecking("no");
+    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    assertThat(violations.size(), is(0));
+  }
+
+  @Test
+  public void strictHostKeyCheckingSetToIncorrectValue() {
+    tunnel.setStrictHostKeyChecking("foo");
+
+    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+
+    assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void strictHostKeyCheckingDefaultsToYes() {
+    assertEquals("yes", tunnel.getStrictHostKeyChecking());
+
+    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+
+    assertThat(violations.size(), is(0));
+  }
 }
