@@ -46,13 +46,7 @@ public class SessionFactorySupplier implements Supplier<SessionFactory> {
   }
 
   public SessionFactorySupplier(int sshPort, String knownHosts, List<String> identityKeys, int sshTimeout) {
-    Preconditions.checkArgument(0 <= sshPort && sshPort <= 65535, "Invalid SSH port number " + sshPort);
-    Preconditions.checkArgument(sshTimeout >= 0, "Invalid SSH session timeout " + sshTimeout);
-    this.sshPort = sshPort;
-    this.knownHosts = knownHosts;
-    this.identityKeys = ImmutableList.copyOf(identityKeys);
-    this.sshTimeout = sshTimeout;
-    this.strictHostKeyChecking = "yes";
+    this(sshPort, knownHosts, identityKeys, sshTimeout, "yes");
   }
 
   public SessionFactorySupplier(
