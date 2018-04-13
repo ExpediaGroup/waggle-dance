@@ -56,6 +56,7 @@ public class TunnelingMetaStoreClientFactoryTest {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "user@ec2-12-345-678-91.compute-1.amazonaws.com");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, "");
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "yes");
     hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS,
         "thrift://internal-test-shared-hive-metastore-elb-1234567891.us-west-1.elb.amazonaws.com:1234");
   }
@@ -124,9 +125,16 @@ public class TunnelingMetaStoreClientFactoryTest {
     tunnelingMetaStoreClientFactory.createTunnelConnectionManagerFactory(hiveConf);
   }
 
+  @Test(expected = NullPointerException.class)
+  public void nullStrictHostKeyCheckingSetting() {
+    hiveConf.unset(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname);
+    tunnelingMetaStoreClientFactory.createTunnelConnectionManagerFactory(hiveConf);
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void incorrectStrictHostKeyCheckingSetting() {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "foo");
     tunnelingMetaStoreClientFactory.createTunnelConnectionManagerFactory(hiveConf);
   }
+
 }
