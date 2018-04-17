@@ -682,6 +682,50 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
     assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
+    assertFalse(transformedResult.getTable().isSetViewExpandedText());
+    assertFalse(transformedResult.getTable().isSetViewOriginalText());
+  }
+
+  @Test
+  public void transformOutboundGetTableResultWithView() throws Exception {
+    Table table = new Table();
+    table.setDbName(DB_NAME);
+    table.setTableName(TABLE_NAME);
+    table.setViewOriginalText("select cid from " + DB_NAME + "." + "foo");
+    table.setViewExpandedText("select `foo`.`cid` from `" + DB_NAME + "`.`foo`");
+    GetTableResult result = new GetTableResult();
+    result.setTable(table);
+    GetTableResult transformedResult = databaseMapping.transformOutboundGetTableResult(result);
+    assertThat(transformedResult, is(sameInstance(result)));
+    assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
+    assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
+    assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
+    assertThat(transformedResult.getTable().getViewExpandedText(),
+        is("select `foo`.`cid` from `" + OUT_DB_NAME + "`.`foo`"));
+    assertThat(transformedResult.getTable().getViewOriginalText(), is("select cid from " + OUT_DB_NAME + "." + "foo"));
+  }
+
+  String transformOutboundView(String dbName, String text) {
+    return text.replaceAll(dbName, "out_db");
+  }
+
+  @Test
+  public void transformOutboundView() throws Exception {
+    Table table = new Table();
+    table.setDbName(DB_NAME);
+    table.setTableName(TABLE_NAME);
+    table.setViewOriginalText("select net_gross_profit, num_repeat_purchasers, cid from bdp.etl_hcom_hex_fact");
+    table.setViewExpandedText(
+        "select `etl_hcom_hex_fact`.`net_gross_profit`, `etl_hcom_hex_fact`.`num_repeat_purchasers`, `etl_hcom_hex_fact`.`cid` from `bdp`.`etl_hcom_hex_fact`");
+    GetTableResult result = new GetTableResult();
+    result.setTable(table);
+    String string = "";
+    string = transformOutboundView("bdp",
+        "select `etl_hcom_hex_fact`.`net_gross_profit`, `etl_hcom_hex_fact`.`num_repeat_purchasers`, `etl_hcom_hex_fact`.`cid` from `bdp`.`etl_hcom_hex_fact`");
+    assertThat(string, is(
+        "select `etl_hcom_hex_fact`.`net_gross_profit`, `etl_hcom_hex_fact`.`num_repeat_purchasers`, `etl_hcom_hex_fact`.`cid` from `"
+            + OUT_DB_NAME
+            + "`.`etl_hcom_hex_fact`"));
   }
 
   @Test

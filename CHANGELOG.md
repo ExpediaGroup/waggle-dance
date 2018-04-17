@@ -1,3 +1,7 @@
+## [TBD]
+### Fixed
+* Queries against federated views now work. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).
+
 ## [2.3.1] 2018-08-09
 ### Added
 * Configure StrictHostKeyChecking for MetastoreTunnel in YAML configuration. See [#33](https://github.com/HotelsDotCom/waggle-dance/issues/33).

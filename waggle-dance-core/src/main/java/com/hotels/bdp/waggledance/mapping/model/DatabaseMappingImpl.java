@@ -62,6 +62,8 @@ import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DatabaseMappingImpl implements DatabaseMapping {
 
@@ -428,8 +430,21 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
+    final String originalDbName = result.getTable().getDbName();
     result.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(result.getTable().getDbName()));
+    if (result.getTable().isSetViewOriginalText()) {
+      result.getTable().setViewOriginalText(
+          transformOutboundView(originalDbName, result.getTable().getViewOriginalText()));
+    }
+    if (result.getTable().isSetViewExpandedText()) {
+      result.getTable().setViewExpandedText(
+          transformOutboundView(originalDbName, result.getTable().getViewExpandedText()));
+    }
     return result;
+  }
+
+  private String transformOutboundView(String dbName, String text) {
+    return text.replaceAll("\\b" + dbName + "\\b", metaStoreMapping.transformOutboundDatabaseName(dbName));
   }
 
   @Override
