@@ -706,25 +706,6 @@ public class DatabaseMappingImplTest {
   }
 
   @Test
-  public void transformOutboundView() throws Exception {
-    Table table = new Table();
-    table.setDbName(DB_NAME);
-    table.setTableName(TABLE_NAME);
-    table.setViewOriginalText("select net_gross_profit, num_repeat_purchasers, cid from bdp.etl_hcom_hex_fact");
-    table.setViewExpandedText(
-        "select `etl_hcom_hex_fact`.`net_gross_profit`, `etl_hcom_hex_fact`.`num_repeat_purchasers`, `etl_hcom_hex_fact`.`cid` from `bdp`.`etl_hcom_hex_fact`");
-    GetTableResult result = new GetTableResult();
-    result.setTable(table);
-    String string = "";
-    string = transformOutboundView("bdp",
-        "select `etl_hcom_hex_fact`.`net_gross_profit`, `etl_hcom_hex_fact`.`num_repeat_purchasers`, `etl_hcom_hex_fact`.`cid` from `bdp`.`etl_hcom_hex_fact`");
-    assertThat(string, is(
-        "select `etl_hcom_hex_fact`.`net_gross_profit`, `etl_hcom_hex_fact`.`num_repeat_purchasers`, `etl_hcom_hex_fact`.`cid` from `"
-            + OUT_DB_NAME
-            + "`.`etl_hcom_hex_fact`"));
-  }
-
-  @Test
   public void transformInboundGetTablesRequest() throws Exception {
     GetTablesRequest request = new GetTablesRequest();
     request.setDbName(DB_NAME);
