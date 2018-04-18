@@ -705,10 +705,6 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable().getViewOriginalText(), is("select cid from " + OUT_DB_NAME + "." + "foo"));
   }
 
-  String transformOutboundView(String dbName, String text) {
-    return text.replaceAll(dbName, "out_db");
-  }
-
   @Test
   public void transformOutboundView() throws Exception {
     Table table = new Table();
