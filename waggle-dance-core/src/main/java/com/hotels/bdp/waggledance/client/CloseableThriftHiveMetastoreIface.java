@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ import java.io.Closeable;
 
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 
-public interface CloseableThriftHiveMetastoreIface extends Iface, Closeable {
+import com.hotels.hcommon.ssh.Tunnelable;
+
+public interface CloseableThriftHiveMetastoreIface extends Iface, Closeable, Tunnelable {
 
   boolean isOpen();
 
