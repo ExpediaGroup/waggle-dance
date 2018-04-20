@@ -133,6 +133,7 @@ Example:
       mapped-databases:
       - prod_db1
       - prod_db2
+      - dev_group_1.*
     - ...
 
 The table below describes all the available configuration values for Waggle Dance federations:
@@ -151,7 +152,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `federated-meta-stores[n].name`                       | Yes      | Name that uniquely identifies this metastore, used internally. Cannot be empty. |
 | `federated-meta-stores[n].database-prefix`            | No       | Prefix used to access this particular metastore and differentiate databases in it from databases in another metastore. Typically used if databases have the same name across metastores but federated access to them is still needed. Default prefix is {federated-meta-stores[n].name} lowercased and postfixed with an underscore. For example if the metastore name was configured as "waggle" and no database prefix was provided but `PREFIXED` database resolution was used then the value of `database-prefix` would be "waggle_". |
 | `federated-meta-stores[n].metastore-tunnel`           | No       | See metastore tunnel configuration values below. |
-| `federated-meta-stores[n].mapped-databases`           | No       | List of databases to federate from this federated metastore, all other databases will be ignored. |
+| `federated-meta-stores[n].mapped-databases`           | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html). |
 
 The table below describes the metastore tunnel configuration values:
 
