@@ -1,6 +1,8 @@
 ## [TBD]
 ### Added
 * Regex support in `federated-meta-stores.mapped-databases`. [#59](https://github.com/HotelsDotCom/waggle-dance/issues/59).
+### Changed
+* Replace SSH support with _hcommon-ssh_ library. [#51](https://github.com/HotelsDotCom/waggle-dance/issues/51).
 
 ## [2.3.1] 2018-08-09
 ### Added
