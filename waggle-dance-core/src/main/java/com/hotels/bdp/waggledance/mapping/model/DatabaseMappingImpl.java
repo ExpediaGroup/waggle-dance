@@ -69,6 +69,7 @@ import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
+import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.apache.hadoop.hive.ql.parse.ParseUtils;
 import org.apache.thrift.TException;
@@ -470,12 +471,11 @@ public class DatabaseMappingImpl implements DatabaseMapping {
         stack.push(child);
       }
 
-      final int dbNameType = 24;
-      if (current.getType() == dbNameType
-          && metaStoreMapping.transformOutboundDatabaseName(current.getText()) != null) {
-        Token token = new CommonToken(dbNameType, metaStoreMapping.transformOutboundDatabaseName(current.getText()));
+      if (current.getType() == HiveParser.TOK_TABNAME) {
+        Token token = new CommonToken(current.getChild(0).getType(),
+            metaStoreMapping.transformOutboundDatabaseName(current.getChild(0).getText().trim()));
         ASTNode newNode = new ASTNode(token);
-        replaceNode(getRoot(current), current, newNode);
+        replaceNode(getRoot((ASTNode) current.getChild(0)), (ASTNode) current.getChild(0), newNode);
       }
     }
 

@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -114,8 +115,8 @@ public class DatabaseMappingImplTest {
     hiveObjectPrivileges.add(hiveObjectPrivilege);
     partitionSpec = new PartitionSpec();
     partitionSpec.setDbName(DB_NAME);
-    when(metastoreMapping.transformInboundDatabaseName(DB_NAME)).thenReturn(IN_DB_NAME);
-    when(metastoreMapping.transformOutboundDatabaseName(DB_NAME)).thenReturn(OUT_DB_NAME);
+    when(metastoreMapping.transformInboundDatabaseName(anyString())).thenReturn(IN_DB_NAME);
+    when(metastoreMapping.transformOutboundDatabaseName(anyString())).thenReturn(OUT_DB_NAME);
   }
 
   @Test
@@ -717,8 +718,8 @@ public class DatabaseMappingImplTest {
     Table table = new Table();
     table.setDbName(DB_NAME);
     table.setTableName(TABLE_NAME);
-    table.setViewOriginalText("select cid from " + DB_NAME + "." + "foo");
-    table.setViewExpandedText("select `foo`.`cid` from `" + DB_NAME + "`.`foo`");
+    table.setViewExpandedText("select net_gross_profit, num_repeat_purchasers, cid from bdp.etl_hcom_hex_fact");
+    table.setViewOriginalText("select net_gross_profit, num_repeat_purchasers, cid from bdp.etl_hcom_hex_fact");
     GetTableResult result = new GetTableResult();
     result.setTable(table);
     GetTableResult transformedResult = databaseMapping.transformOutboundGetTableResult(result);
@@ -726,10 +727,11 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
     assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
-    assertThat(transformedResult.getTable().getViewExpandedText().toLowerCase().trim(),
-        is("select cid from " + OUT_DB_NAME + "." + "foo".toLowerCase().trim()));
-    assertThat(transformedResult.getTable().getViewOriginalText().toLowerCase().trim(),
-        is("select cid from " + OUT_DB_NAME + "." + "foo".toLowerCase().trim()));
+    String transformedQuery = "select net_gross_profit, num_repeat_purchasers, cid from "
+        + OUT_DB_NAME
+        + ".etl_hcom_hex_fact";
+    assertThat(transformedResult.getTable().getViewExpandedText().toLowerCase().trim(), is(transformedQuery));
+    assertThat(transformedResult.getTable().getViewOriginalText().toLowerCase().trim(), is(transformedQuery));
   }
 
 }
