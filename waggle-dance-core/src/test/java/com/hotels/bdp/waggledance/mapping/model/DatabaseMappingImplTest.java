@@ -17,7 +17,6 @@ package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -68,7 +67,6 @@ import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
-import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -712,12 +710,6 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTables().get(0), is(sameInstance(result.getTables().get(0))));
     assertThat(transformedResult.getTables().get(0).getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTables().get(0).getTableName(), is(TABLE_NAME));
-  }
-
-  @Test
-  public void transformOutboundQuery() throws ParseException {
-    assertEquals("select cid from " + DB_NAME + "." + "foo",
-        databaseMapping.transformOutboundQuery("select cid from " + DB_NAME + "." + "foo"));
   }
 
   @Test
