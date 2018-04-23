@@ -470,8 +470,10 @@ public class DatabaseMappingImpl implements DatabaseMapping {
         stack.push(child);
       }
 
-      if (current.getType() == 24 && metaStoreMapping.transformOutboundDatabaseName(current.getText()) != null) {
-        Token token = new CommonToken(24, metaStoreMapping.transformOutboundDatabaseName(current.getText()));
+      final int dbNameType = 24;
+      if (current.getType() == dbNameType
+          && metaStoreMapping.transformOutboundDatabaseName(current.getText()) != null) {
+        Token token = new CommonToken(dbNameType, metaStoreMapping.transformOutboundDatabaseName(current.getText()));
         ASTNode newNode = new ASTNode(token);
         replaceNode(getRoot(current), current, newNode);
       }
