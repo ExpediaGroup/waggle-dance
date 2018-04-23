@@ -472,10 +472,15 @@ public class DatabaseMappingImpl implements DatabaseMapping {
       }
 
       if (current.getType() == HiveParser.TOK_TABNAME) {
-        Token token = new CommonToken(current.getChild(0).getType(),
-            metaStoreMapping.transformOutboundDatabaseName(current.getChild(0).getText().trim()));
-        ASTNode newNode = new ASTNode(token);
-        replaceNode(getRoot((ASTNode) current.getChild(0)), (ASTNode) current.getChild(0), newNode);
+        if (current.getChildCount() == 2) {
+          // First child of TOK_TABNAME node is the database name node
+          ASTNode dbNameNode = (ASTNode) current.getChild(0);
+          Token token = new CommonToken(dbNameNode.getType(),
+              metaStoreMapping.transformOutboundDatabaseName(dbNameNode.getText().trim()));
+          ASTNode newNode = new ASTNode(token);
+          replaceNode(getRoot(dbNameNode), dbNameNode, newNode);
+        }
+        // Otherwise TOK_TABNAME node only has one child which contains just the table name
       }
     }
 
