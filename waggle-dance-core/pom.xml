@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -145,6 +146,17 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-exec</artifactId>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
     <!-- Hadoop -->
     <dependency>
@@ -271,6 +283,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-exec</artifactId>
+      <version>2.3.2</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -296,7 +314,8 @@
           </requiresUnpack>
           <executable>true</executable>
           <classifier>exec</classifier>
-          <excludeGroupIds>org.mortbay.jetty,org.eclipse.jetty,org.eclipse.jetty.aggregate,org.eclipse.jetty.orbit</excludeGroupIds>
+          <excludeGroupIds>org.mortbay.jetty,org.eclipse.jetty,org.eclipse.jetty.aggregate,org.eclipse.jetty.orbit
+          </excludeGroupIds>
           <excludes>
             <exclude>
               <groupId>org.codehaus.jettison</groupId>

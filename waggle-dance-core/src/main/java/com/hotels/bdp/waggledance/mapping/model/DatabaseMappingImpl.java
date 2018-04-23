@@ -15,9 +15,19 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import static org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.unescapeIdentifier;
+
+import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getChildren;
+import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getRoot;
+import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.replaceNode;
+
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
+import org.antlr.runtime.CommonToken;
+import org.antlr.runtime.Token;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
@@ -61,9 +71,18 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
+import org.apache.hadoop.hive.ql.parse.ASTNode;
+import org.apache.hadoop.hive.ql.parse.ParseException;
+import org.apache.hadoop.hive.ql.parse.ParseUtils;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
+
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import com.hotels.bdp.waggledance.parse.ASTConverter;
 
 public class DatabaseMappingImpl implements DatabaseMapping {
 
@@ -430,21 +449,85 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
-    final String originalDbName = result.getTable().getDbName();
     result.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(result.getTable().getDbName()));
     if (result.getTable().isSetViewOriginalText()) {
-      result.getTable().setViewOriginalText(
-          transformOutboundView(originalDbName, result.getTable().getViewOriginalText()));
+      result.getTable().setViewOriginalText(transformOutboundQuery(result.getTable().getViewOriginalText()));
     }
     if (result.getTable().isSetViewExpandedText()) {
-      result.getTable().setViewExpandedText(
-          transformOutboundView(originalDbName, result.getTable().getViewExpandedText()));
+      result.getTable().setViewExpandedText(transformOutboundQuery(result.getTable().getViewExpandedText()));
     }
     return result;
   }
 
-  private String transformOutboundView(String dbName, String text) {
-    return text.replaceAll("\\b" + dbName + "\\b", metaStoreMapping.transformOutboundDatabaseName(dbName));
+  // TODO: Delete. Only here for testing
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseMappingImpl.class);
+
+  @VisibleForTesting
+  String transformOutboundQuery(String query) {
+    ASTNode root;
+    try {
+      root = ParseUtils.parse(query);
+    } catch (ParseException e) {
+      throw new WaggleDanceException(e.getMessage());
+    }
+
+    Stack<ASTNode> stack = new Stack<>();
+    stack.push(root);
+    while (!stack.isEmpty()) {
+      ASTNode current = stack.pop();
+      if (current == null) {
+        break;
+      }
+      for (ASTNode child : getChildren(current)) {
+        stack.push(child);
+      }
+
+      if (current.getType() == 24 && metaStoreMapping.transformInboundDatabaseName(current.getText()) != null) {
+        Token token = new CommonToken(24, metaStoreMapping.transformInboundDatabaseName(current.getText()));
+        ASTNode newNode = new ASTNode(token);
+        replaceNode(getRoot(current), current, newNode);
+      }
+    }
+
+    LOG.info("\n\n\nPrinting new Tree: ");
+    printTree(root);
+
+    ASTConverter converter = new ASTConverter(false);
+    query = converter.treeToQuery(root);
+    return query;
+  }
+
+  public void printTree(ASTNode node) {
+    if (node == null) {
+      return;
+    }
+
+    for (ASTNode child : getChildren(node)) {
+      printTree(child);
+    }
+
+    LOG.info("Transformed: Type: {} Text: {}", node.getType(), node.getText());
+
+  }
+
+  public void traverseAndMutateTree(ASTNode root) {
+    if (root == null) {
+      return;
+    }
+
+    for (ASTNode child : getChildren(root)) {
+      traverseAndMutateTree(child);
+    }
+
+    if (root.getType() == 24) {
+
+    }
+  }
+
+  public static Map.Entry<String, String> getDbTableNamePair(ASTNode tableNameNode) {
+    String dbName = unescapeIdentifier(tableNameNode.getText());
+    String tableName = unescapeIdentifier(tableNameNode.getText());
+    return Maps.immutableEntry(dbName, tableName);
   }
 
   @Override

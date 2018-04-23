@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -67,7 +68,9 @@ import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
+import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -687,25 +690,6 @@ public class DatabaseMappingImplTest {
   }
 
   @Test
-  public void transformOutboundGetTableResultWithView() throws Exception {
-    Table table = new Table();
-    table.setDbName(DB_NAME);
-    table.setTableName(TABLE_NAME);
-    table.setViewOriginalText("select cid from " + DB_NAME + "." + "foo");
-    table.setViewExpandedText("select `foo`.`cid` from `" + DB_NAME + "`.`foo`");
-    GetTableResult result = new GetTableResult();
-    result.setTable(table);
-    GetTableResult transformedResult = databaseMapping.transformOutboundGetTableResult(result);
-    assertThat(transformedResult, is(sameInstance(result)));
-    assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
-    assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
-    assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
-    assertThat(transformedResult.getTable().getViewExpandedText(),
-        is("select `foo`.`cid` from `" + OUT_DB_NAME + "`.`foo`"));
-    assertThat(transformedResult.getTable().getViewOriginalText(), is("select cid from " + OUT_DB_NAME + "." + "foo"));
-  }
-
-  @Test
   public void transformInboundGetTablesRequest() throws Exception {
     GetTablesRequest request = new GetTablesRequest();
     request.setDbName(DB_NAME);
@@ -729,6 +713,31 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTables().get(0), is(sameInstance(result.getTables().get(0))));
     assertThat(transformedResult.getTables().get(0).getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTables().get(0).getTableName(), is(TABLE_NAME));
+  }
+
+  @Test
+  public void transformOutboundQuery() throws ParseException {
+    assertEquals("", databaseMapping.transformOutboundQuery("select cid from " + DB_NAME + "." + "foo"));
+  }
+
+  @Ignore
+  @Test
+  public void transformOutboundGetTableResultWithView() throws Exception {
+    Table table = new Table();
+    table.setDbName(DB_NAME);
+    table.setTableName(TABLE_NAME);
+    table.setViewOriginalText("select cid from " + DB_NAME + "." + "foo");
+    table.setViewExpandedText("select `foo`.`cid` from `" + DB_NAME + "`.`foo`");
+    GetTableResult result = new GetTableResult();
+    result.setTable(table);
+    GetTableResult transformedResult = databaseMapping.transformOutboundGetTableResult(result);
+    assertThat(transformedResult, is(sameInstance(result)));
+    assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
+    assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
+    assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
+    assertThat(transformedResult.getTable().getViewExpandedText(),
+        is("select `foo`.`cid` from `" + OUT_DB_NAME + "`.`foo`"));
+    assertThat(transformedResult.getTable().getViewOriginalText(), is("select cid from " + OUT_DB_NAME + "." + "foo"));
   }
 
 }

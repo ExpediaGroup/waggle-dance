@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2015-2018 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,15 +28,11 @@ import org.apache.hadoop.hive.ql.parse.HiveParser;
 
 import com.sun.tools.javac.util.Pair;
 
-import com.hotels.bdp.hive_mutation_testing.Rule.RuleSet;
-import com.hotels.bdp.hive_mutation_testing.Rule.SingleRule;
+import com.hotels.bdp.waggledance.parse.Rule.RuleSet;
+import com.hotels.bdp.waggledance.parse.Rule.SingleRule;
 
-//import org.apache.hadoop.hive.ql.parse.{ASTNode,HiveParser,ParseException};
-
-// will need to figure out if i need the two classes above, and if so i need to convert those classes to java as well
-
-// import com.flaminem.flamy.parsing.hive.HiveParserUtils
-// import com.flaminem.flamy.utils.macros.SealedValues
+import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getChildren;
+import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getChildrenWithTypes;
 
 public class ASTConverter {
 
@@ -1406,16 +1402,6 @@ public class ASTConverter {
     return tokenTypeRuleMap;
   }
 
-  private List<ASTNode> getChildrenWithTypes(ASTNode pt, int type) {
-    List<ASTNode> children = new ArrayList<>();
-    for (ASTNode node : getChildren(pt)) {
-      if (node.getType() == type) {
-        children.add(node);
-      }
-    }
-    return children;
-  }
-
   static <T> List<T> dropLeft(List<T> list, int itemsToDrop) {
     if (list.size() <= itemsToDrop) {
       return Collections.emptyList();
@@ -1459,17 +1445,6 @@ public class ASTConverter {
     RuleSet recTransform = new RuleSet(defaultRule, setUpTokenTypeRuleMap());
     // list of all the types above.. tok_QUERY, tok_INSERT_INTO ... etc
     return recTransform.apply(astNode, prefix);
-  }
-
-  private List<ASTNode> getChildren(ASTNode pt) {
-    List<ASTNode> rt = new ArrayList<>();
-    List<Node> children = pt.getChildren();
-    if (children != null) {
-      for (Node child : pt.getChildren()) {
-        rt.add((ASTNode) child);
-      }
-    }
-    return rt;
   }
 
   String mkString(List<String> children, String start, String sep, String end) {
