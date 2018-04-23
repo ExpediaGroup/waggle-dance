@@ -15,19 +15,13 @@
  */
 package com.hotels.bdp.waggledance.parse;
 
-import static com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl.getDbTableNamePair;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
 import org.antlr.runtime.tree.Tree;
 import org.apache.hadoop.hive.ql.lib.Node;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ASTNodeUtils {
 
@@ -50,38 +44,6 @@ public class ASTNodeUtils {
       }
     }
     return children;
-  }
-
-  private static final Logger LOG = LoggerFactory.getLogger(ASTNodeUtils.class);
-
-  public static ASTNode mutateTree(ASTNode oldNode, int newTokenType, String newTokenText) {
-    Map.Entry<String, String> dbTablePair = getDbTableNamePair(oldNode);
-    LOG.info("Transforming Node DB: {} Table: {}", dbTablePair.getKey(), dbTablePair.getValue());
-
-    ASTNode tree = copyAST(getRoot(oldNode));
-
-    dbTablePair = getDbTableNamePair(tree);
-    LOG.info("Copied Node DB: {} Table: {}", dbTablePair.getKey(), dbTablePair.getValue());
-
-    Token token = new CommonToken(newTokenType, newTokenText);
-    ASTNode newNode = new ASTNode(token);
-    LOG.info("Replacement Type: {}", newTokenType);
-    LOG.info("Replacement Text: {}", newTokenText);
-    return newNode;
-  }
-
-  public static ASTNode copyAST(ASTNode ast) {
-    ASTNode copy = (ASTNode) ast.dupNode();
-    copy.setParent(ast.getParent());
-
-    List<Node> children = ast.getChildren();
-    if (children != null) {
-      for (Node child : children) {
-        ASTNode astChild = (ASTNode) child;
-        copy.insertChild(astChild.childIndex, copyAST(astChild));
-      }
-    }
-    return copy;
   }
 
   public static ASTNode replaceNode(ASTNode currentNode, ASTNode nodeToReplace, ASTNode newNode) {
