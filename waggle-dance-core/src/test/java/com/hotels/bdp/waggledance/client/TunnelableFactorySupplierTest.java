@@ -56,13 +56,13 @@ public class TunnelableFactorySupplierTest {
     supplier.get(hiveConf);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void nullKnownHosts() {
     hiveConf.unset(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname);
     supplier.get(hiveConf);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void emptyKnownHosts() {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, "");
     supplier.get(hiveConf);
