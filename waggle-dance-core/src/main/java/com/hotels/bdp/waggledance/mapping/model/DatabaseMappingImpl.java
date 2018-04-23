@@ -72,8 +72,8 @@ import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.apache.hadoop.hive.ql.parse.ParseUtils;
 import org.apache.thrift.TException;
-
-import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.parse.ASTConverter;
@@ -444,16 +444,35 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
     result.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(result.getTable().getDbName()));
+    if (result.getTable().isSetViewExpandedText()) {
+      // Parser tranformation code cannot handle expanded queries.
+      result.getTable().setViewExpandedText(result.getTable().getViewOriginalText());
+      result.getTable().setViewExpandedText(transformOutboundQuery(result.getTable().getViewExpandedText()));
+    }
     if (result.getTable().isSetViewOriginalText()) {
       result.getTable().setViewOriginalText(transformOutboundQuery(result.getTable().getViewOriginalText()));
     }
-    if (result.getTable().isSetViewExpandedText()) {
-      result.getTable().setViewExpandedText(transformOutboundQuery(result.getTable().getViewExpandedText()));
-    }
+
     return result;
   }
 
-  @VisibleForTesting
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseMappingImpl.class);
+
+  private void printTree(ASTNode root) {
+    Stack<ASTNode> stack = new Stack<>();
+    stack.push(root);
+    while (!stack.isEmpty()) {
+      ASTNode current = stack.pop();
+      for (ASTNode child : getChildren(current)) {
+        stack.push(child);
+      }
+
+      LOG.info("Type: {} Text: {}", root.getType(), root.getText());
+
+    }
+
+  }
+
   String transformOutboundQuery(String query) {
     ASTNode root;
     try {
@@ -470,12 +489,14 @@ public class DatabaseMappingImpl implements DatabaseMapping {
         stack.push(child);
       }
 
-      if (current.getType() == 24 && metaStoreMapping.transformInboundDatabaseName(current.getText()) != null) {
-        Token token = new CommonToken(24, metaStoreMapping.transformInboundDatabaseName(current.getText()));
+      if (current.getType() == 24 && metaStoreMapping.transformOutboundDatabaseName(current.getText()) != null) {
+        Token token = new CommonToken(24, metaStoreMapping.transformOutboundDatabaseName(current.getText()));
         ASTNode newNode = new ASTNode(token);
         replaceNode(getRoot(current), current, newNode);
       }
     }
+
+    printTree(root);
 
     ASTConverter converter = new ASTConverter(false);
     query = converter.treeToQuery(root);

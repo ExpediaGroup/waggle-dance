@@ -70,7 +70,6 @@ import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -717,10 +716,10 @@ public class DatabaseMappingImplTest {
 
   @Test
   public void transformOutboundQuery() throws ParseException {
-    assertEquals("", databaseMapping.transformOutboundQuery("select cid from " + DB_NAME + "." + "foo"));
+    assertEquals("select cid from " + DB_NAME + "." + "foo",
+        databaseMapping.transformOutboundQuery("select cid from " + DB_NAME + "." + "foo"));
   }
 
-  @Ignore
   @Test
   public void transformOutboundGetTableResultWithView() throws Exception {
     Table table = new Table();
@@ -735,9 +734,10 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
     assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
-    assertThat(transformedResult.getTable().getViewExpandedText(),
-        is("select `foo`.`cid` from `" + OUT_DB_NAME + "`.`foo`"));
-    assertThat(transformedResult.getTable().getViewOriginalText(), is("select cid from " + OUT_DB_NAME + "." + "foo"));
+    assertThat(transformedResult.getTable().getViewExpandedText().toLowerCase().trim(),
+        is("select cid from " + OUT_DB_NAME + "." + "foo".toLowerCase().trim()));
+    assertThat(transformedResult.getTable().getViewOriginalText().toLowerCase().trim(),
+        is("select cid from " + OUT_DB_NAME + "." + "foo".toLowerCase().trim()));
   }
 
 }

@@ -60,7 +60,3 @@ public class Rule {
   }
 
 }
-
-// the rule can just be an interface which has the apply method.
-// rule set is what goes through the nodes recursively goes through the tree to build up the query string.
-// fancy map which builds the string
