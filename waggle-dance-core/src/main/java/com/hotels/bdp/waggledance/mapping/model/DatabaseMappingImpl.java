@@ -479,7 +479,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
           final boolean escaped = dbName.startsWith("`") && dbName.endsWith("`");
           String transformedDbName = metaStoreMapping.transformOutboundDatabaseName(unescapeIdentifier(dbName));
           if (escaped) {
-            transformedDbName = escapeHiveString(transformedDbName);
+            transformedDbName = "`" + transformedDbName + "`";
           }
 
           Token token = new CommonToken(dbNameNode.getType(), transformedDbName);
@@ -493,10 +493,6 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     ASTConverter converter = new ASTConverter(false);
     query = converter.treeToQuery(root);
     return query;
-  }
-
-  private String escapeHiveString(String string) {
-    return "`" + string + "`";
   }
 
   @Override
