@@ -15,6 +15,8 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import static org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.unescapeIdentifier;
+
 import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getChildren;
 import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getRoot;
 import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.replaceNode;
@@ -444,8 +446,6 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
     result.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(result.getTable().getDbName()));
     if (result.getTable().isSetViewExpandedText()) {
-      // Parser tranformation code cannot handle expanded queries.
-      result.getTable().setViewExpandedText(result.getTable().getViewOriginalText());
       result.getTable().setViewExpandedText(transformOutboundQuery(result.getTable().getViewExpandedText()));
     }
     if (result.getTable().isSetViewOriginalText()) {
@@ -475,8 +475,14 @@ public class DatabaseMappingImpl implements DatabaseMapping {
         if (current.getChildCount() == 2) {
           // First child of TOK_TABNAME node is the database name node
           ASTNode dbNameNode = (ASTNode) current.getChild(0);
-          Token token = new CommonToken(dbNameNode.getType(),
-              metaStoreMapping.transformOutboundDatabaseName(dbNameNode.getText().trim()));
+          final String dbName = dbNameNode.getText();
+          final boolean escaped = dbName.startsWith("`") && dbName.endsWith("`");
+          String transformedDbName = metaStoreMapping.transformOutboundDatabaseName(unescapeIdentifier(dbName));
+          if (escaped) {
+            transformedDbName = escapeHiveString(transformedDbName);
+          }
+
+          Token token = new CommonToken(dbNameNode.getType(), transformedDbName);
           ASTNode newNode = new ASTNode(token);
           replaceNode(getRoot(dbNameNode), dbNameNode, newNode);
         }
@@ -487,6 +493,10 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     ASTConverter converter = new ASTConverter(false);
     query = converter.treeToQuery(root);
     return query;
+  }
+
+  private String escapeHiveString(String string) {
+    return "`" + string + "`";
   }
 
   @Override

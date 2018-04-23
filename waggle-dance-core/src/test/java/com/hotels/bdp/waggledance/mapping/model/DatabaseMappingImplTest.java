@@ -718,8 +718,13 @@ public class DatabaseMappingImplTest {
     Table table = new Table();
     table.setDbName(DB_NAME);
     table.setTableName(TABLE_NAME);
-    table.setViewExpandedText("select net_gross_profit, num_repeat_purchasers, cid from bdp.etl_hcom_hex_fact");
-    table.setViewOriginalText("select net_gross_profit, num_repeat_purchasers, cid from bdp.etl_hcom_hex_fact");
+    table.setViewExpandedText(
+        "select `fact`.`net_gross_profit`, `fact`.`num_repeat_purchasers`, `fact`.`cid`"
+            + " from `"
+            + DB_NAME
+            + "`.`fact`");
+    table.setViewOriginalText(
+        "select net_gross_profit, num_repeat_purchasers, cid from " + DB_NAME + ".fact");
     GetTableResult result = new GetTableResult();
     result.setTable(table);
     GetTableResult transformedResult = databaseMapping.transformOutboundGetTableResult(result);
@@ -727,11 +732,14 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
     assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
-    String transformedQuery = "select net_gross_profit, num_repeat_purchasers, cid from "
+    String originalTransformedQuery = "select net_gross_profit, num_repeat_purchasers, cid from "
         + OUT_DB_NAME
-        + ".etl_hcom_hex_fact";
-    assertThat(transformedResult.getTable().getViewExpandedText().toLowerCase().trim(), is(transformedQuery));
-    assertThat(transformedResult.getTable().getViewOriginalText().toLowerCase().trim(), is(transformedQuery));
+        + ".fact";
+    String expandedTransformedQuery = "select `fact`.`net_gross_profit`, `fact`.`num_repeat_purchasers`, `fact`.`cid` from `"
+        + OUT_DB_NAME
+        + "`.`fact`";
+    assertThat(transformedResult.getTable().getViewExpandedText().toLowerCase().trim(), is(expandedTransformedQuery));
+    assertThat(transformedResult.getTable().getViewOriginalText().toLowerCase().trim(), is(originalTransformedQuery));
   }
 
 }
