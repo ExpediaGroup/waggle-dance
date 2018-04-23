@@ -475,9 +475,6 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     stack.push(root);
     while (!stack.isEmpty()) {
       ASTNode current = stack.pop();
-      if (current == null) {
-        break;
-      }
       for (ASTNode child : getChildren(current)) {
         stack.push(child);
       }
