@@ -446,16 +446,16 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
     result.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(result.getTable().getDbName()));
     if (result.getTable().isSetViewExpandedText()) {
-      result.getTable().setViewExpandedText(transformOutboundQuery(result.getTable().getViewExpandedText()));
+      result.getTable().setViewExpandedText(transformOutboundViewQuery(result.getTable().getViewExpandedText()));
     }
     if (result.getTable().isSetViewOriginalText()) {
-      result.getTable().setViewOriginalText(transformOutboundQuery(result.getTable().getViewOriginalText()));
+      result.getTable().setViewOriginalText(transformOutboundViewQuery(result.getTable().getViewOriginalText()));
     }
 
     return result;
   }
 
-  private String transformOutboundQuery(String query) {
+  private String transformOutboundViewQuery(String query) {
     ASTNode root;
     try {
       root = ParseUtils.parse(query);
