@@ -15,18 +15,9 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
-import static org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.unescapeIdentifier;
-
-import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getChildren;
-import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getRoot;
-import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.replaceNode;
-
 import java.io.IOException;
 import java.util.List;
-import java.util.Stack;
 
-import org.antlr.runtime.CommonToken;
-import org.antlr.runtime.Token;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
@@ -70,14 +61,7 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
-import org.apache.hadoop.hive.ql.parse.ASTNode;
-import org.apache.hadoop.hive.ql.parse.HiveParser;
-import org.apache.hadoop.hive.ql.parse.ParseException;
-import org.apache.hadoop.hive.ql.parse.ParseUtils;
 import org.apache.thrift.TException;
-
-import com.hotels.bdp.waggledance.api.WaggleDanceException;
-import com.hotels.bdp.waggledance.parse.ASTConverter;
 
 public class DatabaseMappingImpl implements DatabaseMapping {
 
@@ -445,54 +429,15 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
     result.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(result.getTable().getDbName()));
+    QueryMapping queryMapping = new QueryMapping(metaStoreMapping);
     if (result.getTable().isSetViewExpandedText()) {
-      result.getTable().setViewExpandedText(transformOutboundViewQuery(result.getTable().getViewExpandedText()));
+      result.getTable().setViewExpandedText(queryMapping.transformOutboundDatabaseName(result.getTable().getViewExpandedText()));
     }
     if (result.getTable().isSetViewOriginalText()) {
-      result.getTable().setViewOriginalText(transformOutboundViewQuery(result.getTable().getViewOriginalText()));
+      result.getTable().setViewOriginalText(queryMapping.transformOutboundDatabaseName(result.getTable().getViewOriginalText()));
     }
 
     return result;
-  }
-
-  private String transformOutboundViewQuery(String query) {
-    ASTNode root;
-    try {
-      root = ParseUtils.parse(query);
-    } catch (ParseException e) {
-      throw new WaggleDanceException(e.getMessage());
-    }
-
-    Stack<ASTNode> stack = new Stack<>();
-    stack.push(root);
-    while (!stack.isEmpty()) {
-      ASTNode current = stack.pop();
-      for (ASTNode child : getChildren(current)) {
-        stack.push(child);
-      }
-
-      if (current.getType() == HiveParser.TOK_TABNAME) {
-        if (current.getChildCount() == 2) {
-          // First child of TOK_TABNAME node is the database name node
-          ASTNode dbNameNode = (ASTNode) current.getChild(0);
-          final String dbName = dbNameNode.getText();
-          final boolean escaped = dbName.startsWith("`") && dbName.endsWith("`");
-          String transformedDbName = metaStoreMapping.transformOutboundDatabaseName(unescapeIdentifier(dbName));
-          if (escaped) {
-            transformedDbName = "`" + transformedDbName + "`";
-          }
-
-          Token token = new CommonToken(dbNameNode.getType(), transformedDbName);
-          ASTNode newNode = new ASTNode(token);
-          replaceNode(getRoot(dbNameNode), dbNameNode, newNode);
-        }
-        // Otherwise TOK_TABNAME node only has one child which contains just the table name
-      }
-    }
-
-    ASTConverter converter = new ASTConverter(false);
-    query = converter.treeToQuery(root);
-    return query;
   }
 
   @Override
