@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.validation.constraints.NotNull;
 
+import com.hotels.bdp.waggledance.util.Whitelist;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.logging.log4j.util.Strings;
@@ -63,7 +64,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByPrefix;
-  private Map<String, List<String>> whitelistedDbByPrefix;
+  private Map<String, Whitelist> whitelistedDbByPrefix;
   private final MetaStoreMappingFactory metaStoreMappingFactory;
 
   public PrefixBasedDatabaseMappingService(
@@ -88,7 +89,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
     } else {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
-      List<String> whitelist = null;
+      Whitelist whitelist = null;
       if (FederatedMetaStore.class.isAssignableFrom(federatedMetaStore.getClass())) {
         whitelist = getWhitelistedDatabases((FederatedMetaStore) federatedMetaStore);
       }
@@ -96,15 +97,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     }
   }
 
-  private List<String> getWhitelistedDatabases(FederatedMetaStore federatedMetaStore) {
-    Builder<String> whitelistBuilder = ImmutableList.<String> builder();
-    List<String> mappedDatabases = federatedMetaStore.getMappedDatabases();
-    if (mappedDatabases != null && !mappedDatabases.isEmpty()) {
-      for (String mappedDatabase : mappedDatabases) {
-        whitelistBuilder.add(mappedDatabase.trim().toLowerCase());
-      }
-    }
-    return whitelistBuilder.build();
+  private Whitelist getWhitelistedDatabases(FederatedMetaStore federatedMetaStore) {
+    return new Whitelist(federatedMetaStore.getMappedDatabases());
   }
 
   private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
@@ -236,7 +230,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private boolean isWhitelisted(String databasePrefix, String database) {
-    List<String> whitelist = whitelistedDbByPrefix.get(databasePrefix);
+    Whitelist whitelist = whitelistedDbByPrefix.get(databasePrefix);
     if (whitelist == null || whitelist.isEmpty()) {
       // Accept everything
       return true;

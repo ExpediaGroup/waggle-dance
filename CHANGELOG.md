@@ -1,4 +1,6 @@
 ## [TBD]
+### Added
+* Regex support in `federated-meta-stores.mapped-databases`. [#59](https://github.com/HotelsDotCom/waggle-dance/issues/59).
 ### Fixed
 * Queries against federated views now work. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).
 
