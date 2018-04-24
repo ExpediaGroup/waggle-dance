@@ -15,6 +15,7 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -50,7 +51,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   @Before
   public void init() {
     hiveConf = metastore.conf();
-    when(tunnelableFactorySupplier.get(hiveConf)).thenReturn(tunnelableFactory);
+    when(tunnelableFactorySupplier.get(any(HiveConf.class))).thenReturn(tunnelableFactory);
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, "");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "yes");
