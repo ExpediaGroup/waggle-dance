@@ -430,10 +430,10 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
     result.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(result.getTable().getDbName()));
     if (result.getTable().isSetViewExpandedText()) {
-      result.getTable().setViewExpandedText(QueryMapping.getInstance().transformOutboundDatabaseName(metaStoreMapping, result.getTable().getViewExpandedText()));
+      result.getTable().setViewExpandedText(QueryMapping.INSTANCE.transformOutboundDatabaseName(metaStoreMapping, result.getTable().getViewExpandedText()));
     }
     if (result.getTable().isSetViewOriginalText()) {
-      result.getTable().setViewOriginalText(QueryMapping.getInstance().transformOutboundDatabaseName(metaStoreMapping, result.getTable().getViewOriginalText()));
+      result.getTable().setViewOriginalText(QueryMapping.INSTANCE.transformOutboundDatabaseName(metaStoreMapping, result.getTable().getViewOriginalText()));
     }
 
     return result;

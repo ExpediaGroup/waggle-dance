@@ -33,15 +33,9 @@ import org.apache.hadoop.hive.ql.parse.ParseUtils;
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.parse.ASTConverter;
 
-public class QueryMapping {
+public enum  QueryMapping {
 
-  private static final QueryMapping queryMapping = new QueryMapping();
-
-  private QueryMapping() {}
-
-  public static QueryMapping getInstance() {
-    return queryMapping;
-  }
+  INSTANCE;
 
   public String transformOutboundDatabaseName(MetaStoreMapping metaStoreMapping, String query) {
     ASTNode root;
