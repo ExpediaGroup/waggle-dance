@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -115,8 +114,8 @@ public class DatabaseMappingImplTest {
     hiveObjectPrivileges.add(hiveObjectPrivilege);
     partitionSpec = new PartitionSpec();
     partitionSpec.setDbName(DB_NAME);
-    when(metastoreMapping.transformInboundDatabaseName(anyString())).thenReturn(IN_DB_NAME);
-    when(metastoreMapping.transformOutboundDatabaseName(anyString())).thenReturn(OUT_DB_NAME);
+    when(metastoreMapping.transformInboundDatabaseName(DB_NAME)).thenReturn(IN_DB_NAME);
+    when(metastoreMapping.transformOutboundDatabaseName(DB_NAME)).thenReturn(OUT_DB_NAME);
   }
 
   @Test
@@ -683,8 +682,6 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
     assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
-    assertFalse(transformedResult.getTable().isSetViewExpandedText());
-    assertFalse(transformedResult.getTable().isSetViewOriginalText());
   }
 
   @Test
@@ -711,35 +708,6 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTables().get(0), is(sameInstance(result.getTables().get(0))));
     assertThat(transformedResult.getTables().get(0).getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTables().get(0).getTableName(), is(TABLE_NAME));
-  }
-
-  @Test
-  public void transformOutboundGetTableResultWithView() throws Exception {
-    Table table = new Table();
-    table.setDbName(DB_NAME);
-    table.setTableName(TABLE_NAME);
-    table.setViewExpandedText(
-        "select `fact`.`net_gross_profit`, `fact`.`num_repeat_purchasers`, `fact`.`cid`"
-            + " from `"
-            + DB_NAME
-            + "`.`fact`");
-    table.setViewOriginalText(
-        "select net_gross_profit, num_repeat_purchasers, cid from " + DB_NAME + ".fact");
-    GetTableResult result = new GetTableResult();
-    result.setTable(table);
-    GetTableResult transformedResult = databaseMapping.transformOutboundGetTableResult(result);
-    assertThat(transformedResult, is(sameInstance(result)));
-    assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
-    assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
-    assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
-    String originalTransformedQuery = "select net_gross_profit, num_repeat_purchasers, cid from "
-        + OUT_DB_NAME
-        + ".fact";
-    String expandedTransformedQuery = "select `fact`.`net_gross_profit`, `fact`.`num_repeat_purchasers`, `fact`.`cid` from `"
-        + OUT_DB_NAME
-        + "`.`fact`";
-    assertThat(transformedResult.getTable().getViewExpandedText().toLowerCase().trim(), is(expandedTransformedQuery));
-    assertThat(transformedResult.getTable().getViewOriginalText().toLowerCase().trim(), is(originalTransformedQuery));
   }
 
 }
