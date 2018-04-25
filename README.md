@@ -396,6 +396,10 @@ Assumes database resolution is done by adding prefixes. If database resolution i
  * Metadata read operations are routed only. Write and destructive operations can be performed on the local metastore only.
  * When using Spark to read tables with a big number of partitions it may be necessary to set `spark.sql.hive.metastorePartitionPruning=true` to enable partition pruning. If this property is `false` Spark will try to fetch all the partitions of the tables in the query which may result on a `OutOfMemoryError` in Waggle Dance.
 
+
+## Limitations
+* Support for views utilises an experimental Hive query parsing -> unparsing feature. This feature issues a conversion on the original query which was used to generate the view, in some cases the conversion of the original query may fail.
+
 ## Building
 
 Waggle Dance can be built from source using Maven:
