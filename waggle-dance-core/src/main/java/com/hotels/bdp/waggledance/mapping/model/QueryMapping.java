@@ -15,8 +15,14 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
-import com.hotels.bdp.waggledance.api.WaggleDanceException;
-import com.hotels.bdp.waggledance.parse.ASTConverter;
+import static org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.unescapeIdentifier;
+
+import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getChildren;
+import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getRoot;
+import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.replaceNode;
+
+import java.util.Stack;
+
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
@@ -24,22 +30,20 @@ import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.apache.hadoop.hive.ql.parse.ParseUtils;
 
-import java.util.Stack;
-
-import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getChildren;
-import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getRoot;
-import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.replaceNode;
-import static org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.unescapeIdentifier;
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import com.hotels.bdp.waggledance.parse.ASTConverter;
 
 public class QueryMapping {
 
-  private final MetaStoreMapping metaStoreMapping;
+  private static final QueryMapping queryMapping = new QueryMapping();
 
-  public QueryMapping(MetaStoreMapping metaStoreMapping) {
-    this.metaStoreMapping = metaStoreMapping;
+  private QueryMapping() {}
+
+  public static QueryMapping getInstance() {
+    return queryMapping;
   }
 
-  public String transformOutboundDatabaseName(String query) {
+  public String transformOutboundDatabaseName(MetaStoreMapping metaStoreMapping, String query) {
     ASTNode root;
     try {
       root = ParseUtils.parse(query);

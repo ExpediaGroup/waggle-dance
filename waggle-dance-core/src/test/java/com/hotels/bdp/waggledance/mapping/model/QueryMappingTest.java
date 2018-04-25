@@ -17,7 +17,6 @@ package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -26,24 +25,22 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class QueryMappingTest {
 
   private static final String PREFIX = "prefix_";
-  private QueryMapping queryMapping;
-
-  @Before
-  public void init() {
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null);
-    queryMapping = new QueryMapping(metaStoreMapping);
-  }
 
   @Test
   public void transformOutboundDatabaseName() {
+    QueryMapping queryMapping = QueryMapping.getInstance();
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null);
+
     String query = "SELECT *\n"
         + "FROM db1.table1 alias1 INNER JOIN db2.table2 alias2\n"
         + "ON alias1.field1 = alias2.field2";
 
-    assertEquals("SELECT * FROM "
-        + PREFIX
-        + "db1.table1 alias1 JOIN "
-        + PREFIX
-        + "db2.table2 alias2  ON alias1.field1 = alias2.field2", queryMapping.transformOutboundDatabaseName(query));
+    assertEquals(
+        "SELECT * FROM "
+            + PREFIX
+            + "db1.table1 alias1 JOIN "
+            + PREFIX
+            + "db2.table2 alias2  ON alias1.field1 = alias2.field2",
+        queryMapping.transformOutboundDatabaseName(metaStoreMapping, query));
   }
 }

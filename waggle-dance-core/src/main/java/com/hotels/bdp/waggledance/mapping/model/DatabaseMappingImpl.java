@@ -429,12 +429,11 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
     result.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(result.getTable().getDbName()));
-    QueryMapping queryMapping = new QueryMapping(metaStoreMapping);
     if (result.getTable().isSetViewExpandedText()) {
-      result.getTable().setViewExpandedText(queryMapping.transformOutboundDatabaseName(result.getTable().getViewExpandedText()));
+      result.getTable().setViewExpandedText(QueryMapping.getInstance().transformOutboundDatabaseName(metaStoreMapping, result.getTable().getViewExpandedText()));
     }
     if (result.getTable().isSetViewOriginalText()) {
-      result.getTable().setViewOriginalText(queryMapping.transformOutboundDatabaseName(result.getTable().getViewOriginalText()));
+      result.getTable().setViewOriginalText(QueryMapping.getInstance().transformOutboundDatabaseName(metaStoreMapping, result.getTable().getViewOriginalText()));
     }
 
     return result;
