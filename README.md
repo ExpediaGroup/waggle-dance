@@ -1,7 +1,5 @@
 ![Bee waggle-dancing on a hive.](logo.png "Federating Hive Meta Stores.")
 
-**We’ll be speaking about Waggle Dance and [Circus Train](https://github.com/HotelsDotCom/circus-train) at the [DataWorks Summit Berlin 2018](https://dataworkssummit.com/berlin-2018/) at 14:50 on Wednesday the 18th of April. Please drop by for a free sticker!**
-
 ## Start using
 
 You can obtain Waggle Dance from Maven Central:
