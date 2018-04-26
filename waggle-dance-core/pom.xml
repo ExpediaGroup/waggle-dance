@@ -15,8 +15,7 @@
     <mockito.version>1.10.19</mockito.version>
     <powermock.version>1.6.4</powermock.version>
     <jcabi-aspects.version>0.22.6</jcabi-aspects.version>
-    <!-- must be compatible with Spring Boot Jsch dependencies -->
-    <jsch-extension.version>0.1.6</jsch-extension.version>
+    <hcommon-ssh.version>1.0.0</hcommon-ssh.version>
   </properties>
 
   <dependencies>
@@ -106,15 +105,11 @@
       <artifactId>hibernate-validator</artifactId>
     </dependency>
 
-    <!-- JSch -->
+    <!-- SSH library -->
     <dependency>
-      <groupId>com.jcraft</groupId>
-      <artifactId>jsch</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.pastdev</groupId>
-      <artifactId>jsch-extension</artifactId>
-      <version>${jsch-extension.version}</version>
+      <groupId>com.hotels</groupId>
+      <artifactId>hcommon-ssh</artifactId>
+      <version>${hcommon-ssh.version}</version>
     </dependency>
 
     <!-- Hive -->
