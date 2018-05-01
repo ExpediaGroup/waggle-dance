@@ -2,7 +2,7 @@
 ### Added
 * Regex support in `federated-meta-stores.mapped-databases`. [#59](https://github.com/HotelsDotCom/waggle-dance/issues/59).
 ### Fixed
-* Tables referenced in views are now correctly transformed to the context of the waggle dance client. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).
+* Tables referenced in views are now correctly transformed to the context of the Waggle Dance client. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).
 
 ## [2.3.1] 2018-08-09
 ### Added

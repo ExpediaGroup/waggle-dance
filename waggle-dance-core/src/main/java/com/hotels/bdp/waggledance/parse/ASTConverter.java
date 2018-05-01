@@ -41,7 +41,7 @@ import com.hotels.bdp.waggledance.parse.Rule.SingleRule;
 
 /**
  * There will probably be some statements on which conversions using this class fails.
- **/
+ */
 @Experimental
 public class ASTConverter {
 
