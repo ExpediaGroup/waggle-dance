@@ -28,7 +28,7 @@ public class QueryMappingTest {
 
   @Test
   public void transformOutboundDatabaseName() {
-    QueryMapping queryMapping = QueryMapping.getInstance();
+    QueryMapping queryMapping = QueryMapping.INSTANCE;
     MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null);
 
     String query = "SELECT *\n"

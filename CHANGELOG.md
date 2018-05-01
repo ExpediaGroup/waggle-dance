@@ -4,7 +4,7 @@
 ### Changed
 * Replace SSH support with [hcommon-ssh](https://github.com/HotelsDotCom/hcommon-ssh) library. [#51](https://github.com/HotelsDotCom/waggle-dance/issues/51).
 ### Fixed
-* Queries against federated views now work. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).
+* Tables referenced in views are now correctly transformed to the context of the Waggle Dance client. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).
 
 ## [2.3.1] 2018-08-09
 ### Added

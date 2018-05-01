@@ -1,6 +1,11 @@
 /**
  * Copyright (C) 2016-2018 Expedia Inc.
  *
+ * Based on {@code com.flaminem.flamy} from Flamy 0.7.0
+ *
+ * https://github.com/flaminem/flamy
+ *
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,12 +32,17 @@ import java.util.Map;
 
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.HiveParser;
+import org.apache.http.annotation.Experimental;
 
 import com.sun.tools.javac.util.Pair;
 
 import com.hotels.bdp.waggledance.parse.Rule.RuleSet;
 import com.hotels.bdp.waggledance.parse.Rule.SingleRule;
 
+/**
+ * There will probably be some statements on which conversions using this class fails.
+ */
+@Experimental
 public class ASTConverter {
 
   private String indent = " ";
