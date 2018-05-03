@@ -1,4 +1,4 @@
-## [TBD]
+## [2.3.2] 2018-05-03
 ### Added
 * Regex support in `federated-meta-stores.mapped-databases`. [#59](https://github.com/HotelsDotCom/waggle-dance/issues/59).
 ### Changed
@@ -6,7 +6,7 @@
 ### Fixed
 * Tables referenced in views are now correctly transformed to the context of the Waggle Dance client. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).
 
-## [2.3.1] 2018-08-09
+## [2.3.1] 2018-04-09
 ### Added
 * Configure StrictHostKeyChecking for MetastoreTunnel in YAML configuration. See [#33](https://github.com/HotelsDotCom/waggle-dance/issues/33).
 ### Fixed
