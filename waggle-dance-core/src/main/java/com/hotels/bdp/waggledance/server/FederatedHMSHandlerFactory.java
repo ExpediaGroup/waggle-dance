@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.impl.MonitoredDatabaseMappingService;
@@ -35,17 +36,20 @@ public class FederatedHMSHandlerFactory {
   private final NotifyingFederationService notifyingFederationService;
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final WaggleDanceConfiguration waggleDanceConfiguration;
+  private final QueryMapping queryMapping;
 
   @Autowired
   public FederatedHMSHandlerFactory(
       HiveConf hiveConf,
       NotifyingFederationService notifyingFederationService,
       MetaStoreMappingFactory metaStoreMappingFactory,
-      WaggleDanceConfiguration waggleDanceConfiguration) {
+      WaggleDanceConfiguration waggleDanceConfiguration,
+      QueryMapping queryMapping) {
     this.hiveConf = hiveConf;
     this.notifyingFederationService = notifyingFederationService;
     this.metaStoreMappingFactory = metaStoreMappingFactory;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
+    this.queryMapping = queryMapping;
   }
 
   public CloseableIHMSHandler create() {
@@ -66,7 +70,7 @@ public class FederatedHMSHandlerFactory {
 
     case PREFIXED:
       final PrefixBasedDatabaseMappingService prefixBasedService = new PrefixBasedDatabaseMappingService(
-          metaStoreMappingFactory, notifyingFederationService.getAll());
+          metaStoreMappingFactory, notifyingFederationService.getAll(), queryMapping);
       return prefixBasedService;
 
     default:

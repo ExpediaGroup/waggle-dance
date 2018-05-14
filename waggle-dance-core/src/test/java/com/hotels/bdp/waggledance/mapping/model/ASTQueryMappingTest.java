@@ -21,14 +21,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
+
 @RunWith(MockitoJUnitRunner.class)
-public class QueryMappingTest {
+public class ASTQueryMappingTest {
 
   private static final String PREFIX = "prefix_";
 
   @Test
   public void transformOutboundDatabaseName() {
-    QueryMapping queryMapping = QueryMapping.INSTANCE;
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
     MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null);
 
     String query = "SELECT *\n"
@@ -42,5 +44,14 @@ public class QueryMappingTest {
             + PREFIX
             + "db2.table2 alias2  ON alias1.field1 = alias2.field2",
         queryMapping.transformOutboundDatabaseName(metaStoreMapping, query));
+  }
+
+  @Test(expected = WaggleDanceException.class)
+  public void transformOutboundDatabaseNameParseException() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null);
+
+    String unparsableQuery = "SELCT *";
+    queryMapping.transformOutboundDatabaseName(metaStoreMapping, unparsableQuery);
   }
 }

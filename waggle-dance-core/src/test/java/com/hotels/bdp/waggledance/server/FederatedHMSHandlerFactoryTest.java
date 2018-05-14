@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
 
@@ -41,6 +42,7 @@ public class FederatedHMSHandlerFactoryTest {
   private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
   private @Mock NotifyingFederationService notifyingFederationService;
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
+  private @Mock QueryMapping queryMapping;
 
   private final HiveConf hiveConf = new HiveConf();
   private FederatedHMSHandlerFactory factory;
@@ -50,7 +52,7 @@ public class FederatedHMSHandlerFactoryTest {
     when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.MANUAL);
     when(notifyingFederationService.getAll()).thenReturn(new ArrayList<AbstractMetaStore>());
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
-        waggleDanceConfiguration);
+        waggleDanceConfiguration, queryMapping);
   }
 
   @Test
