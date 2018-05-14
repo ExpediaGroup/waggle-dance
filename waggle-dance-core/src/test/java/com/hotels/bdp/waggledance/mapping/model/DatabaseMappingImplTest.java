@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -83,8 +84,13 @@ public class DatabaseMappingImplTest {
   private final static String IN_DB_NAME = "in_db";
   private final static String OUT_DB_NAME = "out_db";
   private final static String TABLE_NAME = "table";
+  private static final String VIEW_EXPANDED_TEXT = "view expanded text";
+  private static final String VIEW_ORIGINAL_TEXT = "view original text";
+  private static final String VIEW_EXPANDED_TEST_TRANSFORMED = "view expanded text transformed!";
+  private static final String VIEW_ORIGINAL_TEXT_TRANSFORMED = "view original text transformed!";
 
   private @Mock MetaStoreMapping metastoreMapping;
+  private @Mock QueryMapping queryMapping;
 
   private DatabaseMappingImpl databaseMapping;
   private Partition partition;
@@ -97,7 +103,7 @@ public class DatabaseMappingImplTest {
 
   @Before
   public void setUp() {
-    databaseMapping = new DatabaseMappingImpl(metastoreMapping);
+    databaseMapping = new DatabaseMappingImpl(metastoreMapping, queryMapping);
     database = new Database();
     database.setName(DB_NAME);
     partition = new Partition();
@@ -117,6 +123,10 @@ public class DatabaseMappingImplTest {
     partitionSpec.setDbName(DB_NAME);
     when(metastoreMapping.transformInboundDatabaseName(anyString())).thenReturn(IN_DB_NAME);
     when(metastoreMapping.transformOutboundDatabaseName(anyString())).thenReturn(OUT_DB_NAME);
+    when(queryMapping.transformOutboundDatabaseName(metastoreMapping, VIEW_EXPANDED_TEXT))
+        .thenReturn(VIEW_EXPANDED_TEST_TRANSFORMED);
+    when(queryMapping.transformOutboundDatabaseName(metastoreMapping, VIEW_ORIGINAL_TEXT))
+        .thenReturn(VIEW_ORIGINAL_TEXT_TRANSFORMED);
   }
 
   @Test
@@ -126,6 +136,22 @@ public class DatabaseMappingImplTest {
     Table result = databaseMapping.transformOutboundTable(table);
     assertThat(result, is(sameInstance(table)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
+    assertThat(result.getViewExpandedText(), nullValue());
+    assertThat(result.getViewOriginalText(), nullValue());
+  }
+
+  @Test
+  public void transformOutboundTableView() throws Exception {
+    Table table = new Table();
+    table.setDbName(DB_NAME);
+    table.setViewExpandedText(VIEW_EXPANDED_TEXT);
+    table.setViewOriginalText(VIEW_ORIGINAL_TEXT);
+
+    Table result = databaseMapping.transformOutboundTable(table);
+    assertThat(result, is(sameInstance(table)));
+    assertThat(result.getDbName(), is(OUT_DB_NAME));
+    assertThat(result.getViewExpandedText(), is(VIEW_EXPANDED_TEST_TRANSFORMED));
+    assertThat(result.getViewOriginalText(), is(VIEW_ORIGINAL_TEXT_TRANSFORMED));
   }
 
   @Test
@@ -703,14 +729,26 @@ public class DatabaseMappingImplTest {
     Table table = new Table();
     table.setDbName(DB_NAME);
     table.setTableName(TABLE_NAME);
+    Table table2 = new Table();
+    table2.setDbName(DB_NAME);
+    table2.setTableName(TABLE_NAME);
+    table2.setViewExpandedText(VIEW_EXPANDED_TEXT);
+    table2.setViewOriginalText(VIEW_ORIGINAL_TEXT);
     GetTablesResult result = new GetTablesResult();
-    result.setTables(Arrays.asList(table));
+    result.setTables(Arrays.asList(table, table2));
     GetTablesResult transformedResult = databaseMapping.transformOutboundGetTablesResult(result);
     assertThat(transformedResult, is(sameInstance(result)));
-    assertThat(transformedResult.getTables().size(), is(1));
+    assertThat(transformedResult.getTables().size(), is(2));
     assertThat(transformedResult.getTables().get(0), is(sameInstance(result.getTables().get(0))));
     assertThat(transformedResult.getTables().get(0).getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTables().get(0).getTableName(), is(TABLE_NAME));
+    assertThat(transformedResult.getTables().get(0).getViewExpandedText(), nullValue());
+    assertThat(transformedResult.getTables().get(0).getViewOriginalText(), nullValue());
+    assertThat(transformedResult.getTables().get(1), is(sameInstance(result.getTables().get(1))));
+    assertThat(transformedResult.getTables().get(1).getDbName(), is(OUT_DB_NAME));
+    assertThat(transformedResult.getTables().get(1).getTableName(), is(TABLE_NAME));
+    assertThat(transformedResult.getTables().get(1).getViewExpandedText(), is(VIEW_EXPANDED_TEST_TRANSFORMED));
+    assertThat(transformedResult.getTables().get(1).getViewOriginalText(), is(VIEW_ORIGINAL_TEXT_TRANSFORMED));
   }
 
   @Test
@@ -718,13 +756,8 @@ public class DatabaseMappingImplTest {
     Table table = new Table();
     table.setDbName(DB_NAME);
     table.setTableName(TABLE_NAME);
-    table.setViewExpandedText(
-        "select `fact`.`net_gross_profit`, `fact`.`num_repeat_purchasers`, `fact`.`cid`"
-            + " from `"
-            + DB_NAME
-            + "`.`fact`");
-    table.setViewOriginalText(
-        "select net_gross_profit, num_repeat_purchasers, cid from " + DB_NAME + ".fact");
+    table.setViewExpandedText(VIEW_EXPANDED_TEXT);
+    table.setViewOriginalText(VIEW_ORIGINAL_TEXT);
     GetTableResult result = new GetTableResult();
     result.setTable(table);
     GetTableResult transformedResult = databaseMapping.transformOutboundGetTableResult(result);
@@ -732,14 +765,8 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
     assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
-    String originalTransformedQuery = "select net_gross_profit, num_repeat_purchasers, cid from "
-        + OUT_DB_NAME
-        + ".fact";
-    String expandedTransformedQuery = "select `fact`.`net_gross_profit`, `fact`.`num_repeat_purchasers`, `fact`.`cid` from `"
-        + OUT_DB_NAME
-        + "`.`fact`";
-    assertThat(transformedResult.getTable().getViewExpandedText().toLowerCase().trim(), is(expandedTransformedQuery));
-    assertThat(transformedResult.getTable().getViewOriginalText().toLowerCase().trim(), is(originalTransformedQuery));
+    assertThat(transformedResult.getTable().getViewExpandedText(), is(VIEW_EXPANDED_TEST_TRANSFORMED));
+    assertThat(transformedResult.getTable().getViewOriginalText(), is(VIEW_ORIGINAL_TEXT_TRANSFORMED));
   }
 
 }

@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.validation.constraints.NotNull;
 
-import com.hotels.bdp.waggledance.util.Whitelist;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.logging.log4j.util.Strings;
@@ -51,11 +50,13 @@ import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
 import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
+import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.GrammarUtils;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
+import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(PrefixBasedDatabaseMappingService.class);
@@ -66,11 +67,14 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private Map<String, DatabaseMapping> mappingsByPrefix;
   private Map<String, Whitelist> whitelistedDbByPrefix;
   private final MetaStoreMappingFactory metaStoreMappingFactory;
+  private final QueryMapping queryMapping;
 
   public PrefixBasedDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
-      List<AbstractMetaStore> initialMetastores) {
+      List<AbstractMetaStore> initialMetastores,
+      QueryMapping queryMapping) {
     this.metaStoreMappingFactory = metaStoreMappingFactory;
+    this.queryMapping = queryMapping;
     init(initialMetastores);
   }
 
@@ -105,7 +109,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     if (Strings.isBlank(metaStoreMapping.getDatabasePrefix())) {
       return new IdentityMapping(metaStoreMapping);
     }
-    return new DatabaseMappingImpl(metaStoreMapping);
+    return new DatabaseMappingImpl(metaStoreMapping, queryMapping);
   }
 
   private void remove(AbstractMetaStore federatedMetaStore) {

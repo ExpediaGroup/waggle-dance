@@ -51,6 +51,7 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
+import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 
@@ -62,6 +63,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   private static final String URI = "uri";
 
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
+  private @Mock QueryMapping queryMapping;
 
   private PrefixBasedDatabaseMappingService service;
   private final AbstractMetaStore primaryMetastore = newPrimaryInstance("primary", URI);
@@ -80,7 +82,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
 
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Arrays.asList(primaryMetastore, federatedMetastore));
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
   }
 
   private MetaStoreMapping mockNewMapping(boolean isAvailable, String prefix) {
@@ -149,7 +151,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void onInitOverridesDuplicates() throws Exception {
     List<AbstractMetaStore> duplicates = Arrays.asList(primaryMetastore, federatedMetastore, primaryMetastore,
         federatedMetastore);
-    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, duplicates);
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, duplicates, queryMapping);
     assertThat(service.databaseMappings().size(), is(2));
   }
 
@@ -157,7 +159,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void onInitEmpty() throws Exception {
     List<AbstractMetaStore> empty = Collections.<AbstractMetaStore> emptyList();
     try {
-      service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, empty);
+      service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, empty, queryMapping);
     } catch (Exception e) {
       fail("It should not throw any exception, an empty list is ok");
     }
@@ -256,7 +258,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   public void closeOnEmptyInit() throws Exception {
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Collections.<AbstractMetaStore> emptyList());
+        Collections.<AbstractMetaStore> emptyList(), queryMapping);
     service.close();
     verify(metaStoreMappingPrimary, never()).close();
     verify(metaStoreMappingFederated, never()).close();
@@ -280,7 +282,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void panopticOperationsHandlerGetAllDatabasesWithMappedDatabases() throws Exception {
     federatedMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Arrays.asList(primaryMetastore, federatedMetastore));
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
 
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
 
@@ -316,7 +318,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void panopticStoreOperationsHandlerGetAllDatabasesByPatternWithMappedDatabases() throws Exception {
     federatedMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Arrays.asList(primaryMetastore, federatedMetastore));
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
 
     String pattern = "*_db";
     when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));

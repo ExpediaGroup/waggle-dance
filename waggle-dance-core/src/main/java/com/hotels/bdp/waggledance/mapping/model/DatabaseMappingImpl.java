@@ -66,14 +66,24 @@ import org.apache.thrift.TException;
 public class DatabaseMappingImpl implements DatabaseMapping {
 
   private final MetaStoreMapping metaStoreMapping;
+  private final QueryMapping queryMapping;
 
-  public DatabaseMappingImpl(MetaStoreMapping metaStoreMapping) {
+  public DatabaseMappingImpl(MetaStoreMapping metaStoreMapping, QueryMapping queryMapping) {
     this.metaStoreMapping = metaStoreMapping;
+    this.queryMapping = queryMapping;
   }
 
   @Override
   public Table transformOutboundTable(Table table) {
     table.setDbName(metaStoreMapping.transformOutboundDatabaseName(table.getDbName()));
+    if (table.isSetViewExpandedText()) {
+      table.setViewExpandedText(
+          queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewExpandedText()));
+    }
+    if (table.isSetViewOriginalText()) {
+      table.setViewOriginalText(
+          queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewOriginalText()));
+    }
     return table;
   }
 
@@ -428,14 +438,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
-    result.getTable().setDbName(metaStoreMapping.transformOutboundDatabaseName(result.getTable().getDbName()));
-    if (result.getTable().isSetViewExpandedText()) {
-      result.getTable().setViewExpandedText(QueryMapping.INSTANCE.transformOutboundDatabaseName(metaStoreMapping, result.getTable().getViewExpandedText()));
-    }
-    if (result.getTable().isSetViewOriginalText()) {
-      result.getTable().setViewOriginalText(QueryMapping.INSTANCE.transformOutboundDatabaseName(metaStoreMapping, result.getTable().getViewOriginalText()));
-    }
-
+    transformOutboundTable(result.getTable());
     return result;
   }
 
@@ -448,7 +451,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public GetTablesResult transformOutboundGetTablesResult(GetTablesResult result) {
     for (Table table : result.getTables()) {
-      table.setDbName(metaStoreMapping.transformOutboundDatabaseName(table.getDbName()));
+      transformOutboundTable(table);
     }
     return result;
   }

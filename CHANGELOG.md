@@ -1,3 +1,7 @@
+## TBD
+### Fixed
+* Issue where not all views where correctly transformed. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).
+
 ## [2.3.2] 2018-05-03
 ### Added
 * Regex support in `federated-meta-stores.mapped-databases`. [#59](https://github.com/HotelsDotCom/waggle-dance/issues/59).

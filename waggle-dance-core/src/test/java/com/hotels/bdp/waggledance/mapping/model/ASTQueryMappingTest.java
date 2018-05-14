@@ -22,13 +22,13 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class QueryMappingTest {
+public class ASTQueryMappingTest {
 
   private static final String PREFIX = "prefix_";
 
   @Test
   public void transformOutboundDatabaseName() {
-    QueryMapping queryMapping = QueryMapping.INSTANCE;
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
     MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null);
 
     String query = "SELECT *\n"
