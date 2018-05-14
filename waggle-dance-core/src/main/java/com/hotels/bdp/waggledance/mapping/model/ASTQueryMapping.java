@@ -43,7 +43,7 @@ public enum ASTQueryMapping implements QueryMapping {
     try {
       root = ParseUtils.parse(query);
     } catch (ParseException e) {
-      throw new WaggleDanceException(e.getMessage());
+      throw new WaggleDanceException("Can't parse query: '" + query + "'", e);
     }
 
     Stack<ASTNode> stack = new Stack<>();

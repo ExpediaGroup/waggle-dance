@@ -21,6 +21,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
+
 @RunWith(MockitoJUnitRunner.class)
 public class ASTQueryMappingTest {
 
@@ -42,5 +44,14 @@ public class ASTQueryMappingTest {
             + PREFIX
             + "db2.table2 alias2  ON alias1.field1 = alias2.field2",
         queryMapping.transformOutboundDatabaseName(metaStoreMapping, query));
+  }
+
+  @Test(expected = WaggleDanceException.class)
+  public void transformOutboundDatabaseNameParseException() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null);
+
+    String unparsableQuery = "SELCT *";
+    queryMapping.transformOutboundDatabaseName(metaStoreMapping, unparsableQuery);
   }
 }
