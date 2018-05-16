@@ -1,4 +1,4 @@
-## [TBD] 
+## [2.3.4] 2018-05-16 
 ### Fixed
 * View query parsing code shouldn't use JRE class. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/74).
 
