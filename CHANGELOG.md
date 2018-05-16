@@ -1,3 +1,7 @@
+## [TBD] 
+### Fixed
+* View query parsing code shouldn't use JRE class. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/74).
+
 ## [2.3.3] 2018-05-14
 ### Fixed
 * Issue where not all views where correctly transformed. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).

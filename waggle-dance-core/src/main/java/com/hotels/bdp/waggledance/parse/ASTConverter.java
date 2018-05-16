@@ -30,11 +30,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.http.annotation.Experimental;
-
-import com.sun.tools.javac.util.Pair;
 
 import com.hotels.bdp.waggledance.parse.Rule.RuleSet;
 import com.hotels.bdp.waggledance.parse.Rule.SingleRule;
@@ -45,8 +45,8 @@ import com.hotels.bdp.waggledance.parse.Rule.SingleRule;
 @Experimental
 public class ASTConverter {
 
-  private String indent = " ";
-  private boolean splitMultiInsert;
+  private final String indent = " ";
+  private final boolean splitMultiInsert;
 
   public ASTConverter(boolean splitMultiInsert) {
     this.splitMultiInsert = splitMultiInsert;
@@ -261,9 +261,9 @@ public class ASTConverter {
     if (pt.getType() == HiveParser.TOK_SUBQUERY) {
       String alias = recTransform((ASTNode) pt.getChild(1));
       String firstPair = recTransform((ASTNode) pt.getChild(0), prefix + indent) + prefix + ")"; // uncomment for no
-      return new Pair<>(firstPair, alias);
+      return new ImmutablePair<>(firstPair, alias);
     }
-    return new Pair<>("", "");
+    return new ImmutablePair<>("", "");
   }
 
   Rule defaultRule = new Rule() {
@@ -676,7 +676,7 @@ public class ASTConverter {
     @Override
     public String apply(ASTNode pt, String prefix) {
       Pair<String, String> pair = formatSubQuery(pt, prefix);
-      return pair.fst + " " + pair.snd;
+      return pair.getLeft() + " " + pair.getRight();
     }
   };
 
@@ -721,7 +721,7 @@ public class ASTConverter {
       List<String> newList = new ArrayList<>();
       for (ASTNode node : getChildren(pt)) {
         Pair<String, String> pair = formatSubQuery(node, prefix);
-        newList.add(pair.snd + " AS " + pair.fst);
+        newList.add(pair.getRight() + " AS " + pair.getLeft());
       }
       return mkString(newList, "WITH ", ", ", " "); // uncomment for no new line
     }
