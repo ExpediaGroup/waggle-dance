@@ -81,8 +81,12 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
 
+    AbstractMetaStore unavailableMetastore = newFederatedInstance("name2", "thrift:host:port");
+    MetaStoreMapping unavailableMapping = mockNewMapping(false, "name2_");
+    when(metaStoreMappingFactory.newInstance(unavailableMetastore)).thenReturn(unavailableMapping);
+
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+        Arrays.asList(primaryMetastore, federatedMetastore, unavailableMetastore), queryMapping);
   }
 
   private MetaStoreMapping mockNewMapping(boolean isAvailable, String prefix) {
@@ -219,29 +223,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Test
   public void databaseMappings() {
-    List<DatabaseMapping> databaseMappings = service.databaseMappings();
-    assertThat(databaseMappings.size(), is(2));
-    assertThat(
-        ImmutableSet.of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix()),
-        is(ImmutableSet.of("", DB_PREFIX)));
-  }
-
-  @Test
-  public void databaseMappingsIgnoreDisconnected() {
-    AbstractMetaStore newMetastore = newFederatedInstance("name2", "abc");
-    MetaStoreMapping newMapping = mockNewMapping(false, "name2_");
-    when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
-    service.onRegister(newMetastore);
-
-    List<DatabaseMapping> databaseMappings = service.databaseMappings();
-    assertThat(databaseMappings.size(), is(2));
-    assertThat(
-        ImmutableSet.of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix()),
-        is(ImmutableSet.of("", DB_PREFIX)));
-  }
-
-  @Test
-  public void databaseMappingsByPattern() {
     List<DatabaseMapping> databaseMappings = service.databaseMappings();
     assertThat(databaseMappings.size(), is(2));
     assertThat(

@@ -155,6 +155,7 @@ class ThriftMetastoreClient implements Closeable {
           client = new ThriftHiveMetastore.Client(protocol);
           try {
             transport.open();
+
             LOG.info("Opened a connection to metastore '"
                 + store
                 + "', total current connections to all metastores: "
@@ -217,7 +218,7 @@ class ThriftMetastoreClient implements Closeable {
     }
     // Transport would have got closed via client.shutdown(), so we don't need this, but
     // just in case, we make this call.
-    if (isOpen()) {
+    if (transport != null && transport.isOpen()) {
       transport.close();
       transport = null;
     }
@@ -225,7 +226,15 @@ class ThriftMetastoreClient implements Closeable {
   }
 
   public boolean isOpen() {
-    return transport != null && transport.isOpen();
+    if (transport != null && transport.isOpen() && client != null) {
+      try {
+        client.getStatus();
+        return true;
+      } catch (TException e) {
+        return false;
+      }
+    }
+    return false;
   }
 
   protected ThriftHiveMetastore.Iface getClient() {

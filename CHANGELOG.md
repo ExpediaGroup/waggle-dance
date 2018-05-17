@@ -1,3 +1,7 @@
+## TBD
+### Fixed
+* Issue where WD became unresponsive when a tunneled metastore connection became unreachable See [#73](https://github.com/HotelsDotCom/waggle-dance/issues/73).
+
 ## [2.3.4] 2018-05-16 
 ### Fixed
 * View query parsing code shouldn't use JRE class. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/74).

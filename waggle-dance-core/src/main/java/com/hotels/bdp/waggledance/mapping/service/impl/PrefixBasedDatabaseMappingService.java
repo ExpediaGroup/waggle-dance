@@ -228,7 +228,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       if (mapping == null) {
         continue;
       }
-      mappings.put(mapping, prefixWithPattern.getValue());
+      if (includeInResults(mapping)) {
+        mappings.put(mapping, prefixWithPattern.getValue());
+      }
     }
     return mappings;
   }

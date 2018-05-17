@@ -113,7 +113,7 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
         .get(localHiveConf);
 
     LOG.info("Metastore URI {} is being proxied to {}", localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
-        localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
+        hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
 
     HiveMetaStoreClientSupplier supplier = new HiveMetaStoreClientSupplier(localHiveConf, name, reconnectionRetries);
     return (CloseableThriftHiveMetastoreIface) tunnelableFactory.wrap(supplier, METHOD_CHECKER, localHost, localPort,
