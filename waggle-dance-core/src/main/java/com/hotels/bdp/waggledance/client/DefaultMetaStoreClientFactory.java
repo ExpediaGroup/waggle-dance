@@ -61,7 +61,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
         }
         return null;
       default:
-        reconnectIfDisconnected();
+        base.open();
         do {
           try {
             return method.invoke(base.getClient(), args);
@@ -105,8 +105,10 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
   }
 
-  /* (non-Javadoc)
-   * @see com.hotels.bdp.waggledance.client.MetaStoreClientFactoryI#newInstance(org.apache.hadoop.hive.conf.HiveConf, java.lang.String, int)
+  /*
+   * (non-Javadoc)
+   * @see com.hotels.bdp.waggledance.client.MetaStoreClientFactoryI#newInstance(org.apache.hadoop.hive.conf.HiveConf,
+   * java.lang.String, int)
    */
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
