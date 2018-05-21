@@ -43,7 +43,6 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,7 +105,7 @@ class ThriftMetastoreClient implements Closeable {
     if (isConnected) {
       return;
     }
-    TTransportException tte = null;
+    TException te = null;
     boolean useSasl = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_SASL);
     boolean useFramedTransport = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT);
     boolean useCompactProtocol = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL);
@@ -155,14 +154,15 @@ class ThriftMetastoreClient implements Closeable {
           client = new ThriftHiveMetastore.Client(protocol);
           try {
             transport.open();
+            validateClientConnection();
             LOG.info("Opened a connection to metastore '"
                 + store
                 + "', total current connections to all metastores: "
                 + CONN_COUNT.incrementAndGet());
 
             isConnected = true;
-          } catch (TTransportException e) {
-            tte = e;
+          } catch (TException e) {
+            te = e;
             if (LOG.isDebugEnabled()) {
               LOG.warn("Failed to connect to the MetaStore Server...", e);
             } else {
@@ -178,7 +178,7 @@ class ThriftMetastoreClient implements Closeable {
         }
       }
       // Wait before launching the next round of connection retries.
-      if (!isConnected && retryDelaySeconds > 0) {
+      if (!isConnected && retryDelaySeconds > 0 && attempt + 1 < retries) {
         try {
           LOG.info("Waiting " + retryDelaySeconds + " seconds before next connection attempt.");
           Thread.sleep(retryDelaySeconds * 1000);
@@ -188,9 +188,15 @@ class ThriftMetastoreClient implements Closeable {
 
     if (!isConnected) {
       throw new RuntimeException("Could not connect to meta store using any of the URIs provided. Most recent failure: "
-          + StringUtils.stringifyException(tte));
+          + StringUtils.stringifyException(te));
     }
     LOG.info("Connected to metastore.");
+  }
+
+  private void validateClientConnection() throws TException {
+    if (client != null) {
+      client.getStatus();
+    }
   }
 
   public void reconnect() {
@@ -217,7 +223,7 @@ class ThriftMetastoreClient implements Closeable {
     }
     // Transport would have got closed via client.shutdown(), so we don't need this, but
     // just in case, we make this call.
-    if (isOpen()) {
+    if (transport != null && transport.isOpen()) {
       transport.close();
       transport = null;
     }
@@ -225,7 +231,15 @@ class ThriftMetastoreClient implements Closeable {
   }
 
   public boolean isOpen() {
-    return transport != null && transport.isOpen();
+    if (transport != null && transport.isOpen()) {
+      try {
+        validateClientConnection();
+        return true;
+      } catch (TException e) {
+        return false;
+      }
+    }
+    return false;
   }
 
   protected ThriftHiveMetastore.Iface getClient() {
