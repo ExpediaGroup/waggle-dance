@@ -24,21 +24,21 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.thrift.TException;
 
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
+import com.hotels.hcommon.hive.metastore.client.CloseableMetaStoreClient;
 
 class MetaStoreMappingImpl implements MetaStoreMapping {
 
   private final String databasePrefix;
-  private final CloseableThriftHiveMetastoreIface client;
+  private final CloseableMetaStoreClient client;
   private final AccessControlHandler accessControlHandler;
   private final String name;
 
   MetaStoreMappingImpl(
       String databasePrefix,
       String name,
-      CloseableThriftHiveMetastoreIface client,
+      CloseableMetaStoreClient client,
       AccessControlHandler accessControlHandler) {
     this.databasePrefix = databasePrefix;
     this.name = name;

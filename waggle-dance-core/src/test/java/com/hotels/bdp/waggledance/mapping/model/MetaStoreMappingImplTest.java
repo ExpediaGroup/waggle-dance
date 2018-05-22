@@ -32,9 +32,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
+import com.hotels.hcommon.hive.metastore.client.CloseableMetaStoreClient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetaStoreMappingImplTest {
@@ -42,7 +42,7 @@ public class MetaStoreMappingImplTest {
   private static final String DATABASE_PREFIX = "prefix_";
   private static final String NAME = "name";
 
-  private @Mock CloseableThriftHiveMetastoreIface client;
+  private @Mock CloseableMetaStoreClient client;
   private @Mock Database database;
   private @Mock AccessControlHandler accessControlHandler;
 

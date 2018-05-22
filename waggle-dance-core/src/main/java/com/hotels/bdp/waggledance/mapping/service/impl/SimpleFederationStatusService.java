@@ -21,17 +21,16 @@ import org.springframework.stereotype.Service;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.hcommon.hive.metastore.client.CloseableMetaStoreClient;
 
 @Service
 public class SimpleFederationStatusService implements FederationStatusService {
 
-  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
+  private final CloseableMetaStoreClient metaStoreClient;
 
   @Autowired
-  public SimpleFederationStatusService(CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory) {
-    this.metaStoreClientFactory = metaStoreClientFactory;
+  public SimpleFederationStatusService(CloseableMetaStoreClient metaStoreClient) {
+    this.metaStoreClient = metaStoreClient;
   }
 
   /**
@@ -47,7 +46,7 @@ public class SimpleFederationStatusService implements FederationStatusService {
    */
   @Override
   public MetaStoreStatus checkStatus(AbstractMetaStore abstractMetaStore) {
-    try (CloseableThriftHiveMetastoreIface client = metaStoreClientFactory.newInstance(abstractMetaStore)) {
+    try (CloseableMetaStoreClient client = metaStoreClient) {
       if (!client.isOpen()) {
         return MetaStoreStatus.UNAVAILABLE;
       }

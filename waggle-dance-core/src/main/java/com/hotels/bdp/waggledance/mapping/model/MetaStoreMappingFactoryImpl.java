@@ -21,40 +21,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
+import com.hotels.hcommon.hive.metastore.client.CloseableMetaStoreClient;
 
 @Component
 public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   private static final Logger LOG = LoggerFactory.getLogger(MetaStoreMappingFactoryImpl.class);
 
   private final PrefixNamingStrategy prefixNamingStrategy;
-  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
+  private final CloseableMetaStoreClient metaStoreClient;
   private final AccessControlHandlerFactory accessControlHandlerFactory;
 
   @Autowired
   public MetaStoreMappingFactoryImpl(
       PrefixNamingStrategy prefixNamingStrategy,
-      CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory,
+      CloseableMetaStoreClient metaStoreClient,
       AccessControlHandlerFactory accessControlHandlerFactory) {
     this.prefixNamingStrategy = prefixNamingStrategy;
-    this.metaStoreClientFactory = metaStoreClientFactory;
+    this.metaStoreClient = metaStoreClient;
     this.accessControlHandlerFactory = accessControlHandlerFactory;
   }
 
-  private CloseableThriftHiveMetastoreIface createClient(AbstractMetaStore metaStore) {
-    return metaStoreClientFactory.newInstance(metaStore);
-  }
 
   @Override
   public MetaStoreMapping newInstance(AbstractMetaStore metaStore) {
     LOG.info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
         metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping mapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
-        createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore));
+        metaStoreClient, accessControlHandlerFactory.newInstance(metaStore));
     return mapping;
   }
 

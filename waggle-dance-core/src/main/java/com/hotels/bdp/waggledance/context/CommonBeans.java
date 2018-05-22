@@ -15,19 +15,31 @@
  */
 package com.hotels.bdp.waggledance.context;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.context.annotation.Bean;
 
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
-import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
+import com.google.common.base.Joiner;
+
+import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
+import com.hotels.hcommon.hive.metastore.client.CloseableMetaStoreClient;
+import com.hotels.hcommon.hive.metastore.client.DefaultMetaStoreClientSupplier;
+import com.hotels.hcommon.hive.metastore.client.MetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.client.ThriftMetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.client.tunnel.TunnelingMetaStoreClientSupplierBuilder;
 
 @org.springframework.context.annotation.Configuration
 public class CommonBeans {
@@ -52,8 +64,46 @@ public class CommonBeans {
   }
 
   @Bean
-  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory() {
-    return new CloseableThriftHiveMetastoreIfaceClientFactory(new TunnelingMetaStoreClientFactory());
+  MetaStoreClientFactory thriftMetaStoreClientFactory() {
+    return new ThriftMetaStoreClientFactory();
+  }
+
+  @Bean
+  CloseableMetaStoreClient newInstance(AbstractMetaStore metaStore, HiveConf hiveConf, MetaStoreClientFactory metaStoreClientFactory) {
+    Map<String, String> properties = new HashMap<>();
+    String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
+    String name = metaStore.getName().toLowerCase();
+    MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
+    properties.put(HiveConf.ConfVars.METASTOREURIS.varname, uris);
+
+    if (metastoreTunnel != null) {
+      return new TunnelingMetaStoreClientSupplierBuilder()
+          .withName(name)
+          .withRoute(metastoreTunnel.getRoute())
+          .withKnownHosts(metastoreTunnel.getKnownHosts())
+          .withLocalHost(metastoreTunnel.getLocalhost())
+          .withPort(metastoreTunnel.getPort())
+          .withPrivateKeys(metastoreTunnel.getPrivateKeys())
+          .withTimeout(metastoreTunnel.getTimeout())
+          .withStrictHostKeyChecking(metastoreTunnel.getStrictHostKeyChecking())
+          .build(hiveConf, metaStoreClientFactory).get();
+    } else {
+      return new DefaultMetaStoreClientSupplier(hiveConf, name, metaStoreClientFactory).get();
+    }
+  }
+
+  private static String normaliseMetaStoreUris(String metaStoreUris) {
+    try {
+      String[] rawUris = metaStoreUris.split(",");
+      Set<String> uris = new TreeSet<>();
+      for (String rawUri : rawUris) {
+        URI uri = new URI(rawUri);
+        uris.add(uri.toString());
+      }
+      return Joiner.on(",").join(uris);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Bean

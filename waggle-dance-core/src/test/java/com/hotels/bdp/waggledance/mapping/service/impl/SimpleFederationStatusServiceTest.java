@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -27,22 +28,19 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.hcommon.hive.metastore.client.CloseableMetaStoreClient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleFederationStatusServiceTest {
 
-  private @Mock CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
-  private @Mock CloseableThriftHiveMetastoreIface client;
+  private @Mock CloseableMetaStoreClient client;
   private SimpleFederationStatusService service;
 
   private final FederatedMetaStore metaStore = FederatedMetaStore.newFederatedInstance("remote", "uri");
 
   @Before
   public void setUp() {
-    service = new SimpleFederationStatusService(metaStoreClientFactory);
-    when(metaStoreClientFactory.newInstance(metaStore)).thenReturn(client);
+    service = new SimpleFederationStatusService(client);
   }
 
   @Test
