@@ -40,7 +40,6 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     this.accessControlHandlerFactory = accessControlHandlerFactory;
   }
 
-
   @Override
   public MetaStoreMapping newInstance(AbstractMetaStore metaStore) {
     LOG.info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
