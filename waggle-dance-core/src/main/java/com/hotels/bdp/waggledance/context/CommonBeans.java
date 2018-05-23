@@ -28,7 +28,6 @@ import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
 import com.hotels.bdp.waggledance.metastore.CloseableThriftHiveMetaStoreClientFactory;
-import com.hotels.bdp.waggledance.metastore.ReconnectingMetaStoreClientFactoryBuilder;
 import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
 
 @org.springframework.context.annotation.Configuration
@@ -50,7 +49,7 @@ public class CommonBeans {
 
   @Bean
   ThriftHiveMetaStoreClientFactory metaStoreClientFactory() {
-    return new CloseableThriftHiveMetaStoreClientFactory(new ReconnectingMetaStoreClientFactoryBuilder());
+    return new CloseableThriftHiveMetaStoreClientFactory();
   }
 
   @Bean

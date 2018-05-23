@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.hotels.bdp.waggledance.mapping.model;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
@@ -37,7 +38,6 @@ import org.mockito.stubbing.Answer;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.metastore.CloseableThriftHiveMetaStoreClientFactory;
-import com.hotels.bdp.waggledance.metastore.ReconnectingMetaStoreClientFactoryBuilder;
 import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
@@ -51,7 +51,7 @@ public class MetaStoreMappingFactoryImplTest {
 
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
-  private ThriftHiveMetaStoreClientFactory metaStoreClientFactory = new CloseableThriftHiveMetaStoreClientFactory(new ReconnectingMetaStoreClientFactoryBuilder());
+  private ThriftHiveMetaStoreClientFactory metaStoreClientFactory = new CloseableThriftHiveMetaStoreClientFactory();
 
   private MetaStoreMappingFactoryImpl factory;
 

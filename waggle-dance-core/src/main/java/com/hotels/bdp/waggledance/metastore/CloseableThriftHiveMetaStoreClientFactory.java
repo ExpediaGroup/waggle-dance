@@ -15,18 +15,13 @@ import com.google.common.base.Joiner;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.client.HiveMetaStoreClientSupplier;
+import com.hotels.hcommon.hive.metastore.client.ReconnectingMetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.client.TunnellingMetaStoreClientSupplierBuilder;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 
 public class CloseableThriftHiveMetaStoreClientFactory implements ThriftHiveMetaStoreClientFactory {
-
-  private final ReconnectingMetaStoreClientFactoryBuilder metaStoreClientFactoryBuilder;
-
-  public CloseableThriftHiveMetaStoreClientFactory(ReconnectingMetaStoreClientFactoryBuilder metaStoreClientFactoryBuilder) {
-    this.metaStoreClientFactoryBuilder = metaStoreClientFactoryBuilder;
-  }
 
   @Override
   public CloseableMetaStoreClient newInstance(AbstractMetaStore metaStore) {
@@ -36,8 +31,7 @@ public class CloseableThriftHiveMetaStoreClientFactory implements ThriftHiveMeta
     properties.put(HiveConf.ConfVars.METASTOREURIS.varname, uris);
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
     HiveConf hiveConf = confFactory.newInstance();
-    metaStoreClientFactoryBuilder.withHiveConf(hiveConf).withMaxRetries(10).withName(metaStore.getName().toLowerCase());
-    MetaStoreClientFactory metaStoreClientFactory = metaStoreClientFactoryBuilder.build();
+    MetaStoreClientFactory metaStoreClientFactory = new ReconnectingMetaStoreClientFactory(hiveConf, metaStore.getName().toLowerCase(), 10);
 
     if (metastoreTunnel != null) {
       return new TunnellingMetaStoreClientSupplierBuilder()
