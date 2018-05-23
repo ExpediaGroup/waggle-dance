@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.hotels.bdp.waggledance.mapping.model;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
@@ -37,9 +36,9 @@ import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
+import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
-import com.hotels.hcommon.hive.metastore.client.CloseableMetaStoreClient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetaStoreMappingFactoryImplTest {
@@ -50,7 +49,7 @@ public class MetaStoreMappingFactoryImplTest {
 
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
-  private @Mock CloseableMetaStoreClient metaStoreClient;
+  private @Mock ThriftHiveMetaStoreClientFactory metaStoreClientFactory;
 
   private MetaStoreMappingFactoryImpl factory;
 
@@ -62,7 +61,7 @@ public class MetaStoreMappingFactoryImplTest {
         return invocation.getArgumentAt(0, AbstractMetaStore.class).getDatabasePrefix();
       }
     });
-    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClient,
+    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClientFactory,
         accessControlHandlerFactory);
   }
 
