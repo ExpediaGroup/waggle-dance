@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
-import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.metastore.CloseableThriftHiveMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 
 @Component
@@ -31,16 +31,12 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   private static final Logger LOG = LoggerFactory.getLogger(MetaStoreMappingFactoryImpl.class);
 
   private final PrefixNamingStrategy prefixNamingStrategy;
-  private final ThriftHiveMetaStoreClientFactory metaStoreClientFactory;
   private final AccessControlHandlerFactory accessControlHandlerFactory;
 
   @Autowired
   public MetaStoreMappingFactoryImpl(
-      PrefixNamingStrategy prefixNamingStrategy,
-      ThriftHiveMetaStoreClientFactory metaStoreClientFactory,
-      AccessControlHandlerFactory accessControlHandlerFactory) {
+      PrefixNamingStrategy prefixNamingStrategy, AccessControlHandlerFactory accessControlHandlerFactory) {
     this.prefixNamingStrategy = prefixNamingStrategy;
-    this.metaStoreClientFactory = metaStoreClientFactory;
     this.accessControlHandlerFactory = accessControlHandlerFactory;
   }
 
@@ -50,7 +46,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     LOG.info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
         metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping mapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
-        metaStoreClientFactory.newInstance(metaStore), accessControlHandlerFactory.newInstance(metaStore));
+        new CloseableThriftHiveMetaStoreClientFactory(metaStore).newInstance(), accessControlHandlerFactory.newInstance(metaStore));
     return mapping;
   }
 

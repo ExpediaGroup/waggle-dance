@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.spy;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,13 +30,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
+import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleFederationStatusServiceTest {
 
-  private @Mock ThriftHiveMetaStoreClientFactory metaStoreClientFactory;
+  private @Mock MetaStoreClientFactory metaStoreClientFactory;
   private @Mock CloseableMetaStoreClient client;
   private SimpleFederationStatusService service;
 
@@ -43,13 +44,14 @@ public class SimpleFederationStatusServiceTest {
 
   @Before
   public void setUp() {
-    when(metaStoreClientFactory.newInstance(eq(metaStore))).thenReturn(client);
-    service = new SimpleFederationStatusService(metaStoreClientFactory);
+    when(metaStoreClientFactory.newInstance()).thenReturn(client);
+    service = spy(new SimpleFederationStatusService());
   }
 
   @Test
   public void checkStatusAvailable() throws Exception {
     when(client.isOpen()).thenReturn(true);
+    when(service.getMetaStoreClientFactory(eq(metaStore))).thenReturn(metaStoreClientFactory);
     MetaStoreStatus status = service.checkStatus(metaStore);
     assertThat(status, is(MetaStoreStatus.AVAILABLE));
   }

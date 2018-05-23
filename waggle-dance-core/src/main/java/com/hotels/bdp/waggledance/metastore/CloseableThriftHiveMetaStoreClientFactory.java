@@ -21,10 +21,17 @@ import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 
-public class CloseableThriftHiveMetaStoreClientFactory implements ThriftHiveMetaStoreClientFactory {
+public class CloseableThriftHiveMetaStoreClientFactory implements MetaStoreClientFactory {
+
+  private final AbstractMetaStore metaStore;
+
+  public CloseableThriftHiveMetaStoreClientFactory(AbstractMetaStore metaStore) {
+    this.metaStore = metaStore;
+  }
+
 
   @Override
-  public CloseableMetaStoreClient newInstance(AbstractMetaStore metaStore) {
+  public CloseableMetaStoreClient newInstance() {
     Map<String, String> properties = new HashMap<>();
     String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
