@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.hotels.bdp.waggledance.context;
 
 import java.util.Map;
@@ -26,6 +27,9 @@ import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
+import com.hotels.bdp.waggledance.metastore.CloseableThriftHiveMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.metastore.ReconnectingMetaStoreClientFactoryBuilder;
+import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
 
 @org.springframework.context.annotation.Configuration
 public class CommonBeans {
@@ -42,6 +46,11 @@ public class CommonBeans {
       }
     }
     return hiveConf;
+  }
+
+  @Bean
+  ThriftHiveMetaStoreClientFactory metaStoreClientFactory() {
+    return new CloseableThriftHiveMetaStoreClientFactory(new ReconnectingMetaStoreClientFactoryBuilder());
   }
 
   @Bean

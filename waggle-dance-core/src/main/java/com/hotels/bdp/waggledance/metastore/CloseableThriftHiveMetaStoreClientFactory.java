@@ -2,6 +2,7 @@ package com.hotels.bdp.waggledance.metastore;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -17,15 +18,14 @@ import com.hotels.hcommon.hive.metastore.client.HiveMetaStoreClientSupplier;
 import com.hotels.hcommon.hive.metastore.client.TunnellingMetaStoreClientSupplierBuilder;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 
 public class CloseableThriftHiveMetaStoreClientFactory implements ThriftHiveMetaStoreClientFactory {
 
-  private final HiveConf hiveConf;
-  private final MetaStoreClientFactory metaStoreClientFactory;
+  private final ReconnectingMetaStoreClientFactoryBuilder metaStoreClientFactoryBuilder;
 
-  public CloseableThriftHiveMetaStoreClientFactory(HiveConf hiveConf, MetaStoreClientFactory metaStoreClientFactory) {
-    this.hiveConf = hiveConf;
-    this.metaStoreClientFactory = metaStoreClientFactory;
+  public CloseableThriftHiveMetaStoreClientFactory(ReconnectingMetaStoreClientFactoryBuilder metaStoreClientFactoryBuilder) {
+    this.metaStoreClientFactoryBuilder = metaStoreClientFactoryBuilder;
   }
 
   @Override
@@ -34,6 +34,10 @@ public class CloseableThriftHiveMetaStoreClientFactory implements ThriftHiveMeta
     String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
     properties.put(HiveConf.ConfVars.METASTOREURIS.varname, uris);
+    HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
+    HiveConf hiveConf = confFactory.newInstance();
+    metaStoreClientFactoryBuilder.withHiveConf(hiveConf).withMaxRetries(10).withName(metaStore.getName().toLowerCase());
+    MetaStoreClientFactory metaStoreClientFactory = metaStoreClientFactoryBuilder.build();
 
     if (metastoreTunnel != null) {
       return new TunnellingMetaStoreClientSupplierBuilder()
