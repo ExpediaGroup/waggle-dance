@@ -29,7 +29,6 @@ public class CloseableThriftHiveMetaStoreClientFactory implements MetaStoreClien
     this.metaStore = metaStore;
   }
 
-
   @Override
   public CloseableMetaStoreClient newInstance() {
     Map<String, String> properties = new HashMap<>();
@@ -38,7 +37,8 @@ public class CloseableThriftHiveMetaStoreClientFactory implements MetaStoreClien
     properties.put(HiveConf.ConfVars.METASTOREURIS.varname, uris);
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
     HiveConf hiveConf = confFactory.newInstance();
-    MetaStoreClientFactory metaStoreClientFactory = new ReconnectingMetaStoreClientFactory(hiveConf, metaStore.getName().toLowerCase(), 10);
+    MetaStoreClientFactory metaStoreClientFactory = new ReconnectingMetaStoreClientFactory(hiveConf,
+        metaStore.getName().toLowerCase(), 10);
 
     if (metastoreTunnel != null) {
       return new TunnellingMetaStoreClientSupplierBuilder()
