@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
-import com.hotels.bdp.waggledance.metastore.CloseableThriftHiveMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.metastore.ReconnectingTunnellingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 
 @Component
@@ -46,7 +46,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     LOG.info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
         metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping mapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
-        new CloseableThriftHiveMetaStoreClientFactory(metaStore).newInstance(), accessControlHandlerFactory.newInstance(metaStore));
+        new ReconnectingTunnellingMetaStoreClientFactory(metaStore).newInstance(), accessControlHandlerFactory.newInstance(metaStore));
     return mapping;
   }
 

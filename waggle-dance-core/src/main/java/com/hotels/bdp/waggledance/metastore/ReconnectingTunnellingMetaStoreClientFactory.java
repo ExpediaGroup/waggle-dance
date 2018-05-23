@@ -21,11 +21,11 @@ import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 
-public class CloseableThriftHiveMetaStoreClientFactory implements MetaStoreClientFactory {
+public class ReconnectingTunnellingMetaStoreClientFactory implements MetaStoreClientFactory {
 
   private final AbstractMetaStore metaStore;
 
-  public CloseableThriftHiveMetaStoreClientFactory(AbstractMetaStore metaStore) {
+  public ReconnectingTunnellingMetaStoreClientFactory(AbstractMetaStore metaStore) {
     this.metaStore = metaStore;
   }
 

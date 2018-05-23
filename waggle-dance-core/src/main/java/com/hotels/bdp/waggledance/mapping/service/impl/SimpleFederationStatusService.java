@@ -23,7 +23,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.metastore.CloseableThriftHiveMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.metastore.ReconnectingTunnellingMetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
 
@@ -55,7 +55,7 @@ public class SimpleFederationStatusService implements FederationStatusService {
 
   @VisibleForTesting
   public MetaStoreClientFactory getMetaStoreClientFactory(AbstractMetaStore metaStore) {
-    return new CloseableThriftHiveMetaStoreClientFactory(metaStore);
+    return new ReconnectingTunnellingMetaStoreClientFactory(metaStore);
   }
 
 }
