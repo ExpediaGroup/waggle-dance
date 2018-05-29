@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.hotels.bdp.waggledance.metastore;
 
 import java.net.URI;
@@ -30,10 +31,9 @@ import com.google.common.base.Joiner;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.client.HiveMetaStoreClientSupplier;
-import com.hotels.hcommon.hive.metastore.client.reconnecting.ReconnectingMetaStoreClientFactory;
-import com.hotels.hcommon.hive.metastore.client.tunnelling.TunnellingMetaStoreClientSupplierBuilder;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.client.tunnelling.TunnellingMetaStoreClientSupplierBuilder;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 
 public class ReconnectingTunnellingMetaStoreClientFactory implements MetaStoreClientFactory {
