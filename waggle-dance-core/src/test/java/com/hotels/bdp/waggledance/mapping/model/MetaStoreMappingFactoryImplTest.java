@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.hotels.bdp.waggledance.mapping.model;
 
+import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
 import java.util.Arrays;
 
@@ -36,9 +36,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
-import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
+import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 
@@ -51,8 +50,6 @@ public class MetaStoreMappingFactoryImplTest {
 
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
-  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceClientFactory(
-      new TunnelingMetaStoreClientFactory());;
 
   private MetaStoreMappingFactoryImpl factory;
 
@@ -64,8 +61,8 @@ public class MetaStoreMappingFactoryImplTest {
         return invocation.getArgumentAt(0, AbstractMetaStore.class).getDatabasePrefix();
       }
     });
-    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClientFactory,
-        accessControlHandlerFactory);
+    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, accessControlHandlerFactory,
+        new ThriftHiveMetaStoreClientFactory());
   }
 
   @Test

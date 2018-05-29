@@ -1,9 +1,5 @@
 /**
- * Copyright (C) 2015-2017 The Apache Software Foundation and Expedia Inc.
- *
- * This code is based on Hive's HiveMetaStoreClient:
- *
- * https://github.com/apache/hive/blob/rel/release-2.1.0/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStoreClient.java
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client;
+package com.hotels.bdp.waggledance.metastore;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -46,9 +42,9 @@ import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ThriftMetastoreClient implements Closeable {
+class ReconnectingThriftMetaStoreClient implements Closeable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ThriftMetastoreClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ReconnectingThriftMetaStoreClient.class);
 
   private static final AtomicInteger CONN_COUNT = new AtomicInteger(0);
 
@@ -63,7 +59,7 @@ class ThriftMetastoreClient implements Closeable {
   private int retries = 5;
   private long retryDelaySeconds = 0;
 
-  public ThriftMetastoreClient(HiveConf conf) {
+  ReconnectingThriftMetaStoreClient(HiveConf conf) {
     this.conf = conf;
     String msUri = conf.getVar(ConfVars.METASTOREURIS);
 
@@ -72,7 +68,7 @@ class ThriftMetastoreClient implements Closeable {
     }
 
     // get the number retries
-    retries = HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES);
+    retries = HiveConf.getIntVar(conf, ConfVars.METASTORETHRIFTCONNECTIONRETRIES);
     retryDelaySeconds = conf.getTimeVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY, TimeUnit.SECONDS);
 
     // user wants file store based configuration
@@ -134,7 +130,7 @@ class ThriftMetastoreClient implements Closeable {
                 transport = authBridge.createClientTransport(null, store.getHost(), "DIGEST", tokenStrForm, transport,
                     MetaStoreUtils.getMetaStoreSaslProperties(conf));
               } else {
-                String principalConfig = conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL);
+                String principalConfig = conf.getVar(ConfVars.METASTORE_KERBEROS_PRINCIPAL);
                 transport = authBridge.createClientTransport(principalConfig, store.getHost(), "KERBEROS", null,
                     transport, MetaStoreUtils.getMetaStoreSaslProperties(conf));
               }

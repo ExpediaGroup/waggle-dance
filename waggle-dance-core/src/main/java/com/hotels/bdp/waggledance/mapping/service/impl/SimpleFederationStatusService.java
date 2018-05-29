@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,16 +22,16 @@ import org.springframework.stereotype.Service;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 
 @Service
 public class SimpleFederationStatusService implements FederationStatusService {
 
-  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
+  private final ThriftHiveMetaStoreClientFactory metaStoreClientFactory;
 
   @Autowired
-  public SimpleFederationStatusService(CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory) {
+  public SimpleFederationStatusService(ThriftHiveMetaStoreClientFactory metaStoreClientFactory) {
     this.metaStoreClientFactory = metaStoreClientFactory;
   }
 
@@ -43,11 +44,11 @@ public class SimpleFederationStatusService implements FederationStatusService {
    *
    * @param metaStoreUris URI of the metastore to check.
    * @return {@code MetaStoreStatus.AVAILABLE} if the service can successfully connect to the metastore. Otherwise,
-   *         returns {@code MetaStoreStatus.UNAVAILABLE}
+   * returns {@code MetaStoreStatus.UNAVAILABLE}
    */
   @Override
-  public MetaStoreStatus checkStatus(AbstractMetaStore abstractMetaStore) {
-    try (CloseableThriftHiveMetastoreIface client = metaStoreClientFactory.newInstance(abstractMetaStore)) {
+  public MetaStoreStatus checkStatus(AbstractMetaStore metaStore) {
+    try (CloseableMetaStoreClient client = metaStoreClientFactory.newInstance(metaStore)) {
       if (!client.isOpen()) {
         return MetaStoreStatus.UNAVAILABLE;
       }
@@ -56,5 +57,4 @@ public class SimpleFederationStatusService implements FederationStatusService {
     }
     return MetaStoreStatus.AVAILABLE;
   }
-
 }

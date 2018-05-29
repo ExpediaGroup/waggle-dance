@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client;
+package com.hotels.bdp.waggledance.metastore;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -31,17 +31,17 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ThriftMetastoreClientTest {
+public class ReconnectingThriftMetaStoreClientTest {
 
   private @Mock TSocket transport;
 
   private final HiveConf hiveConf = new HiveConf();
-  private ThriftMetastoreClient client;
+  private ReconnectingThriftMetaStoreClient client;
 
   @Before
   public void init() throws Exception {
     hiveConf.setVar(ConfVars.METASTOREURIS, "thrift://localhost:123");
-    client = new ThriftMetastoreClient(hiveConf);
+    client = new ReconnectingThriftMetaStoreClient(hiveConf);
     ReflectionTestUtils.setField(client, "transport", transport);
     ReflectionTestUtils.setField(client, "isConnected", true);
   }

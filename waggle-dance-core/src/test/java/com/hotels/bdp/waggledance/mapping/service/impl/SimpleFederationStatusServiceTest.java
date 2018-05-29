@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.spy;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,27 +30,28 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleFederationStatusServiceTest {
 
-  private @Mock CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
-  private @Mock CloseableThriftHiveMetastoreIface client;
+  private @Mock CloseableMetaStoreClient client;
+  private @Mock ThriftHiveMetaStoreClientFactory factory;
   private SimpleFederationStatusService service;
 
-  private final FederatedMetaStore metaStore = FederatedMetaStore.newFederatedInstance("remote", "uri");
+  private final FederatedMetaStore metaStore = FederatedMetaStore.newFederatedInstance("remote",
+      "thrift://localhost:9083");
 
   @Before
   public void setUp() {
-    service = new SimpleFederationStatusService(metaStoreClientFactory);
-    when(metaStoreClientFactory.newInstance(metaStore)).thenReturn(client);
+    service = spy(new SimpleFederationStatusService(factory));
   }
 
   @Test
-  public void checkStatusAvailable() throws Exception {
+  public void checkStatusAvailable() {
     when(client.isOpen()).thenReturn(true);
+    when(factory.newInstance(eq(metaStore))).thenReturn(client);
     MetaStoreStatus status = service.checkStatus(metaStore);
     assertThat(status, is(MetaStoreStatus.AVAILABLE));
   }
