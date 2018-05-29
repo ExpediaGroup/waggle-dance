@@ -27,6 +27,7 @@ import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
+import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
 
 @org.springframework.context.annotation.Configuration
 public class CommonBeans {
@@ -53,6 +54,11 @@ public class CommonBeans {
   @Bean
   public QueryMapping queryMapping() {
     return ASTQueryMapping.INSTANCE;
+  }
+
+  @Bean
+  ThriftHiveMetaStoreClientFactory metaStoreClientFactory() {
+    return new ThriftHiveMetaStoreClientFactory();
   }
 
 }

@@ -16,6 +16,12 @@
 
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -24,11 +30,20 @@ import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.metastore.ReconnectingTunnellingMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.util.MetaStoreUriNormaliser;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
-import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 
 @Service
 public class SimpleFederationStatusService implements FederationStatusService {
+
+  private final ThriftHiveMetaStoreClientFactory metaStoreClientFactory;
+
+  @Autowired
+  public SimpleFederationStatusService(ThriftHiveMetaStoreClientFactory metaStoreClientFactory) {
+    this.metaStoreClientFactory = metaStoreClientFactory;
+  }
 
   /**
    * Checks the status of an {@code AbstractMetaStore}.
@@ -43,7 +58,7 @@ public class SimpleFederationStatusService implements FederationStatusService {
    */
   @Override
   public MetaStoreStatus checkStatus(AbstractMetaStore metaStore) {
-    try (CloseableMetaStoreClient client = getMetaStoreClientFactory(metaStore).newInstance()) {
+    try (CloseableMetaStoreClient client = metaStoreClientFactory.newInstance(metaStore)) {
       if (!client.isOpen()) {
         return MetaStoreStatus.UNAVAILABLE;
       }
@@ -52,10 +67,4 @@ public class SimpleFederationStatusService implements FederationStatusService {
     }
     return MetaStoreStatus.AVAILABLE;
   }
-
-  @VisibleForTesting
-  public MetaStoreClientFactory getMetaStoreClientFactory(AbstractMetaStore metaStore) {
-    return new ReconnectingTunnellingMetaStoreClientFactory(metaStore);
-  }
-
 }

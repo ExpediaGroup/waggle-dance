@@ -30,28 +30,28 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
+import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
-import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleFederationStatusServiceTest {
 
-  private @Mock MetaStoreClientFactory metaStoreClientFactory;
   private @Mock CloseableMetaStoreClient client;
+  private @Mock ThriftHiveMetaStoreClientFactory factory;
   private SimpleFederationStatusService service;
 
-  private final FederatedMetaStore metaStore = FederatedMetaStore.newFederatedInstance("remote", "uri");
+  private final FederatedMetaStore metaStore = FederatedMetaStore.newFederatedInstance("remote",
+      "thrift://localhost:9083");
 
   @Before
   public void setUp() {
-    when(metaStoreClientFactory.newInstance()).thenReturn(client);
-    service = spy(new SimpleFederationStatusService());
+    service = spy(new SimpleFederationStatusService(factory));
   }
 
   @Test
-  public void checkStatusAvailable() throws Exception {
+  public void checkStatusAvailable() {
     when(client.isOpen()).thenReturn(true);
-    when(service.getMetaStoreClientFactory(eq(metaStore))).thenReturn(metaStoreClientFactory);
+    when(factory.newInstance(eq(metaStore))).thenReturn(client);
     MetaStoreStatus status = service.checkStatus(metaStore);
     assertThat(status, is(MetaStoreStatus.AVAILABLE));
   }

@@ -29,17 +29,13 @@ public class ReconnectingMetaStoreClientFactory implements MetaStoreClientFactor
 
   private static final Class<?>[] INTERFACES = new Class<?>[] { CloseableMetaStoreClient.class };
 
-  private final HiveConf hiveConf;
-  private final String name;
   private final int maxRetries;
 
-  public ReconnectingMetaStoreClientFactory(HiveConf hiveConf, String name, int maxRetries) {
-    this.hiveConf = hiveConf;
-    this.name = name;
+  public ReconnectingMetaStoreClientFactory(int maxRetries) {
     this.maxRetries = maxRetries;
   }
 
-  public CloseableMetaStoreClient newInstance() {
+  public CloseableMetaStoreClient newInstance(HiveConf hiveConf, String name) {
     try {
       ReconnectingMetaStoreClientInvocationHandler reconnectingHandler = getReconectingMetaStoreClientInvocationHandler(
           hiveConf, name, maxRetries);

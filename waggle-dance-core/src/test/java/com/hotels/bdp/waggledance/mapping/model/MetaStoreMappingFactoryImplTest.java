@@ -37,6 +37,7 @@ import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
+import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 
@@ -60,7 +61,8 @@ public class MetaStoreMappingFactoryImplTest {
         return invocation.getArgumentAt(0, AbstractMetaStore.class).getDatabasePrefix();
       }
     });
-    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, accessControlHandlerFactory);
+    factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, accessControlHandlerFactory,
+        new ThriftHiveMetaStoreClientFactory());
   }
 
   @Test

@@ -47,12 +47,12 @@ public class ReconnectingMetaStoreClientFactoryTest {
     conf.setVar(HiveConf.ConfVars.METASTOREURIS, "thrift://ip-12-34-567-891.us-east-1.compute.internal:9083");
     conf.setIntVar(HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES, 1);
     conf.setTimeVar(HiveConf.ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY, 10L, TimeUnit.SECONDS);
-    metaStoreClientFactory = spy(new ReconnectingMetaStoreClientFactory(conf, name, retries));
+    metaStoreClientFactory = spy(new ReconnectingMetaStoreClientFactory(retries));
   }
 
   @Test
   public void typical() throws Exception {
-    metaStoreClientFactory.newInstance();
+    metaStoreClientFactory.newInstance(conf, name);
     verify(metaStoreClientFactory).getReconectingMetaStoreClientInvocationHandler(eq(conf), eq(name), eq(retries));
     verify(metaStoreClientFactory).getProxyInstance(any(ReconnectingMetaStoreClientInvocationHandler.class));
   }
@@ -62,7 +62,7 @@ public class ReconnectingMetaStoreClientFactoryTest {
     doThrow(InvocationException.class).when(
         metaStoreClientFactory).getProxyInstance(any(
         ReconnectingMetaStoreClientInvocationHandler.class));
-    metaStoreClientFactory.newInstance();
+    metaStoreClientFactory.newInstance(conf, name);
   }
 
 }
