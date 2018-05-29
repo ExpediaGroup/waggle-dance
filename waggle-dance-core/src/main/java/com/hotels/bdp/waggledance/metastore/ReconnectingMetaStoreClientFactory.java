@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.hotels.bdp.waggledance.metastore;
 
 import java.lang.reflect.Proxy;
@@ -31,7 +32,7 @@ public class ReconnectingMetaStoreClientFactory implements MetaStoreClientFactor
 
   private final int maxRetries;
 
-  public ReconnectingMetaStoreClientFactory(int maxRetries) {
+  ReconnectingMetaStoreClientFactory(int maxRetries) {
     this.maxRetries = maxRetries;
   }
 
@@ -50,7 +51,8 @@ public class ReconnectingMetaStoreClientFactory implements MetaStoreClientFactor
   @VisibleForTesting
   ReconnectingMetaStoreClientInvocationHandler getReconectingMetaStoreClientInvocationHandler(HiveConf hiveConf,
       String name, int maxRetries) {
-    return new ReconnectingMetaStoreClientInvocationHandler(new ReconnectingThriftMetaStoreClient(hiveConf), name, maxRetries);
+    return new ReconnectingMetaStoreClientInvocationHandler(new ReconnectingThriftMetaStoreClient(hiveConf), name,
+        maxRetries);
   }
 
   @VisibleForTesting
