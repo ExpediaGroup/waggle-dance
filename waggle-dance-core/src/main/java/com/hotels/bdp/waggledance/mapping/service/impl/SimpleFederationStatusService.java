@@ -16,24 +16,14 @@
 
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.metastore.ReconnectingTunnellingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.metastore.ThriftHiveMetaStoreClientFactory;
-import com.hotels.bdp.waggledance.util.MetaStoreUriNormaliser;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
-import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 
 @Service
 public class SimpleFederationStatusService implements FederationStatusService {
