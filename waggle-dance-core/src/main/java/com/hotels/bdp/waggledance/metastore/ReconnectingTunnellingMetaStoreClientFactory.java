@@ -25,7 +25,7 @@ import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.TunnellingMetaStoreClientSupplierBuilder;
 
-public class ReconnectingTunnellingMetaStoreClientFactory implements MetaStoreClientFactory {
+class ReconnectingTunnellingMetaStoreClientFactory implements MetaStoreClientFactory {
 
   private final AbstractMetaStore metaStore;
 
@@ -40,6 +40,7 @@ public class ReconnectingTunnellingMetaStoreClientFactory implements MetaStoreCl
 
     if (metastoreTunnel != null) {
       return new TunnellingMetaStoreClientSupplierBuilder()
+          .withName(name)
           .withRoute(metastoreTunnel.getRoute())
           .withKnownHosts(metastoreTunnel.getKnownHosts())
           .withLocalHost(metastoreTunnel.getLocalhost())

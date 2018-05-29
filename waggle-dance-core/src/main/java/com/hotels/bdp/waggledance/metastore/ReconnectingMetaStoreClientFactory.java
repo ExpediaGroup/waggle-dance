@@ -26,7 +26,7 @@ import com.hotels.hcommon.hive.metastore.MetaStoreClientException;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 import com.hotels.hcommon.hive.metastore.client.api.MetaStoreClientFactory;
 
-public class ReconnectingMetaStoreClientFactory implements MetaStoreClientFactory {
+class ReconnectingMetaStoreClientFactory implements MetaStoreClientFactory {
 
   private static final Class<?>[] INTERFACES = new Class<?>[] { CloseableMetaStoreClient.class };
 

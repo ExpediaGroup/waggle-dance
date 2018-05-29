@@ -51,14 +51,14 @@ public class ReconnectingMetaStoreClientFactoryTest {
   }
 
   @Test
-  public void typical() throws Exception {
+  public void typical() {
     metaStoreClientFactory.newInstance(conf, name);
     verify(metaStoreClientFactory).getReconectingMetaStoreClientInvocationHandler(eq(conf), eq(name), eq(retries));
     verify(metaStoreClientFactory).getProxyInstance(any(ReconnectingMetaStoreClientInvocationHandler.class));
   }
 
   @Test(expected = MetaStoreClientException.class)
-  public void failure() throws Exception {
+  public void failure() {
     doThrow(InvocationException.class).when(
         metaStoreClientFactory).getProxyInstance(any(
         ReconnectingMetaStoreClientInvocationHandler.class));
