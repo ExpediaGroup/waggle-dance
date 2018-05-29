@@ -33,8 +33,7 @@ class ReconnectingMetaStoreClientInvocationHandler implements InvocationHandler 
   private final String name;
   private final int maxRetries;
 
-  ReconnectingMetaStoreClientInvocationHandler(
-      ReconnectingThriftMetaStoreClient base, String name, int maxRetries) {
+  ReconnectingMetaStoreClientInvocationHandler(ReconnectingThriftMetaStoreClient base, String name, int maxRetries) {
     this.base = base;
     this.name = name;
     this.maxRetries = maxRetries;

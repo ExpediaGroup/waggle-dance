@@ -44,8 +44,7 @@ import org.slf4j.LoggerFactory;
 
 class ReconnectingThriftMetaStoreClient implements Closeable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(
-      ReconnectingThriftMetaStoreClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ReconnectingThriftMetaStoreClient.class);
 
   private static final AtomicInteger CONN_COUNT = new AtomicInteger(0);
 

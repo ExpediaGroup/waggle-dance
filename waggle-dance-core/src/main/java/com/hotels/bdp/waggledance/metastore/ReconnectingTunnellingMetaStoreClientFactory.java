@@ -29,7 +29,7 @@ public class ReconnectingTunnellingMetaStoreClientFactory implements MetaStoreCl
 
   private final AbstractMetaStore metaStore;
 
-  public ReconnectingTunnellingMetaStoreClientFactory(AbstractMetaStore metaStore) {
+  ReconnectingTunnellingMetaStoreClientFactory(AbstractMetaStore metaStore) {
     this.metaStore = metaStore;
   }
 
