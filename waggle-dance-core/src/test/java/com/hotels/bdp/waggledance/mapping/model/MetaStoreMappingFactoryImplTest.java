@@ -26,6 +26,7 @@ import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederate
 
 import java.util.Arrays;
 
+import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -110,5 +111,11 @@ public class MetaStoreMappingFactoryImplTest {
     MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
     assertThat(mapping, is(notNullValue()));
     assertThat(mapping.isAvailable(), is(false));
+    try {
+      mapping.getClient().getStatusDetails();
+    } catch (TException e) {
+      assertThat("Metastore 'fed1' unavailable", is(e.getMessage()));
+    }
   }
+
 }
