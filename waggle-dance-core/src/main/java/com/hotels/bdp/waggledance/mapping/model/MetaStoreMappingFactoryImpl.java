@@ -99,7 +99,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
       case "close":
         return null;
       default:
-        throw new TException("Metastore `" + name + "` unavailable");
+        throw new TException("Metastore '" + name + "' unavailable");
       }
     }
   }
