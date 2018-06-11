@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +51,12 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   }
 
   private CloseableThriftHiveMetastoreIface createClient(AbstractMetaStore metaStore) {
-    return metaStoreClientFactory.newInstance(metaStore);
+    try {
+      return metaStoreClientFactory.newInstance(metaStore);
+    } catch (Exception e) {
+      LOG.error("Can't create a client for metastore '{}':", metaStore.getName(), e);
+      return newUnreachableMetatstoreClient(metaStore);
+    }
   }
 
   @Override
@@ -63,4 +73,34 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     return prefixNamingStrategy.apply(federatedMetaStore);
   }
 
+  private CloseableThriftHiveMetastoreIface newUnreachableMetatstoreClient(AbstractMetaStore metaStore) {
+    return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(),
+        new Class[] { CloseableThriftHiveMetastoreIface.class },
+        new UnreachableMetastoreClientInvocationHandler(metaStore.getName()));
+  }
+
+  /**
+   * Handler that refuses to be open and will throw exceptions for any of the methods, serves as a dummy client if the
+   * real one can't be created due to connection (i.e. tunneling) issues.
+   */
+  private static class UnreachableMetastoreClientInvocationHandler implements InvocationHandler {
+
+    private final String name;
+
+    private UnreachableMetastoreClientInvocationHandler(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      switch (method.getName()) {
+      case "isOpen":
+        return false;
+      case "close":
+        return null;
+      default:
+        throw new TException("Metastore '" + name + "' unavailable");
+      }
+    }
+  }
 }

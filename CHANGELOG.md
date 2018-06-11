@@ -1,3 +1,7 @@
+## TBD
+### Changed
+* Client creation exceptions are caught (exceptions seem mostly due to tunneling) and no longer affect the whole of WD, unreachable Metastore is ignored. See [#80](https://github.com/HotelsDotCom/waggle-dance/issues/80).
+
 ## [2.3.5] 2018-05-22
 ### Changed
 * Using hcommon-ssh-1.0.1 dependency to fix issue where metastore exceptions were lost and not propagated properly over tunnelled connections.

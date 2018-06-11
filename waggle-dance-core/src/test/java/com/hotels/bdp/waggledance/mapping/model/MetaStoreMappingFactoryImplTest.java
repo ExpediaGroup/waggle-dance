@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,13 @@ import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederate
 
 import java.util.Arrays;
 
+import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -94,6 +96,26 @@ public class MetaStoreMappingFactoryImplTest {
     // simulate disconnection
     thrift.client().reconnect();
     assertThat(mapping.getClient().get_all_databases(), is(Arrays.asList("default", "test_db")));
+  }
+
+  @Test
+  public void unreachableMetastoreClient() {
+    CloseableThriftHiveMetastoreIfaceClientFactory closeableThriftHiveMetastoreIfaceClientFactory = Mockito
+        .mock(CloseableThriftHiveMetastoreIfaceClientFactory.class);
+    MetaStoreMappingFactoryImpl factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy,
+        closeableThriftHiveMetastoreIfaceClientFactory, accessControlHandlerFactory);
+    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
+    when(closeableThriftHiveMetastoreIfaceClientFactory.newInstance(federatedMetaStore))
+        .thenThrow(new RuntimeException("Cannot create client"));
+
+    MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
+    assertThat(mapping, is(notNullValue()));
+    assertThat(mapping.isAvailable(), is(false));
+    try {
+      mapping.getClient().getStatusDetails();
+    } catch (TException e) {
+      assertThat("Metastore 'fed1' unavailable", is(e.getMessage()));
+    }
   }
 
 }
