@@ -1,4 +1,4 @@
-## TBD
+## [2.3.6] 2018-06-11
 ### Changed
 * Client creation exceptions are caught (exceptions seem mostly due to tunneling) and no longer affect the whole of WD, unreachable Metastore is ignored. See [#80](https://github.com/HotelsDotCom/waggle-dance/issues/80).
 
