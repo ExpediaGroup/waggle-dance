@@ -15,6 +15,8 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
+
 public interface QueryMapping {
 
   /**
@@ -22,6 +24,7 @@ public interface QueryMapping {
    * @param query
    * @return query where database names are correctly mapped using metaStoreMapping. example 'select id from db.table'
    *         -> 'select id from waggle_db.table'
+   * @throws WaggleDanceException when the transform could not be done.
    */
-  String transformOutboundDatabaseName(MetaStoreMapping metaStoreMapping, String query);
+  String transformOutboundDatabaseName(MetaStoreMapping metaStoreMapping, String query) throws WaggleDanceException;
 }
