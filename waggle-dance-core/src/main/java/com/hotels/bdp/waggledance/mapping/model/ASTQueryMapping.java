@@ -17,9 +17,9 @@ package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.unescapeIdentifier;
 
-import static com.hotels.bdp.waggledance.parse.ASTNodeUtils.getChildren;
-
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TreeSet;
@@ -55,8 +55,7 @@ public enum ASTQueryMapping implements QueryMapping {
       throw new WaggleDanceException("Can't parse query: '" + query + "'", e);
     }
 
-    SortedSet<CommonToken> dbNameTokens = new TreeSet<>(ON_START_INDEX);
-    extractDbNameTokens(root, dbNameTokens);
+    SortedSet<CommonToken> dbNameTokens = extractDbNameTokens(root);
 
     StringBuilder result = new StringBuilder();
     int startIndex = 0;
@@ -75,7 +74,8 @@ public enum ASTQueryMapping implements QueryMapping {
     return result.toString();
   }
 
-  private void extractDbNameTokens(ASTNode root, SortedSet<CommonToken> dbNameTokens) {
+  private SortedSet<CommonToken> extractDbNameTokens(ASTNode root) {
+    SortedSet<CommonToken> dbNameTokens = new TreeSet<>(ON_START_INDEX);
     Stack<ASTNode> stack = new Stack<>();
     stack.push(root);
 
@@ -93,6 +93,7 @@ public enum ASTQueryMapping implements QueryMapping {
         // Otherwise TOK_TABNAME node only has one child which contains just the table name
       }
     }
+    return dbNameTokens;
   }
 
   private boolean childrenAreIdentifiers(ASTNode current) {
@@ -103,4 +104,16 @@ public enum ASTQueryMapping implements QueryMapping {
     }
     return true;
   }
+
+  private static List<ASTNode> getChildren(ASTNode pt) {
+    List<ASTNode> rt = new ArrayList<>();
+    List<Node> children = pt.getChildren();
+    if (children != null) {
+      for (Node child : pt.getChildren()) {
+        rt.add((ASTNode) child);
+      }
+    }
+    return rt;
+  }
+
 }
