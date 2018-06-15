@@ -54,16 +54,14 @@ public class ASTQueryMappingTest {
     MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null);
 
     String query = "";
-    query += "SELECT omniture_hit_data_id AS hit_data_id ";
-    query += "FROM (SELECT `hermes_omniture_booking_order_summary`.omniture_hit_data_id";
-    query += " FROM `bix_clickstream`.`hermes_omniture_booking_order_summary`) `bix_clickstream.hermes_omniture_booking_order`";
+    query += "SELECT col_id AS id ";
+    query += "FROM (SELECT `table1`.id";
+    query += " FROM `db1`.`table1`) `db1.table1`";
 
     String expected = "";
-    expected += "SELECT omniture_hit_data_id AS hit_data_id ";
-    expected += "FROM (SELECT `hermes_omniture_booking_order_summary`.omniture_hit_data_id";
-    expected += " FROM `"
-        + PREFIX
-        + "bix_clickstream`.`hermes_omniture_booking_order_summary`) `bix_clickstream.hermes_omniture_booking_order`";
+    expected += "SELECT col_id AS id ";
+    expected += "FROM (SELECT `table1`.id";
+    expected += " FROM `" + PREFIX + "db1`.`table1`) `db1.table1`";
 
     assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query), is(expected));
   }
