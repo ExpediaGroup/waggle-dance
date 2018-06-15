@@ -93,11 +93,11 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     }
     if (table.isSetViewOriginalText()) {
       try {
-        log.debug("Transforming ViewOriginalTex: {}", table.getViewOriginalText());
+        log.debug("Transforming ViewOriginalText: {}", table.getViewOriginalText());
         table.setViewOriginalText(
             queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewOriginalText()));
       } catch (WaggleDanceException e) {
-        log.debug("Error while transforming databaseName in ViewOriginalTex, using ViewExpandedText if available", e);
+        log.debug("Error while transforming databaseName in ViewOriginalText, using ViewExpandedText if available", e);
         if (table.isSetViewExpandedText()) {
           table.setViewOriginalText(table.getViewExpandedText());
         }
