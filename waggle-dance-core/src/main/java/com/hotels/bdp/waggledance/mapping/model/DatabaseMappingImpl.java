@@ -97,6 +97,10 @@ public class DatabaseMappingImpl implements DatabaseMapping {
         table.setViewOriginalText(
             queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewOriginalText()));
       } catch (WaggleDanceException e) {
+        // We are hitting a bug in hive (https://issues.apache.org/jira/browse/HIVE-19896) that prevents the
+        // ViewOriginalText to be parsed, if we leave the ViewOriginalText we'll have the wrong database names in it so
+        // we set the ViewExpandedText to at least return a "correct" view query string. Hard to see what is the usage
+        // and impact of this.
         log.debug("Error while transforming databaseName in ViewOriginalText, using ViewExpandedText if available", e);
         if (table.isSetViewExpandedText()) {
           table.setViewOriginalText(table.getViewExpandedText());
