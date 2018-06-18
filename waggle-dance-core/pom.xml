@@ -94,11 +94,6 @@
     </dependency>
     <dependency>
       <groupId>com.hotels</groupId>
-      <artifactId>waggle-dance-aws</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.hotels</groupId>
       <artifactId>waggle-dance-rest</artifactId>
       <version>${project.version}</version>
     </dependency>
