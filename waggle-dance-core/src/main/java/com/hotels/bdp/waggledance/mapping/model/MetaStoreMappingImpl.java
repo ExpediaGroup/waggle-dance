@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,21 +24,21 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.thrift.TException;
 
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
 
 class MetaStoreMappingImpl implements MetaStoreMapping {
 
   private final String databasePrefix;
-  private final CloseableThriftHiveMetastoreIface client;
+  private final CloseableIFace client;
   private final AccessControlHandler accessControlHandler;
   private final String name;
 
   MetaStoreMappingImpl(
       String databasePrefix,
       String name,
-      CloseableThriftHiveMetastoreIface client,
+      CloseableIFace client,
       AccessControlHandler accessControlHandler) {
     this.databasePrefix = databasePrefix;
     this.name = name;

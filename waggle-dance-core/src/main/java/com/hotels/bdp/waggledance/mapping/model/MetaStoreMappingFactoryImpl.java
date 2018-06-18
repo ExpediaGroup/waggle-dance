@@ -26,31 +26,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.client.CloseableIFaceFactory;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
 
 @Component
 public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   private static final Logger LOG = LoggerFactory.getLogger(MetaStoreMappingFactoryImpl.class);
 
   private final PrefixNamingStrategy prefixNamingStrategy;
-  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
+  private final CloseableIFaceFactory metaStoreClientFactory;
   private final AccessControlHandlerFactory accessControlHandlerFactory;
 
   @Autowired
   public MetaStoreMappingFactoryImpl(
       PrefixNamingStrategy prefixNamingStrategy,
-      CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory,
+      CloseableIFaceFactory metaStoreClientFactory,
       AccessControlHandlerFactory accessControlHandlerFactory) {
     this.prefixNamingStrategy = prefixNamingStrategy;
     this.metaStoreClientFactory = metaStoreClientFactory;
     this.accessControlHandlerFactory = accessControlHandlerFactory;
   }
 
-  private CloseableThriftHiveMetastoreIface createClient(AbstractMetaStore metaStore) {
+  private CloseableIFace createClient(AbstractMetaStore metaStore) {
     try {
       return metaStoreClientFactory.newInstance(metaStore);
     } catch (Exception e) {
@@ -73,9 +73,9 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     return prefixNamingStrategy.apply(federatedMetaStore);
   }
 
-  private CloseableThriftHiveMetastoreIface newUnreachableMetatstoreClient(AbstractMetaStore metaStore) {
-    return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(),
-        new Class[] { CloseableThriftHiveMetastoreIface.class },
+  private CloseableIFace newUnreachableMetatstoreClient(AbstractMetaStore metaStore) {
+    return (CloseableIFace) Proxy.newProxyInstance(getClass().getClassLoader(),
+        new Class[] { CloseableIFace.class },
         new UnreachableMetastoreClientInvocationHandler(metaStore.getName()));
   }
 

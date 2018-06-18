@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client;
+package com.hotels.bdp.waggledance.server;
 
 import java.io.Closeable;
 
-import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
+import org.apache.hadoop.hive.metastore.IHMSHandler;
 
-import com.hotels.hcommon.ssh.Tunnelable;
-
-public interface CloseableThriftHiveMetastoreIface extends Iface, Closeable, Tunnelable {
-
-  boolean isOpen();
+public interface CloseableIHMSHandler extends IHMSHandler, Closeable {
 
 }

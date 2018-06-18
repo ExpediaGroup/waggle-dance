@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,16 @@ import org.springframework.stereotype.Service;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.client.CloseableIFaceFactory;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
 
 @Service
 public class SimpleFederationStatusService implements FederationStatusService {
 
-  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
+  private final CloseableIFaceFactory metaStoreClientFactory;
 
   @Autowired
-  public SimpleFederationStatusService(CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory) {
+  public SimpleFederationStatusService(CloseableIFaceFactory metaStoreClientFactory) {
     this.metaStoreClientFactory = metaStoreClientFactory;
   }
 
@@ -47,7 +47,7 @@ public class SimpleFederationStatusService implements FederationStatusService {
    */
   @Override
   public MetaStoreStatus checkStatus(AbstractMetaStore abstractMetaStore) {
-    try (CloseableThriftHiveMetastoreIface client = metaStoreClientFactory.newInstance(abstractMetaStore)) {
+    try (CloseableIFace client = metaStoreClientFactory.newInstance(abstractMetaStore)) {
       if (!client.isOpen()) {
         return MetaStoreStatus.UNAVAILABLE;
       }

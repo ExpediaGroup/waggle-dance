@@ -17,8 +17,10 @@ package com.hotels.bdp.waggledance.client;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 
+import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+
 public interface MetaStoreClientFactory {
 
-  CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
+  CloseableIFace newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
 
 }

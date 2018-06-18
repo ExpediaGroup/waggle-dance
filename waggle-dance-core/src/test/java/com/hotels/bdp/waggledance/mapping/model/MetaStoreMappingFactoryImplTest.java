@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.thrift.TException;
@@ -38,11 +39,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.client.CloseableIFaceFactory;
+import com.hotels.bdp.waggledance.client.DefaultMetastoreClientFactory;
 import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
+import com.hotels.hcommon.hive.metastore.client.api.ConditionalIFace;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetaStoreMappingFactoryImplTest {
@@ -53,8 +56,8 @@ public class MetaStoreMappingFactoryImplTest {
 
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
-  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceClientFactory(
-      new TunnelingMetaStoreClientFactory());;
+  private final CloseableIFaceFactory metaStoreClientFactory = new CloseableIFaceFactory(
+      new TunnelingMetaStoreClientFactory(new DefaultMetastoreClientFactory(new ArrayList<ConditionalIFace>())));;
 
   private MetaStoreMappingFactoryImpl factory;
 
@@ -100,8 +103,8 @@ public class MetaStoreMappingFactoryImplTest {
 
   @Test
   public void unreachableMetastoreClient() {
-    CloseableThriftHiveMetastoreIfaceClientFactory closeableThriftHiveMetastoreIfaceClientFactory = Mockito
-        .mock(CloseableThriftHiveMetastoreIfaceClientFactory.class);
+    CloseableIFaceFactory closeableThriftHiveMetastoreIfaceClientFactory = Mockito
+        .mock(CloseableIFaceFactory.class);
     MetaStoreMappingFactoryImpl factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy,
         closeableThriftHiveMetastoreIfaceClientFactory, accessControlHandlerFactory);
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
