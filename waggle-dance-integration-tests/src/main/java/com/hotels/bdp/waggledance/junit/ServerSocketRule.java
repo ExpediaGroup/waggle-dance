@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.nio.channels.CompletionHandler;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.io.ByteStreams;
-import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * Emulates a server that only receives packets but doesn't emit responses to any requests.
@@ -45,7 +45,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 public class ServerSocketRule extends ExternalResource {
   private static final Logger LOG = LoggerFactory.getLogger(ServerSocketRule.class);
 
-  private final ExecutorService executor = MoreExecutors.sameThreadExecutor();
+  private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final AsynchronousServerSocketChannel listener;
   private final InetSocketAddress address;
   private final ByteArrayOutputStream output = new ByteArrayOutputStream();
