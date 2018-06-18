@@ -20,7 +20,6 @@ import fm.last.commons.test.file.DataFolder;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import javax.validation.ConstraintViolationException;
@@ -170,18 +169,6 @@ public class YamlFederatedMetaStoreStorageTest {
     assertThat(lines.get(12), is("  - db2"));
     assertThat(lines.get(13), is("  name: hcom_2"));
     assertThat(lines.get(14), is("  remote-meta-store-uris: thrift://localhost:29083"));
-  }
-
-  @Test
-  public void configureCloseableIFace() throws Exception {
-    File f = tmp.newFile("federations.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
-    PrimaryMetaStore primaryMetaStore = newPrimaryInstance("hcom_1", "thrift://localhost:19083");
-    primaryMetaStore.setCloseableIface("foo.bar.MyCloseableIFaceImpl");
-    storage.insert(primaryMetaStore);
-    storage.saveFederation();
-    List<String> lines = Files.readAllLines(f.toPath(), Charset.forName("UTF-8"));
-    assertTrue(lines.contains("  closeable-iface: foo.bar.MyCloseableIFaceImpl"));
   }
 
   @Test
