@@ -29,11 +29,11 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 public class DefaultMetastoreClientFactory implements MetaStoreClientFactory {
 
-  static final Class<?>[] INTERFACES = new Class<?>[] { CloseableIFace.class };
+  static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
 
   private static class ReconnectingMetastoreClientInvocationHandler implements InvocationHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ReconnectingMetastoreClientInvocationHandler.class);
@@ -118,25 +118,25 @@ public class DefaultMetastoreClientFactory implements MetaStoreClientFactory {
    * java.lang.String, int)
    */
   @Override
-  public CloseableIFace newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    CloseableIFace closeableIFace = null;
+  public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
+    CloseableThriftHiveMetastoreIface closeableThriftHiveMetastoreIface = null;
     final String closeableIFaceImpl = hiveConf.get(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname);
     if (isNotBlank(closeableIFaceImpl)) {
       try {
         Class<?> clazz = Class.forName(closeableIFaceImpl);
         Constructor<?> ctor = clazz.getConstructor(HiveConf.class);
-        closeableIFace = (CloseableIFace) ctor.newInstance(new Object[] { hiveConf });
+        closeableThriftHiveMetastoreIface = (CloseableThriftHiveMetastoreIface) ctor.newInstance(new Object[] { hiveConf });
       } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
         throw new RuntimeException(e);
       }
     } else {
       ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
           hiveConf, name, reconnectionRetries);
-      closeableIFace = (CloseableIFace) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
+      closeableThriftHiveMetastoreIface = (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
           reconnectingHandler);
     }
 
-    LOG.info("Loaded CloseableIFace {} for Metastore {}", getUserClass(closeableIFace), name);
-    return closeableIFace;
+    LOG.info("Loaded CloseableThriftHiveMetastoreIface {} for Metastore {}", getUserClass(closeableThriftHiveMetastoreIface), name);
+    return closeableThriftHiveMetastoreIface;
   }
 }

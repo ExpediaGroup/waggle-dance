@@ -29,7 +29,7 @@ import com.google.common.base.Joiner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
-import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 public class CloseableIFaceFactory {
 
@@ -39,7 +39,7 @@ public class CloseableIFaceFactory {
     this.metaStoreClientFactory = metaStoreClientFactory;
   }
 
-  public CloseableIFace newInstance(AbstractMetaStore metaStore) {
+  public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
     final String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();

@@ -180,9 +180,9 @@ import com.hotels.bdp.waggledance.aws.glue.converter.util.LoggingHelper;
 import com.hotels.bdp.waggledance.aws.glue.converter.util.MetastoreClientUtils;
 import com.hotels.bdp.waggledance.aws.glue.shims.AwsGlueHiveShims;
 import com.hotels.bdp.waggledance.aws.glue.shims.ShimsLoader;
-import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
-public class GlueCatalogIFaceImpl implements CloseableIFace {
+public class GlueCatalogIFaceImpl implements CloseableThriftHiveMetastoreIface {
 
   private static final Logger LOG = LoggerFactory.getLogger(GlueCatalogIFaceImpl.class);
 

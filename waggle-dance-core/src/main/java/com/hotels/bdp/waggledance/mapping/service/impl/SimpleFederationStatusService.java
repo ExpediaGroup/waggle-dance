@@ -22,7 +22,7 @@ import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.client.CloseableIFaceFactory;
-import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 @Service
 public class SimpleFederationStatusService implements FederationStatusService {
@@ -47,7 +47,7 @@ public class SimpleFederationStatusService implements FederationStatusService {
    */
   @Override
   public MetaStoreStatus checkStatus(AbstractMetaStore abstractMetaStore) {
-    try (CloseableIFace client = metaStoreClientFactory.newInstance(abstractMetaStore)) {
+    try (CloseableThriftHiveMetastoreIface client = metaStoreClientFactory.newInstance(abstractMetaStore)) {
       if (!client.isOpen()) {
         return MetaStoreStatus.UNAVAILABLE;
       }

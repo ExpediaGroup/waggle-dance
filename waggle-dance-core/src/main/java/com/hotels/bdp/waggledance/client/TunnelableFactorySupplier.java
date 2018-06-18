@@ -17,7 +17,7 @@ package com.hotels.bdp.waggledance.client;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 
-import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 import com.hotels.hcommon.ssh.SshSettings;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 
@@ -32,7 +32,7 @@ public class TunnelableFactorySupplier {
    * HiveConf, i.e. federated metastore configuration, and share the tunnel for all its clients. We must evaluate what's
    * more convenient/efficient in Waggle Dance.
    */
-  public TunnelableFactory<CloseableIFace> get(HiveConf hiveConf) {
+  public TunnelableFactory<CloseableThriftHiveMetastoreIface> get(HiveConf hiveConf) {
     String strictHostKeyCheckingString = hiveConf.get(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname);
     if (!(YES.equals(strictHostKeyCheckingString) || NO.equals(strictHostKeyCheckingString))) {
       throw new IllegalArgumentException("Invalid strict host key checking: must be either 'yes' or 'no'");

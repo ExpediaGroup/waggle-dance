@@ -30,7 +30,7 @@ import com.hotels.bdp.waggledance.client.CloseableIFaceFactory;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
-import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 @Component
 public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
@@ -50,7 +50,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     this.accessControlHandlerFactory = accessControlHandlerFactory;
   }
 
-  private CloseableIFace createClient(AbstractMetaStore metaStore) {
+  private CloseableThriftHiveMetastoreIface createClient(AbstractMetaStore metaStore) {
     try {
       return metaStoreClientFactory.newInstance(metaStore);
     } catch (Exception e) {
@@ -73,9 +73,9 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     return prefixNamingStrategy.apply(federatedMetaStore);
   }
 
-  private CloseableIFace newUnreachableMetatstoreClient(AbstractMetaStore metaStore) {
-    return (CloseableIFace) Proxy.newProxyInstance(getClass().getClassLoader(),
-        new Class[] { CloseableIFace.class },
+  private CloseableThriftHiveMetastoreIface newUnreachableMetatstoreClient(AbstractMetaStore metaStore) {
+    return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(),
+        new Class[] { CloseableThriftHiveMetastoreIface.class },
         new UnreachableMetastoreClientInvocationHandler(metaStore.getName()));
   }
 

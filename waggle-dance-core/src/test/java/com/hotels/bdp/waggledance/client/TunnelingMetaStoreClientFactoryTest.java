@@ -34,7 +34,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
-import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 import com.hotels.hcommon.ssh.TunnelableSupplier;
 
@@ -45,7 +45,7 @@ public class TunnelingMetaStoreClientFactoryTest {
 
   private @Mock TunnelableFactorySupplier tunnelableFactorySupplier;
   private @Mock MetaStoreClientFactory metaStoreClientFactory;
-  private @Mock TunnelableFactory<CloseableIFace> tunnelableFactory;
+  private @Mock TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
   private HiveConf hiveConf;
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
 

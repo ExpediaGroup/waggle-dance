@@ -26,19 +26,19 @@ import org.apache.thrift.TException;
 
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
-import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 class MetaStoreMappingImpl implements MetaStoreMapping {
 
   private final String databasePrefix;
-  private final CloseableIFace client;
+  private final CloseableThriftHiveMetastoreIface client;
   private final AccessControlHandler accessControlHandler;
   private final String name;
 
   MetaStoreMappingImpl(
       String databasePrefix,
       String name,
-      CloseableIFace client,
+      CloseableThriftHiveMetastoreIface client,
       AccessControlHandler accessControlHandler) {
     this.databasePrefix = databasePrefix;
     this.name = name;

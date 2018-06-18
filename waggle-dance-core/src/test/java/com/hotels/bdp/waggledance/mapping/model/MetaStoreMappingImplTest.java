@@ -34,7 +34,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
-import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetaStoreMappingImplTest {
@@ -43,7 +43,7 @@ public class MetaStoreMappingImplTest {
   private static final String NAME = "name";
 
   private @Mock
-  CloseableIFace client;
+  CloseableThriftHiveMetastoreIface client;
   private @Mock Database database;
   private @Mock AccessControlHandler accessControlHandler;
 
