@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.hotels.bdp.waggledance.api.model;
 
-import java.beans.Transient;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
+import java.beans.Transient;
 
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -35,6 +35,7 @@ import com.google.common.base.Objects;
 public abstract class AbstractMetaStore {
 
   private String databasePrefix;
+  private String closeableIface = "";
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
@@ -106,6 +107,14 @@ public abstract class AbstractMetaStore {
     this.accessControlType = accessControlType;
   }
 
+  public String getCloseableIface() {
+    return closeableIface;
+  }
+
+  public void setCloseableIface(String closeableIface) {
+    this.closeableIface = closeableIface;
+  }
+
   @Transient
   public MetaStoreStatus getStatus() {
     return status;
@@ -146,5 +155,4 @@ public abstract class AbstractMetaStore {
         .add("status", status)
         .toString();
   }
-
 }

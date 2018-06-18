@@ -29,6 +29,7 @@ import com.google.common.base.Joiner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
@@ -40,10 +41,10 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
-    String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
-    String name = metaStore.getName().toLowerCase();
+    final String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
+    properties.put(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname, metaStore.getCloseableIface());
     if (metastoreTunnel != null) {
       properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
       properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
@@ -51,10 +52,13 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
       properties.put(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, metastoreTunnel.getKnownHosts());
       properties.put(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, metastoreTunnel.getPrivateKeys());
       properties.put(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, String.valueOf(metastoreTunnel.getTimeout()));
-      properties.put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, metastoreTunnel.getStrictHostKeyChecking());
+      properties.put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname,
+          metastoreTunnel.getStrictHostKeyChecking());
     }
+
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
-    return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
+    return metaStoreClientFactory.newInstance(confFactory.newInstance(),
+        "waggledance-" + metaStore.getName().toLowerCase(), 3);
   }
 
   private static String normaliseMetaStoreUris(String metaStoreUris) {
@@ -70,5 +74,4 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
       throw new RuntimeException(e);
     }
   }
-
 }

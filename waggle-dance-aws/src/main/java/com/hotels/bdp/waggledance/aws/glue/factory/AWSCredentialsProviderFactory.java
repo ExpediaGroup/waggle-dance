@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client;
+package com.hotels.bdp.waggledance.aws.glue.factory;
 
-import java.io.Closeable;
+import org.apache.hadoop.hive.conf.HiveConf;
 
-import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
+import com.amazonaws.auth.AWSCredentialsProvider;
 
-import com.hotels.hcommon.ssh.Tunnelable;
-
-public interface CloseableThriftHiveMetastoreIface extends Iface, Closeable, Tunnelable {
-
-  boolean isOpen();
-
+public abstract interface AWSCredentialsProviderFactory
+{
+  public abstract AWSCredentialsProvider buildAWSCredentialsProvider(HiveConf paramHiveConf);
 }

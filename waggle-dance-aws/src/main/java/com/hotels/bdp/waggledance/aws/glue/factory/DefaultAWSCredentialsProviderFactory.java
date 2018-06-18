@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client;
+package com.hotels.bdp.waggledance.aws.glue.factory;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 
-import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 
-public interface MetaStoreClientFactory {
-
-  CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
-
+public class DefaultAWSCredentialsProviderFactory implements AWSCredentialsProviderFactory {
+  public AWSCredentialsProvider buildAWSCredentialsProvider(HiveConf hiveConf) {
+    return new DefaultAWSCredentialsProviderChain();
+  }
 }

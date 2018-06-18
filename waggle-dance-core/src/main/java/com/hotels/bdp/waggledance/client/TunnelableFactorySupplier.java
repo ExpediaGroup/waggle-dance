@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.client;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 import com.hotels.hcommon.ssh.SshSettings;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 

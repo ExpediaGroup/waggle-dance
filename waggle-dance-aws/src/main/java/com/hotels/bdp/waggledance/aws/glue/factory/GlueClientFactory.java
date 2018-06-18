@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client;
+package com.hotels.bdp.waggledance.aws.glue.factory;
 
-import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 
-import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
+import com.amazonaws.services.glue.AWSGlue;
 
-public interface MetaStoreClientFactory {
-
-  CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
-
+public abstract interface GlueClientFactory
+{
+  public abstract AWSGlue newClient()
+      throws MetaException;
 }

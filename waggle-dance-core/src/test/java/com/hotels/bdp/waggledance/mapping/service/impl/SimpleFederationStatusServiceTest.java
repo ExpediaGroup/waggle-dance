@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,16 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleFederationStatusServiceTest {
 
-  private @Mock CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
-  private @Mock CloseableThriftHiveMetastoreIface client;
+  private @Mock
+  CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
+  private @Mock
+  CloseableThriftHiveMetastoreIface client;
   private SimpleFederationStatusService service;
 
   private final FederatedMetaStore metaStore = FederatedMetaStore.newFederatedInstance("remote", "uri");

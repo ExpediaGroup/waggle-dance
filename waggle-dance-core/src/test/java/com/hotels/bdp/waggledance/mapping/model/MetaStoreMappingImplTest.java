@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetaStoreMappingImplTest {
@@ -42,7 +42,8 @@ public class MetaStoreMappingImplTest {
   private static final String DATABASE_PREFIX = "prefix_";
   private static final String NAME = "name";
 
-  private @Mock CloseableThriftHiveMetastoreIface client;
+  private @Mock
+  CloseableThriftHiveMetastoreIface client;
   private @Mock Database database;
   private @Mock AccessControlHandler accessControlHandler;
 

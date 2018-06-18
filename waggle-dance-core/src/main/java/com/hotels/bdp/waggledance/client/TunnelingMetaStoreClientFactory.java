@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 import com.hotels.hcommon.ssh.MethodChecker;
 import com.hotels.hcommon.ssh.SshException;
 import com.hotels.hcommon.ssh.TunnelableFactory;
@@ -65,8 +66,12 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
     private final String name;
     private final int reconnectionRetries;
 
-    private HiveMetaStoreClientSupplier(HiveConf hiveConf, String name, int reconnectionRetries) {
-      factory = new DefaultMetaStoreClientFactory();
+    private HiveMetaStoreClientSupplier(
+        MetaStoreClientFactory factory,
+        HiveConf hiveConf,
+        String name,
+        int reconnectionRetries) {
+      this.factory = factory;
       this.hiveConf = hiveConf;
       this.name = name;
       this.reconnectionRetries = reconnectionRetries;
@@ -80,24 +85,22 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
   }
 
   private final TunnelableFactorySupplier tunnelableFactorySupplier;
-  private final MetaStoreClientFactory defaultFactory;
+  private final MetaStoreClientFactory factory;
 
   public TunnelingMetaStoreClientFactory() {
-    this(new TunnelableFactorySupplier(), new DefaultMetaStoreClientFactory());
+    this(new TunnelableFactorySupplier(), new DefaultMetastoreClientFactory());
   }
 
   @VisibleForTesting
-  TunnelingMetaStoreClientFactory(
-      TunnelableFactorySupplier tunnelableFactorySupplier,
-      MetaStoreClientFactory defaultFactory) {
+  TunnelingMetaStoreClientFactory(TunnelableFactorySupplier tunnelableFactorySupplier, MetaStoreClientFactory factory) {
     this.tunnelableFactorySupplier = tunnelableFactorySupplier;
-    this.defaultFactory = defaultFactory;
+    this.factory = factory;
   }
 
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
     if (isEmpty(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))) {
-      return defaultFactory.newInstance(hiveConf, name, reconnectionRetries);
+      return factory.newInstance(hiveConf, name, reconnectionRetries);
     }
 
     String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname);
@@ -109,15 +112,15 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
 
     HiveConf localHiveConf = createLocalHiveConf(localHost, localPort, remoteHost, remotePort, hiveConf);
 
-    TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactorySupplier
-        .get(localHiveConf);
+    TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactorySupplier.get(localHiveConf);
 
     LOG.info("Metastore URI {} is being proxied through {}", hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
         localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
 
-    HiveMetaStoreClientSupplier supplier = new HiveMetaStoreClientSupplier(localHiveConf, name, reconnectionRetries);
-    return (CloseableThriftHiveMetastoreIface) tunnelableFactory.wrap(supplier, METHOD_CHECKER, localHost, localPort,
-        remoteHost, remotePort);
+    HiveMetaStoreClientSupplier supplier = new HiveMetaStoreClientSupplier(factory, localHiveConf, name,
+        reconnectionRetries);
+    return (CloseableThriftHiveMetastoreIface) tunnelableFactory.wrap(supplier, METHOD_CHECKER, localHost, localPort, remoteHost,
+        remotePort);
   }
 
   private HiveConf createLocalHiveConf(
