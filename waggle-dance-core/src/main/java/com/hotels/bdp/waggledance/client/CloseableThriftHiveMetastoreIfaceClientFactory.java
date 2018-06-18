@@ -31,11 +31,11 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
-public class CloseableThriftHiveMetastoreIfaceFactory {
+public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
   private final MetaStoreClientFactory metaStoreClientFactory;
 
-  public CloseableThriftHiveMetastoreIfaceFactory(MetaStoreClientFactory metaStoreClientFactory) {
+  public CloseableThriftHiveMetastoreIfaceClientFactory(MetaStoreClientFactory metaStoreClientFactory) {
     this.metaStoreClientFactory = metaStoreClientFactory;
   }
 
