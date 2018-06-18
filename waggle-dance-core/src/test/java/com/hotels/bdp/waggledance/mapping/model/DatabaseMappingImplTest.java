@@ -77,6 +77,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import jersey.repackaged.com.google.common.collect.Lists;
 
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
+
 @RunWith(MockitoJUnitRunner.class)
 public class DatabaseMappingImplTest {
 
@@ -86,7 +88,7 @@ public class DatabaseMappingImplTest {
   private final static String TABLE_NAME = "table";
   private static final String VIEW_EXPANDED_TEXT = "view expanded text";
   private static final String VIEW_ORIGINAL_TEXT = "view original text";
-  private static final String VIEW_EXPANDED_TEST_TRANSFORMED = "view expanded text transformed!";
+  private static final String VIEW_EXPANDED_TEXT_TRANSFORMED = "view expanded text transformed!";
   private static final String VIEW_ORIGINAL_TEXT_TRANSFORMED = "view original text transformed!";
 
   private @Mock MetaStoreMapping metastoreMapping;
@@ -124,7 +126,7 @@ public class DatabaseMappingImplTest {
     when(metastoreMapping.transformInboundDatabaseName(anyString())).thenReturn(IN_DB_NAME);
     when(metastoreMapping.transformOutboundDatabaseName(anyString())).thenReturn(OUT_DB_NAME);
     when(queryMapping.transformOutboundDatabaseName(metastoreMapping, VIEW_EXPANDED_TEXT))
-        .thenReturn(VIEW_EXPANDED_TEST_TRANSFORMED);
+        .thenReturn(VIEW_EXPANDED_TEXT_TRANSFORMED);
     when(queryMapping.transformOutboundDatabaseName(metastoreMapping, VIEW_ORIGINAL_TEXT))
         .thenReturn(VIEW_ORIGINAL_TEXT_TRANSFORMED);
   }
@@ -150,8 +152,53 @@ public class DatabaseMappingImplTest {
     Table result = databaseMapping.transformOutboundTable(table);
     assertThat(result, is(sameInstance(table)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
-    assertThat(result.getViewExpandedText(), is(VIEW_EXPANDED_TEST_TRANSFORMED));
+    assertThat(result.getViewExpandedText(), is(VIEW_EXPANDED_TEXT_TRANSFORMED));
     assertThat(result.getViewOriginalText(), is(VIEW_ORIGINAL_TEXT_TRANSFORMED));
+  }
+
+  @Test
+  public void transformOutboundTableViewExpandedTextErrorKeepOriginal() throws Exception {
+    String viewExpandedText = "error";
+    when(queryMapping.transformOutboundDatabaseName(metastoreMapping, viewExpandedText))
+        .thenThrow(new WaggleDanceException("cannot transform"));
+
+    Table table = new Table();
+    table.setDbName(DB_NAME);
+    table.setViewExpandedText(viewExpandedText);
+    table.setViewOriginalText(VIEW_ORIGINAL_TEXT);
+
+    Table result = databaseMapping.transformOutboundTable(table);
+    assertThat(result.getViewExpandedText(), is(viewExpandedText));
+  }
+
+  @Test
+  public void transformOutboundTableViewOriginalTextErrorTakeExpandedText() throws Exception {
+    String viewOriginalText = "error";
+    when(queryMapping.transformOutboundDatabaseName(metastoreMapping, viewOriginalText))
+        .thenThrow(new WaggleDanceException("cannot transform"));
+
+    Table table = new Table();
+    table.setDbName(DB_NAME);
+    table.setViewExpandedText(VIEW_EXPANDED_TEXT);
+    table.setViewOriginalText(viewOriginalText);
+
+    Table result = databaseMapping.transformOutboundTable(table);
+    assertThat(result.getViewOriginalText(), is(VIEW_EXPANDED_TEXT_TRANSFORMED));
+  }
+
+  @Test
+  public void transformOutboundTableViewOriginalTextErrorKeepOriginal() throws Exception {
+    String viewOriginalText = "error";
+    when(queryMapping.transformOutboundDatabaseName(metastoreMapping, viewOriginalText))
+        .thenThrow(new WaggleDanceException("cannot transform"));
+
+    Table table = new Table();
+    table.setDbName(DB_NAME);
+    table.setViewExpandedText(null);
+    table.setViewOriginalText(viewOriginalText);
+
+    Table result = databaseMapping.transformOutboundTable(table);
+    assertThat(result.getViewOriginalText(), is(viewOriginalText));
   }
 
   @Test
@@ -747,7 +794,7 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTables().get(1), is(sameInstance(result.getTables().get(1))));
     assertThat(transformedResult.getTables().get(1).getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTables().get(1).getTableName(), is(TABLE_NAME));
-    assertThat(transformedResult.getTables().get(1).getViewExpandedText(), is(VIEW_EXPANDED_TEST_TRANSFORMED));
+    assertThat(transformedResult.getTables().get(1).getViewExpandedText(), is(VIEW_EXPANDED_TEXT_TRANSFORMED));
     assertThat(transformedResult.getTables().get(1).getViewOriginalText(), is(VIEW_ORIGINAL_TEXT_TRANSFORMED));
   }
 
@@ -765,7 +812,7 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable(), is(sameInstance(result.getTable())));
     assertThat(transformedResult.getTable().getDbName(), is(OUT_DB_NAME));
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
-    assertThat(transformedResult.getTable().getViewExpandedText(), is(VIEW_EXPANDED_TEST_TRANSFORMED));
+    assertThat(transformedResult.getTable().getViewExpandedText(), is(VIEW_EXPANDED_TEXT_TRANSFORMED));
     assertThat(transformedResult.getTable().getViewOriginalText(), is(VIEW_ORIGINAL_TEXT_TRANSFORMED));
   }
 

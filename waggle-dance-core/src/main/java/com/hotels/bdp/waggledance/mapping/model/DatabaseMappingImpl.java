@@ -62,8 +62,14 @@ import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
 
 public class DatabaseMappingImpl implements DatabaseMapping {
+
+  private final static Logger log = LoggerFactory.getLogger(DatabaseMappingImpl.class);
 
   private final MetaStoreMapping metaStoreMapping;
   private final QueryMapping queryMapping;
@@ -77,14 +83,32 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public Table transformOutboundTable(Table table) {
     table.setDbName(metaStoreMapping.transformOutboundDatabaseName(table.getDbName()));
     if (table.isSetViewExpandedText()) {
-      table.setViewExpandedText(
-          queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewExpandedText()));
+      try {
+        log.debug("Transforming ViewExpandedText: {}", table.getViewExpandedText());
+        table.setViewExpandedText(
+            queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewExpandedText()));
+      } catch (WaggleDanceException e) {
+        log.debug("Error while transforming databaseName in ViewExpandedText, keeping original", e);
+      }
     }
     if (table.isSetViewOriginalText()) {
-      table.setViewOriginalText(
-          queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewOriginalText()));
+      try {
+        log.debug("Transforming ViewOriginalText: {}", table.getViewOriginalText());
+        table.setViewOriginalText(
+            queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewOriginalText()));
+      } catch (WaggleDanceException e) {
+        // We are hitting a bug in hive (https://issues.apache.org/jira/browse/HIVE-19896) that prevents the
+        // ViewOriginalText to be parsed, if we leave the ViewOriginalText we'll have the wrong database names in it so
+        // we set the ViewExpandedText to at least return a "correct" view query string. Hard to see what is the usage
+        // and impact of this.
+        log.debug("Error while transforming databaseName in ViewOriginalText, using ViewExpandedText if available", e);
+        if (table.isSetViewExpandedText()) {
+          table.setViewOriginalText(table.getViewExpandedText());
+        }
+      }
     }
     return table;
+
   }
 
   @Override
