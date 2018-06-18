@@ -28,6 +28,8 @@ import com.hotels.bdp.waggledance.mapping.service.impl.MonitoredDatabaseMappingS
 import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
 import com.hotels.bdp.waggledance.mapping.service.impl.PrefixBasedDatabaseMappingService;
 import com.hotels.bdp.waggledance.mapping.service.impl.StaticDatabaseMappingService;
+import com.hotels.bdp.waggledance.server.glue.metastore.GlueCatalogIHMSHandler;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableIHMSHandler;
 
 @Component
 public class FederatedHMSHandlerFactory {
@@ -55,8 +57,9 @@ public class FederatedHMSHandlerFactory {
   public CloseableIHMSHandler create() {
     MappingEventListener service = createDatabaseMappingService();
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
-    CloseableIHMSHandler baseHandler = new FederatedHMSHandler(monitoredService, notifyingFederationService);
+    //CloseableIHMSHandler baseHandler = new FederatedHMSHandler(monitoredService, notifyingFederationService);
     HiveConf hiveConf = new HiveConf(this.hiveConf);
+    CloseableIHMSHandler baseHandler = new GlueCatalogIHMSHandler(hiveConf, monitoredService);
     baseHandler.setConf(hiveConf);
     return baseHandler;
   }

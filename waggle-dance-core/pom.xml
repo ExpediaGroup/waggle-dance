@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -14,10 +15,25 @@
     <mockito.version>1.10.19</mockito.version>
     <powermock.version>1.6.4</powermock.version>
     <jcabi-aspects.version>0.22.6</jcabi-aspects.version>
-    <hcommon-ssh.version>1.0.1</hcommon-ssh.version>
+    <hcommon-hive-metastore.version>1.1.1-SNAPSHOT</hcommon-hive-metastore.version>
   </properties>
 
   <dependencies>
+    <!--TODO: Remove dependencies and load with Spring -->
+    <dependency>
+      <groupId>org.apache.hive.hcatalog</groupId>
+      <artifactId>hive-hcatalog-core</artifactId>
+      <version>${hive.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-glue</artifactId>
+      <version>1.11.233</version>
+      <scope>compile</scope>
+    </dependency>
+
+
     <!-- Spring Boot -->
     <dependency>
       <groupId>org.springframework</groupId>
@@ -107,8 +123,8 @@
     <!-- SSH library -->
     <dependency>
       <groupId>com.hotels</groupId>
-      <artifactId>hcommon-ssh</artifactId>
-      <version>${hcommon-ssh.version}</version>
+      <artifactId>hcommon-hive-metastore</artifactId>
+      <version>${hcommon-hive-metastore.version}</version>
     </dependency>
 
     <!-- Hive -->

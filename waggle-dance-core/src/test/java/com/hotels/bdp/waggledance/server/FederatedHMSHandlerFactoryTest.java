@@ -35,6 +35,7 @@ import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
+import com.hotels.hcommon.hive.metastore.client.api.CloseableIHMSHandler;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FederatedHMSHandlerFactoryTest {
