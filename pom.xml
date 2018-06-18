@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -29,6 +30,7 @@
     <module>waggle-dance-integration-tests</module>
     <module>waggle-dance</module>
     <module>waggle-dance-rpm</module>
+    <module>waggle-dance-aws</module>
   </modules>
 
   <properties>
@@ -43,6 +45,7 @@
     <jdk.version>1.7</jdk.version>
     <aspectj.version>1.8.9</aspectj.version>
     <beeju.version>1.2.0</beeju.version>
+    <hcommon-hive-metastore.version>1.1.1-SNAPSHOT</hcommon-hive-metastore.version>
   </properties>
 
   <dependencyManagement>
@@ -60,6 +63,12 @@
         <version>${dropwizard.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.hotels</groupId>
+        <artifactId>hcommon-hive-metastore</artifactId>
+        <version>${hcommon-hive-metastore.version}</version>
+        <scope>compile</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
@@ -173,7 +182,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <execute />
+                    <execute/>
                   </action>
                 </pluginExecution>
               </pluginExecutions>
