@@ -21,6 +21,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.Before;
@@ -36,6 +37,8 @@ import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableIHMSHandler;
+import com.hotels.hcommon.hive.metastore.client.api.ConditionalIHMSHandler;
+import com.hotels.hcommon.hive.metastore.client.conditional.ConditionalIHMSHandlerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FederatedHMSHandlerFactoryTest {
@@ -53,7 +56,8 @@ public class FederatedHMSHandlerFactoryTest {
     when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.MANUAL);
     when(notifyingFederationService.getAll()).thenReturn(new ArrayList<AbstractMetaStore>());
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
-        waggleDanceConfiguration, queryMapping);
+        waggleDanceConfiguration, queryMapping,
+        new ConditionalIHMSHandlerFactory(Collections.<ConditionalIHMSHandler> emptyList()));
   }
 
   @Test

@@ -28,8 +28,8 @@ import com.hotels.bdp.waggledance.mapping.service.impl.MonitoredDatabaseMappingS
 import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
 import com.hotels.bdp.waggledance.mapping.service.impl.PrefixBasedDatabaseMappingService;
 import com.hotels.bdp.waggledance.mapping.service.impl.StaticDatabaseMappingService;
-import com.hotels.bdp.waggledance.server.glue.metastore.GlueCatalogIHMSHandler;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableIHMSHandler;
+import com.hotels.hcommon.hive.metastore.client.conditional.ConditionalIHMSHandlerFactory;
 
 @Component
 public class FederatedHMSHandlerFactory {
@@ -39,6 +39,7 @@ public class FederatedHMSHandlerFactory {
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final QueryMapping queryMapping;
+  private final ConditionalIHMSHandlerFactory conditionalIHMSHandlerFactory;
 
   @Autowired
   public FederatedHMSHandlerFactory(
@@ -46,20 +47,25 @@ public class FederatedHMSHandlerFactory {
       NotifyingFederationService notifyingFederationService,
       MetaStoreMappingFactory metaStoreMappingFactory,
       WaggleDanceConfiguration waggleDanceConfiguration,
-      QueryMapping queryMapping) {
+      QueryMapping queryMapping,
+      ConditionalIHMSHandlerFactory conditionalIHMSHandlerFactory) {
     this.hiveConf = hiveConf;
     this.notifyingFederationService = notifyingFederationService;
     this.metaStoreMappingFactory = metaStoreMappingFactory;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.queryMapping = queryMapping;
+    this.conditionalIHMSHandlerFactory = conditionalIHMSHandlerFactory;
   }
 
   public CloseableIHMSHandler create() {
     MappingEventListener service = createDatabaseMappingService();
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
-    //CloseableIHMSHandler baseHandler = new FederatedHMSHandler(monitoredService, notifyingFederationService);
+
     HiveConf hiveConf = new HiveConf(this.hiveConf);
-    CloseableIHMSHandler baseHandler = new GlueCatalogIHMSHandler(hiveConf, monitoredService);
+    CloseableIHMSHandler baseHandler = conditionalIHMSHandlerFactory.factoryForUri("glue");
+    if (null == baseHandler) {
+      baseHandler = new FederatedHMSHandler(monitoredService, notifyingFederationService);
+    }
     baseHandler.setConf(hiveConf);
     return baseHandler;
   }

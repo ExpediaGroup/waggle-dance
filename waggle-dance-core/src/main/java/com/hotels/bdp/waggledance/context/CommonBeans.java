@@ -15,11 +15,14 @@
  */
 package com.hotels.bdp.waggledance.context;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.context.annotation.Bean;
+
+import com.google.common.collect.ImmutableList;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
@@ -28,6 +31,8 @@ import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
+import com.hotels.hcommon.hive.metastore.client.api.ConditionalIHMSHandler;
+import com.hotels.hcommon.hive.metastore.client.conditional.ConditionalIHMSHandlerFactory;
 
 @org.springframework.context.annotation.Configuration
 public class CommonBeans {
@@ -54,6 +59,11 @@ public class CommonBeans {
   @Bean
   public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory() {
     return new CloseableThriftHiveMetastoreIfaceClientFactory(new TunnelingMetaStoreClientFactory());
+  }
+
+  @Bean
+  public ConditionalIHMSHandlerFactory conditionalIHMSHandlerFactory(List<ConditionalIHMSHandler> conditionalIHMSHandlers) {
+    return new ConditionalIHMSHandlerFactory(ImmutableList.copyOf(conditionalIHMSHandlers));
   }
 
   @Bean
