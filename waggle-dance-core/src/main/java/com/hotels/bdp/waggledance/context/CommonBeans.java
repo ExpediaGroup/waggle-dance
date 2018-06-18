@@ -62,7 +62,7 @@ public class CommonBeans {
   }
 
   @Bean
-  public ConditionalIHMSHandlerFactory conditionalIHMSHandlerFactory(List<ConditionalIHMSHandler> conditionalIHMSHandlers) {
+  public ConditionalIHMSHandlerFactory iHMSHandlerFactory(List<ConditionalIHMSHandler> conditionalIHMSHandlers) {
     return new ConditionalIHMSHandlerFactory(ImmutableList.copyOf(conditionalIHMSHandlers));
   }
 

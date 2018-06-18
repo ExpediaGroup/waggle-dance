@@ -39,7 +39,7 @@ public class FederatedHMSHandlerFactory {
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final QueryMapping queryMapping;
-  private final ConditionalIHMSHandlerFactory conditionalIHMSHandlerFactory;
+  private final ConditionalIHMSHandlerFactory ihmsHandlerFactory;
 
   @Autowired
   public FederatedHMSHandlerFactory(
@@ -48,13 +48,13 @@ public class FederatedHMSHandlerFactory {
       MetaStoreMappingFactory metaStoreMappingFactory,
       WaggleDanceConfiguration waggleDanceConfiguration,
       QueryMapping queryMapping,
-      ConditionalIHMSHandlerFactory conditionalIHMSHandlerFactory) {
+      ConditionalIHMSHandlerFactory ihmsHandlerFactory) {
     this.hiveConf = hiveConf;
     this.notifyingFederationService = notifyingFederationService;
     this.metaStoreMappingFactory = metaStoreMappingFactory;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.queryMapping = queryMapping;
-    this.conditionalIHMSHandlerFactory = conditionalIHMSHandlerFactory;
+    this.ihmsHandlerFactory = ihmsHandlerFactory;
   }
 
   public CloseableIHMSHandler create() {
@@ -62,7 +62,9 @@ public class FederatedHMSHandlerFactory {
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
 
     HiveConf hiveConf = new HiveConf(this.hiveConf);
-    CloseableIHMSHandler baseHandler = conditionalIHMSHandlerFactory.factoryForUri("glue");
+    // TODO: Get rid of hard coding and make configurable in YAML
+    // TODO: Investigate whether this is the best place for this to happen
+    CloseableIHMSHandler baseHandler = ihmsHandlerFactory.factoryForUri("glue");
     if (null == baseHandler) {
       baseHandler = new FederatedHMSHandler(monitoredService, notifyingFederationService);
     }
