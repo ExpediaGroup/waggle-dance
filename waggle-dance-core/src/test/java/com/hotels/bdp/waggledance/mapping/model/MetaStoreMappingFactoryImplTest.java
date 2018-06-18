@@ -15,14 +15,13 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
 import java.util.Arrays;
 
@@ -39,7 +38,6 @@ import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
-import com.hotels.bdp.waggledance.client.DefaultMetastoreClientFactory;
 import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
@@ -55,7 +53,7 @@ public class MetaStoreMappingFactoryImplTest {
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
   private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceClientFactory(
-      new TunnelingMetaStoreClientFactory(new DefaultMetastoreClientFactory()));;
+      new TunnelingMetaStoreClientFactory());;
 
   private MetaStoreMappingFactoryImpl factory;
 

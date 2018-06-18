@@ -124,19 +124,22 @@ public class DefaultMetastoreClientFactory implements MetaStoreClientFactory {
     if (isNotBlank(closeableIFaceImpl)) {
       try {
         Class<?> clazz = Class.forName(closeableIFaceImpl);
-        Constructor<?> ctor = clazz.getConstructor(HiveConf.class);
-        closeableThriftHiveMetastoreIface = (CloseableThriftHiveMetastoreIface) ctor.newInstance(new Object[] { hiveConf });
-      } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
+        Constructor<?> constructor = clazz.getConstructor(HiveConf.class);
+        closeableThriftHiveMetastoreIface = (CloseableThriftHiveMetastoreIface) constructor
+            .newInstance(new Object[] { hiveConf });
+      } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | InvocationTargetException
+          | IllegalAccessException e) {
         throw new RuntimeException(e);
       }
     } else {
       ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
           hiveConf, name, reconnectionRetries);
-      closeableThriftHiveMetastoreIface = (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
-          reconnectingHandler);
+      closeableThriftHiveMetastoreIface = (CloseableThriftHiveMetastoreIface) Proxy
+          .newProxyInstance(getClass().getClassLoader(), INTERFACES, reconnectingHandler);
     }
 
-    LOG.info("Loaded CloseableThriftHiveMetastoreIface {} for Metastore {}", getUserClass(closeableThriftHiveMetastoreIface), name);
+    LOG.info("Loaded CloseableThriftHiveMetastoreIface {} for Metastore {}",
+        getUserClass(closeableThriftHiveMetastoreIface), name);
     return closeableThriftHiveMetastoreIface;
   }
 }
