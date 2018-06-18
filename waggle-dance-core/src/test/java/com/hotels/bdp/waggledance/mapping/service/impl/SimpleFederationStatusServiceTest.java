@@ -27,14 +27,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.client.CloseableIFaceFactory;
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceFactory;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleFederationStatusServiceTest {
 
   private @Mock
-  CloseableIFaceFactory metaStoreClientFactory;
+  CloseableThriftHiveMetastoreIfaceFactory metaStoreClientFactory;
   private @Mock
   CloseableThriftHiveMetastoreIface client;
   private SimpleFederationStatusService service;

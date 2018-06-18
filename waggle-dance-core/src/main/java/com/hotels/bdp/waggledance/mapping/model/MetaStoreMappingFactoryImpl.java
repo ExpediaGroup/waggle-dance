@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.client.CloseableIFaceFactory;
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceFactory;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
@@ -37,13 +37,13 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   private static final Logger LOG = LoggerFactory.getLogger(MetaStoreMappingFactoryImpl.class);
 
   private final PrefixNamingStrategy prefixNamingStrategy;
-  private final CloseableIFaceFactory metaStoreClientFactory;
+  private final CloseableThriftHiveMetastoreIfaceFactory metaStoreClientFactory;
   private final AccessControlHandlerFactory accessControlHandlerFactory;
 
   @Autowired
   public MetaStoreMappingFactoryImpl(
       PrefixNamingStrategy prefixNamingStrategy,
-      CloseableIFaceFactory metaStoreClientFactory,
+      CloseableThriftHiveMetastoreIfaceFactory metaStoreClientFactory,
       AccessControlHandlerFactory accessControlHandlerFactory) {
     this.prefixNamingStrategy = prefixNamingStrategy;
     this.metaStoreClientFactory = metaStoreClientFactory;

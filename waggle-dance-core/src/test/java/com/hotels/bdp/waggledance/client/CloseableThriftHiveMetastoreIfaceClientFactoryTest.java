@@ -41,13 +41,13 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
   private static final String THRIFT_URI = "thrift://host:port";
 
-  private CloseableIFaceFactory factory;
+  private CloseableThriftHiveMetastoreIfaceFactory factory;
   private @Mock
   DefaultMetastoreClientFactory metaStoreClientFactory;
 
   @Before
   public void setUp() {
-    factory = new CloseableIFaceFactory(metaStoreClientFactory);
+    factory = new CloseableThriftHiveMetastoreIfaceFactory(metaStoreClientFactory);
   }
 
   @Test

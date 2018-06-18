@@ -38,7 +38,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.client.CloseableIFaceFactory;
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetastoreClientFactory;
 import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
@@ -54,7 +54,7 @@ public class MetaStoreMappingFactoryImplTest {
 
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
-  private final CloseableIFaceFactory metaStoreClientFactory = new CloseableIFaceFactory(
+  private final CloseableThriftHiveMetastoreIfaceFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceFactory(
       new TunnelingMetaStoreClientFactory(new DefaultMetastoreClientFactory()));;
 
   private MetaStoreMappingFactoryImpl factory;
@@ -101,7 +101,7 @@ public class MetaStoreMappingFactoryImplTest {
 
   @Test
   public void unreachableMetastoreClient() {
-    CloseableIFaceFactory closeableThriftHiveMetastoreIfaceClientFactory = Mockito.mock(CloseableIFaceFactory.class);
+    CloseableThriftHiveMetastoreIfaceFactory closeableThriftHiveMetastoreIfaceClientFactory = Mockito.mock(CloseableThriftHiveMetastoreIfaceFactory.class);
     MetaStoreMappingFactoryImpl factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy,
         closeableThriftHiveMetastoreIfaceClientFactory, accessControlHandlerFactory);
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());

@@ -21,16 +21,16 @@ import org.springframework.stereotype.Service;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.client.CloseableIFaceFactory;
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceFactory;
 import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
 @Service
 public class SimpleFederationStatusService implements FederationStatusService {
 
-  private final CloseableIFaceFactory metaStoreClientFactory;
+  private final CloseableThriftHiveMetastoreIfaceFactory metaStoreClientFactory;
 
   @Autowired
-  public SimpleFederationStatusService(CloseableIFaceFactory metaStoreClientFactory) {
+  public SimpleFederationStatusService(CloseableThriftHiveMetastoreIfaceFactory metaStoreClientFactory) {
     this.metaStoreClientFactory = metaStoreClientFactory;
   }
 
