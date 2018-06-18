@@ -396,7 +396,9 @@ Assumes database resolution is done by adding prefixes. If database resolution i
 
 
 ## Limitations
-* Support for views utilises an experimental Hive query parsing -> unparsing feature. This feature issues a conversion on the original query which was used to generate the view, in some cases the conversion of the original query may fail.
+### Hive Views and prefixes
+Support for views utilises the Hive query parsing which in some cases the conversion of the original query may fail. A Hive Table contains two properties that contain the view query: `viewExpandedText` and `viewOriginalText`. You can see them with the `desc extended <table>` query. In order for a prefixed federated view to behave correctly Waggle Dance needs to manipulate the queries in those properties and prefix any databases it finds. It does so by calling the `org.apache.hadoop.hive.ql.parse.ParseUtils` to parse the query, we found an issue in this (and raised a ticket in Hive, https://issues.apache.org/jira/browse/HIVE-19896). To workaround this we store the parseable `viewExpandedText` in the `viewOriginalText` **if** the `viewOriginalText` is not parseable. If the `viewExpandedText` is not parseable either we keep the untransformed original values. This might result in a slight discrepancy when using a view in federated manner. If you run into this limitation please raise an issue on the Waggle Dance Mailing List.
+
 
 ## Building
 
