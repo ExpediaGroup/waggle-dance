@@ -15,7 +15,8 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,13 +38,32 @@ public class ASTQueryMappingTest {
         + "FROM db1.table1 alias1 INNER JOIN db2.table2 alias2\n"
         + "ON alias1.field1 = alias2.field2";
 
-    assertEquals(
-        "SELECT * FROM "
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT *\n"
+            + "FROM "
             + PREFIX
-            + "db1.table1 alias1 JOIN "
+            + "db1.table1 alias1 INNER JOIN "
             + PREFIX
-            + "db2.table2 alias2  ON alias1.field1 = alias2.field2",
-        queryMapping.transformOutboundDatabaseName(metaStoreMapping, query));
+            + "db2.table2 alias2\n"
+            + "ON alias1.field1 = alias2.field2"));
+  }
+
+  @Test
+  public void transformOutboundDatabaseNameAliasWithBackTicks() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null);
+
+    String query = "";
+    query += "SELECT col_id AS id ";
+    query += "FROM (SELECT `table1`.id";
+    query += " FROM `db1`.`table1`) `db1.table1`";
+
+    String expected = "";
+    expected += "SELECT col_id AS id ";
+    expected += "FROM (SELECT `table1`.id";
+    expected += " FROM `" + PREFIX + "db1`.`table1`) `db1.table1`";
+
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query), is(expected));
   }
 
   @Test(expected = WaggleDanceException.class)
