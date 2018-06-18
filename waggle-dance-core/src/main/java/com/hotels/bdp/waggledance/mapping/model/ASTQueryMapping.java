@@ -97,8 +97,8 @@ public enum ASTQueryMapping implements QueryMapping {
   }
 
   private boolean childrenAreIdentifiers(ASTNode current) {
-    for (Node child : current.getChildren()) {
-      if (((ASTNode) child).getType() != HiveParser.Identifier) {
+    for (ASTNode child : getChildren(current)) {
+      if (child.getType() != HiveParser.Identifier) {
         return false;
       }
     }
