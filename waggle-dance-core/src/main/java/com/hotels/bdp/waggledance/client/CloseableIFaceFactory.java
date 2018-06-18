@@ -15,11 +15,17 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+
+import com.google.common.base.Joiner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
@@ -35,9 +41,10 @@ public class CloseableIFaceFactory {
 
   public CloseableIFace newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
-    String uris = metaStore.getRemoteMetaStoreUris();
+    final String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
+    properties.put(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname, metaStore.getCloseableIface());
     if (metastoreTunnel != null) {
       properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
       properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
@@ -50,6 +57,21 @@ public class CloseableIFaceFactory {
     }
 
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
-    return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + metaStore.getName(), 3);
+    return metaStoreClientFactory.newInstance(confFactory.newInstance(),
+        "waggledance-" + metaStore.getName().toLowerCase(), 3);
+  }
+
+  private static String normaliseMetaStoreUris(String metaStoreUris) {
+    try {
+      String[] rawUris = metaStoreUris.split(",");
+      Set<String> uris = new TreeSet<>();
+      for (String rawUri : rawUris) {
+        URI uri = new URI(rawUri);
+        uris.add(uri.toString());
+      }
+      return Joiner.on(",").join(uris);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

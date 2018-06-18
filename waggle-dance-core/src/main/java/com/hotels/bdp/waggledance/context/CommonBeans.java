@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.context;
 
-import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
@@ -30,7 +29,6 @@ import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
-import com.hotels.hcommon.hive.metastore.client.api.ConditionalIFace;
 
 @org.springframework.context.annotation.Configuration
 public class CommonBeans {
@@ -55,8 +53,8 @@ public class CommonBeans {
   }
 
   @Bean
-  public CloseableIFaceFactory metaStoreClientFactory(List<ConditionalIFace> conditionalIFaces) {
-    return new CloseableIFaceFactory(new TunnelingMetaStoreClientFactory(new DefaultMetastoreClientFactory(conditionalIFaces)));
+  public CloseableIFaceFactory metaStoreClientFactory() {
+    return new CloseableIFaceFactory(new TunnelingMetaStoreClientFactory(new DefaultMetastoreClientFactory()));
   }
 
   @Bean

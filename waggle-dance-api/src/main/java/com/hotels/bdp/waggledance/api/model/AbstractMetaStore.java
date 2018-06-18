@@ -35,6 +35,7 @@ import com.google.common.base.Objects;
 public abstract class AbstractMetaStore {
 
   private String databasePrefix;
+  private String closeableIface = "";
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
@@ -104,6 +105,14 @@ public abstract class AbstractMetaStore {
 
   public void setAccessControlType(AccessControlType accessControlType) {
     this.accessControlType = accessControlType;
+  }
+
+  public String getCloseableIface() {
+    return closeableIface;
+  }
+
+  public void setCloseableIface(String closeableIface) {
+    this.closeableIface = closeableIface;
   }
 
   @Transient

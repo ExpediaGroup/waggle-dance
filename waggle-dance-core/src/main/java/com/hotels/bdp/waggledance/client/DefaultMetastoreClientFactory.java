@@ -15,14 +15,14 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.logging.log4j.util.Strings.isNotBlank;
 import static org.springframework.util.ClassUtils.getUserClass;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.List;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.thrift.transport.TTransportException;
@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableIFace;
-import com.hotels.hcommon.hive.metastore.client.api.ConditionalIFace;
 
 public class DefaultMetastoreClientFactory implements MetaStoreClientFactory {
 
@@ -113,12 +112,6 @@ public class DefaultMetastoreClientFactory implements MetaStoreClientFactory {
 
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetastoreClientFactory.class);
 
-  private final List<ConditionalIFace> iFaces;
-
-  public DefaultMetastoreClientFactory(List<ConditionalIFace> iFaces) {
-    this.iFaces = iFaces;
-  }
-
   /*
    * (non-Javadoc)
    * @see com.hotels.bdp.waggledance.client.MetaStoreClientFactoryI#newInstance(org.apache.hadoop.hive.conf.HiveConf,
@@ -126,28 +119,24 @@ public class DefaultMetastoreClientFactory implements MetaStoreClientFactory {
    */
   @Override
   public CloseableIFace newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    CloseableIFace closeableIFace = getInstance(hiveConf, name, reconnectionRetries);
+    CloseableIFace closeableIFace = null;
+    final String closeableIFaceImpl = hiveConf.get(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname);
+    if (isNotBlank(closeableIFaceImpl)) {
+      try {
+        Class<?> clazz = Class.forName(closeableIFaceImpl);
+        Constructor<?> ctor = clazz.getConstructor(HiveConf.class);
+        closeableIFace = (CloseableIFace) ctor.newInstance(new Object[] { hiveConf });
+      } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
+          hiveConf, name, reconnectionRetries);
+      closeableIFace = (CloseableIFace) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
+          reconnectingHandler);
+    }
+
     LOG.info("Loaded CloseableIFace {} for Metastore {}", getUserClass(closeableIFace), name);
     return closeableIFace;
   }
-
-  private CloseableIFace getInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    if (iFaces != null && !iFaces.isEmpty()) {
-      String uri = hiveConf.get(HiveConf.ConfVars.METASTOREURIS.varname);
-      if (isNotBlank(uri)) {
-        for (ConditionalIFace iFace : iFaces) {
-          if (iFace.accepts(uri)) {
-            return iFace;
-          }
-        }
-      }
-    }
-
-    ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
-        hiveConf, name, reconnectionRetries);
-    CloseableIFace closeableIFace = (CloseableIFace) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
-        reconnectingHandler);
-    return closeableIFace;
-  }
-
 }
