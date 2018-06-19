@@ -20,7 +20,6 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -42,9 +41,10 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
-    Map<String, String> properties = new HashMap<>();
+    Map<String, String> properties = metaStore.getConfigurationProperties();
     final String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
+
     properties.put(ConfVars.METASTOREURIS.varname, uris);
     properties.put(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname, metaStore.getCloseableIface());
     if (metastoreTunnel != null) {

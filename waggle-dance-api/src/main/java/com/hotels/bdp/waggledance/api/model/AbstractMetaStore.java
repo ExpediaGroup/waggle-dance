@@ -19,6 +19,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import java.beans.Transient;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -38,6 +40,7 @@ public abstract class AbstractMetaStore {
   private @NotBlank String name;
   private @NotNull String closeableIface = "";
   private @NotNull String remoteMetaStoreUris = "";
+  private @NotNull Map<String, String> configurationProperties = new HashMap<>();
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
@@ -113,6 +116,14 @@ public abstract class AbstractMetaStore {
 
   public void setCloseableIface(String closeableIface) {
     this.closeableIface = closeableIface;
+  }
+
+  public Map<String, String> getConfigurationProperties() {
+    return configurationProperties;
+  }
+
+  public void setConfigurationProperties(Map<String, String> configurationProperties) {
+    this.configurationProperties = configurationProperties;
   }
 
   @Transient

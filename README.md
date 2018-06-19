@@ -146,6 +146,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store.writable-database-white-list`     | No       | White-list of databases used to verify write access used in conjunction with `primary-meta-store.access-control-type`. The list of databases should be listed without any `primary-meta-store.database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
 | `primary-meta-store.metastore-tunnel`                 | No       | See metastore tunnel configuration values below. |
 | `primary-meta-store.closeable-iface`                  | No       | Optional provided implementation of the `CloseableThriftHiveMetastoreIface` interface for federating non Hive metastores. Takes a fully qualified class name to your class definition. If this parameter is not present in your yaml then Waggle Dance uses a ThriftHiveMetastore.IFace by default. |
+| `primary-meta-store.configuration-properties`         |No        |A list of `key: value` pairs to add to the Configuration for the primary-meta-store.|
 
 | `federated-meta-stores`                               | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`     | No       | Thrift URIs of the federated read-only metastore. |
@@ -154,6 +155,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `federated-meta-stores[n].metastore-tunnel`           | No       | See metastore tunnel configuration values below. |
 | `federated-meta-stores[n].mapped-databases`           | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html). |
 | `federated-meta-stores[n].closeable-iface`            | No       | Optional provided implementation of the `CloseableThriftHiveMetastoreIface` interface for federating non Hive metastores. Takes a fully qualified class name to your class definition. If this parameter is not present in your yaml then Waggle Dance uses a ThriftHiveMetastore.IFace by default. |
+| `federated-meta-stores[n].configuration-properties`   |No        |A list of `key: value` pairs to add to the Configuration for federated-meta-stores[n].|
 
 
 The table below describes the metastore tunnel configuration values:

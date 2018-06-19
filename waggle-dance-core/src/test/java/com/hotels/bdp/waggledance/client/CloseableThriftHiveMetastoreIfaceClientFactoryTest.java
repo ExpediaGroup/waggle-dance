@@ -24,6 +24,9 @@ import static org.mockito.Mockito.verify;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.junit.Before;
@@ -76,6 +79,21 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
     HiveConf hiveConf = hiveConfCaptor.getValue();
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname), is(fullyQualifiedJavaClassPath));
+  }
+
+  @Test
+  public void hiveConfWithConfigurationProperties() throws Exception {
+    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
+    AbstractMetaStore metaStore = newFederatedInstance("fed1", null);
+    Map<String, String> properties = new HashMap<>();
+    String key = "foo";
+    String val = "bar";
+    properties.put(key, val);
+    metaStore.setConfigurationProperties(properties);
+    factory.newInstance(metaStore);
+    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
+    HiveConf hiveConf = hiveConfCaptor.getValue();
+    assertThat(hiveConf.get(key), is(val));
   }
 
   @Test
