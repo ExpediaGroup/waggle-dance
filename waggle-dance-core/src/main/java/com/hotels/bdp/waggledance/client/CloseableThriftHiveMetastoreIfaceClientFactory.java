@@ -15,7 +15,7 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -64,7 +64,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   }
 
   private static String normaliseMetaStoreUris(String metaStoreUris) {
-    if (isBlank(metaStoreUris)) {
+    if (isEmpty(metaStoreUris)) {
       return "";
     }
     try {

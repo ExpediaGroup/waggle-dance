@@ -42,7 +42,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   private static final String THRIFT_URI = "thrift://host:port";
 
   private CloseableThriftHiveMetastoreIfaceClientFactory factory;
-  private @Mock DefaultMetaStoreClientFactory metaStoreClientFactory;
+  private @Mock DefaultMetastoreClientFactory metaStoreClientFactory;
 
   @Before
   public void setUp() {
@@ -64,6 +64,18 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname), is(nullValue()));
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is(nullValue()));
     assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname), is(nullValue()));
+  }
+
+  @Test
+  public void hiveConfForCloseableIFace() throws Exception {
+    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
+    AbstractMetaStore metaStore = newFederatedInstance("fed1", null);
+    final String fullyQualifiedJavaClassPath = "foo.baz.MyCloseableIFaceImpl";
+    metaStore.setCloseableIface(fullyQualifiedJavaClassPath);
+    factory.newInstance(metaStore);
+    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
+    HiveConf hiveConf = hiveConfCaptor.getValue();
+    assertThat(hiveConf.get(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname), is(fullyQualifiedJavaClassPath));
   }
 
   @Test

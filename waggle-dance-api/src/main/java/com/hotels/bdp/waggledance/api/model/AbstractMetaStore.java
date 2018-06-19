@@ -35,9 +35,9 @@ import com.google.common.base.Objects;
 public abstract class AbstractMetaStore {
 
   private String databasePrefix;
-  private String remoteMetaStoreUris;
-  private String closeableIface;
   private @NotBlank String name;
+  private @NotBlank String closeableIface = "";
+  private @NotBlank String remoteMetaStoreUris = "";
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
