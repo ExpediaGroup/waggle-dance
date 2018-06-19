@@ -38,7 +38,6 @@ public abstract class AbstractMetaStore {
 
   private String databasePrefix;
   private @NotBlank String name;
-  private @NotNull String closeableIface = "";
   private @NotNull String remoteMetaStoreUris = "";
   private @NotNull Map<String, String> configurationProperties = new HashMap<>();
   private @Valid MetastoreTunnel metastoreTunnel;
@@ -108,14 +107,6 @@ public abstract class AbstractMetaStore {
 
   public void setAccessControlType(AccessControlType accessControlType) {
     this.accessControlType = accessControlType;
-  }
-
-  public String getCloseableIface() {
-    return closeableIface;
-  }
-
-  public void setCloseableIface(String closeableIface) {
-    this.closeableIface = closeableIface;
   }
 
   public Map<String, String> getConfigurationProperties() {

@@ -46,7 +46,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
 
     properties.put(ConfVars.METASTOREURIS.varname, uris);
-    properties.put(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname, metaStore.getCloseableIface());
     if (metastoreTunnel != null) {
       properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
       properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));

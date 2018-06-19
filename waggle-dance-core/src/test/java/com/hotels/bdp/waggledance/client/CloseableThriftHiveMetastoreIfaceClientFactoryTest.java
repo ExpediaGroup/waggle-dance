@@ -70,18 +70,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   }
 
   @Test
-  public void hiveConfForCloseableIFace() throws Exception {
-    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
-    AbstractMetaStore metaStore = newFederatedInstance("fed1", null);
-    final String fullyQualifiedJavaClassPath = "foo.baz.MyCloseableIFaceImpl";
-    metaStore.setCloseableIface(fullyQualifiedJavaClassPath);
-    factory.newInstance(metaStore);
-    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
-    HiveConf hiveConf = hiveConfCaptor.getValue();
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname), is(fullyQualifiedJavaClassPath));
-  }
-
-  @Test
   public void hiveConfWithConfigurationProperties() throws Exception {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
     AbstractMetaStore metaStore = newFederatedInstance("fed1", null);

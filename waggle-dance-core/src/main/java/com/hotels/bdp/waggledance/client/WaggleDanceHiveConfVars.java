@@ -24,7 +24,7 @@ public enum WaggleDanceHiveConfVars {
   SSH_KNOWN_HOSTS("com.hotels.bdp.waggledance.client.ssh.known_hosts"),
   SSH_SESSION_TIMEOUT("com.hotels.bdp.waggledance.client.ssh.session_timeout"),
   SSH_STRICT_HOST_KEY_CHECKING("com.hotels.bdp.waggledance.client.ssh.strict_host_key_checking"),
-  CLOSEABLE_IFACE_IMPL("com.hotels.bdp.waggledance.client.closeable_iface_impl");
+  CLOSEABLE_IFACE_IMPL("com.hotels.bdp.waggledance.client.impl");
 
   public final String varname;
 
