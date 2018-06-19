@@ -1,3 +1,9 @@
+## [3.0.0] TBD
+### Added
+* Configurable `ThriftMetastoreClient.IFace` plugin support. Users can provide custom `CloseableThriftHiveMetastoreIface` implementations to interact with metastores other than Hive and federate them onto Hive.
+### Changed
+* `com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface.java` moved to hcommon-hive-metastore (1.1.1 and greater) under `com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface.java`
+
 ## [2.3.6] 2018-06-11
 ### Changed
 * Client creation exceptions are caught (exceptions seem mostly due to tunneling) and no longer affect the whole of WD, unreachable Metastore is ignored. See [#80](https://github.com/HotelsDotCom/waggle-dance/issues/80).
