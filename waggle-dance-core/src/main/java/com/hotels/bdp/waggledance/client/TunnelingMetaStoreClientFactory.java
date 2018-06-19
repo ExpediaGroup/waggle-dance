@@ -88,7 +88,7 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
   private final MetaStoreClientFactory factory;
 
   public TunnelingMetaStoreClientFactory() {
-    this(new TunnelableFactorySupplier(), new DefaultMetastoreClientFactory());
+    this(new TunnelableFactorySupplier(), new DefaultMetaStoreClientFactory());
   }
 
   @VisibleForTesting

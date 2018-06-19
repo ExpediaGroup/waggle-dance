@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastoreIface;
 
-public class DefaultMetastoreClientFactory implements MetaStoreClientFactory {
+public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
   static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
 
@@ -110,7 +110,7 @@ public class DefaultMetastoreClientFactory implements MetaStoreClientFactory {
     }
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultMetastoreClientFactory.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaStoreClientFactory.class);
 
   /*
    * (non-Javadoc)
