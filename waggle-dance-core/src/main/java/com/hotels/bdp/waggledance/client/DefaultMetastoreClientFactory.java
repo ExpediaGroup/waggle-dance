@@ -15,7 +15,7 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import static org.apache.logging.log4j.util.Strings.isNotBlank;
+import static org.apache.logging.log4j.util.Strings.isNotEmpty;
 import static org.springframework.util.ClassUtils.getUserClass;
 
 import java.lang.reflect.Constructor;
@@ -121,7 +121,7 @@ public class DefaultMetastoreClientFactory implements MetaStoreClientFactory {
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
     CloseableThriftHiveMetastoreIface closeableThriftHiveMetastoreIface = null;
     final String closeableIFaceImpl = hiveConf.get(WaggleDanceHiveConfVars.CLOSEABLE_IFACE_IMPL.varname);
-    if (isNotBlank(closeableIFaceImpl)) {
+    if (isNotEmpty(closeableIFaceImpl)) {
       try {
         Class<?> clazz = Class.forName(closeableIFaceImpl);
         Constructor<?> constructor = clazz.getConstructor(HiveConf.class);
