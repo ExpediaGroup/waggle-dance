@@ -33,10 +33,8 @@ import com.hotels.hcommon.hive.metastore.client.api.CloseableThriftHiveMetastore
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleFederationStatusServiceTest {
 
-  private @Mock
-  CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
-  private @Mock
-  CloseableThriftHiveMetastoreIface client;
+  private @Mock CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
+  private @Mock CloseableThriftHiveMetastoreIface client;
   private SimpleFederationStatusService service;
 
   private final FederatedMetaStore metaStore = FederatedMetaStore.newFederatedInstance("remote", "uri");

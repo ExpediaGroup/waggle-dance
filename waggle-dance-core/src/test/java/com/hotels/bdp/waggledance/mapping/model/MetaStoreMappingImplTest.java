@@ -42,8 +42,7 @@ public class MetaStoreMappingImplTest {
   private static final String DATABASE_PREFIX = "prefix_";
   private static final String NAME = "name";
 
-  private @Mock
-  CloseableThriftHiveMetastoreIface client;
+  private @Mock CloseableThriftHiveMetastoreIface client;
   private @Mock Database database;
   private @Mock AccessControlHandler accessControlHandler;
 
