@@ -18,9 +18,9 @@ package com.hotels.bdp.waggledance.api.model;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.util.Set;
-
 import javax.validation.ConstraintViolation;
+
+import java.util.Set;
 
 import org.hibernate.validator.HibernateValidator;
 import org.junit.Before;
@@ -68,10 +68,10 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   }
 
   @Test
-  public void emptyRemoteMetaStoreUris() {
+  public void emptyRemoteMetaStoreUrisAllowed() {
     metaStore.setRemoteMetaStoreUris(" ");
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
-    assertThat(violations.size(), is(1));
+    assertThat(violations.size(), is(0));
   }
 
   @Test
