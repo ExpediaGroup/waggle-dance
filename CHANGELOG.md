@@ -1,4 +1,4 @@
-## TBD
+## [2.3.7] 2018-06-19
 ### Fixed
 * Silently handling parse errors in views. See [#83](https://github.com/HotelsDotCom/waggle-dance/issues/83).
 * Double backticks in View queries. See [#84](https://github.com/HotelsDotCom/waggle-dance/issues/84).
