@@ -149,6 +149,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `federated-meta-stores[n].remote-meta-store-uris`     | Yes      | Thrift URIs of the federated read-only metastore. |
 | `federated-meta-stores[n].name`                       | Yes      | Name that uniquely identifies this metastore, used internally. Cannot be empty. |
 | `federated-meta-stores[n].database-prefix`            | No       | Prefix used to access this particular metastore and differentiate databases in it from databases in another metastore. Typically used if databases have the same name across metastores but federated access to them is still needed. Default prefix is {federated-meta-stores[n].name} lowercased and postfixed with an underscore. For example if the metastore name was configured as "waggle" and no database prefix was provided but `PREFIXED` database resolution was used then the value of `database-prefix` would be "waggle_". |
+| `federated-meta-stores[n].access-control-type`              | No       | Sets how the client access controls should be handled. Default is `READ_ONLY` Other options `READ_AND_WRITE_AND_CREATE`, `READ_AND_WRITE_ON_DATABASE_WHITELIST` and `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST` see Access Control section below. |
 | `federated-meta-stores[n].metastore-tunnel`           | No       | See metastore tunnel configuration values below. |
 | `federated-meta-stores[n].mapped-databases`           | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html). |
 
@@ -166,8 +167,7 @@ The table below describes the metastore tunnel configuration values:
 
 #### Access Control
 
-The primary metastore is the only proxied metastore that can be configured to have write access.
-This is controlled by the property: `primary-meta-store.access-control-type` It can have the following values:
+Metastore read and write access control is controlled by the properties: `primary-meta-store.access-control-type` and `federated-meta-stores[n].access-control-type`. They can have the following values:
 
 | Property                                              | Description |
 |:----|:----|
@@ -175,6 +175,24 @@ This is controlled by the property: `primary-meta-store.access-control-type` It 
 | `READ_AND_WRITE_AND_CREATE`                           | Reads are allowed, writes are allowed on all databases, creating new databases is allowed. |
 | `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST`     | Reads are allowed, writes are allowed on database names listed in the `primary-meta-store.writable-database-white-list` property, creating new databases is allowed and they are added to the white-list automatically. |
 | `READ_AND_WRITE_ON_DATABASE_WHITELIST`                | Reads are allowed, writes are allowed on database names listed in the `primary-meta-store.writable-database-white-list` property, creating new databases is not allowed. |
+
+There are a number of write operations in the metastore whose requests do not contain database/table name context, and so cannot be routed to federated metastore instances configured with a writeable access control level.
+
+These include:
+* Create database
+* Function handling: create/delete/get functions
+* Type handling: create/delete/get types (although I can't see how these are surfaced in Hive)
+* Keys foreign/primary
+* Locks
+* Transactions / compact
+* Security management: roles, prinicpals, grant/revoke
+* Delegation tokens
+* Notifications
+* Config management
+* File metadata / cache
+
+We believe that this is not an issue for general operation, but may be a problem if you are wanting to use certain specific Hive features. At this time these features cannot be supported in a writable federation model.
+
 
 #### Federation configuration storage
 
