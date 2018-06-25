@@ -191,7 +191,7 @@ These include:
 * Config management
 * File metadata / cache
 
-We believe that this is not an issue for general operation, but may be a problem if you are wanting to use certain specific Hive features. At this time these features cannot be supported in a writable federation model.
+This is not an issue for general operation, but may be a problem if you are wanting to use certain specific Hive features. At this time these features cannot be supported in a writable federation model.
 
 
 #### Federation configuration storage
