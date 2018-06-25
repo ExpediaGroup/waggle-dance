@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,6 @@ public class FederatedMetaStore extends AbstractMetaStore {
   @Override
   public FederationType getFederationType() {
     return FederationType.FEDERATED;
-  }
-
-  @Override
-  public AccessControlType getAccessControlType() {
-    // Overriding just to makes sure it is always READ_ONLY
-    return AccessControlType.READ_ONLY;
   }
 
   @NotBlank

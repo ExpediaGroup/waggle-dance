@@ -1,3 +1,8 @@
+## [TBD]
+### Changed
+* Enable federated metastore access-control-type to be configured to READ_ONLY, READ_AND_WRITE_AND_CREATE, READ_AND_WRITE_ON_DATABASE_WHITELIST or READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST
+
+
 ## [2.3.7] 2018-06-19
 ### Fixed
 * Silently handling parse errors in views. See [#83](https://github.com/HotelsDotCom/waggle-dance/issues/83).

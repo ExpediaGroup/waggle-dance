@@ -64,7 +64,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   private DatabaseMapping checkWritePermissions(String databaseName) throws TException {
-    DatabaseMapping mapping = databaseMappingService.primaryDatabaseMapping();
+    DatabaseMapping mapping = databaseMappingService.databaseMapping(databaseName);
     mapping.checkWritePermissions(databaseName);
     return mapping;
   }
