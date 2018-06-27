@@ -18,9 +18,9 @@ package com.hotels.bdp.waggledance.api.model;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.util.Set;
-
 import javax.validation.ConstraintViolation;
+
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -34,10 +34,12 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
   }
 
   @Test
-  public void testReadOnlyOverride() {
+  public void testAccessControlTypeDefaultReadOnly() {
     assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));
+
+    // override
     metaStore.setAccessControlType(AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST);
-    assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));
+    assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST));
   }
 
   @Test
