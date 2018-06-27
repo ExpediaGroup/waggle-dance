@@ -174,7 +174,7 @@ Metastore read and write access control is controlled by the properties: `primar
 | `READ_ONLY`                                           | Read only access, creation of databases and and update/alters or other data manipulation requests to the metastore are not allowed. |
 | `READ_AND_WRITE_AND_CREATE`                           | Reads are allowed, writes are allowed on all databases, creating new databases is allowed. |
 | `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST`     | Reads are allowed, writes are allowed on database names listed in the `primary-meta-store.writable-database-white-list` property, creating new databases is allowed and they are added to the white-list automatically. |
-| `READ_AND_WRITE_ON_DATABASE_WHITELIST`                | Reads are allowed, writes are allowed on database names listed in the `primary-meta-store.writable-database-white-list`/`federated-meta-store[n].writable-database-white-list` property, creating new databases is not allowed. |
+| `READ_AND_WRITE_ON_DATABASE_WHITELIST`                | Reads are allowed, writes are allowed on database names listed in the `primary-meta-store.writable-database-white-list`/`federated-meta-store[n].writable-database-white-list` properties, creating new databases is not allowed. |
 
 There are a number of write operations in the metastore whose requests do not contain database/table name context, and so cannot be routed to federated metastore instances configured with a writeable access control level.
 
