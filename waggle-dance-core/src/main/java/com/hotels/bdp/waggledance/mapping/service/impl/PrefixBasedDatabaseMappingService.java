@@ -17,6 +17,8 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
+import javax.validation.constraints.NotNull;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,8 +30,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
@@ -65,7 +65,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByPrefix;
-  private Map<String, Whitelist> whitelistedDbByPrefix;
+  private Map<String, Whitelist> mappedDbByPrefix;
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
 
@@ -80,7 +80,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private void init(List<AbstractMetaStore> federatedMetaStores) {
     mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<String, DatabaseMapping>());
-    whitelistedDbByPrefix = new ConcurrentHashMap<>();
+    mappedDbByPrefix = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
       add(federatedMetaStore);
     }
@@ -93,11 +93,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
     } else {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
-      Whitelist whitelist = null;
+      Whitelist mappedDbWhitelist = null;
       if (FederatedMetaStore.class.isAssignableFrom(federatedMetaStore.getClass())) {
-        whitelist = getWhitelistedDatabases((FederatedMetaStore) federatedMetaStore);
+        mappedDbWhitelist = getWhitelistedDatabases((FederatedMetaStore) federatedMetaStore);
       }
-      whitelistedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), whitelist);
+      mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
     }
   }
 
@@ -131,7 +131,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             + "' already registered, remove old one first or update");
       }
       if (isPrimaryMetaStoreRegistered(metaStore)) {
-        throw new WaggleDanceException("Pimrary metastore already registered, remove old one first or update");
+        throw new WaggleDanceException("Primary metastore already registered, remove old one first or update");
       }
       add(metaStore);
     }
@@ -236,7 +236,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private boolean isWhitelisted(String databasePrefix, String database) {
-    Whitelist whitelist = whitelistedDbByPrefix.get(databasePrefix);
+    Whitelist whitelist = mappedDbByPrefix.get(databasePrefix);
     if (whitelist == null || whitelist.isEmpty()) {
       // Accept everything
       return true;

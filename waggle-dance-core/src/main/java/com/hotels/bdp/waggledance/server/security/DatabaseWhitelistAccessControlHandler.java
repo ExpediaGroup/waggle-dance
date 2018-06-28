@@ -19,24 +19,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
+import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
   private final FederationService federationService;
-  private PrimaryMetaStore primaryMetaStore;
+  private AbstractMetaStore metaStore;
   private final boolean hasCreatePermission;
-  private final Whitelist whitelist;
+  private final Whitelist writeableDatabaseWhiteList;
 
   public DatabaseWhitelistAccessControlHandler(
-      PrimaryMetaStore primaryMetaStore,
+      AbstractMetaStore metaStore,
       FederationService federationService,
       boolean hasCreatePermission) {
-    this.primaryMetaStore = primaryMetaStore;
+    this.metaStore = metaStore;
     this.federationService = federationService;
     this.hasCreatePermission = hasCreatePermission;
-    this.whitelist = new Whitelist(primaryMetaStore.getWritableDatabaseWhiteList());
+    this.writeableDatabaseWhiteList = new Whitelist(metaStore.getWritableDatabaseWhiteList());
   }
 
   private String trimToLowerCase(String string) {
@@ -45,7 +47,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
 
   @Override
   public boolean hasWritePermission(String databaseName) {
-    return whitelist.contains(databaseName);
+    return writeableDatabaseWhiteList.contains(databaseName);
   }
 
   @Override
@@ -55,16 +57,26 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
 
   @Override
   public void databaseCreatedNotification(String name) {
-    List<String> whiteList = new ArrayList<>(primaryMetaStore.getWritableDatabaseWhiteList());
+    List<String> newWhitelist = new ArrayList<>(metaStore.getWritableDatabaseWhiteList());
     String nameLowerCase = trimToLowerCase(name);
-    if (!whiteList.contains(nameLowerCase)) {
-      whiteList.add(nameLowerCase);
+    if (!newWhitelist.contains(nameLowerCase)) {
+      newWhitelist.add(nameLowerCase);
     }
-    PrimaryMetaStore newPrimaryMetastore = new PrimaryMetaStore(primaryMetaStore);
-    newPrimaryMetastore.setWritableDatabaseWhiteList(whiteList);
-    federationService.update(primaryMetaStore, newPrimaryMetastore);
-    primaryMetaStore = newPrimaryMetastore;
-    whitelist.add(nameLowerCase);
+
+    AbstractMetaStore newMetaStore = null;
+    if (metaStore instanceof PrimaryMetaStore) {
+      newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
+          metaStore.getAccessControlType(), newWhitelist);
+    } else if (metaStore instanceof FederatedMetaStore) {
+      newMetaStore = new FederatedMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
+          metaStore.getAccessControlType(), newWhitelist);
+    } else {
+      throw new IllegalStateException();
+    }
+
+    federationService.update(metaStore, newMetaStore);
+    metaStore = newMetaStore;
+    writeableDatabaseWhiteList.add(nameLowerCase);
   }
 
 }

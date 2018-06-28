@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 package com.hotels.bdp.waggledance.api.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +29,6 @@ public class PrimaryMetaStore extends AbstractMetaStore {
   private final static Logger LOG = LoggerFactory.getLogger(PrimaryMetaStore.class);
 
   private static final String EMPTY_PREFIX = "";
-  private List<String> writableDatabaseWhitelist;
 
   public PrimaryMetaStore() {}
 
@@ -40,30 +37,20 @@ public class PrimaryMetaStore extends AbstractMetaStore {
       String remoteMetaStoreUris,
       AccessControlType accessControlType,
       String... writableDatabaseWhitelist) {
-    super(name, remoteMetaStoreUris, accessControlType);
-    this.writableDatabaseWhitelist = Arrays.asList(writableDatabaseWhitelist);
+    this(name, remoteMetaStoreUris, accessControlType, Arrays.asList(writableDatabaseWhitelist));
   }
 
-  public PrimaryMetaStore(PrimaryMetaStore primaryMetaStore) {
-    this(primaryMetaStore.getName(), primaryMetaStore.getRemoteMetaStoreUris(),
-        primaryMetaStore.getAccessControlType());
-    writableDatabaseWhitelist = new ArrayList<>(primaryMetaStore.getWritableDatabaseWhiteList());
+  public PrimaryMetaStore(
+      String name,
+      String remoteMetaStoreUris,
+      AccessControlType accessControlType,
+      List<String> writableDatabaseWhitelist) {
+    super(name, remoteMetaStoreUris, accessControlType, writableDatabaseWhitelist);
   }
 
   @Override
   public FederationType getFederationType() {
     return FederationType.PRIMARY;
-  }
-
-  public List<String> getWritableDatabaseWhiteList() {
-    if (writableDatabaseWhitelist == null) {
-      return Collections.emptyList();
-    }
-    return Collections.unmodifiableList(writableDatabaseWhitelist);
-  }
-
-  public void setWritableDatabaseWhiteList(List<String> writableDatabaseWhitelist) {
-    this.writableDatabaseWhitelist = writableDatabaseWhitelist;
   }
 
   @Size(min = 0, max = 0)

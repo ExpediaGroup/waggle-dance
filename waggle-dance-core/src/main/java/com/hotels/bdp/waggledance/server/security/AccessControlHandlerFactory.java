@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,19 @@
  */
 package com.hotels.bdp.waggledance.server.security;
 
+import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_AND_CREATE;
+import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST;
+import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
+import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
-import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 
 @Component
 public class AccessControlHandlerFactory {
@@ -36,11 +42,19 @@ public class AccessControlHandlerFactory {
     this.federationService = federationService;
   }
 
+  private static final Logger LOG = LoggerFactory.getLogger(AccessControlHandlerFactory.class);
+
   public AccessControlHandler newInstance(AbstractMetaStore federatedMetaStore) {
     switch (federatedMetaStore.getAccessControlType()) {
     case READ_ONLY:
+      LOG.debug("Creating {} accessControlHandler for {}", READ_ONLY, federatedMetaStore.toString());
       return new ReadOnlyAccessControlHandler();
+    case READ_AND_WRITE_ON_DATABASE_WHITELIST:
+      LOG.debug("Creating {} accessControlHandler for {}", READ_AND_WRITE_ON_DATABASE_WHITELIST,
+          federatedMetaStore.toString());
+      return new DatabaseWhitelistAccessControlHandler(federatedMetaStore, federationService, CANNOT_CREATE);
     case READ_AND_WRITE_AND_CREATE:
+      LOG.debug("Creating {} accessControlHandler for {}", READ_AND_WRITE_AND_CREATE, federatedMetaStore.toString());
       if (federatedMetaStore.getFederationType() == FederationType.PRIMARY) {
         return new ReadWriteCreateAccessControlHandler();
       } else {
@@ -48,24 +62,19 @@ public class AccessControlHandlerFactory {
         throw new IllegalStateException("Write access on anything other then a 'primary' metastore is not allowed");
       }
     case READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST:
+      LOG.debug("Creating {} accessControlHandler for {}", READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST,
+          federatedMetaStore.toString());
       if (federatedMetaStore.getFederationType() == FederationType.PRIMARY) {
-        return new DatabaseWhitelistAccessControlHandler((PrimaryMetaStore) federatedMetaStore, federationService,
-            CAN_CREATE);
+        return new DatabaseWhitelistAccessControlHandler(federatedMetaStore, federationService, CAN_CREATE);
       } else {
         // Should never be possible to configure this state. If this is thrown it is a bug.
         throw new IllegalStateException("Write access on anything other then a 'primary' metastore is not allowed");
       }
-    case READ_AND_WRITE_ON_DATABASE_WHITELIST:
-      if (federatedMetaStore.getFederationType() == FederationType.PRIMARY) {
-        return new DatabaseWhitelistAccessControlHandler((PrimaryMetaStore) federatedMetaStore, federationService,
-            CANNOT_CREATE);
-      } else {
-        // Should never be possible to configure this state. If this is thrown it is a bug.
-        throw new IllegalStateException("Write access on anything other then a 'primary' metastore is not allowed");
-      }
+
     default:
       throw new IllegalStateException("Cannot determine AcccessControlHandler type given type: '"
-          + federatedMetaStore.getAccessControlType() + "'");
+          + federatedMetaStore.getAccessControlType()
+          + "'");
     }
   }
 }
