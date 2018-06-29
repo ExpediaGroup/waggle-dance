@@ -20,12 +20,7 @@ import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.newPartition;
 import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
 import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
-import feign.Feign;
-import feign.jackson.JacksonDecoder;
-import feign.jackson.JacksonEncoder;
-import feign.jaxrs.JAXRSContract;
-import fm.last.commons.test.file.ClassDataFolder;
-import fm.last.commons.test.file.DataFolder;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -60,6 +55,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
+
+import feign.Feign;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
+import feign.jaxrs.JAXRSContract;
+import fm.last.commons.test.file.ClassDataFolder;
+import fm.last.commons.test.file.DataFolder;
 
 import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
