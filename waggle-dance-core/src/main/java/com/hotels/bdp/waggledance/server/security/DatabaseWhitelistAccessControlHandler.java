@@ -71,7 +71,8 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
       newMetaStore = new FederatedMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
           metaStore.getAccessControlType(), newWhitelist);
     } else {
-      throw new IllegalStateException();
+      throw new IllegalStateException(String.format("metastore type %s is not supported by %s",
+          metaStore.getClass().getName(), this.getClass().getName()));
     }
 
     federationService.update(metaStore, newMetaStore);
