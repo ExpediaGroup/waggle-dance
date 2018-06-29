@@ -26,7 +26,6 @@ import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
-  private static final Set<Class <>
   private final FederationService federationService;
   private AbstractMetaStore metaStore;
   private final boolean hasCreatePermission;
