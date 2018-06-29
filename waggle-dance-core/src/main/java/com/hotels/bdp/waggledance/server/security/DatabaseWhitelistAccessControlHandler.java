@@ -18,14 +18,15 @@ package com.hotels.bdp.waggledance.server.security;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
+  private static final Set<Class <>
   private final FederationService federationService;
   private AbstractMetaStore metaStore;
   private final boolean hasCreatePermission;
@@ -57,22 +58,19 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
 
   @Override
   public void databaseCreatedNotification(String name) {
-    List<String> newWhitelist = new ArrayList<>(metaStore.getWritableDatabaseWhiteList());
+    List<String> newWritableDatabaseWhiteList = new ArrayList<>(metaStore.getWritableDatabaseWhiteList());
     String nameLowerCase = trimToLowerCase(name);
-    if (!newWhitelist.contains(nameLowerCase)) {
-      newWhitelist.add(nameLowerCase);
+    if (!newWritableDatabaseWhiteList.contains(nameLowerCase)) {
+      newWritableDatabaseWhiteList.add(nameLowerCase);
     }
 
     AbstractMetaStore newMetaStore = null;
     if (metaStore instanceof PrimaryMetaStore) {
       newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
-          metaStore.getAccessControlType(), newWhitelist);
-    } else if (metaStore instanceof FederatedMetaStore) {
-      newMetaStore = new FederatedMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
-          metaStore.getAccessControlType(), newWhitelist);
+          metaStore.getAccessControlType(), newWritableDatabaseWhiteList);
     } else {
-      throw new IllegalStateException(String.format("metastore type %s is not supported by %s",
-          metaStore.getClass().getName(), this.getClass().getName()));
+      throw new WaggleDanceException(
+          String.format("metastore type %s does not support Database creation", metaStore.getClass().getName()));
     }
 
     federationService.update(metaStore, newMetaStore);
