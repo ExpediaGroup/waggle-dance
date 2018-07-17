@@ -29,6 +29,7 @@ import com.google.common.base.Joiner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
+import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
@@ -51,7 +52,8 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
       properties.put(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, metastoreTunnel.getKnownHosts());
       properties.put(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, metastoreTunnel.getPrivateKeys());
       properties.put(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, String.valueOf(metastoreTunnel.getTimeout()));
-      properties.put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, metastoreTunnel.getStrictHostKeyChecking());
+      properties.put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname,
+          metastoreTunnel.getStrictHostKeyChecking());
     }
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
     return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);

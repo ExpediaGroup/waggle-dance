@@ -1,3 +1,7 @@
+# TBD
+### Changed
+* Refactored general purpose Hive metastore code to leverage hcommon-hive-metastore and hcommon-ssh libraries. See [#78](https://github.com/HotelsDotCom/waggle-dance/issues/78).
+
 ## [2.3.7] 2018-06-19
 ### Fixed
 * Silently handling parse errors in views. See [#83](https://github.com/HotelsDotCom/waggle-dance/issues/83).
