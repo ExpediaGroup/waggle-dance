@@ -36,7 +36,6 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
   @Test
   public void testOverride() {
     assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));
-    assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));
 
     metaStore.setAccessControlType(AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST);
     assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST));
