@@ -15,11 +15,6 @@
  */
 package com.hotels.bdp.waggledance.server.security;
 
-import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_AND_CREATE;
-import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST;
-import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
-import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,14 +42,10 @@ public class AccessControlHandlerFactory {
   public AccessControlHandler newInstance(AbstractMetaStore federatedMetaStore) {
     switch (federatedMetaStore.getAccessControlType()) {
     case READ_ONLY:
-      LOG.debug("Creating {} accessControlHandler for {}", READ_ONLY, federatedMetaStore.toString());
       return new ReadOnlyAccessControlHandler();
     case READ_AND_WRITE_ON_DATABASE_WHITELIST:
-      LOG.debug("Creating {} accessControlHandler for {}", READ_AND_WRITE_ON_DATABASE_WHITELIST,
-          federatedMetaStore.toString());
       return new DatabaseWhitelistAccessControlHandler(federatedMetaStore, federationService, CANNOT_CREATE);
     case READ_AND_WRITE_AND_CREATE:
-      LOG.debug("Creating {} accessControlHandler for {}", READ_AND_WRITE_AND_CREATE, federatedMetaStore.toString());
       if (federatedMetaStore.getFederationType() == FederationType.PRIMARY) {
         return new ReadWriteCreateAccessControlHandler();
       } else {
@@ -62,8 +53,6 @@ public class AccessControlHandlerFactory {
         throw new IllegalStateException("Write access on anything other then a 'primary' metastore is not allowed");
       }
     case READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST:
-      LOG.debug("Creating {} accessControlHandler for {}", READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST,
-          federatedMetaStore.toString());
       if (federatedMetaStore.getFederationType() == FederationType.PRIMARY) {
         return new DatabaseWhitelistAccessControlHandler(federatedMetaStore, federationService, CAN_CREATE);
       } else {
