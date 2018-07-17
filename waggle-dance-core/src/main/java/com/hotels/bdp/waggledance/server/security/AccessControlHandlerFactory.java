@@ -15,8 +15,6 @@
  */
 package com.hotels.bdp.waggledance.server.security;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,8 +34,6 @@ public class AccessControlHandlerFactory {
   public AccessControlHandlerFactory(FederationService federationService) {
     this.federationService = federationService;
   }
-
-  private static final Logger LOG = LoggerFactory.getLogger(AccessControlHandlerFactory.class);
 
   public AccessControlHandler newInstance(AbstractMetaStore federatedMetaStore) {
     switch (federatedMetaStore.getAccessControlType()) {
