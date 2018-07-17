@@ -1,6 +1,9 @@
 [TBD]
+### Added
+* Enable federated metastore's access-control-type to be configured to READ_ONLY and READ_AND_WRITE_ON_DATABASE_WHITELIST.  See [#87](https://github.com/HotelsDotCom/waggle-dance/issues/87).
+
 ### Changed
-* Enable federated metastore's access-control-type to be configured to READ_ONLY and READ_AND_WRITE_ON_DATABASE_WHITELIST
+* Refactored general purpose Hive metastore code to leverage hcommon-hive-metastore and hcommon-ssh libraries. See [#78](https://github.com/HotelsDotCom/waggle-dance/issues/78).
 
 ## [2.3.7] 2018-06-19
 ### Fixed
