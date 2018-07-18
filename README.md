@@ -167,9 +167,9 @@ The table below describes the metastore tunnel configuration values:
 
 #### Access Control
 
-A metastores access control configuration is controlled by the `access-control-type` property.
+A metastore's access control configuration is controlled by the `access-control-type` property.
 
-The properties are described below.
+The available values of this property are described below.
 
 | Property                                              | Description |
 |:----|:----|
@@ -186,7 +186,7 @@ These include:
 
 * Create database
 * Function handling: create/delete/get functions
-* Type handling: create/delete/get types (although I can't see how these are surfaced in Hive)
+* Type handling: create/delete/get types
 * Keys foreign/primary
 * Locks
 * Transactions / compact
