@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
  */
 package com.hotels.bdp.waggledance;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
 import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.newPartition;
 import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
 import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -330,6 +330,102 @@ public class WaggleDanceIntegrationTest {
       fail("Should get NoSuchObjectException");
     } catch (NoSuchObjectException e) {
       // Local table should be allowed to drop, so it now no longer exists and we get an appropriate exception
+    }
+  }
+
+  @Test
+  public void federatedWritesSucceedIfReadAndWriteOnDatabaseWhiteListIsConfigured() throws Exception {
+    exit.expectSystemExitWithStatus(0);
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), AccessControlType.READ_ONLY)
+        .federate("waggle_remote", remoteServer.getThriftConnectionUri(), READ_AND_WRITE_ON_DATABASE_WHITELIST,
+            new String[] { REMOTE_DATABASE }, new String[] { REMOTE_DATABASE })
+        .build();
+
+    runWaggleDance(runner);
+
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    final String waggledRemoteDbName = "waggle_remote_" + REMOTE_DATABASE;
+
+    assertTypicalRemoteTable(proxy, waggledRemoteDbName);
+
+    // get succeeds
+    proxy.getTable(waggledRemoteDbName, REMOTE_TABLE);
+    // drop table
+    proxy.dropTable(waggledRemoteDbName, REMOTE_TABLE);
+    try {
+      // get fails
+      proxy.getTable(waggledRemoteDbName, REMOTE_TABLE);
+      fail("Should get NoSuchObjectException");
+    } catch (NoSuchObjectException e) {
+      // Federated table should be allowed to drop, so it now no longer exists and we get an appropriate exception
+    }
+  }
+
+  @Test
+  public void federatedWritesFailIfReadAndWriteOnDatabaseWhiteListIsNotConfigured() throws Exception {
+    exit.expectSystemExitWithStatus(0);
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), AccessControlType.READ_ONLY)
+        .federate("waggle_remote", remoteServer.getThriftConnectionUri())
+        .build();
+
+    runWaggleDance(runner);
+
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    final String waggledRemoteDbName = "waggle_remote_" + REMOTE_DATABASE;
+
+    assertTypicalRemoteTable(proxy, waggledRemoteDbName);
+
+    // get succeeds
+    proxy.getTable(waggledRemoteDbName, REMOTE_TABLE);
+
+    try {
+      // drop fails
+      proxy.dropTable(waggledRemoteDbName, REMOTE_TABLE);
+      fail("Should get MetaException");
+    } catch (MetaException e) {
+      // Federated table should not be allowed to drop
+    }
+  }
+
+  @Test
+  public void federatedWritesFailIfReadAndWriteOnDatabaseWhiteListDoesNotIncludeDb() throws Exception {
+    exit.expectSystemExitWithStatus(0);
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), AccessControlType.READ_ONLY)
+        .federate("waggle_remote", remoteServer.getThriftConnectionUri(), READ_AND_WRITE_ON_DATABASE_WHITELIST,
+            new String[] { REMOTE_DATABASE }, new String[] { "mismatch" })
+        .build();
+
+    runWaggleDance(runner);
+
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    final String waggledRemoteDbName = "waggle_remote_" + REMOTE_DATABASE;
+
+    assertTypicalRemoteTable(proxy, waggledRemoteDbName);
+
+    // get succeeds
+    proxy.getTable(waggledRemoteDbName, REMOTE_TABLE);
+
+    try {
+      // drop fails
+      proxy.dropTable(waggledRemoteDbName, REMOTE_TABLE);
+      fail("Should get MetaException");
+    } catch (MetaException e) {
+      // Federated table should not be allowed to drop
     }
   }
 

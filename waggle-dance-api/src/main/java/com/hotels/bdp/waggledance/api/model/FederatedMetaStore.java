@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,18 +27,29 @@ public class FederatedMetaStore extends AbstractMetaStore {
   public FederatedMetaStore() {}
 
   public FederatedMetaStore(String name, String remoteMetaStoreUris) {
-    super(name, remoteMetaStoreUris, AccessControlType.READ_ONLY);
+    this(name, remoteMetaStoreUris, AccessControlType.READ_ONLY);
+  }
+
+  public FederatedMetaStore(String name, String remoteMetaStoreUris, AccessControlType accessControlType) {
+    this(name, remoteMetaStoreUris, accessControlType, Collections.<String> emptyList());
+  }
+
+  public FederatedMetaStore(FederatedMetaStore federatedMetaStore) {
+    this(federatedMetaStore.getName(), federatedMetaStore.getRemoteMetaStoreUris(),
+        federatedMetaStore.getAccessControlType(), federatedMetaStore.getWritableDatabaseWhiteList());
+  }
+
+  public FederatedMetaStore(
+      String name,
+      String remoteMetaStoreUris,
+      AccessControlType accessControlType,
+      List<String> writeableDatabaseWhiteList) {
+    super(name, remoteMetaStoreUris, accessControlType, writeableDatabaseWhiteList);
   }
 
   @Override
   public FederationType getFederationType() {
     return FederationType.FEDERATED;
-  }
-
-  @Override
-  public AccessControlType getAccessControlType() {
-    // Overriding just to makes sure it is always READ_ONLY
-    return AccessControlType.READ_ONLY;
   }
 
   @NotBlank
