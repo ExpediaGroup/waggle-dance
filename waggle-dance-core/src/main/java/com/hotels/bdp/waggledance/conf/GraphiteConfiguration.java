@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class GraphiteConfiguration {
 
   @PostConstruct
   void init() {
-    if (host != null || prefix != null) {
+    if ((host != null) || (prefix != null)) {
       enabled = true;
     }
   }

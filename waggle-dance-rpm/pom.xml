@@ -13,7 +13,7 @@
 
   <properties>
     <tmp.directory>${project.build.directory}/tmp-directory</tmp.directory>
-    <rpm.maven.plugin.version>2.1.5</rpm.maven.plugin.version>
+    <rpm.maven.plugin.version>2.2.0</rpm.maven.plugin.version>
     <rpm-sources.directory>${tmp.directory}/waggle-dance-${project.version}</rpm-sources.directory>
     <rpm.install.dir>/opt/waggle-dance</rpm.install.dir>
     <rpm.install.user>waggle-dance</rpm.install.user>

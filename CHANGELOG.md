@@ -1,6 +1,8 @@
 # TBD
 ### Changed
 * Refactored general purpose Hive metastore code to leverage hcommon-hive-metastore and hcommon-ssh libraries. See [#78](https://github.com/HotelsDotCom/waggle-dance/issues/78).
+* Updated versions of dependencies and plugins in waggle-dance-parent, waggle-dance, waggle-dance-core and waggle-dance-rpm modules. 
+* Replaced deprecated methods and classes.
 
 ## [2.3.7] 2018-06-19
 ### Fixed
