@@ -11,8 +11,8 @@
 
   <properties>
     <spring-boot-maven-plugin.version>1.5.7.RELEASE</spring-boot-maven-plugin.version>
-    <mockito.version>1.10.19</mockito.version>
-    <powermock.version>1.6.4</powermock.version>
+    <mockito.version>2.8.47</mockito.version>
+    <powermock.version>1.7.4</powermock.version>
     <jcabi-aspects.version>0.22.6</jcabi-aspects.version>
     <hcommon-ssh.version>1.0.1</hcommon-ssh.version>
   </properties>
@@ -251,7 +251,7 @@
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
+      <artifactId>powermock-api-mockito2</artifactId>
       <version>${powermock.version}</version>
       <scope>test</scope>
     </dependency>

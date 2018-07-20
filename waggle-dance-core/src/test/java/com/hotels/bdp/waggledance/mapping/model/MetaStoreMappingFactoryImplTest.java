@@ -18,7 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,11 +30,11 @@ import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+//import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
@@ -44,7 +44,7 @@ import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 
-@RunWith(MockitoJUnitRunner.class)
+//@RunWith(MockitoJUnitRunner.class)
 public class MetaStoreMappingFactoryImplTest {
 
   private static final String TEST_DB = "test_db";
@@ -60,10 +60,11 @@ public class MetaStoreMappingFactoryImplTest {
 
   @Before
   public void init() {
+    MockitoAnnotations.initMocks(this);
     when(prefixNamingStrategy.apply(any(AbstractMetaStore.class))).thenAnswer(new Answer<String>() {
       @Override
       public String answer(InvocationOnMock invocation) throws Throwable {
-        return invocation.getArgumentAt(0, AbstractMetaStore.class).getDatabasePrefix();
+        return ((AbstractMetaStore) invocation.getArgument(0)).getDatabasePrefix();
       }
     });
     factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClientFactory,
