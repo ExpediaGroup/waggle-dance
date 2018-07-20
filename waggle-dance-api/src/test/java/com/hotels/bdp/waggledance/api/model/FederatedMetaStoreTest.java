@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.hotels.bdp.waggledance.api.model;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -77,4 +79,13 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     String json = mapper.writerFor(FederatedMetaStore.class).writeValueAsString(metaStore);
     assertThat(json, is(expected));
   }
+
+  @Test
+  public void mappedDatabases() {
+    List<String> mappedDatabases = new ArrayList<>();
+    mappedDatabases.add("database");
+    metaStore.setMappedDatabases(mappedDatabases);
+    assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
+  }
+
 }
