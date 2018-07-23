@@ -55,9 +55,9 @@ public interface MetaStoreMapping extends Closeable {
    *          have been stripped already)
    * @throws NotAllowedException when the metastore mapped by this class does not have the correct permission otherwise
    *           calls getClient().create_database(database)
-   * @throws TException Thrift exception
-   * @throws MetaException Hive exception
-   * @throws InvalidObjectException Hive exception
+   * @throws TException if a Thrift error occurs
+   * @throws MetaException if a problem occurs interacting with the Hive MetaStore
+   * @throws InvalidObjectException if Hive considers the database invalid
    * @throws AlreadyExistsException if the database already exists
    */
   void createDatabase(Database database)

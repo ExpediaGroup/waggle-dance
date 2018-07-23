@@ -35,16 +35,17 @@ public interface PanopticOperationHandler {
   /**
    * Implements {@link HMSHandler#get_database(String)} over multiple metastores
    *
-   * @param databasePattern pattern
-   * @return list of all databases with a pattern
+   * @param databasePattern pattern to match
+   * @return list of all databases that match the passed pattern
    */
   List<String> getAllDatabases(String databasePattern);
 
   /**
    * Implements {@link HMSHandler#get_table_meta(String, String, List)} over multiple metastores
    *
-   * @param databasePatterns database patterns
-   * @param tablePatterns table patterns
+   * @param databasePatterns database patterns to match
+   * @param tablePatterns table patterns to match
+   * @param tableTypes table types to match
    * @return list of table metadata
    */
   List<TableMeta> getTableMeta(String databasePatterns, String tablePatterns, List<String> tableTypes);
