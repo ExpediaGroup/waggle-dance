@@ -15,9 +15,9 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.ssh.TunnelableFactory;
@@ -65,8 +65,9 @@ public class TunnelingMetaStoreClientFactoryTest {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "user@hop1 -> hop2");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, "my-machine");
     tunnelingMetaStoreClientFactory.newInstance(hiveConf, "test", 10);
-    verify(tunnelableFactory).wrap(captor.capture(), eq(METHOD_CHECKER), eq("my-machine"), anyInt(), eq("localhost"),
-        eq(metastore.getThriftPort()));
+    verify(tunnelableFactory)
+        .wrap(captor.capture(), eq(METHOD_CHECKER), eq("my-machine"), anyInt(), eq("localhost"),
+            eq(metastore.getThriftPort()));
   }
 
   @Test
@@ -74,6 +75,12 @@ public class TunnelingMetaStoreClientFactoryTest {
     tunnelingMetaStoreClientFactory.newInstance(hiveConf, "test", 10);
     verify(metaStoreClientFactory).newInstance(hiveConf, "test", 10);
     verifyZeroInteractions(tunnelableFactorySupplier);
+  }
+
+  @Test
+  public void newInstanceWithoutTunnelingNorSupplier() {
+    TunnelingMetaStoreClientFactory clientFactory = new TunnelingMetaStoreClientFactory();
+    clientFactory.newInstance(hiveConf, "test", 10);
   }
 
 }
