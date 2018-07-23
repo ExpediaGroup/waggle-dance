@@ -95,7 +95,6 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     FederatedMetaStore store = new FederatedMetaStore(storeName, storeUri);
     assertThat(store.getName(), is(storeName));
     assertThat(store.getRemoteMetaStoreUris(), is(storeUri));
-
   }
 
 }

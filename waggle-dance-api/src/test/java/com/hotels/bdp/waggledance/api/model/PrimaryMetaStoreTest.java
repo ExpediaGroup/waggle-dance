@@ -19,6 +19,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -88,5 +90,39 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
     mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
     String json = mapper.writerFor(PrimaryMetaStore.class).writeValueAsString(metaStore);
     assertThat(json, is(expected));
+  }
+
+  @Test
+  public void nonEmptyConstructor() {
+    String name = "name";
+    String remoteMetaStoreUris = "remoteMetaStoreUris";
+    List<String> whitelist = new ArrayList<>();
+    whitelist.add("databaseOne");
+    whitelist.add("databaseTwo");
+    AccessControlType accessControlType = AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
+    PrimaryMetaStore store = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, whitelist.get(0),
+        whitelist.get(1));
+    assertThat(store.getName(), is(name));
+    assertThat(store.getRemoteMetaStoreUris(), is(remoteMetaStoreUris));
+    assertThat(store.getAccessControlType(), is(accessControlType));
+    assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
+  }
+
+  @Test
+  public void constructorWithPrimaryMetastoreObject() {
+    PrimaryMetaStore store = new PrimaryMetaStore(metaStore);
+    assertThat(store.getName(), is(metaStore.getName()));
+    assertThat(store.getRemoteMetaStoreUris(), is(metaStore.getRemoteMetaStoreUris()));
+    assertThat(store.getAccessControlType(), is(metaStore.getAccessControlType()));
+    assertThat(store.getWritableDatabaseWhiteList(), is(metaStore.getWritableDatabaseWhiteList()));
+  }
+
+  @Test
+  public void setWhitelist() {
+    List<String> whitelist = new ArrayList<>();
+    whitelist.add("databaseOne");
+    whitelist.add("databaseTwo");
+    metaStore.setWritableDatabaseWhiteList(whitelist);
+    assertThat(metaStore.getWritableDatabaseWhiteList(), is(whitelist));
   }
 }
