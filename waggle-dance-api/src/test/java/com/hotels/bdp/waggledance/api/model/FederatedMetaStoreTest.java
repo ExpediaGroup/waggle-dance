@@ -88,4 +88,14 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
   }
 
+  @Test
+  public void nonEmptyConstructor() {
+    String storeName = "name";
+    String storeUri = "remoteMetaStoreUris";
+    FederatedMetaStore store = new FederatedMetaStore(storeName, storeUri);
+    assertThat(store.getName(), is(storeName));
+    assertThat(store.getRemoteMetaStoreUris(), is(storeUri));
+
+  }
+
 }

@@ -36,45 +36,49 @@ public class ValidationErrorTest {
   private @Mock ValidationError validationError;
 
   @Test
-  public void testBuilder() {
+  public void builderTypical() {
     ValidationError result = ValidationError.builder().build();
     assertThat(result.getErrorMessage(), is("Validation failed"));
     assertThat(result.getErrors().size(), is(0));
   }
 
   @Test
-  public void testBuilderErrors() {
+  public void builderErrors() {
     ValidationError result = ValidationError.builder(errors).build();
     assertThat(result.getErrorMessage(), is("Validation failed: 0 error(s)"));
     assertThat(result.getErrors().size(), is(0));
   }
 
   @Test
-  public void testMultipleBuilderErrors() {
-    List<ObjectError> objectError = new ArrayList<>();
-    objectError.add(new ObjectError("errorOne", "Description one"));
-    objectError.add(new ObjectError("errorTwo", "Description two"));
+  public void multipleBuilderErrors() {
+    ObjectError objectError1 = new ObjectError("errorOne", "Description one");
+    ObjectError objectError2 = new ObjectError("errorTwo", "Description two");
 
-    when(errors.getErrorCount()).thenReturn(objectError.size());
-    when(errors.getAllErrors()).thenReturn(objectError);
+    List<ObjectError> objectErrors = new ArrayList<>();
+    objectErrors.add(objectError1);
+    objectErrors.add(objectError2);
 
-    List<String> expected = new ArrayList<>();
-    expected.add("Description one");
-    expected.add("Description two");
+    when(errors.getErrorCount()).thenReturn(objectErrors.size());
+    when(errors.getAllErrors()).thenReturn(objectErrors);
 
     ValidationError result = ValidationError.builder(errors).build();
+
+    List<String> expected = new ArrayList<>();
+    expected.add(objectError1.getDefaultMessage());
+    expected.add(objectError2.getDefaultMessage());
 
     assertThat(result.getErrors(), is(expected));
     assertThat(result.getErrorMessage(), is("Validation failed: 2 error(s)"));
   }
 
   @Test
-  public void testAddValidationError() {
+  public void addValidationError() {
+    String errorMessage = "Another error";
     ValidationError validationError = ValidationError.builder().build();
-    validationError.addValidationError("Another error");
+    validationError.addValidationError(errorMessage);
 
     List<String> expectedErrors = new ArrayList<String>();
-    expectedErrors.add("Another error");
+    expectedErrors.add(errorMessage);
 
     assertThat(validationError.getErrorMessage(), is("Validation failed"));
     assertThat(validationError.getErrors(), is(expectedErrors));
