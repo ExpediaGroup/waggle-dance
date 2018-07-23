@@ -8,18 +8,20 @@ import org.junit.Test;
 
 public class MetastoreUnavailableExceptionTest {
 
+  private final String errorMessage = "error";
+
   @Test
   public void messageError() {
-    MetastoreUnavailableException exception = new MetastoreUnavailableException("error");
-    assertThat(exception.getMessage(), is("error"));
+    MetastoreUnavailableException exception = new MetastoreUnavailableException(errorMessage);
+    assertThat(exception.getMessage(), is(errorMessage));
     assertNull(exception.getCause());
   }
 
   @Test
   public void messageAndCauseError() {
     Throwable cause = new Throwable();
-    MetastoreUnavailableException exception = new MetastoreUnavailableException("error", cause);
-    assertThat(exception.getMessage(), is("error"));
+    MetastoreUnavailableException exception = new MetastoreUnavailableException(errorMessage, cause);
+    assertThat(exception.getMessage(), is(errorMessage));
     assertThat(exception.getCause(), is(cause));
   }
 

@@ -110,7 +110,7 @@ public class TunnelableFactorySupplierTest {
     supplier.get(hiveConf);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void noStrictHostKeyCheckingSetting() {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "no");
     supplier.get(hiveConf);
