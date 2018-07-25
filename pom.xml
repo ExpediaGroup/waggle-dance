@@ -38,7 +38,6 @@
     <spring-platform.version>Brussels-SR5</spring-platform.version>
     <hadoop.version>2.7.2</hadoop.version>
     <hive.version>2.3.3</hive.version>
-    <!-- dropwizard.version>1.2.8</dropwizard.version-->
     <dropwizard.metrics.version>3.1.5</dropwizard.metrics.version>
     <aspectj-maven-plugin.version>1.9</aspectj-maven-plugin.version>
     <jdk.version>1.7</jdk.version>
@@ -55,13 +54,6 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-      <!-- dependency>
-        <groupId>io.dropwizard</groupId>
-        <artifactId>dropwizard-bom</artifactId>
-        <version>${dropwizard.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency-->
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
