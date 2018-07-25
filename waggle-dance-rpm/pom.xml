@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>2.3.8-SNAPSHOT</version>
+    <version>2.4.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-rpm</artifactId>
@@ -13,7 +13,7 @@
 
   <properties>
     <tmp.directory>${project.build.directory}/tmp-directory</tmp.directory>
-    <rpm.maven.plugin.version>2.1.5</rpm.maven.plugin.version>
+    <rpm.maven.plugin.version>2.2.0</rpm.maven.plugin.version>
     <rpm-sources.directory>${tmp.directory}/waggle-dance-${project.version}</rpm-sources.directory>
     <rpm.install.dir>/opt/waggle-dance</rpm.install.dir>
     <rpm.install.user>waggle-dance</rpm.install.user>

@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "federationType")
@@ -160,7 +161,7 @@ public abstract class AbstractMetaStore {
 
   @Override
   public String toString() {
-    return Objects
+    return MoreObjects
         .toStringHelper(this)
         .add("name", name)
         .add("databasePrefix", databasePrefix)
