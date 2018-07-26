@@ -1,11 +1,10 @@
-[TBD]
+[2.4.0] 2018-07-26
 ### Added
-* Enable federated metastore's access-control-type to be configured to READ_ONLY and READ_AND_WRITE_ON_DATABASE_WHITELIST.  See [#87](https://github.com/HotelsDotCom/waggle-dance/issues/87).
+* Enable federated metastore's access-control-type to be configured to `READ_ONLY` and `READ_AND_WRITE_ON_DATABASE_WHITELIST`. See [#87](https://github.com/HotelsDotCom/waggle-dance/issues/87).
 
 ### Changed
-* Refactored general purpose Hive metastore code to leverage hcommon-hive-metastore and hcommon-ssh libraries. See [#78](https://github.com/HotelsDotCom/waggle-dance/issues/78).
+* Refactored general purpose Hive metastore code to leverage [hcommon-hive-metastore](https://github.com/HotelsDotCom/hcommon-hive-metastore) and [hcommon-ssh](https://github.com/HotelsDotCom/hcommon-ssh) libraries. See [#78](https://github.com/HotelsDotCom/waggle-dance/issues/78).
 * Updated versions of dependencies and plugins in waggle-dance-parent, waggle-dance, waggle-dance-core and waggle-dance-rpm modules. 
-* Replaced deprecated methods and classes.
 * Upgraded default Hive version from 2.3.0 to 2.3.3.
 
 ## [2.3.7] 2018-06-19
