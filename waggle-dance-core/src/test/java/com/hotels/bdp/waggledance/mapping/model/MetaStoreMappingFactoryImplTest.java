@@ -33,7 +33,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -61,7 +60,6 @@ public class MetaStoreMappingFactoryImplTest {
 
   @Before
   public void init() {
-    MockitoAnnotations.initMocks(this);
     when(prefixNamingStrategy.apply(any(AbstractMetaStore.class))).thenAnswer(new Answer<String>() {
       @Override
       public String answer(InvocationOnMock invocation) throws Throwable {
