@@ -1,4 +1,4 @@
-[2.4.0] 2018-07-26
+[2.4.0] 2018-07-27
 ### Added
 * Enable federated metastore's access-control-type to be configured to `READ_ONLY` and `READ_AND_WRITE_ON_DATABASE_WHITELIST`. See [#87](https://github.com/HotelsDotCom/waggle-dance/issues/87).
 
