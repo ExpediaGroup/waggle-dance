@@ -32,8 +32,6 @@
   </modules>
 
   <properties>
-    <cobertura.version>2.1.1</cobertura.version>
-    <cobertura.maven.plugin.version>2.7</cobertura.maven.plugin.version>
     <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
     <spring-platform.version>Brussels-SR5</spring-platform.version>
     <hadoop.version>2.7.2</hadoop.version>
