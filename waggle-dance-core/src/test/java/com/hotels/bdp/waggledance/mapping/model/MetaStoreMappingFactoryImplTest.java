@@ -30,11 +30,12 @@ import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
-//import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
@@ -44,7 +45,7 @@ import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 
-//@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class MetaStoreMappingFactoryImplTest {
 
   private static final String TEST_DB = "test_db";
