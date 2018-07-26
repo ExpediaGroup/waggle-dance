@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,14 +51,14 @@ public interface MetaStoreMapping extends Closeable {
   MetaStoreMapping checkWritePermissions(String databaseName);
 
   /**
-   * @param database (assummed to be the database used in this mapped metastore so any waggle dance related prefix must
+   * @param database (assumed to be the database used in this mapped metastore so any waggle dance related prefix must
    *          have been stripped already)
-   * @return throws {@link NotAllowedException} when the metastore mapped by this class does not have the correct
-   *         permission otherwise calls {{@link #getClient().create_database(database)}
-   * @throws TException
-   * @throws MetaException
-   * @throws InvalidObjectException
-   * @throws AlreadyExistsException
+   * @throws NotAllowedException when the metastore mapped by this class does not have the correct permission otherwise
+   *           calls getClient().create_database(database)
+   * @throws TException if a Thrift error occurs
+   * @throws MetaException if a problem occurs interacting with the Hive MetaStore
+   * @throws InvalidObjectException if Hive considers the database invalid
+   * @throws AlreadyExistsException if the database already exists
    */
   void createDatabase(Database database)
     throws AlreadyExistsException, InvalidObjectException, MetaException, TException;

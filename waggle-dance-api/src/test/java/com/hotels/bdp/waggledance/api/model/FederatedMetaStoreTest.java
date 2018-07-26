@@ -36,10 +36,11 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
   }
 
   @Test
-  public void testReadOnlyOverride() {
+  public void testOverride() {
     assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));
+
     metaStore.setAccessControlType(AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST);
-    assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));
+    assertThat(metaStore.getAccessControlType(), is(AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST));
   }
 
   @Test
@@ -72,7 +73,7 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
 
   @Test
   public void toJson() throws Exception {
-    String expected = "{\"accessControlType\":\"READ_ONLY\",\"databasePrefix\":\"name_\",\"federationType\":\"FEDERATED\",\"mappedDatabases\":[],\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\"}";
+    String expected = "{\"accessControlType\":\"READ_ONLY\",\"databasePrefix\":\"name_\",\"federationType\":\"FEDERATED\",\"mappedDatabases\":[],\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
     ObjectMapper mapper = new ObjectMapper();
     // Sorting to get deterministic test behaviour
     mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);

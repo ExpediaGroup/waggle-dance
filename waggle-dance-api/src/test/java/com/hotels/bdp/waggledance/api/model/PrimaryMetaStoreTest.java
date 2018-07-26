@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,20 +109,18 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
   }
 
   @Test
-  public void constructorWithPrimaryMetastoreObject() {
-    PrimaryMetaStore store = new PrimaryMetaStore(metaStore);
-    assertThat(store.getName(), is(metaStore.getName()));
-    assertThat(store.getRemoteMetaStoreUris(), is(metaStore.getRemoteMetaStoreUris()));
-    assertThat(store.getAccessControlType(), is(metaStore.getAccessControlType()));
-    assertThat(store.getWritableDatabaseWhiteList(), is(metaStore.getWritableDatabaseWhiteList()));
-  }
-
-  @Test
-  public void setWhitelist() {
+  public void constructorWithArrayListForWhtelist() {
+    String name = "name";
+    String remoteMetaStoreUris = "remoteMetaStoreUris";
     List<String> whitelist = new ArrayList<>();
     whitelist.add("databaseOne");
     whitelist.add("databaseTwo");
-    metaStore.setWritableDatabaseWhiteList(whitelist);
-    assertThat(metaStore.getWritableDatabaseWhiteList(), is(whitelist));
+    AccessControlType accessControlType = AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
+    PrimaryMetaStore store = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, whitelist);
+    assertThat(store.getName(), is(name));
+    assertThat(store.getRemoteMetaStoreUris(), is(remoteMetaStoreUris));
+    assertThat(store.getAccessControlType(), is(accessControlType));
+    assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
   }
+
 }

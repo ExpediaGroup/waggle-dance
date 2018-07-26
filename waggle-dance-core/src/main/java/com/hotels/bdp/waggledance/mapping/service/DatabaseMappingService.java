@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ public interface DatabaseMappingService extends Closeable {
   DatabaseMapping primaryDatabaseMapping();
 
   /**
+   * @param databaseName given database name
    * @return the {@link DatabaseMapping} that maps to the given databaseName
    */
   DatabaseMapping databaseMapping(@NotNull String databaseName);

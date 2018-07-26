@@ -15,10 +15,12 @@
  */
 package com.hotels.bdp.waggledance.api.model;
 
-import java.beans.Transient;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
+import java.beans.Transient;
+import java.util.Collections;
+import java.util.List;
 
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -26,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "federationType")
@@ -35,6 +38,7 @@ import com.google.common.base.Objects;
 public abstract class AbstractMetaStore {
 
   private String databasePrefix;
+  private List<String> writableDatabaseWhitelist;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
@@ -47,6 +51,17 @@ public abstract class AbstractMetaStore {
     this.name = name;
     this.remoteMetaStoreUris = remoteMetaStoreUris;
     this.accessControlType = accessControlType;
+  }
+
+  public AbstractMetaStore(
+      String name,
+      String remoteMetaStoreUris,
+      AccessControlType accessControlType,
+      List<String> writableDatabaseWhitelist) {
+    this.name = name;
+    this.remoteMetaStoreUris = remoteMetaStoreUris;
+    this.accessControlType = accessControlType;
+    this.writableDatabaseWhitelist = writableDatabaseWhitelist;
   }
 
   public static FederatedMetaStore newFederatedInstance(String name, String remoteMetaStoreUris) {
@@ -106,6 +121,17 @@ public abstract class AbstractMetaStore {
     this.accessControlType = accessControlType;
   }
 
+  public List<String> getWritableDatabaseWhiteList() {
+    if (writableDatabaseWhitelist == null) {
+      return Collections.emptyList();
+    }
+    return Collections.unmodifiableList(writableDatabaseWhitelist);
+  }
+
+  public void setWritableDatabaseWhiteList(List<String> writableDatabaseWhitelist) {
+    this.writableDatabaseWhitelist = writableDatabaseWhitelist;
+  }
+
   @Transient
   public MetaStoreStatus getStatus() {
     return status;
@@ -135,7 +161,7 @@ public abstract class AbstractMetaStore {
 
   @Override
   public String toString() {
-    return Objects
+    return MoreObjects
         .toStringHelper(this)
         .add("name", name)
         .add("databasePrefix", databasePrefix)
@@ -143,6 +169,7 @@ public abstract class AbstractMetaStore {
         .add("remoteMetaStoreUris", remoteMetaStoreUris)
         .add("metastoreTunnel", metastoreTunnel)
         .add("accessControlType", accessControlType)
+        .add("writableDatabaseWhiteList", writableDatabaseWhitelist)
         .add("status", status)
         .toString();
   }

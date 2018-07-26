@@ -34,20 +34,20 @@ import com.hotels.bdp.waggledance.api.validation.constraint.TunnelRoute;
 
 /**
  * Inspired by Hibernate's {@link EmailValidator}, this class checks that a given character sequence (e.g.
- * {@link String}) is a well-formed list of hostnames, optionally preceded by a username, separated by "->", e.g.
- * "user1@host1 -> host2".
+ * {@link String}) is a well-formed list of hostnames, optionally preceded by a username, separated by "-&gt;", e.g.
+ * "user1@host1 -&gt; host2".
  * <p>
  * These are some examples of valid expressions:
- *
+ * </p>
+ * 
  * <pre>
  * my-host
  * another-host.co.uk
  * etluser@tenant-node.company.com
- * my-host -> another-host.co.uk
- * another-host.co.uk -> etluser@tenant-node.company.com
- * ec2-user@bastion-host -> hadoop@emr-master
+ * my-host -&gt; another-host.co.uk
+ * another-host.co.uk -&gt; etluser@tenant-node.company.com
+ * ec2-user@bastion-host -&gt; hadoop@emr-master
  * </pre>
- * </p>
  */
 public class TunnelRouteValidator implements ConstraintValidator<TunnelRoute, CharSequence> {
   private static final String ATOM = "[a-z0-9!#$%&'*+/=?^_`{|}~-]";
@@ -73,7 +73,7 @@ public class TunnelRouteValidator implements ConstraintValidator<TunnelRoute, Ch
 
   @Override
   public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
-    if (value == null || value.toString().trim().length() == 0) {
+    if ((value == null) || (value.toString().trim().length() == 0)) {
       return true;
     }
 
@@ -105,7 +105,7 @@ public class TunnelRouteValidator implements ConstraintValidator<TunnelRoute, Ch
       // The regular expression match would take care of this, but IDN.toASCII drops the trailing '.'
       // (IMO a bug in the implementation)
 
-      if (username != null
+      if ((username != null)
           && (username.endsWith(".") || !matchPart(username.trim(), LOCAL_PATTERN, MAX_LOCAL_PART_LENGTH))) {
         return false;
       }
@@ -145,7 +145,7 @@ public class TunnelRouteValidator implements ConstraintValidator<TunnelRoute, Ch
         break;
       }
       start = end;
-      end = start + 63 > unicodeString.length() ? unicodeString.length() : start + 63;
+      end = (start + 63) > unicodeString.length() ? unicodeString.length() : start + 63;
     }
 
     return asciiString.toString();

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public class SimpleFederationStatusService implements FederationStatusService {
    * increases impacting the performance of the server then caching or an alternative solution could be adopted.
    * </p>
    *
-   * @param metaStoreUris URI of the metastore to check.
+   * @param abstractMetaStore the metastore to check
    * @return {@code MetaStoreStatus.AVAILABLE} if the service can successfully connect to the metastore. Otherwise,
    *         returns {@code MetaStoreStatus.UNAVAILABLE}
    */

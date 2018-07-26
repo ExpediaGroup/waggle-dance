@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.validation.constraint.TunnelRoute;
-import com.hotels.bdp.waggledance.api.validation.validator.TunnelRouteValidator;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TunnelRouteValidatorTest {
