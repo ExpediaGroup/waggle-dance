@@ -194,27 +194,4 @@
     </pluginManagement>
   </build>
   
-  <profiles>
-  <profile>
-      <id>surefire-configuration</id>
-      <activation>
-        <property>
-          <name>test.arguments</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>${maven.surefire.plugin.version}</version>
-            <configuration>
-              <argLine>@{argLine} ${test.arguments}</argLine>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-
 </project>
