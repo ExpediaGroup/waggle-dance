@@ -1,4 +1,4 @@
-[2.4.1] 2018-07-27
+[TBD] TBD
 ### Changed
 * Updated `hotels-oss-parent` to version 2.3.3 (was 2.3.2).
 
