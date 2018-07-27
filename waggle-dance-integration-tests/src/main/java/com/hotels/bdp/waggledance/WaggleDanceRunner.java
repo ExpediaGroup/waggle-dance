@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,16 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       checkArgument(isNotEmpty(remoteMetaStoreUris));
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
+      federatedMetaStores.add(federatedMetaStore);
+      return this;
+    }
+
+    public Builder federate(String name, String remoteMetaStoreUris, AccessControlType accessControlType, String[] mappableDatabases, String[] writeableDatabaseWhiteList) {
+      checkArgument(isNotEmpty(name));
+      checkArgument(isNotEmpty(remoteMetaStoreUris));
+      FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris, accessControlType);
+      federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
+      federatedMetaStore.setWritableDatabaseWhiteList(Arrays.asList(writeableDatabaseWhiteList));
       federatedMetaStores.add(federatedMetaStore);
       return this;
     }
