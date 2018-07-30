@@ -32,10 +32,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore> {
 
-  String name = "name";
-  String remoteMetaStoreUris = "remoteMetaStoreUris";
-  List<String> whitelist = new ArrayList<>();
-  AccessControlType accessControlType = AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
+  private final String name = "name";
+  private final String remoteMetaStoreUris = "remoteMetaStoreUris";
+  private final List<String> whitelist = new ArrayList<>();
+  private final AccessControlType accessControlType = AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
 
   public PrimaryMetaStoreTest() {
     super(new PrimaryMetaStore());

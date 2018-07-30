@@ -22,8 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import static com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory.METHOD_CHECKER;
-
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.Before;
 import org.junit.Rule;
@@ -66,8 +64,8 @@ public class TunnelingMetaStoreClientFactoryTest {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, "my-machine");
     tunnelingMetaStoreClientFactory.newInstance(hiveConf, "test", 10);
     verify(tunnelableFactory)
-        .wrap(captor.capture(), eq(METHOD_CHECKER), eq("my-machine"), anyInt(), eq("localhost"),
-            eq(metastore.getThriftPort()));
+        .wrap(captor.capture(), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq("my-machine"), anyInt(),
+            eq("localhost"), eq(metastore.getThriftPort()));
   }
 
   @Test
