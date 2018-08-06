@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client;
+package com.hotels.bdp.waggledance.client.tunneling;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
+import com.hotels.bdp.waggledance.client.tunneling.TunnelableFactorySupplier;
 
 public class TunnelableFactorySupplierTest {
 

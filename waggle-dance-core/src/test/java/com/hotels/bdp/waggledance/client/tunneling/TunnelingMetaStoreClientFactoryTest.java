@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client;
+package com.hotels.bdp.waggledance.client.tunneling;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -23,6 +27,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
+import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,6 +37,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
+import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
+import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 import com.hotels.hcommon.ssh.TunnelableSupplier;
@@ -43,8 +52,13 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Mock TunnelableFactorySupplier tunnelableFactorySupplier;
   private @Mock MetaStoreClientFactory metaStoreClientFactory;
   private @Mock TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
+  private @Mock HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
+  private @Mock LocalHiveConfFactory localHiveConfFactory;
+  private @Mock HiveConf localHiveConf;
   private HiveConf hiveConf;
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
+
+  private final String metastoreUri = "thrift://host:30";
 
   @Before
   public void init() {
@@ -54,7 +68,11 @@ public class TunnelingMetaStoreClientFactoryTest {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, "");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "yes");
     tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(tunnelableFactorySupplier,
-        metaStoreClientFactory);
+        metaStoreClientFactory, localHiveConfFactory, hiveMetaStoreClientSupplierFactory);
+
+    when(localHiveConfFactory.createLocalHiveConf(any(String.class), any(Integer.class), eq(hiveConf)))
+        .thenReturn(localHiveConf);
+    when(localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS)).thenReturn(metastoreUri);
   }
 
   @Test
@@ -66,6 +84,17 @@ public class TunnelingMetaStoreClientFactoryTest {
     verify(tunnelableFactory)
         .wrap(captor.capture(), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq("my-machine"), anyInt(),
             eq("localhost"), eq(metastore.getThriftPort()));
+
+    // Verify that localHiveConf is created with correct parameters
+    ArgumentCaptor<String> stringArgument = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Integer> intArgument = ArgumentCaptor.forClass(Integer.class);
+    String remotePort = hiveConf.get(HiveConf.ConfVars.METASTORE_SERVER_PORT.varname);
+    verify(localHiveConfFactory).createLocalHiveConf(stringArgument.capture(), intArgument.capture(), eq(hiveConf));
+    assertThat(stringArgument.getValue(), is(hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname)));
+    assertFalse(String.valueOf(intArgument.getValue()) == remotePort);
+
+    // Test tunnelableFactorySupplier.get(...) with localHiveConf and not hiveConf
+    verify(tunnelableFactorySupplier).get(eq(localHiveConf));
   }
 
   @Test
@@ -76,9 +105,11 @@ public class TunnelingMetaStoreClientFactoryTest {
   }
 
   @Test
-  public void newInstanceWithoutTunnelingNorSupplier() {
+  public void newInstanceWithoutTunnelingNorSupplier() throws ConfigValSecurityException, TException {
     TunnelingMetaStoreClientFactory clientFactory = new TunnelingMetaStoreClientFactory();
-    clientFactory.newInstance(hiveConf, "test", 10);
+    CloseableThriftHiveMetastoreIface closeableThriftHiveMetastoreIface = clientFactory
+        .newInstance(hiveConf, "test", 10);
+    assertNotNull(closeableThriftHiveMetastoreIface);
   }
 
 }
