@@ -26,6 +26,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.thrift.TException;
@@ -52,63 +55,101 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Mock TunnelableFactorySupplier tunnelableFactorySupplier;
   private @Mock MetaStoreClientFactory metaStoreClientFactory;
   private @Mock TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
-  private @Mock HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
   private @Mock LocalHiveConfFactory localHiveConfFactory;
+  private @Mock HiveMetaStoreClientSupplier hiveMetaStoreClientSupplier;
   private @Mock HiveConf localHiveConf;
   private HiveConf hiveConf;
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
+  private @Mock HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
 
-  private final String metastoreUri = "thrift://host:30";
+  private final String metastoreUri = "thrift://metastore-host:42";
+  private final String name = "test";
+  private final int reconnectionRetries = 10;
+  private final String localHost = "my-machine";
 
   @Before
   public void init() {
     hiveConf = metastore.conf();
     when(tunnelableFactorySupplier.get(any(HiveConf.class))).thenReturn(tunnelableFactory);
-    hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
-    hiveConf.set(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, "");
-    hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "yes");
-    tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(tunnelableFactorySupplier,
-        metaStoreClientFactory, localHiveConfFactory, hiveMetaStoreClientSupplierFactory);
-
     when(localHiveConfFactory.createLocalHiveConf(any(String.class), any(Integer.class), eq(hiveConf)))
         .thenReturn(localHiveConf);
     when(localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS)).thenReturn(metastoreUri);
+    when(hiveMetaStoreClientSupplierFactory.newInstance(localHiveConf, name, reconnectionRetries))
+        .thenReturn(hiveMetaStoreClientSupplier);
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, "");
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "yes");
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "user@hop1 -> hop2");
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, localHost);
+
+    tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(tunnelableFactorySupplier,
+        metaStoreClientFactory, localHiveConfFactory, hiveMetaStoreClientSupplierFactory);
+
   }
 
   @Test
   public void newInstanceWithTunneling() throws Exception {
     ArgumentCaptor<TunnelableSupplier> captor = ArgumentCaptor.forClass(TunnelableSupplier.class);
-    hiveConf.set(WaggleDanceHiveConfVars.SSH_ROUTE.varname, "user@hop1 -> hop2");
-    hiveConf.set(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, "my-machine");
-    tunnelingMetaStoreClientFactory.newInstance(hiveConf, "test", 10);
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
     verify(tunnelableFactory)
         .wrap(captor.capture(), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq("my-machine"), anyInt(),
             eq("localhost"), eq(metastore.getThriftPort()));
+  }
 
-    // Verify that localHiveConf is created with correct parameters
+  @Test
+  public void localHiveConfigUsesCorrectParameters() {
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
     ArgumentCaptor<String> stringArgument = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Integer> intArgument = ArgumentCaptor.forClass(Integer.class);
-    String remotePort = hiveConf.get(HiveConf.ConfVars.METASTORE_SERVER_PORT.varname);
+    int remotePort = metastore.getThriftPort();
     verify(localHiveConfFactory).createLocalHiveConf(stringArgument.capture(), intArgument.capture(), eq(hiveConf));
-    assertThat(stringArgument.getValue(), is(hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname)));
-    assertFalse(String.valueOf(intArgument.getValue()) == remotePort);
+    assertThat(stringArgument.getValue(), is(localHost));
+    assertFalse(intArgument.getValue() == remotePort);
 
-    // Test tunnelableFactorySupplier.get(...) with localHiveConf and not hiveConf
+    // does not work: expected is <53588> but was <53587>
+    // assertThat(intArgument.getValue(), is(new ServerSocket(0).getLocalPort()));
+  }
+
+  @Test
+  public void tunnelableFactorySupplierUsesCorrectParameters() {
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
     verify(tunnelableFactorySupplier).get(eq(localHiveConf));
   }
 
   @Test
+  public void hiveMetaStoreClientSupplierFactoryUsesCorrectParameters() {
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+    verify(hiveMetaStoreClientSupplierFactory).newInstance(eq(localHiveConf), eq(name), eq(reconnectionRetries));
+  }
+
+  @Test
+  public void tunnelableFactoryUsesCorrectParameters() throws URISyntaxException {
+    URI uri = new URI(metastore.getThriftConnectionUri());
+    String remoteHost = uri.getHost();
+    int remotePort = uri.getPort();
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+    verify(tunnelableFactory)
+        .wrap(eq(hiveMetaStoreClientSupplier), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq(localHost),
+            any(Integer.class), eq(remoteHost), eq(remotePort));
+  }
+
+  @Test
   public void newInstanceWithoutTunneling() throws Exception {
-    tunnelingMetaStoreClientFactory.newInstance(hiveConf, "test", 10);
-    verify(metaStoreClientFactory).newInstance(hiveConf, "test", 10);
+    hiveConf.unset(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
+    hiveConf.unset(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname);
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+    verify(metaStoreClientFactory).newInstance(hiveConf, name, reconnectionRetries);
     verifyZeroInteractions(tunnelableFactorySupplier);
   }
 
   @Test
   public void newInstanceWithoutTunnelingNorSupplier() throws ConfigValSecurityException, TException {
+    hiveConf.unset(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
+    hiveConf.unset(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname);
+
     TunnelingMetaStoreClientFactory clientFactory = new TunnelingMetaStoreClientFactory();
     CloseableThriftHiveMetastoreIface closeableThriftHiveMetastoreIface = clientFactory
-        .newInstance(hiveConf, "test", 10);
+        .newInstance(hiveConf, name, reconnectionRetries);
     assertNotNull(closeableThriftHiveMetastoreIface);
   }
 

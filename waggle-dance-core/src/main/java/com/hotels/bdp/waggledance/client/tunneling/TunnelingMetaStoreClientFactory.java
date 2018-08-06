@@ -77,7 +77,6 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
       return defaultFactory.newInstance(hiveConf, name, reconnectionRetries);
     }
 
-    // Verify that localHiveConf is created with parameters in correct order
     String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname);
     int localPort = getLocalPort();
 
@@ -87,7 +86,6 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
 
     HiveConf localHiveConf = localHiveConfFactory.createLocalHiveConf(localHost, localPort, hiveConf);
 
-    // Test tunnelableFactorySupplier.get(...) with localHiveConf and not hiveConf
     TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactorySupplier
         .get(localHiveConf);
 
@@ -95,11 +93,9 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
         .info("Metastore URI {} is being proxied through {}", hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
             localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
 
-    // TODO: Test hiveMetaStoreClientSupplierFactory.newInstance with right arguments
     HiveMetaStoreClientSupplier supplier = hiveMetaStoreClientSupplierFactory
         .newInstance(localHiveConf, name, reconnectionRetries);
 
-    // TODO: Same again
     return (CloseableThriftHiveMetastoreIface) tunnelableFactory
         .wrap(supplier, METHOD_CHECKER, localHost, localPort, remoteHost, remotePort);
   }
