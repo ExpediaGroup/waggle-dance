@@ -19,6 +19,7 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.beans.Transient;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
@@ -85,8 +86,11 @@ public class AdvancedPropertyUtils extends PropertyUtils {
   }
 
   private boolean isTransient(PropertyDescriptor propertyDescriptor) {
+    // first check for a write method to avoid NullPointerException
+    Method writeMethod = propertyDescriptor.getWriteMethod();
+
     return propertyDescriptor.getReadMethod().getAnnotation(Transient.class) != null
-        || propertyDescriptor.getWriteMethod().getAnnotation(Transient.class) != null;
+        || (writeMethod != null && writeMethod.getAnnotation(Transient.class) != null);
   }
 
   @Override
