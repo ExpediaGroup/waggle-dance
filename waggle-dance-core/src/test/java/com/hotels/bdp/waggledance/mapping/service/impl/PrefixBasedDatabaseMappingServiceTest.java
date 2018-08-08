@@ -48,7 +48,9 @@ import com.google.common.collect.ImmutableSet;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
+import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
@@ -104,8 +106,10 @@ public class PrefixBasedDatabaseMappingServiceTest {
     service.onRegister(newMetastore);
     List<DatabaseMapping> databaseMappings = service.databaseMappings();
     assertThat(databaseMappings.size(), is(3));
-    assertThat(ImmutableSet.of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
-        databaseMappings.get(2).getDatabasePrefix()), is(ImmutableSet.of("", DB_PREFIX, "newname_")));
+    assertThat(ImmutableSet
+        .of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
+            databaseMappings.get(2).getDatabasePrefix()),
+        is(ImmutableSet.of("", DB_PREFIX, "newname_")));
   }
 
   @Test(expected = WaggleDanceException.class)
@@ -153,8 +157,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Test
   public void onInitOverridesDuplicates() throws Exception {
-    List<AbstractMetaStore> duplicates = Arrays.asList(primaryMetastore, federatedMetastore, primaryMetastore,
-        federatedMetastore);
+    List<AbstractMetaStore> duplicates = Arrays
+        .asList(primaryMetastore, federatedMetastore, primaryMetastore, federatedMetastore);
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, duplicates, queryMapping);
     assertThat(service.databaseMappings().size(), is(2));
   }
@@ -353,6 +357,24 @@ public class PrefixBasedDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.setUgi(user, groups);
     assertThat(result, containsInAnyOrder("ugi", "ugi2"));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void unassignableClassShouldNotBeInWhitelist() {
+    AbstractMetaStore abstractMetaStore = new AbstractMetaStore("name3", "thrift:host:port",
+        AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST, null) {
+
+      @Override
+      public FederationType getFederationType() {
+        return FederationType.FEDERATED;
+      }
+    };
+
+    MetaStoreMapping abstractMapping = mockNewMapping(true, "name3_");
+    when(metaStoreMappingFactory.newInstance(abstractMetaStore)).thenReturn(abstractMapping);
+
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, Arrays.asList(abstractMetaStore),
+        queryMapping);
   }
 
 }

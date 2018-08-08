@@ -17,8 +17,6 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
-import javax.validation.constraints.NotNull;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +28,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
@@ -46,6 +46,7 @@ import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
+import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
 import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
@@ -96,8 +97,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       Whitelist mappedDbWhitelist = null;
       if (FederatedMetaStore.class.isAssignableFrom(federatedMetaStore.getClass())) {
         mappedDbWhitelist = getWhitelistedDatabases((FederatedMetaStore) federatedMetaStore);
+        mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
+      } else {
+        throw new IllegalStateException(String
+            .format("MetaStore must be instance of {} or {}", FederatedMetaStore.class.getName(),
+                PrimaryMetaStore.class.getName()));
       }
-      mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
     }
   }
 
@@ -221,8 +226,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private Map<DatabaseMapping, String> databaseMappingsByDbPattern(@NotNull String databasePatterns) {
     Map<DatabaseMapping, String> mappings = new HashMap<>();
-    Map<String, String> matchingPrefixes = GrammarUtils.selectMatchingPrefixes(mappingsByPrefix.keySet(),
-        databasePatterns);
+    Map<String, String> matchingPrefixes = GrammarUtils
+        .selectMatchingPrefixes(mappingsByPrefix.keySet(), databasePatterns);
     for (Entry<String, String> prefixWithPattern : matchingPrefixes.entrySet()) {
       DatabaseMapping mapping = mappingsByPrefix.get(prefixWithPattern.getKey());
       if (mapping == null) {
