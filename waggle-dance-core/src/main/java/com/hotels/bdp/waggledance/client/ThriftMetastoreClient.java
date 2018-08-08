@@ -156,7 +156,6 @@ class ThriftMetastoreClient implements Closeable {
           client = new ThriftHiveMetastore.Client(protocol);
           try {
             transport.open();
-            validateClientConnection();
             LOG
                 .info("Opened a connection to metastore '"
                     + store
@@ -196,13 +195,6 @@ class ThriftMetastoreClient implements Closeable {
     LOG.info("Connected to metastore.");
   }
 
-  private void validateClientConnection() throws TException {
-    // TODO PD disabling this for testing.
-    // if (client != null) {
-    // client.getStatus();
-    // }
-  }
-
   public void reconnect() {
     close();
     // Swap the first element of the metastoreUris[] with a random element from the rest
@@ -235,15 +227,7 @@ class ThriftMetastoreClient implements Closeable {
   }
 
   public boolean isOpen() {
-    if (transport != null && transport.isOpen()) {
-      try {
-        validateClientConnection();
-        return true;
-      } catch (TException e) {
-        return false;
-      }
-    }
-    return false;
+    return transport != null && transport.isOpen();
   }
 
   protected ThriftHiveMetastore.Iface getClient() {

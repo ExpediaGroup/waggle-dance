@@ -23,9 +23,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT_CONNECTION;
+import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
+
 import java.io.IOException;
 
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,10 +51,13 @@ public class MetaStoreMappingImplTest {
   private @Mock AccessControlHandler accessControlHandler;
 
   private MetaStoreMapping metaStoreMapping;
+  private MetaStoreMapping tunneledMetaStoreMapping;
 
   @Before
   public void init() {
-    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler);
+    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT_CONNECTION);
+    tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED);
+
   }
 
   @Test
@@ -102,6 +109,27 @@ public class MetaStoreMappingImplTest {
   public void isNotAvailable() {
     when(client.isOpen()).thenReturn(false);
     assertThat(metaStoreMapping.isAvailable(), is(false));
+  }
+
+  @Test
+  public void isAvailableTunnelled() throws Exception {
+    when(client.isOpen()).thenReturn(true);
+    assertThat(tunneledMetaStoreMapping.isAvailable(), is(true));
+    verify(client).getStatus();
+  }
+
+  @Test
+  public void isNotAvailableTunnelled() throws Exception {
+    when(client.isOpen()).thenReturn(false);
+    assertThat(tunneledMetaStoreMapping.isAvailable(), is(false));
+    verify(client, never()).getStatus();
+  }
+
+  @Test
+  public void isNotAvailableClientErrorTunnelled() throws Exception {
+    when(client.isOpen()).thenReturn(true);
+    when(client.getStatus()).thenThrow(new TException("ERROR"));
+    assertThat(tunneledMetaStoreMapping.isAvailable(), is(false));
   }
 
   @Test

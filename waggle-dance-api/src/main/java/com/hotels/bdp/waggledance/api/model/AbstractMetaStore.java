@@ -15,12 +15,15 @@
  */
 package com.hotels.bdp.waggledance.api.model;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT_CONNECTION;
+import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 
 import java.beans.Transient;
 import java.util.Collections;
 import java.util.List;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -111,6 +114,13 @@ public abstract class AbstractMetaStore {
     this.metastoreTunnel = metastoreTunnel;
   }
 
+  public ConnectionType getConnectionType() {
+    if (getMetastoreTunnel() != null) {
+      return TUNNELED;
+    }
+    return DIRECT_CONNECTION;
+  }
+
   abstract public FederationType getFederationType();
 
   public AccessControlType getAccessControlType() {
@@ -173,5 +183,4 @@ public abstract class AbstractMetaStore {
         .add("status", status)
         .toString();
   }
-
 }

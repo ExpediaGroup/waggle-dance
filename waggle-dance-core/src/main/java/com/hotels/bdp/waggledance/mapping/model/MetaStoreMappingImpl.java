@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,27 +23,36 @@ import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.hotels.bdp.waggledance.api.model.ConnectionType;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
 class MetaStoreMappingImpl implements MetaStoreMapping {
 
+  private final static Logger log = LoggerFactory.getLogger(MetaStoreMappingImpl.class);
+
   private final String databasePrefix;
   private final CloseableThriftHiveMetastoreIface client;
   private final AccessControlHandler accessControlHandler;
   private final String name;
 
+  private final ConnectionType connectionType;
+
   MetaStoreMappingImpl(
       String databasePrefix,
       String name,
       CloseableThriftHiveMetastoreIface client,
-      AccessControlHandler accessControlHandler) {
+      AccessControlHandler accessControlHandler,
+      ConnectionType connectionType) {
     this.databasePrefix = databasePrefix;
     this.name = name;
     this.client = client;
     this.accessControlHandler = accessControlHandler;
+    this.connectionType = connectionType;
   }
 
   @Override
@@ -83,7 +92,16 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public boolean isAvailable() {
-    return client.isOpen();
+    try {
+      boolean isOpen = client.isOpen();
+      if (isOpen && connectionType == ConnectionType.TUNNELED) {
+        client.getStatus();
+      }
+      return isOpen;
+    } catch (Exception e) {
+      log.error("Metastore Mapping {} unavailable", name, e);
+      return false;
+    }
   }
 
   @Override
