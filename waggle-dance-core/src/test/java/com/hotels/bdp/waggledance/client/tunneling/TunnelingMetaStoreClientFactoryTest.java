@@ -16,7 +16,6 @@
 package com.hotels.bdp.waggledance.client.tunneling;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,6 +57,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Mock LocalHiveConfFactory localHiveConfFactory;
   private @Mock HiveMetaStoreClientSupplier hiveMetaStoreClientSupplier;
   private @Mock HiveConf localHiveConf;
+  private @Mock LocalPortFactory localPortFactory;
   private HiveConf hiveConf;
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private @Mock HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
@@ -66,6 +66,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   private final String name = "test";
   private final int reconnectionRetries = 10;
   private final String localHost = "my-machine";
+  private final int localPort = 42;
 
   @Before
   public void init() {
@@ -76,6 +77,7 @@ public class TunnelingMetaStoreClientFactoryTest {
     when(localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS)).thenReturn(metastoreUri);
     when(hiveMetaStoreClientSupplierFactory.newInstance(localHiveConf, name, reconnectionRetries))
         .thenReturn(hiveMetaStoreClientSupplier);
+    when(localPortFactory.getLocalPort()).thenReturn(localPort);
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, "");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "yes");
@@ -83,7 +85,7 @@ public class TunnelingMetaStoreClientFactoryTest {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, localHost);
 
     tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(tunnelableFactorySupplier,
-        metaStoreClientFactory, localHiveConfFactory, hiveMetaStoreClientSupplierFactory);
+        metaStoreClientFactory, localHiveConfFactory, hiveMetaStoreClientSupplierFactory, localPortFactory);
 
   }
 
@@ -101,13 +103,9 @@ public class TunnelingMetaStoreClientFactoryTest {
     tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
     ArgumentCaptor<String> stringArgument = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Integer> intArgument = ArgumentCaptor.forClass(Integer.class);
-    int remotePort = metastore.getThriftPort();
     verify(localHiveConfFactory).createLocalHiveConf(stringArgument.capture(), intArgument.capture(), eq(hiveConf));
     assertThat(stringArgument.getValue(), is(localHost));
-    assertFalse(intArgument.getValue() == remotePort);
-
-    // does not work: expected is <53588> but was <53587>
-    // assertThat(intArgument.getValue(), is(new ServerSocket(0).getLocalPort()));
+    assertThat(intArgument.getValue(), is(localPort));
   }
 
   @Test

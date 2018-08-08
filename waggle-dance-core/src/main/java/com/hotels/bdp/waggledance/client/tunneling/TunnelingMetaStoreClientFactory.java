@@ -17,8 +17,6 @@ package com.hotels.bdp.waggledance.client.tunneling;
 
 import static org.springframework.util.StringUtils.isEmpty;
 
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.URI;
 
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -32,7 +30,6 @@ import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
 import com.hotels.hcommon.ssh.MethodChecker;
-import com.hotels.hcommon.ssh.SshException;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 
 public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
@@ -41,22 +38,15 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
   @VisibleForTesting
   final MethodChecker METHOD_CHECKER = new MetastoreClientMethodChecker();
 
-  private int getLocalPort() {
-    try (ServerSocket socket = new ServerSocket(0)) {
-      return socket.getLocalPort();
-    } catch (IOException | RuntimeException e) {
-      throw new SshException("Unable to bind to a free localhost port", e);
-    }
-  }
-
   private final TunnelableFactorySupplier tunnelableFactorySupplier;
   private final MetaStoreClientFactory defaultFactory;
   private final LocalHiveConfFactory localHiveConfFactory;
   private final HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
+  private final LocalPortFactory localPortFactory;
 
   public TunnelingMetaStoreClientFactory() {
     this(new TunnelableFactorySupplier(), new DefaultMetaStoreClientFactory(), new LocalHiveConfFactory(),
-        new HiveMetaStoreClientSupplierFactory());
+        new HiveMetaStoreClientSupplierFactory(), new LocalPortFactory());
   }
 
   @VisibleForTesting
@@ -64,11 +54,13 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
       TunnelableFactorySupplier tunnelableFactorySupplier,
       MetaStoreClientFactory defaultFactory,
       LocalHiveConfFactory localHiveConfFactory,
-      HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory) {
+      HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory,
+      LocalPortFactory localPortFactory) {
     this.tunnelableFactorySupplier = tunnelableFactorySupplier;
     this.defaultFactory = defaultFactory;
     this.localHiveConfFactory = localHiveConfFactory;
     this.hiveMetaStoreClientSupplierFactory = hiveMetaStoreClientSupplierFactory;
+    this.localPortFactory = localPortFactory;
   }
 
   @Override
@@ -78,7 +70,7 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
     }
 
     String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname);
-    int localPort = getLocalPort();
+    int localPort = localPortFactory.getLocalPort();
 
     URI metaStoreUri = URI.create(hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
     String remoteHost = metaStoreUri.getHost();
