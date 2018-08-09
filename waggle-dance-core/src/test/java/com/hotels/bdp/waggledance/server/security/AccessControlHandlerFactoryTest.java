@@ -59,12 +59,36 @@ public class AccessControlHandlerFactoryTest {
   }
 
   @Test
+  public void newInstanceReadAndWriteAndCreate() throws Exception {
+    PrimaryMetaStore primaryMetaStore = new PrimaryMetaStore("primary", "",
+        AccessControlType.READ_AND_WRITE_AND_CREATE);
+    AccessControlHandler newInstance = factory.newInstance(primaryMetaStore);
+    assertTrue(newInstance instanceof ReadWriteCreateAccessControlHandler);
+    assertTrue(newInstance.hasCreatePermission());
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void newInstanceReadAndWriteAndCreateNotPrimary() {
+    FederatedMetaStore federatedMetaStore = new FederatedMetaStore("federated", "",
+        AccessControlType.READ_AND_WRITE_AND_CREATE);
+    factory.newInstance(federatedMetaStore);
+  }
+
+  @Test
   public void newInstanceReadAndWriteAndCreateOnDatabaseWhiteList() throws Exception {
     PrimaryMetaStore primaryMetaStore = new PrimaryMetaStore("primary", "",
         AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST);
     AccessControlHandler newInstance = factory.newInstance(primaryMetaStore);
+    primaryMetaStore.getFederationType();
     assertTrue(newInstance instanceof DatabaseWhitelistAccessControlHandler);
     assertTrue(newInstance.hasCreatePermission());
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void newInstanceReadAndWriteAndCreateOnDatabaseWhiteListNotPrimary() {
+    FederatedMetaStore federatedMetaStore = new FederatedMetaStore("federated", "",
+        AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST);
+    factory.newInstance(federatedMetaStore);
   }
 
 }

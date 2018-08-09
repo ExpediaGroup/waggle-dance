@@ -17,7 +17,7 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +30,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
+import com.hotels.bdp.waggledance.mapping.service.DatabaseMappingService;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.metrics.CurrentMonitoredMetaStoreHolder;
@@ -93,6 +94,11 @@ public class MonitoredDatabaseMappingServiceTest {
     AbstractMetaStore newMetastore = Mockito.mock(AbstractMetaStore.class);
     service.onUpdate(metaStore, newMetastore);
     verify(wrapped).onUpdate(metaStore, newMetastore);
+  }
+
+  @Test
+  public void getWrappedService() {
+    assertThat(service.getWrappedService(), is((DatabaseMappingService) wrapped));
   }
 
   @Test
