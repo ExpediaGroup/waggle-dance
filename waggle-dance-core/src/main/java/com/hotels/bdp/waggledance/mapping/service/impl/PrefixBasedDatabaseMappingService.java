@@ -46,7 +46,6 @@ import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
-import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
 import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
@@ -90,6 +89,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private void add(AbstractMetaStore federatedMetaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(federatedMetaStore);
     if (federatedMetaStore.getFederationType() == PRIMARY) {
+      System.out.println("adding to mapping: " + federatedMetaStore.getName());
       primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
     } else {
@@ -98,10 +98,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       if (FederatedMetaStore.class.isAssignableFrom(federatedMetaStore.getClass())) {
         mappedDbWhitelist = getWhitelistedDatabases((FederatedMetaStore) federatedMetaStore);
         mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
-      } else {
-        throw new IllegalStateException(String
-            .format("MetaStore must be instance of {} or {}", FederatedMetaStore.class.getName(),
-                PrimaryMetaStore.class.getName()));
       }
     }
   }

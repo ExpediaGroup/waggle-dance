@@ -48,14 +48,13 @@ import com.google.common.collect.ImmutableSet;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
-import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
+import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PrefixBasedDatabaseMappingServiceTest {
@@ -359,22 +358,15 @@ public class PrefixBasedDatabaseMappingServiceTest {
     assertThat(result, containsInAnyOrder("ugi", "ugi2"));
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void unassignableClassShouldNotBeInWhitelist() {
-    AbstractMetaStore abstractMetaStore = new AbstractMetaStore("name3", "thrift:host:port",
-        AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST, null) {
+  @Test(expected = NoPrimaryMetastoreException.class)
+  public void noPrimaryMappingThrowsException() {
+    when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+    AbstractMetaStore unavailableMetastore = newFederatedInstance("name2", "thrift:host:port");
+    MetaStoreMapping unavailableMapping = mockNewMapping(false, "name2_");
+    when(metaStoreMappingFactory.newInstance(unavailableMetastore)).thenReturn(unavailableMapping);
 
-      @Override
-      public FederationType getFederationType() {
-        return FederationType.FEDERATED;
-      }
-    };
-
-    MetaStoreMapping abstractMapping = mockNewMapping(true, "name3_");
-    when(metaStoreMappingFactory.newInstance(abstractMetaStore)).thenReturn(abstractMapping);
-
-    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, Arrays.asList(abstractMetaStore),
-        queryMapping);
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(federatedMetastore, unavailableMetastore), queryMapping);
+    service.primaryDatabaseMapping();
   }
-
 }
