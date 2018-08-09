@@ -15,17 +15,11 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
-
-import com.google.common.base.Joiner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
@@ -34,14 +28,16 @@ import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
   private final MetaStoreClientFactory metaStoreClientFactory;
+  private final MetaStoreUriNormaliser normaliser;
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(MetaStoreClientFactory metaStoreClientFactory) {
     this.metaStoreClientFactory = metaStoreClientFactory;
+    this.normaliser = new MetaStoreUriNormaliser();
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
-    String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
+    String uris = normaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase();
     MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
@@ -58,19 +54,4 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
     return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
   }
-
-  private static String normaliseMetaStoreUris(String metaStoreUris) {
-    try {
-      String[] rawUris = metaStoreUris.split(",");
-      Set<String> uris = new TreeSet<>();
-      for (String rawUri : rawUris) {
-        URI uri = new URI(rawUri);
-        uris.add(uri.toString());
-      }
-      return Joiner.on(",").join(uris);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
 }

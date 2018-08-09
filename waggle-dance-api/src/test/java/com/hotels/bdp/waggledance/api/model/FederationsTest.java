@@ -1,0 +1,59 @@
+/**
+ * Copyright (C) 2016-2018 Expedia Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.hotels.bdp.waggledance.api.model;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+@RunWith(MockitoJUnitRunner.class)
+public class FederationsTest {
+
+  private Federations federation;
+
+  @Mock
+  private PrimaryMetaStore primaryMetaStore;
+  @Mock
+  private List<FederatedMetaStore> federatedMetaStores;
+  @Mock
+  private PrimaryMetaStore newPrimaryMetaStore;
+  @Mock
+  private List<FederatedMetaStore> newFederatedMetaStores;
+
+  @Before
+  public void setUp() {
+    federation = new Federations(primaryMetaStore, federatedMetaStores);
+  }
+
+  @Test
+  public void setterGetterPrimary() {
+    federation.setPrimaryMetaStore(newPrimaryMetaStore);
+    assertThat(federation.getPrimaryMetaStore(), is(newPrimaryMetaStore));
+  }
+
+  @Test
+  public void setterGetterFederated() {
+    federation.setFederatedMetaStores(newFederatedMetaStores);
+    assertThat(federation.getFederatedMetaStores(), is(newFederatedMetaStores));
+  }
+}

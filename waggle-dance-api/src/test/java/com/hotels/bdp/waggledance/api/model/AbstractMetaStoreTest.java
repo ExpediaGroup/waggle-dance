@@ -123,7 +123,7 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   @Test
   public void newFederatedInstance() {
-    FederatedMetaStore federatedMetaStore = metaStore.newFederatedInstance(name, remoteMetaStoreUri);
+    FederatedMetaStore federatedMetaStore = AbstractMetaStore.newFederatedInstance(name, remoteMetaStoreUri);
     assertThat(federatedMetaStore.getName(), is(name));
     assertThat(federatedMetaStore.getRemoteMetaStoreUris(), is(remoteMetaStoreUri));
   }
@@ -131,7 +131,7 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   @Test
   public void newPrimaryInstance() {
     AccessControlType access = AccessControlType.READ_AND_WRITE_AND_CREATE;
-    PrimaryMetaStore primaryMetaStore = metaStore.newPrimaryInstance(name, remoteMetaStoreUri, access);
+    PrimaryMetaStore primaryMetaStore = AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUri, access);
     assertThat(primaryMetaStore.getName(), is(name));
     assertThat(primaryMetaStore.getRemoteMetaStoreUris(), is(remoteMetaStoreUri));
     assertThat(primaryMetaStore.getAccessControlType(), is(access));
@@ -139,7 +139,7 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   @Test
   public void newPrimaryInstanceWithDefaultAccessControlType() {
-    PrimaryMetaStore primaryMetaStore = metaStore.newPrimaryInstance(name, remoteMetaStoreUri);
+    PrimaryMetaStore primaryMetaStore = AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUri);
     assertThat(primaryMetaStore.getName(), is(name));
     assertThat(primaryMetaStore.getRemoteMetaStoreUris(), is(remoteMetaStoreUri));
     assertThat(primaryMetaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));

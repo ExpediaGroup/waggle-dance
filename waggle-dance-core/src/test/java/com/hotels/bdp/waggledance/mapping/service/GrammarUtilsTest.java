@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.mapping.service;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.Map;
@@ -74,6 +75,22 @@ public class GrammarUtilsTest {
     String[] patternParts = GrammarUtils.splitPattern(PREFIX, "wag*base");
     assertThat(patternParts[0], is("wag*"));
     assertThat(patternParts[1], is("*base"));
+  }
+
+  @Test
+  public void matchesWithNullPattern() {
+    Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), null);
+    assertThat(splits.size(), is(2));
+    assertNull(splits.get(PREFIX));
+    assertNull(splits.get("other_"));
+  }
+
+  @Test
+  public void matchesWithWildcardPattern() {
+    Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), "*");
+    assertThat(splits.size(), is(2));
+    assertThat(splits.get(PREFIX), is("*"));
+    assertThat(splits.get("other_"), is("*"));
   }
 
   @Test
