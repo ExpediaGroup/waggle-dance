@@ -398,8 +398,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     primaryMetastore = new PrimaryMetaStore("primary", URI, AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST,
         Arrays.asList("name_something", "thisTestTable"));
-    //federatedMetastore = newFederatedInstance(METASTORE_NAME, URI);
-    //federatedMetastore.setMappedDatabases(Arrays.asList("name_something", "randomName"));
+    federatedMetastore = newFederatedInstance(METASTORE_NAME, URI);
+    federatedMetastore.setMappedDatabases(Arrays.asList("name_something", "randomName"));
 
     metaStoreMappingPrimary = mockNewMapping(true, "");
     metaStoreMappingFederated = mockNewMapping(true, DB_PREFIX);
