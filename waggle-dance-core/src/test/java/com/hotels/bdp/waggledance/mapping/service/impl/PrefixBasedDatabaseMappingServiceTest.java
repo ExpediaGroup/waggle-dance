@@ -48,7 +48,9 @@ import com.google.common.collect.ImmutableSet;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
+import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
@@ -67,8 +69,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
   private @Mock QueryMapping queryMapping;
 
   private PrefixBasedDatabaseMappingService service;
-  private final AbstractMetaStore primaryMetastore = newPrimaryInstance("primary", URI);
-  private final FederatedMetaStore federatedMetastore = newFederatedInstance(METASTORE_NAME, URI);
+  private AbstractMetaStore primaryMetastore = newPrimaryInstance("primary", URI);
+  private FederatedMetaStore federatedMetastore = newFederatedInstance(METASTORE_NAME, URI);
   private @Mock Iface primaryDatabaseClient;
   private MetaStoreMapping metaStoreMappingPrimary;
   private MetaStoreMapping metaStoreMappingFederated;
@@ -369,4 +371,51 @@ public class PrefixBasedDatabaseMappingServiceTest {
         Arrays.asList(federatedMetastore, unavailableMetastore), queryMapping);
     service.primaryDatabaseMapping();
   }
+
+  @Test(expected = NoPrimaryMetastoreException.class)
+  public void noPrimaryThrowsExceptionForUnmappedDatabase() {
+    when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+    AbstractMetaStore unavailableMetastore = newFederatedInstance("name2", "thrift:host:port");
+    MetaStoreMapping unavailableMapping = mockNewMapping(false, "name2_");
+    when(metaStoreMappingFactory.newInstance(unavailableMetastore)).thenReturn(unavailableMapping);
+
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(federatedMetastore, unavailableMetastore), queryMapping);
+    String databaseName = "some_unknown_prefix_db";
+    try {
+      service.databaseMapping("some_unknown_prefix_db");
+    } catch (NoPrimaryMetastoreException noPrimaryException) {
+      String expectedErrorMessage = "Waggle Dance error no database mapping available tried to map database '"
+          + databaseName
+          + "'";
+      assertThat(noPrimaryException.getMessage(), is(expectedErrorMessage));
+      throw noPrimaryException;
+    }
+  }
+
+  @Test
+  public void mappingTest() {
+
+    primaryMetastore = new PrimaryMetaStore("primary", URI, AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST,
+        Arrays.asList("name_something", "thisTestTable"));
+    //federatedMetastore = newFederatedInstance(METASTORE_NAME, URI);
+    //federatedMetastore.setMappedDatabases(Arrays.asList("name_something", "randomName"));
+
+    metaStoreMappingPrimary = mockNewMapping(true, "");
+    metaStoreMappingFederated = mockNewMapping(true, DB_PREFIX);
+
+    when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
+    when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+
+    when(metaStoreMappingFederated.transformInboundDatabaseName(DB_PREFIX + "thisTestTable"))
+        .thenReturn("thisTestTable");
+
+    List<String> whitelist = federatedMetastore.getMappedDatabases();
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+
+    DatabaseMapping mapping = service.databaseMapping(DB_PREFIX + "thisTestTable");
+    assertThat(mapping.getDatabasePrefix(), is(""));
+  }
+
 }

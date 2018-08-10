@@ -89,7 +89,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private void add(AbstractMetaStore federatedMetaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(federatedMetaStore);
     if (federatedMetaStore.getFederationType() == PRIMARY) {
-      System.out.println("adding to mapping: " + federatedMetaStore.getName());
       primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
     } else {
