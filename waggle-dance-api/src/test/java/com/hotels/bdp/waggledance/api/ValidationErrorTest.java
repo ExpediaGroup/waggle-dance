@@ -19,7 +19,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -54,18 +55,14 @@ public class ValidationErrorTest {
     ObjectError objectError1 = new ObjectError("errorOne", "Description one");
     ObjectError objectError2 = new ObjectError("errorTwo", "Description two");
 
-    List<ObjectError> objectErrors = new ArrayList<>();
-    objectErrors.add(objectError1);
-    objectErrors.add(objectError2);
+    List<ObjectError> objectErrors = Arrays.asList(objectError1, objectError2);
 
     when(errors.getErrorCount()).thenReturn(objectErrors.size());
     when(errors.getAllErrors()).thenReturn(objectErrors);
 
     ValidationError result = ValidationError.builder(errors).build();
 
-    List<String> expected = new ArrayList<>();
-    expected.add(objectError1.getDefaultMessage());
-    expected.add(objectError2.getDefaultMessage());
+    List<String> expected = Arrays.asList(objectError1.getDefaultMessage(), objectError2.getDefaultMessage());
 
     assertThat(result.getErrors(), is(expected));
     assertThat(result.getErrorMessage(), is("Validation failed: 2 error(s)"));
@@ -77,8 +74,7 @@ public class ValidationErrorTest {
     ValidationError validationError = ValidationError.builder().build();
     validationError.addValidationError(errorMessage);
 
-    List<String> expectedErrors = new ArrayList<String>();
-    expectedErrors.add(errorMessage);
+    List<String> expectedErrors = Collections.singletonList(errorMessage);
 
     assertThat(validationError.getErrorMessage(), is("Validation failed"));
     assertThat(validationError.getErrors(), is(expectedErrors));
