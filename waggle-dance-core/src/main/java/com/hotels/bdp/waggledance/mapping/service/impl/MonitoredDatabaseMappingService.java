@@ -19,11 +19,8 @@ import java.io.IOException;
 
 import javax.validation.constraints.NotNull;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
-import com.hotels.bdp.waggledance.mapping.service.DatabaseMappingService;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.metrics.CurrentMonitoredMetaStoreHolder;
@@ -60,11 +57,6 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   @Override
   public void close() throws IOException {
     wrapped.close();
-  }
-
-  @VisibleForTesting
-  public DatabaseMappingService getWrappedService() {
-    return wrapped;
   }
 
   @Override

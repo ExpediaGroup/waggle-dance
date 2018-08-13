@@ -23,8 +23,8 @@ import org.junit.Test;
 
 public class WaggleDanceExceptionTest {
 
-  String message = "message";
-  Throwable cause = new Throwable();
+  private String message = "message";
+  private Throwable cause = new Throwable();
 
   @Test
   public void messageException() {

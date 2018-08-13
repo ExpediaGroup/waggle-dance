@@ -79,7 +79,6 @@ public class AccessControlHandlerFactoryTest {
     PrimaryMetaStore primaryMetaStore = new PrimaryMetaStore("primary", "",
         AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST);
     AccessControlHandler newInstance = factory.newInstance(primaryMetaStore);
-    primaryMetaStore.getFederationType();
     assertTrue(newInstance instanceof DatabaseWhitelistAccessControlHandler);
     assertTrue(newInstance.hasCreatePermission());
   }
