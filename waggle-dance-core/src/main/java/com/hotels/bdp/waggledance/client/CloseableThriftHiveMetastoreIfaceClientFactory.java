@@ -15,6 +15,8 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -43,17 +45,18 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     Map<String, String> properties = new HashMap<>();
     String uris = normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase();
-    MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
-    if (metastoreTunnel != null) {
+    if (metaStore.getConnectionType() == TUNNELED) {
+      MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
       properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
       properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
       properties.put(WaggleDanceHiveConfVars.SSH_ROUTE.varname, metastoreTunnel.getRoute());
       properties.put(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, metastoreTunnel.getKnownHosts());
       properties.put(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, metastoreTunnel.getPrivateKeys());
       properties.put(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, String.valueOf(metastoreTunnel.getTimeout()));
-      properties.put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname,
-          metastoreTunnel.getStrictHostKeyChecking());
+      properties
+          .put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname,
+              metastoreTunnel.getStrictHostKeyChecking());
     }
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
     return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
