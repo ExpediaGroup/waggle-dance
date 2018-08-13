@@ -30,6 +30,8 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import com.google.common.collect.ImmutableMap;
 
+import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
+
 public class WaggleDanceConfigurationTest {
 
   private final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
@@ -117,4 +119,30 @@ public class WaggleDanceConfigurationTest {
     assertThat(violations.size(), is(1));
   }
 
+  @Test
+  public void setterGetterDatabaseResolution() {
+    waggleDanceConfiguration.setDatabaseResolution(DatabaseResolution.PREFIXED);
+    assertThat(waggleDanceConfiguration.getDatabaseResolution(), is(DatabaseResolution.PREFIXED));
+  }
+
+  @Test
+  public void setterGetterThriftServerStopTimeoutValInSeconds() {
+    int timeout = 10;
+    waggleDanceConfiguration.setThriftServerStopTimeoutValInSeconds(timeout);
+    assertThat(waggleDanceConfiguration.getThriftServerStopTimeoutValInSeconds(), is(timeout));
+  }
+
+  @Test
+  public void setterGetterThriftServerRequestTimeout() {
+    int timeout = 10;
+    waggleDanceConfiguration.setThriftServerRequestTimeout(timeout);
+    assertThat(waggleDanceConfiguration.getThriftServerRequestTimeout(), is(timeout));
+  }
+
+  @Test
+  public void setterGetterThriftServerRequestTimeoutUnit() {
+    TimeUnit timeUnit = TimeUnit.NANOSECONDS;
+    waggleDanceConfiguration.setThriftServerRequestTimeoutUnit(timeUnit);
+    assertThat(waggleDanceConfiguration.getThriftServerRequestTimeoutUnit(), is(timeUnit));
+  }
 }

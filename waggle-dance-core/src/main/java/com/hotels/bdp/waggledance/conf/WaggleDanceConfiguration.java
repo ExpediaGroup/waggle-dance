@@ -88,7 +88,6 @@ public class WaggleDanceConfiguration {
 
   public void setDatabaseResolution(DatabaseResolution databaseResolution) {
     this.databaseResolution = databaseResolution;
-
   }
 
   public DatabaseResolution getDatabaseResolution() {
