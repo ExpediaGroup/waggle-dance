@@ -15,7 +15,7 @@
  */
 package com.hotels.bdp.waggledance.api.model;
 
-import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT_CONNECTION;
+import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 
 import java.beans.Transient;
@@ -118,7 +118,7 @@ public abstract class AbstractMetaStore {
     if (getMetastoreTunnel() != null) {
       return TUNNELED;
     }
-    return DIRECT_CONNECTION;
+    return DIRECT;
   }
 
   abstract public FederationType getFederationType();

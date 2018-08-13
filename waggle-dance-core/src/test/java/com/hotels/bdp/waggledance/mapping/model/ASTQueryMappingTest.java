@@ -18,7 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT_CONNECTION;
+import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +34,7 @@ public class ASTQueryMappingTest {
   @Test
   public void transformOutboundDatabaseName() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT_CONNECTION);
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT);
 
     String query = "SELECT *\n"
         + "FROM db1.table1 alias1 INNER JOIN db2.table2 alias2\n"
@@ -53,7 +53,7 @@ public class ASTQueryMappingTest {
   @Test
   public void transformOutboundDatabaseNameAliasWithBackTicks() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT_CONNECTION);
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT);
 
     String query = "";
     query += "SELECT col_id AS id ";
@@ -71,7 +71,7 @@ public class ASTQueryMappingTest {
   @Test(expected = WaggleDanceException.class)
   public void transformOutboundDatabaseNameParseException() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT_CONNECTION);
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT);
 
     String unparsableQuery = "SELCT *";
     queryMapping.transformOutboundDatabaseName(metaStoreMapping, unparsableQuery);

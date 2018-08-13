@@ -16,6 +16,6 @@
 package com.hotels.bdp.waggledance.api.model;
 
 public enum ConnectionType {
-  DIRECT_CONNECTION,
+  DIRECT,
   TUNNELED;
 }

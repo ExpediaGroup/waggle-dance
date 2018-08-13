@@ -23,7 +23,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT_CONNECTION;
+import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class MetaStoreMappingImplTest {
 
   @Before
   public void init() {
-    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT_CONNECTION);
+    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT);
     tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED);
 
   }
