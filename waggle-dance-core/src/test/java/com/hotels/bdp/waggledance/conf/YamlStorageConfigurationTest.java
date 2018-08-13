@@ -7,7 +7,7 @@ import org.junit.Test;
 
 public class YamlStorageConfigurationTest {
 
-  private static YamlStorageConfiguration configuration = new YamlStorageConfiguration();
+  private final YamlStorageConfiguration configuration = new YamlStorageConfiguration();
 
   @Test
   public void defaultOverwriteConfigOnShutdown() {
