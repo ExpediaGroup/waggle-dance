@@ -100,4 +100,16 @@ public class MonitoringConfiguration {
     return new Graphite(new InetSocketAddress(graphiteConfiguration.getHost(), graphiteConfiguration.getPort()));
   }
 
+  Set<Closeable> getReporters() {
+    return reporters;
+  }
+
+  void setMetricRegistry(MetricRegistry metricRegistry) {
+    this.metricRegistry = metricRegistry;
+  }
+
+  void setGraphiteConfiguration(GraphiteConfiguration graphiteConfiguration) {
+    this.graphiteConfiguration = graphiteConfiguration;
+  }
+
 }
