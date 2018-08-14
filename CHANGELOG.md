@@ -1,8 +1,8 @@
 [TBD] TBD
+* Removed performance hit we get from checking if a connection is alive for non-tunnelled connections. See [#115](https://github.com/HotelsDotCom/waggle-dance/issues/115).
 
 [2.4.1] 2018-08-10
 ### Changed
-* Removed performance hit we get from checking if a connection is alive for non-tunnelled connections. See [#115](https://github.com/HotelsDotCom/waggle-dance/issues/115).
 * Updated `hotels-oss-parent` to version 2.3.3 (was 2.3.2).
 
 [2.4.0] 2018-07-27
