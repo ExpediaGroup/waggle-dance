@@ -104,4 +104,12 @@ public class MonitoringConfiguration {
     return new Graphite(new InetSocketAddress(graphiteConfiguration.getHost(), graphiteConfiguration.getPort()));
   }
 
+  void setGraphiteConfiguration(GraphiteConfiguration graphiteConfiguration) {
+    this.graphiteConfiguration = graphiteConfiguration;
+  }
+
+  void setMetricRegistry(MetricRegistry metricRegistry) {
+    this.metricRegistry = metricRegistry;
+  }
+
 }
