@@ -29,6 +29,7 @@ import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LocalHiveConfFactoryTest {
+
   public @Rule ThriftHiveMetaStoreJUnitRule metastore = new ThriftHiveMetaStoreJUnitRule();
 
   @Test
@@ -37,7 +38,7 @@ public class LocalHiveConfFactoryTest {
     int localPort = 10;
     String expectedUri = "thrift://" + localHost + ":" + localPort;
 
-    HiveConf conf = new LocalHiveConfFactory().createLocalHiveConf(localHost, localPort, metastore.conf());
+    HiveConf conf = new LocalHiveConfFactory().newInstance(localHost, localPort, metastore.conf());
     assertThat(conf.getVar(HiveConf.ConfVars.METASTOREURIS), is(expectedUri));
     assertFalse(conf.equals(metastore.conf()));
   }

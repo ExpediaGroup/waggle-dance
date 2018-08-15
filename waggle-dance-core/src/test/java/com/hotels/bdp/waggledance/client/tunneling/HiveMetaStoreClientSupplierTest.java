@@ -33,18 +33,16 @@ public class HiveMetaStoreClientSupplierTest {
   public @Rule ThriftHiveMetaStoreJUnitRule metastore = new ThriftHiveMetaStoreJUnitRule();
 
   private @Mock MetaStoreClientFactory factory;
-  private HiveConf hiveConf;
 
   @Test
   public void getMetaStoreClientFactoryInstance() {
     String name = "test";
     int reconnectionRetries = 10;
-    hiveConf = metastore.conf();
+    HiveConf hiveConf = metastore.conf();
     HiveMetaStoreClientSupplier supplier = new HiveMetaStoreClientSupplier(factory, hiveConf, name,
         reconnectionRetries);
     supplier.get();
     verify(factory).newInstance(hiveConf, name, reconnectionRetries);
-
   }
 
 }

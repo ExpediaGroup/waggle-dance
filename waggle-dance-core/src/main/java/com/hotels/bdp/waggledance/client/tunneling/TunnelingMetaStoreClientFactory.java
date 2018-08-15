@@ -76,7 +76,7 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
     String remoteHost = metaStoreUri.getHost();
     int remotePort = metaStoreUri.getPort();
 
-    HiveConf localHiveConf = localHiveConfFactory.createLocalHiveConf(localHost, localPort, hiveConf);
+    HiveConf localHiveConf = localHiveConfFactory.newInstance(localHost, localPort, hiveConf);
 
     TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactorySupplier
         .get(localHiveConf);

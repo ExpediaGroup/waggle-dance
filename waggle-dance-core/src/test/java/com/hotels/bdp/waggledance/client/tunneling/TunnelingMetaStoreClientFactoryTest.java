@@ -72,7 +72,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   public void init() {
     hiveConf = metastore.conf();
     when(tunnelableFactorySupplier.get(any(HiveConf.class))).thenReturn(tunnelableFactory);
-    when(localHiveConfFactory.createLocalHiveConf(any(String.class), any(Integer.class), eq(hiveConf)))
+    when(localHiveConfFactory.newInstance(any(String.class), any(Integer.class), eq(hiveConf)))
         .thenReturn(localHiveConf);
     when(localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS)).thenReturn(metastoreUri);
     when(hiveMetaStoreClientSupplierFactory.newInstance(localHiveConf, name, reconnectionRetries))
@@ -86,7 +86,6 @@ public class TunnelingMetaStoreClientFactoryTest {
 
     tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(tunnelableFactorySupplier,
         metaStoreClientFactory, localHiveConfFactory, hiveMetaStoreClientSupplierFactory, localPortFactory);
-
   }
 
   @Test
@@ -103,7 +102,7 @@ public class TunnelingMetaStoreClientFactoryTest {
     tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
     ArgumentCaptor<String> stringArgument = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Integer> intArgument = ArgumentCaptor.forClass(Integer.class);
-    verify(localHiveConfFactory).createLocalHiveConf(stringArgument.capture(), intArgument.capture(), eq(hiveConf));
+    verify(localHiveConfFactory).newInstance(stringArgument.capture(), intArgument.capture(), eq(hiveConf));
     assertThat(stringArgument.getValue(), is(localHost));
     assertThat(intArgument.getValue(), is(localPort));
   }
