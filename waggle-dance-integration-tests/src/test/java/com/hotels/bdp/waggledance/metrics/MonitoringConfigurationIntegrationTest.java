@@ -1,6 +1,22 @@
+/**
+ * Copyright (C) 2016-2018 Expedia Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.hotels.bdp.waggledance.metrics;
 
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.contains;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -22,11 +38,12 @@ public class MonitoringConfigurationIntegrationTest {
   private MonitoringConfiguration monitoringConfiguration;
 
   @Test
-  public void typical() throws Exception {
+  public void allMetricsAreLoggedWhenPollItervalIsHigh() throws Exception {
+    String graphitePrefix = "graphitePrefix";
 
     graphiteConfiguration.setHost("localhost");
     graphiteConfiguration.setPort(graphite.port());
-    graphiteConfiguration.setPrefix("graphitePrefix");
+    graphiteConfiguration.setPrefix(graphitePrefix);
     graphiteConfiguration.setPollInterval(1000);
     graphiteConfiguration.init();
 
@@ -38,27 +55,9 @@ public class MonitoringConfigurationIntegrationTest {
     monitoringConfiguration.destroy();
 
     Set<String> metrics = new TreeSet<>(Arrays.asList(new String(graphite.getOutput()).split("\n")));
-    for (String metric : metrics) {
-      System.out.println(metric);
-    }
-    // assertMetric(metrics,
-    // "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.calls.count
-    // 2");
-    // assertMetric(metrics,
-    // "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.success.count
-    // 2");
-    // assertMetric(metrics,
-    // "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.primary.calls.count
-    // 1");
-    // assertMetric(metrics,
-    // "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.primary.success.count
-    // 1");
-    // assertMetric(metrics,
-    // "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.calls.count
-    // 1");
-    // assertMetric(metrics,
-    // "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success.count
-    // 1");
+    assertMetric(metrics, contains(graphitePrefix + ".gc"));
+    assertMetric(metrics, contains(graphitePrefix + ".memory"));
+    assertMetric(metrics, contains(graphitePrefix + ".threads"));
   }
 
   private void assertMetric(Set<String> metrics, String partialMetric) {
