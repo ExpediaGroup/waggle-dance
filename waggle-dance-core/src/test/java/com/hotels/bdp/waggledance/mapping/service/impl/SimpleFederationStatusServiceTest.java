@@ -27,41 +27,41 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
+import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleFederationStatusServiceTest {
 
-  private @Mock CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
-  private @Mock CloseableThriftHiveMetastoreIface client;
+  private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
+  private @Mock MetaStoreMapping mapping;
   private SimpleFederationStatusService service;
 
   private final FederatedMetaStore metaStore = FederatedMetaStore.newFederatedInstance("remote", "uri");
 
   @Before
   public void setUp() {
-    service = new SimpleFederationStatusService(metaStoreClientFactory);
-    when(metaStoreClientFactory.newInstance(metaStore)).thenReturn(client);
+    service = new SimpleFederationStatusService(metaStoreMappingFactory);
+    when(metaStoreMappingFactory.newInstance(metaStore)).thenReturn(mapping);
   }
 
   @Test
   public void checkStatusAvailable() throws Exception {
-    when(client.isOpen()).thenReturn(true);
+    when(mapping.isAvailable()).thenReturn(true);
     MetaStoreStatus status = service.checkStatus(metaStore);
     assertThat(status, is(MetaStoreStatus.AVAILABLE));
   }
 
   @Test
   public void checkStatusUnavailable() throws Exception {
-    when(client.isOpen()).thenReturn(false);
+    when(mapping.isAvailable()).thenReturn(false);
     MetaStoreStatus status = service.checkStatus(metaStore);
     assertThat(status, is(MetaStoreStatus.UNAVAILABLE));
   }
 
   @Test
   public void checkStatusUnavailableViaException() throws Exception {
-    when(client.isOpen()).thenThrow(new RuntimeException("oh no metastore down!"));
+    when(mapping.isAvailable()).thenThrow(new RuntimeException("oh no metastore down!"));
     MetaStoreStatus status = service.checkStatus(metaStore);
     assertThat(status, is(MetaStoreStatus.UNAVAILABLE));
   }

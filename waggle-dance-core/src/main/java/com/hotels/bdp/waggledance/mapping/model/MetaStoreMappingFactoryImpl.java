@@ -61,9 +61,11 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
 
   @Override
   public MetaStoreMapping newInstance(AbstractMetaStore metaStore) {
-    LOG.info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(), metaStore.getRemoteMetaStoreUris());
+    LOG
+        .info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
+            metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping mapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
-        createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore));
+        createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType());
     return mapping;
   }
 
@@ -73,9 +75,9 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   }
 
   private CloseableThriftHiveMetastoreIface newUnreachableMetatstoreClient(AbstractMetaStore metaStore) {
-    return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(),
-        new Class[] { CloseableThriftHiveMetastoreIface.class },
-        new UnreachableMetastoreClientInvocationHandler(metaStore.getName()));
+    return (CloseableThriftHiveMetastoreIface) Proxy
+        .newProxyInstance(getClass().getClassLoader(), new Class[] { CloseableThriftHiveMetastoreIface.class },
+            new UnreachableMetastoreClientInvocationHandler(metaStore.getName()));
   }
 
   /**
