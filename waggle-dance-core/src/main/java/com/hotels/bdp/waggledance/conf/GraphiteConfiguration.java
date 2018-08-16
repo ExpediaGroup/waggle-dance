@@ -19,11 +19,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import edu.umd.cs.findbugs.annotations.NonNull;
 
 @Configuration
 @ConfigurationProperties(prefix = "graphite")
@@ -34,7 +33,7 @@ public class GraphiteConfiguration {
   private String host;
   private String prefix;
   private @Min(1) long pollInterval = 5000;
-  private @NonNull TimeUnit pollIntervalTimeUnit = TimeUnit.MILLISECONDS;
+  private @NotNull TimeUnit pollIntervalTimeUnit = TimeUnit.MILLISECONDS;
 
   @PostConstruct
   public void init() {
