@@ -16,7 +16,6 @@
 package com.hotels.bdp.waggledance.metrics;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.contains;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -35,19 +34,21 @@ public class MonitoringConfigurationIntegrationTest {
   public @Rule ServerSocketRule graphite = new ServerSocketRule();
   private final GraphiteConfiguration graphiteConfiguration = new GraphiteConfiguration();
   private final MetricRegistry metricRegistry = new MetricRegistry();
-  private MonitoringConfiguration monitoringConfiguration;
+  private final MonitoringConfiguration monitoringConfiguration = new MonitoringConfiguration();
 
   @Test
-  public void allMetricsAreLoggedWhenPollItervalIsHigh() throws Exception {
+  public void graphiteReporterAllMetricsAreLoggedWhenPollNotCalled() throws Exception {
     String graphitePrefix = "graphitePrefix";
 
     graphiteConfiguration.setHost("localhost");
     graphiteConfiguration.setPort(graphite.port());
     graphiteConfiguration.setPrefix(graphitePrefix);
-    graphiteConfiguration.setPollInterval(1000);
+    // Using a very long poll interval so it won't actually poll in the test, this is because we want to test that the
+    // GraphiteReporter (ScheduledReporter) report() method is called to flush the remaining metrics before closing.
+    long longPollInterval = 1000000;
+    graphiteConfiguration.setPollInterval(longPollInterval);
     graphiteConfiguration.init();
 
-    monitoringConfiguration = new MonitoringConfiguration();
     monitoringConfiguration.setGraphiteConfiguration(graphiteConfiguration);
     monitoringConfiguration.setMetricRegistry(metricRegistry);
 
@@ -55,12 +56,12 @@ public class MonitoringConfigurationIntegrationTest {
     monitoringConfiguration.destroy();
 
     Set<String> metrics = new TreeSet<>(Arrays.asList(new String(graphite.getOutput()).split("\n")));
-    assertMetric(metrics, contains(graphitePrefix + ".gc"));
-    assertMetric(metrics, contains(graphitePrefix + ".memory"));
-    assertMetric(metrics, contains(graphitePrefix + ".threads"));
+    assertMetricContainsPrefix(metrics, graphitePrefix + ".gc");
+    assertMetricContainsPrefix(metrics, graphitePrefix + ".memory");
+    assertMetricContainsPrefix(metrics, graphitePrefix + ".threads");
   }
 
-  private void assertMetric(Set<String> metrics, String partialMetric) {
+  private void assertMetricContainsPrefix(Set<String> metrics, String partialMetric) {
     for (String metric : metrics) {
       if (metric.startsWith(partialMetric)) {
         return;

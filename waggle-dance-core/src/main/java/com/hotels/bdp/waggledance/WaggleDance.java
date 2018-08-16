@@ -80,7 +80,7 @@ public class WaggleDance {
       throw e;
     }
     if (exitCode != 0) {
-      throw new Exception("Waggle didn't exit properly see logs for errors, exitCode=" + exitCode);
+      throw new Exception("Waggle Dance didn't exit properly see logs for errors, exitCode=" + exitCode);
     }
   }
 
