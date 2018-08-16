@@ -65,11 +65,9 @@ public class AdvancedPropertyUtilsTest {
 
   private static class UnreadableTestBean {
     private String longPropertyName;
-    private char transientProperty;
 
-    @Transient
-    public void setTransientProperty(char transientProperty) {
-      this.transientProperty = transientProperty;
+    public void setLongPropertyName(String longPropertyName) {
+      this.longPropertyName = longPropertyName;
     }
   }
 

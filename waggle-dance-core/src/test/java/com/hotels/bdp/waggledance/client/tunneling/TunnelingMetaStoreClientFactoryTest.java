@@ -57,7 +57,6 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Mock LocalHiveConfFactory localHiveConfFactory;
   private @Mock HiveMetaStoreClientSupplier hiveMetaStoreClientSupplier;
   private @Mock HiveConf localHiveConf;
-  private @Mock LocalPortFactory localPortFactory;
   private HiveConf hiveConf;
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private @Mock HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
@@ -66,7 +65,6 @@ public class TunnelingMetaStoreClientFactoryTest {
   private final String name = "test";
   private final int reconnectionRetries = 10;
   private final String localHost = "my-machine";
-  private final int localPort = 42;
 
   @Before
   public void init() {
@@ -77,7 +75,6 @@ public class TunnelingMetaStoreClientFactoryTest {
     when(localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS)).thenReturn(metastoreUri);
     when(hiveMetaStoreClientSupplierFactory.newInstance(localHiveConf, name, reconnectionRetries))
         .thenReturn(hiveMetaStoreClientSupplier);
-    when(localPortFactory.getLocalPort()).thenReturn(localPort);
     hiveConf.set(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, "private_key");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, "");
     hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "yes");
@@ -85,7 +82,7 @@ public class TunnelingMetaStoreClientFactoryTest {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, localHost);
 
     tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(tunnelableFactorySupplier,
-        metaStoreClientFactory, localHiveConfFactory, hiveMetaStoreClientSupplierFactory, localPortFactory);
+        metaStoreClientFactory, localHiveConfFactory, hiveMetaStoreClientSupplierFactory);
   }
 
   @Test
@@ -101,10 +98,8 @@ public class TunnelingMetaStoreClientFactoryTest {
   public void localHiveConfigUsesCorrectParameters() {
     tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
     ArgumentCaptor<String> stringArgument = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<Integer> intArgument = ArgumentCaptor.forClass(Integer.class);
-    verify(localHiveConfFactory).newInstance(stringArgument.capture(), intArgument.capture(), eq(hiveConf));
+    verify(localHiveConfFactory).newInstance(stringArgument.capture(), anyInt(), eq(hiveConf));
     assertThat(stringArgument.getValue(), is(localHost));
-    assertThat(intArgument.getValue(), is(localPort));
   }
 
   @Test

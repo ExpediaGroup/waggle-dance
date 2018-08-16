@@ -381,16 +381,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(federatedMetastore, unavailableMetastore), queryMapping);
-    String databaseName = "some_unknown_prefix_db";
-    try {
-      service.databaseMapping("some_unknown_prefix_db");
-    } catch (NoPrimaryMetastoreException noPrimaryException) {
-      String expectedErrorMessage = "Waggle Dance error no database mapping available tried to map database '"
-          + databaseName
-          + "'";
-      assertThat(noPrimaryException.getMessage(), is(expectedErrorMessage));
-      throw noPrimaryException;
-    }
+    service.databaseMapping("some_unknown_prefix_db");
   }
 
   @Test

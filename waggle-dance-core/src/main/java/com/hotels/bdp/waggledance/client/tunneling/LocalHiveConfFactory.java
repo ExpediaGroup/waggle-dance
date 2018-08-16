@@ -17,7 +17,7 @@ package com.hotels.bdp.waggledance.client.tunneling;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 
-public class LocalHiveConfFactory {
+class LocalHiveConfFactory {
 
   HiveConf newInstance(String localHost, int localPort, HiveConf hiveConf) {
     HiveConf localHiveConf = new HiveConf(hiveConf);
