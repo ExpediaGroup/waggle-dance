@@ -28,16 +28,14 @@ import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
   private final MetaStoreClientFactory metaStoreClientFactory;
-  private final MetaStoreUriNormaliser normaliser;
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(MetaStoreClientFactory metaStoreClientFactory) {
     this.metaStoreClientFactory = metaStoreClientFactory;
-    this.normaliser = new MetaStoreUriNormaliser();
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
-    String uris = normaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
+    String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase();
     MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
     properties.put(ConfVars.METASTOREURIS.varname, uris);

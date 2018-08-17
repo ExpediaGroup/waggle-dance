@@ -43,6 +43,8 @@ public class FederationsTest {
   @Before
   public void setUp() {
     federation = new Federations(primaryMetaStore, federatedMetaStores);
+    assertThat(federation.getPrimaryMetaStore(), is(primaryMetaStore));
+    assertThat(federation.getFederatedMetaStores(), is(federatedMetaStores));
   }
 
   @Test

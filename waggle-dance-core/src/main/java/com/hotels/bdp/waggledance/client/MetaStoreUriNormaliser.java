@@ -7,9 +7,11 @@ import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 
-class MetaStoreUriNormaliser {
+final class MetaStoreUriNormaliser {
 
-  String normaliseMetaStoreUris(String metaStoreUris) {
+  private MetaStoreUriNormaliser() {};
+
+  static String normaliseMetaStoreUris(String metaStoreUris) {
     try {
       String[] rawUris = metaStoreUris.split(",");
       Set<String> uris = new TreeSet<>();

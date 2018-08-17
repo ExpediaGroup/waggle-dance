@@ -34,8 +34,8 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   protected final T metaStore;
 
-  private String name;
-  private String remoteMetaStoreUri;
+  private String name = "name";
+  private String remoteMetaStoreUri = "uri";
 
   public AbstractMetaStoreTest(T metaStore) {
     this.metaStore = metaStore;
@@ -54,8 +54,6 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
     validator.setProviderClass(HibernateValidator.class);
     validator.afterPropertiesSet();
 
-    name = "name";
-    remoteMetaStoreUri = "uri";
     metaStore.setRemoteMetaStoreUris(remoteMetaStoreUri);
     metaStore.setName(name);
   }
