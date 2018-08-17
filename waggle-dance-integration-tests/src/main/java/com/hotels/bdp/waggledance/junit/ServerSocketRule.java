@@ -108,25 +108,30 @@ public class ServerSocketRule extends ExternalResource {
   }
 
   public byte[] getOutput() {
-    flushCurrentRequests();
+    return waitAndgetOutput(100, TimeUnit.MILLISECONDS);
+  }
+
+  /**
+   * Waits for timeout to get any requests and then flushes every request and returns the result
+   *
+   * @param timeout
+   * @param unit
+   * @return bytes received
+   */
+  public byte[] waitAndgetOutput(long timeout, TimeUnit unit) {
+    try {
+      Thread.sleep(unit.toMillis(timeout));
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    awaitRequests(requests.size(), timeout, unit);
     synchronized (output) {
       return output.toByteArray();
     }
   }
 
-  private void flushCurrentRequests() {
-    awaitRequests(requests.size(), 1, TimeUnit.SECONDS);
-  }
-
-  public void awaitRequests(int requestCount, long timeout, TimeUnit unit) {
+  private void awaitRequests(int requestCount, long timeout, TimeUnit unit) {
     while (requestCount > 0) {
-      if (requests.peek() == null) {
-        try {
-          Thread.sleep(unit.toMillis(timeout));
-        } catch (InterruptedException e) {
-          throw new RuntimeException("Interrupted whilst waiting for requests", e);
-        }
-      }
       if (requests.peek() == null) {
         throw new RuntimeException("No requests have been received");
       }
