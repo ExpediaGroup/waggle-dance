@@ -77,6 +77,7 @@ public class ServerSocketRule extends ExternalResource {
   }
 
   private void handle(final AsynchronousSocketChannel channel) {
+    LOG.info("Submitting request");
     requests.offer(executor.submit(new Callable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -94,6 +95,7 @@ public class ServerSocketRule extends ExternalResource {
 
   @Override
   protected void after() {
+    LOG.info("Socket closing, got '{}' requests left", requests.size());
     executor.shutdown();
     try {
       executor.awaitTermination(1L, TimeUnit.SECONDS);
@@ -106,9 +108,14 @@ public class ServerSocketRule extends ExternalResource {
   }
 
   public byte[] getOutput() {
+    flushCurrentRequests();
     synchronized (output) {
       return output.toByteArray();
     }
+  }
+
+  private void flushCurrentRequests() {
+    awaitRequests(requests.size(), 1, TimeUnit.SECONDS);
   }
 
   public void awaitRequests(int requestCount, long timeout, TimeUnit unit) {
