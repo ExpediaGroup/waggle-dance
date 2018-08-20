@@ -1,5 +1,7 @@
 [TBD] TBD
+### Changed
 * Removed performance hit we get from checking if a connection is alive for non-tunnelled connections. See [#115](https://github.com/HotelsDotCom/waggle-dance/issues/115).
+* Removed System.exit calls from the service instead it will exit with an exception if the Spring Boot exit code is not 0.
 
 [2.4.1] 2018-08-10
 ### Changed
