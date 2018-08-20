@@ -486,11 +486,12 @@ public class FederatedHMSHandlerTest {
     Partition inbound = new Partition();
     Partition outbound = new Partition();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
-    when(primaryClient.append_partition_by_name_with_environment_context("inbound", "table1", "partName",
-        environmentContext)).thenReturn(inbound);
+    when(primaryClient
+        .append_partition_by_name_with_environment_context("inbound", "table1", "partName", environmentContext))
+            .thenReturn(inbound);
     when(primaryMapping.transformOutboundPartition(inbound)).thenReturn(outbound);
-    Partition result = handler.append_partition_by_name_with_environment_context(DB_P, "table1", "partName",
-        environmentContext);
+    Partition result = handler
+        .append_partition_by_name_with_environment_context(DB_P, "table1", "partName", environmentContext);
     assertThat(result, is(outbound));
     verify(primaryMapping).checkWritePermissions(DB_P);
   }
@@ -513,8 +514,8 @@ public class FederatedHMSHandlerTest {
     when(
         primaryClient.drop_partition_with_environment_context("inbound", "table1", partVals, false, environmentContext))
             .thenReturn(true);
-    boolean result = handler.drop_partition_with_environment_context(DB_P, "table1", partVals, false,
-        environmentContext);
+    boolean result = handler
+        .drop_partition_with_environment_context(DB_P, "table1", partVals, false, environmentContext);
     assertThat(result, is(true));
     verify(primaryMapping).checkWritePermissions(DB_P);
   }
@@ -533,10 +534,11 @@ public class FederatedHMSHandlerTest {
     throws NoSuchObjectException, MetaException, TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
-    when(primaryClient.drop_partition_by_name_with_environment_context("inbound", "table1", "partName", false,
-        environmentContext)).thenReturn(true);
-    boolean result = handler.drop_partition_by_name_with_environment_context(DB_P, "table1", "partName", false,
-        environmentContext);
+    when(primaryClient
+        .drop_partition_by_name_with_environment_context("inbound", "table1", "partName", false, environmentContext))
+            .thenReturn(true);
+    boolean result = handler
+        .drop_partition_by_name_with_environment_context(DB_P, "table1", "partName", false, environmentContext);
     assertThat(result, is(true));
     verify(primaryMapping).checkWritePermissions(DB_P);
   }
@@ -683,8 +685,8 @@ public class FederatedHMSHandlerTest {
     when(primaryClient.get_partitions_ps_with_auth("inbound", "table", partVals, (short) 10, "user", groupNames))
         .thenReturn(partitions);
     when(primaryMapping.transformOutboundPartitions(partitions)).thenReturn(outbound);
-    List<Partition> result = handler.get_partitions_ps_with_auth(DB_P, "table", partVals, (short) 10, "user",
-        groupNames);
+    List<Partition> result = handler
+        .get_partitions_ps_with_auth(DB_P, "table", partVals, (short) 10, "user", groupNames);
     assertThat(result, is(outbound));
     verify(primaryMapping, never()).checkWritePermissions(DB_P);
   }

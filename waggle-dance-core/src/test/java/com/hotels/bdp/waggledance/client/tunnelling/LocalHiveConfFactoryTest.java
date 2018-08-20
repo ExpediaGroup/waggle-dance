@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client.tunneling;
+package com.hotels.bdp.waggledance.client.tunnelling;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.hotels.bdp.waggledance.client.tunnelling.LocalHiveConfFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 
 @RunWith(MockitoJUnitRunner.class)

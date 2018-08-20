@@ -363,24 +363,16 @@ public class PrefixBasedDatabaseMappingServiceTest {
   @Test(expected = NoPrimaryMetastoreException.class)
   public void noPrimaryMappingThrowsException() {
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
-    AbstractMetaStore unavailableMetastore = newFederatedInstance("name2", "thrift:host:port");
-    MetaStoreMapping unavailableMapping = mockNewMapping(false, "name2_");
-    when(metaStoreMappingFactory.newInstance(unavailableMetastore)).thenReturn(unavailableMapping);
-
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Arrays.asList(federatedMetastore, unavailableMetastore), queryMapping);
+        Collections.singletonList((AbstractMetaStore) federatedMetastore), queryMapping);
     service.primaryDatabaseMapping();
   }
 
   @Test(expected = NoPrimaryMetastoreException.class)
   public void noPrimaryThrowsExceptionForUnmappedDatabase() {
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
-    AbstractMetaStore unavailableMetastore = newFederatedInstance("name2", "thrift:host:port");
-    MetaStoreMapping unavailableMapping = mockNewMapping(false, "name2_");
-    when(metaStoreMappingFactory.newInstance(unavailableMetastore)).thenReturn(unavailableMapping);
-
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Arrays.asList(federatedMetastore, unavailableMetastore), queryMapping);
+        Collections.singletonList((AbstractMetaStore) federatedMetastore), queryMapping);
     service.databaseMapping("some_unknown_prefix_db");
   }
 

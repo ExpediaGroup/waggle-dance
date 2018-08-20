@@ -61,4 +61,13 @@ public class FederatedHMSHandlerFactoryTest {
     assertThat(handler, is(instanceOf(FederatedHMSHandler.class)));
   }
 
+  @Test
+  public void prefixecDatabase() throws Exception {
+    when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.PREFIXED);
+    factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
+        waggleDanceConfiguration, queryMapping);
+    CloseableIHMSHandler handler = factory.create();
+    assertThat(handler, is(instanceOf(FederatedHMSHandler.class)));
+  }
+
 }

@@ -22,7 +22,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.context.annotation.Bean;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
-import com.hotels.bdp.waggledance.client.tunneling.TunnelingMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;

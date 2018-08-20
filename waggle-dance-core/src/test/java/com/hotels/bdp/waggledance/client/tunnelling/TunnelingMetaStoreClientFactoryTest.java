@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client.tunneling;
+package com.hotels.bdp.waggledance.client.tunnelling;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -42,6 +42,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
+import com.hotels.bdp.waggledance.client.tunnelling.HiveMetaStoreClientSupplier;
+import com.hotels.bdp.waggledance.client.tunnelling.HiveMetaStoreClientSupplierFactory;
+import com.hotels.bdp.waggledance.client.tunnelling.LocalHiveConfFactory;
+import com.hotels.bdp.waggledance.client.tunnelling.TunnelableFactorySupplier;
+import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 import com.hotels.hcommon.ssh.TunnelableSupplier;
