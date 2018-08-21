@@ -1,13 +1,13 @@
-##[2.4.2] 2018-08-21
+## [2.4.2] 2018-08-21
 ### Changed
 * Removed performance hit we get from checking if a connection is alive for non-tunnelled connections. See [#115](https://github.com/HotelsDotCom/waggle-dance/issues/115).
 * Removed System.exit calls from the service instead it will exit with an exception if the Spring Boot exit code is not 0.
 
-##[2.4.1] 2018-08-10
+## [2.4.1] 2018-08-10
 ### Changed
 * Updated `hotels-oss-parent` to version 2.3.3 (was 2.3.2).
 
-##[2.4.0] 2018-07-27
+## [2.4.0] 2018-07-27
 ### Added
 * Enable federated metastore's access-control-type to be configured to `READ_ONLY` and `READ_AND_WRITE_ON_DATABASE_WHITELIST`. See [#87](https://github.com/HotelsDotCom/waggle-dance/issues/87).
 
