@@ -25,6 +25,8 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+
 public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
   static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
@@ -36,10 +38,10 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private final String name;
     private final int maxRetries;
 
-    private ReconnectingMetastoreClientInvocationHandler(HiveConf hiveConf, String name, int maxRetries) {
+    private ReconnectingMetastoreClientInvocationHandler(String name, int maxRetries, ThriftMetastoreClient base) {
       this.name = name;
       this.maxRetries = maxRetries;
-      base = new ThriftMetastoreClient(hiveConf);
+      this.base = base;
     }
 
     @Override
@@ -112,10 +114,15 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
    */
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
+    return newInstance(name, reconnectionRetries, new ThriftMetastoreClient(hiveConf));
+  }
+
+  @VisibleForTesting
+  CloseableThriftHiveMetastoreIface newInstance(String name, int reconnectionRetries, ThriftMetastoreClient base) {
     ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
-        hiveConf, name, reconnectionRetries);
-    return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(), INTERFACES,
-        reconnectingHandler);
+        name, reconnectionRetries, base);
+    return (CloseableThriftHiveMetastoreIface) Proxy
+        .newProxyInstance(getClass().getClassLoader(), INTERFACES, reconnectingHandler);
   }
 
 }
