@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.boot.actuate.metrics.CounterService;
-import org.springframework.boot.actuate.metrics.GaugeService;
+
+import io.micrometer.core.instrument.MeterRegistry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -39,8 +39,9 @@ public class MonitoredAspect {
   private static final String COUNTER = "counter";
   private static final Joiner DOT_JOINER = Joiner.on(".");
 
-  private @Autowired CounterService counterService;
-  private @Autowired GaugeService gaugeService;
+  private @Autowired MeterRegistry meterRegistry;
+  // private @Autowired CounterService counterService;
+  // private @Autowired GaugeService gaugeService;
 
   @Around("execution(public * *(..)) && within(@com.hotels.bdp.waggledance.metrics.Monitored *)")
   public Object monitor(ProceedingJoinPoint pjp) throws Throwable {
@@ -70,24 +71,20 @@ public class MonitoredAspect {
   }
 
   @VisibleForTesting
-  void setCounterService(CounterService counterService) {
-    this.counterService = counterService;
-  }
-
-  @VisibleForTesting
-  void setGaugeService(GaugeService gaugeService) {
-    this.gaugeService = gaugeService;
+  void setMeterRegistry(MeterRegistry meterRegistry) {
+    this.meterRegistry = meterRegistry;
   }
 
   private void increment(String metricName) {
-    if (counterService != null) {
-      counterService.increment(metricName);
+    if (meterRegistry != null) {
+      meterRegistry.counter(metricName).increment();
     }
   }
 
   private void submit(String metricName, long value) {
-    if (gaugeService != null) {
-      gaugeService.submit(metricName, value);
+    if (meterRegistry != null) {
+      meterRegistry.gauge(metricName, value);
+      // gaugeService.submit(metricName, value);
     }
   }
 

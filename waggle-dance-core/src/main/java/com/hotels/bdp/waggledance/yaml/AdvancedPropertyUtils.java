@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.yaml;
 
-import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.beans.Transient;
 import java.lang.reflect.Field;
@@ -35,7 +34,7 @@ public class AdvancedPropertyUtils extends PropertyUtils {
   private boolean allowReadOnlyProperties = false;
 
   @Override
-  public Property getProperty(Class<? extends Object> type, String name) throws IntrospectionException {
+  public Property getProperty(Class<? extends Object> type, String name) {
     if (name.indexOf('-') > -1) {
       name = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, name);
     }
@@ -43,8 +42,7 @@ public class AdvancedPropertyUtils extends PropertyUtils {
   }
 
   @Override
-  protected Set<Property> createPropertySet(Class<? extends Object> type, BeanAccess beanAccess)
-    throws IntrospectionException {
+  protected Set<Property> createPropertySet(Class<? extends Object> type, BeanAccess beanAccess) {
     Set<Property> properties = new TreeSet<>();
     Collection<Property> props = getPropertiesMap(type, beanAccess).values();
     for (Property property : props) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.yaml;
 
-import java.beans.IntrospectionException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -70,8 +69,7 @@ public final class YamlFactory {
 
   private static class FieldOrderPropertyUtils extends AdvancedPropertyUtils {
     @Override
-    protected Set<Property> createPropertySet(Class<? extends Object> type, BeanAccess bAccess)
-      throws IntrospectionException {
+    protected Set<Property> createPropertySet(Class<? extends Object> type, BeanAccess bAccess) {
       if (Federations.class.equals(type)) {
         // Serializing on Field order for Federations.
         Set<Property> fieldOrderedProperties = new LinkedHashSet<>(getPropertiesMap(type, BeanAccess.FIELD).values());
