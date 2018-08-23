@@ -103,7 +103,7 @@ public class DefaultMetaStoreClientFactoryTest {
   }
 
   @Test(expected = MetastoreUnavailableException.class)
-  public void defaultMethodCallThrowsTransportExceptionShouldntRetry() throws TException {
+  public void shutdownThrowsTransportExceptionNoRetry() throws TException {
     when(base.getClient()).thenReturn(client);
     doThrow(new TTransportException()).when(client).shutdown();
 

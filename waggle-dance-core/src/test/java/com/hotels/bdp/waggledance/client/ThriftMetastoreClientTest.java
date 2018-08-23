@@ -46,6 +46,30 @@ public class ThriftMetastoreClientTest {
     ReflectionTestUtils.setField(client, "isConnected", true);
   }
 
+  @Test(expected = RuntimeException.class)
+  public void constructorEmptyURI() {
+    hiveConf.setVar(ConfVars.METASTOREURIS, "");
+    client = new ThriftMetastoreClient(hiveConf);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void constructorNullURI() {
+    hiveConf.setVar(ConfVars.METASTOREURIS, null);
+    client = new ThriftMetastoreClient(hiveConf);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void constructorNullURISchema() {
+    hiveConf.setVar(ConfVars.METASTOREURIS, "123");
+    client = new ThriftMetastoreClient(hiveConf);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void constructorInvalidURI() {
+    hiveConf.setVar(ConfVars.METASTOREURIS, "://localhost:123");
+    client = new ThriftMetastoreClient(hiveConf);
+  }
+
   @Test
   public void closedConnectionIsNeverClosed() {
     when(transport.isOpen()).thenReturn(false);

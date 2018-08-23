@@ -111,7 +111,7 @@ class ThriftMetastoreClient implements Closeable {
     boolean useCompactProtocol = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL);
     int clientSocketTimeout = (int) conf.getTimeVar(ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, TimeUnit.MILLISECONDS);
 
-    for (int attempt = 0; !isConnected && attempt < retries; ++attempt) {
+    for (int attempt = 0; !isConnected && (attempt < retries); ++attempt) {
       for (URI store : metastoreUris) {
         LOG.info("Trying to connect to metastore with URI " + store);
         try {
@@ -131,14 +131,12 @@ class ThriftMetastoreClient implements Closeable {
               tokenStrForm = Utils.getTokenStrForm(tokenSig);
               if (tokenStrForm != null) {
                 // authenticate using delegation tokens via the "DIGEST" mechanism
-                transport = authBridge
-                    .createClientTransport(null, store.getHost(), "DIGEST", tokenStrForm, transport,
-                        MetaStoreUtils.getMetaStoreSaslProperties(conf));
+                transport = authBridge.createClientTransport(null, store.getHost(), "DIGEST", tokenStrForm, transport,
+                    MetaStoreUtils.getMetaStoreSaslProperties(conf));
               } else {
                 String principalConfig = conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL);
-                transport = authBridge
-                    .createClientTransport(principalConfig, store.getHost(), "KERBEROS", null, transport,
-                        MetaStoreUtils.getMetaStoreSaslProperties(conf));
+                transport = authBridge.createClientTransport(principalConfig, store.getHost(), "KERBEROS", null,
+                    transport, MetaStoreUtils.getMetaStoreSaslProperties(conf));
               }
             } catch (IOException ioe) {
               LOG.error("Couldn't create client transport", ioe);
@@ -156,11 +154,10 @@ class ThriftMetastoreClient implements Closeable {
           client = new ThriftHiveMetastore.Client(protocol);
           try {
             transport.open();
-            LOG
-                .info("Opened a connection to metastore '"
-                    + store
-                    + "', total current connections to all metastores: "
-                    + CONN_COUNT.incrementAndGet());
+            LOG.info("Opened a connection to metastore '"
+                + store
+                + "', total current connections to all metastores: "
+                + CONN_COUNT.incrementAndGet());
 
             isConnected = true;
           } catch (TException e) {
@@ -180,7 +177,7 @@ class ThriftMetastoreClient implements Closeable {
         }
       }
       // Wait before launching the next round of connection retries.
-      if (!isConnected && retryDelaySeconds > 0 && attempt + 1 < retries) {
+      if (!isConnected && (retryDelaySeconds > 0) && ((attempt + 1) < retries)) {
         try {
           LOG.info("Waiting " + retryDelaySeconds + " seconds before next connection attempt.");
           Thread.sleep(retryDelaySeconds * 1000);
@@ -219,7 +216,7 @@ class ThriftMetastoreClient implements Closeable {
     }
     // Transport would have got closed via client.shutdown(), so we don't need this, but
     // just in case, we make this call.
-    if (transport != null && transport.isOpen()) {
+    if ((transport != null) && transport.isOpen()) {
       transport.close();
       transport = null;
     }
@@ -227,7 +224,7 @@ class ThriftMetastoreClient implements Closeable {
   }
 
   public boolean isOpen() {
-    return transport != null && transport.isOpen();
+    return (transport != null) && transport.isOpen();
   }
 
   protected ThriftHiveMetastore.Iface getClient() {
