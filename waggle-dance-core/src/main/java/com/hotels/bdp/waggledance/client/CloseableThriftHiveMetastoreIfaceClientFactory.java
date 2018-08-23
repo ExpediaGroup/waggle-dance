@@ -15,6 +15,8 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,9 +39,9 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     Map<String, String> properties = new HashMap<>();
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase();
-    MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
-    if (metastoreTunnel != null) {
+    if (metaStore.getConnectionType() == TUNNELED) {
+      MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
       properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
       properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
       properties.put(WaggleDanceHiveConfVars.SSH_ROUTE.varname, metastoreTunnel.getRoute());

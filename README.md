@@ -429,7 +429,7 @@ Waggle Dance can be built from source using Maven:
 
     mvn clean package
 
-This will produce a .tgz in the `waggle-dance` module and an rpm in the `waggle-dance-rpm`. This RPM is built using the [maven rpm plugin](http://www.mojohaus.org/rpm-maven-plugin/) which requires the 'rpm' program to be available on the command line. On OSX this can be accomplished by using the Brew package manager like so `brew install rpm`.
+This will produce a .tgz in the `waggle-dance` module (under `waggle-dance/waggle-dance/target/`) and an rpm in the `waggle-dance-rpm` (under `waggle-dance/waggle-dance-rpm/target/rpm/waggle-dance-rpm/RPMS/noarch/`). This RPM is built using the [maven rpm plugin](http://www.mojohaus.org/rpm-maven-plugin/) which requires the 'rpm' program to be available on the command line. On OSX this can be accomplished by using the Brew package manager like so `brew install rpm`.
 
 ## Contact
 

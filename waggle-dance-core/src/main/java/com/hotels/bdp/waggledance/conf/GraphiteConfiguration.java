@@ -36,7 +36,7 @@ public class GraphiteConfiguration {
   private @NotNull TimeUnit pollIntervalTimeUnit = TimeUnit.MILLISECONDS;
 
   @PostConstruct
-  void init() {
+  public void init() {
     if ((host != null) || (prefix != null)) {
       enabled = true;
     }

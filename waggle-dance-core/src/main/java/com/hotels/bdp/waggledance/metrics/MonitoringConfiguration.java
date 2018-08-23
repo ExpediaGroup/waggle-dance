@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
@@ -58,6 +59,9 @@ public class MonitoringConfiguration {
     if (reporters != null) {
       for (Closeable reporter : reporters) {
         try {
+          if (reporter instanceof ScheduledReporter) {
+            ((ScheduledReporter) reporter).report();
+          }
           reporter.close();
         } catch (Exception e) {
           LOG.warn("Problem closing reporter", e);
@@ -98,6 +102,14 @@ public class MonitoringConfiguration {
 
   private Graphite newGraphite() {
     return new Graphite(new InetSocketAddress(graphiteConfiguration.getHost(), graphiteConfiguration.getPort()));
+  }
+
+  void setGraphiteConfiguration(GraphiteConfiguration graphiteConfiguration) {
+    this.graphiteConfiguration = graphiteConfiguration;
+  }
+
+  void setMetricRegistry(MetricRegistry metricRegistry) {
+    this.metricRegistry = metricRegistry;
   }
 
 }

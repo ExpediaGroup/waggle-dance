@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import static org.junit.Assert.assertThat;
 
 import java.net.ConnectException;
 import java.net.Socket;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -38,7 +37,6 @@ public class ServerSocketRuleTest {
   public void typical() throws Throwable {
     rule.before();
     sendData(rule.port(), "my-data".getBytes());
-    rule.awaitRequests(1, 1, TimeUnit.SECONDS);
     assertThat(new String(rule.getOutput()), is("my-data"));
     rule.after();
   }
@@ -57,14 +55,12 @@ public class ServerSocketRuleTest {
     sendData(rule.port(), "my-data".getBytes());
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void noDataSent() throws Throwable {
     rule.before();
-    try {
-      rule.awaitRequests(100, 1, TimeUnit.SECONDS);
-    } finally {
-      rule.after();
-    }
+    byte[] output = rule.getOutput();
+    rule.after();
+    assertThat(output, is(new byte[0]));
   }
 
   @Test
@@ -72,8 +68,9 @@ public class ServerSocketRuleTest {
     rule.before();
     sendData(rule.port(), "1".getBytes());
     sendData(rule.port(), "2".getBytes());
-    rule.awaitRequests(2, 1, TimeUnit.SECONDS);
     assertThat(new String(rule.getOutput()), is("12"));
+    sendData(rule.port(), "3".getBytes());
+    assertThat(new String(rule.getOutput()), is("123"));
     rule.after();
   }
 

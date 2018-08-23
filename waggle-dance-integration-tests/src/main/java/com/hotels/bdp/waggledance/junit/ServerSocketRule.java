@@ -77,6 +77,7 @@ public class ServerSocketRule extends ExternalResource {
   }
 
   private void handle(final AsynchronousSocketChannel channel) {
+    LOG.info("Submitting request");
     requests.offer(executor.submit(new Callable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -94,6 +95,7 @@ public class ServerSocketRule extends ExternalResource {
 
   @Override
   protected void after() {
+    LOG.info("Socket closing, got '{}' requests left", requests.size());
     executor.shutdown();
     try {
       executor.awaitTermination(1L, TimeUnit.SECONDS);
@@ -106,20 +108,30 @@ public class ServerSocketRule extends ExternalResource {
   }
 
   public byte[] getOutput() {
+    return waitAndgetOutput(1, TimeUnit.SECONDS);
+  }
+
+  /**
+   * Waits for timeout to get any requests and then flushes every request and returns the result
+   *
+   * @param timeout
+   * @param unit
+   * @return bytes received
+   */
+  public byte[] waitAndgetOutput(long timeout, TimeUnit unit) {
+    try {
+      Thread.sleep(unit.toMillis(timeout));
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    awaitRequests(requests.size(), timeout, unit);
     synchronized (output) {
       return output.toByteArray();
     }
   }
 
-  public void awaitRequests(int requestCount, long timeout, TimeUnit unit) {
+  private void awaitRequests(int requestCount, long timeout, TimeUnit unit) {
     while (requestCount > 0) {
-      if (requests.peek() == null) {
-        try {
-          Thread.sleep(unit.toMillis(timeout));
-        } catch (InterruptedException e) {
-          throw new RuntimeException("Interrupted whilst waiting for requests", e);
-        }
-      }
       if (requests.peek() == null) {
         throw new RuntimeException("No requests have been received");
       }
