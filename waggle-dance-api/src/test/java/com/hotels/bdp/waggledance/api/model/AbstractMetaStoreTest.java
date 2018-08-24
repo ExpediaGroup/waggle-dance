@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.api.model;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 import java.util.Set;
@@ -32,6 +33,9 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   protected final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
 
   protected final T metaStore;
+
+  private String name = "name";
+  private String remoteMetaStoreUri = "uri";
 
   public AbstractMetaStoreTest(T metaStore) {
     this.metaStore = metaStore;
@@ -50,8 +54,8 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
     validator.setProviderClass(HibernateValidator.class);
     validator.afterPropertiesSet();
 
-    metaStore.setRemoteMetaStoreUris("uri");
-    metaStore.setName("name");
+    metaStore.setRemoteMetaStoreUris(remoteMetaStoreUri);
+    metaStore.setName(name);
   }
 
   @Test
@@ -104,4 +108,39 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(1));
   }
+
+  @Test
+  public void equalsNull() {
+    assertFalse(metaStore.equals(null));
+  }
+
+  @Test
+  public void equalsDifferentClass() {
+    assertFalse(metaStore.equals("string"));
+  }
+
+  @Test
+  public void newFederatedInstance() {
+    FederatedMetaStore federatedMetaStore = AbstractMetaStore.newFederatedInstance(name, remoteMetaStoreUri);
+    assertThat(federatedMetaStore.getName(), is(name));
+    assertThat(federatedMetaStore.getRemoteMetaStoreUris(), is(remoteMetaStoreUri));
+  }
+
+  @Test
+  public void newPrimaryInstance() {
+    AccessControlType access = AccessControlType.READ_AND_WRITE_AND_CREATE;
+    PrimaryMetaStore primaryMetaStore = AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUri, access);
+    assertThat(primaryMetaStore.getName(), is(name));
+    assertThat(primaryMetaStore.getRemoteMetaStoreUris(), is(remoteMetaStoreUri));
+    assertThat(primaryMetaStore.getAccessControlType(), is(access));
+  }
+
+  @Test
+  public void newPrimaryInstanceWithDefaultAccessControlType() {
+    PrimaryMetaStore primaryMetaStore = AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUri);
+    assertThat(primaryMetaStore.getName(), is(name));
+    assertThat(primaryMetaStore.getRemoteMetaStoreUris(), is(remoteMetaStoreUri));
+    assertThat(primaryMetaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));
+  }
+
 }

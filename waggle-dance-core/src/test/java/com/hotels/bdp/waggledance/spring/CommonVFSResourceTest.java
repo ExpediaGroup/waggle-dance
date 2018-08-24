@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@ package com.hotels.bdp.waggledance.spring;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,17 +32,19 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
+@RunWith(MockitoJUnitRunner.class)
 public class CommonVFSResourceTest {
 
   private static final String TEST_RESOURCE_NAME = "test-resource.ext";
   private static final String CONTENT = "Content";
 
   public @Rule TemporaryFolder tmp = new TemporaryFolder();
-
   private File testResource;
 
   @Before
@@ -55,6 +59,16 @@ public class CommonVFSResourceTest {
       sb.append("/");
     }
     return sb.toString();
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void invalidUriException() {
+    new CommonVFSResource("invalid_uri@*&^");
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void initUnresolvableLocation() {
+    new CommonVFSResource("not-existing.dat");
   }
 
   @Test
@@ -212,4 +226,29 @@ public class CommonVFSResourceTest {
     assertThat(description, is("file [file://" + testResource.getAbsolutePath() + "]"));
   }
 
+  @Test
+  public void equalsSameObject() {
+    CommonVFSResource resource = new CommonVFSResource(testResource.getAbsolutePath());
+    assertTrue(resource.equals(resource));
+  }
+
+  @Test
+  public void equalsSameLocation() {
+    CommonVFSResource firstResource = new CommonVFSResource(testResource.getAbsolutePath());
+    CommonVFSResource secondResource = new CommonVFSResource(testResource.getAbsolutePath());
+    assertTrue(firstResource.equals(secondResource));
+  }
+
+  @Test
+  public void equalsDifferentLocation() {
+    CommonVFSResource firstResource = new CommonVFSResource(testResource.getAbsolutePath());
+    CommonVFSResource secondResource = new CommonVFSResource(
+        new File(tmp.getRoot(), "different_location").getAbsolutePath());
+    assertFalse(firstResource.equals(secondResource));
+  }
+
+  @Test
+  public void equalsDifferentType() {
+    assertFalse(new CommonVFSResource(testResource.getAbsolutePath()).equals("string"));
+  }
 }

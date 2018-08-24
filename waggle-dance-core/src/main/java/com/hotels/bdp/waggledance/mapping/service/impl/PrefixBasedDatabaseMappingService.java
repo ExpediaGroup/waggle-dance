@@ -138,7 +138,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private boolean isPrimaryMetaStoreRegistered(AbstractMetaStore metaStore) {
-    return metaStore.getFederationType() == FederationType.PRIMARY && primaryDatabaseMapping != null;
+    return (metaStore.getFederationType() == FederationType.PRIMARY) && (primaryDatabaseMapping != null);
   }
 
   @Override
@@ -169,7 +169,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private boolean includeInResults(MetaStoreMapping metaStoreMapping) {
-    return metaStoreMapping != null && metaStoreMapping.isAvailable();
+    return (metaStoreMapping != null) && metaStoreMapping.isAvailable();
   }
 
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
@@ -237,7 +237,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private boolean isWhitelisted(String databasePrefix, String database) {
     Whitelist whitelist = mappedDbByPrefix.get(databasePrefix);
-    if (whitelist == null || whitelist.isEmpty()) {
+    if ((whitelist == null) || whitelist.isEmpty()) {
       // Accept everything
       return true;
     }
