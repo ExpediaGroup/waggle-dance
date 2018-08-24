@@ -34,11 +34,11 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
   private static class ReconnectingMetastoreClientInvocationHandler implements InvocationHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ReconnectingMetastoreClientInvocationHandler.class);
 
-    private final ThriftMetastoreClient base;
+    private final ThriftMetastoreClientManager base;
     private final String name;
     private final int maxRetries;
 
-    private ReconnectingMetastoreClientInvocationHandler(String name, int maxRetries, ThriftMetastoreClient base) {
+    private ReconnectingMetastoreClientInvocationHandler(String name, int maxRetries, ThriftMetastoreClientManager base) {
       this.name = name;
       this.maxRetries = maxRetries;
       this.base = base;
@@ -114,11 +114,11 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
    */
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    return newInstance(name, reconnectionRetries, new ThriftMetastoreClient(hiveConf));
+    return newInstance(name, reconnectionRetries, new ThriftMetastoreClientManager(hiveConf));
   }
 
   @VisibleForTesting
-  CloseableThriftHiveMetastoreIface newInstance(String name, int reconnectionRetries, ThriftMetastoreClient base) {
+  CloseableThriftHiveMetastoreIface newInstance(String name, int reconnectionRetries, ThriftMetastoreClientManager base) {
     ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
         name, reconnectionRetries, base);
     return (CloseableThriftHiveMetastoreIface) Proxy

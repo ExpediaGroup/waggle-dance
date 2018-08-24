@@ -33,7 +33,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultMetaStoreClientFactoryTest {
 
-  private @Mock ThriftMetastoreClient base;
+  private @Mock ThriftMetastoreClientManager base;
   private @Mock Iface client;
 
   private final DefaultMetaStoreClientFactory factory = new DefaultMetaStoreClientFactory();

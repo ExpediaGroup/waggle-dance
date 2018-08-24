@@ -46,9 +46,9 @@ import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ThriftMetastoreClient implements Closeable {
+class ThriftMetastoreClientManager implements Closeable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ThriftMetastoreClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ThriftMetastoreClientManager.class);
 
   private static final AtomicInteger CONN_COUNT = new AtomicInteger(0);
 
@@ -63,7 +63,7 @@ class ThriftMetastoreClient implements Closeable {
   private int retries = 5;
   private long retryDelaySeconds = 0;
 
-  public ThriftMetastoreClient(HiveConf conf) {
+  public ThriftMetastoreClientManager(HiveConf conf) {
     this.conf = conf;
     String msUri = conf.getVar(ConfVars.METASTOREURIS);
 
