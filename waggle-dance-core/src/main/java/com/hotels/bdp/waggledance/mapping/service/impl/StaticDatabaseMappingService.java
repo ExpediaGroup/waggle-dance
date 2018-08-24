@@ -181,8 +181,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         throw new WaggleDanceException(
             "Metastore with name '" + metaStore.getName() + "' already registered, remove old one first or update");
       }
-      if (metaStore.getFederationType() == FederationType.PRIMARY && primaryDatabaseMapping != null) {
-        throw new WaggleDanceException("Pimrary metastore already registered, remove old one first or update");
+      if ((metaStore.getFederationType() == FederationType.PRIMARY) && (primaryDatabaseMapping != null)) {
+        throw new WaggleDanceException("Primary metastore already registered, remove old one first or update");
       }
       add(metaStore);
     }
@@ -216,7 +216,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   private boolean includeInResults(MetaStoreMapping metaStoreMapping) {
-    return metaStoreMapping != null && metaStoreMapping.isAvailable();
+    return (metaStoreMapping != null) && metaStoreMapping.isAvailable();
   }
 
   @Override

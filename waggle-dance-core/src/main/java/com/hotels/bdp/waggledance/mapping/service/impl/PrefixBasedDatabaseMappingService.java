@@ -17,8 +17,6 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
-import javax.validation.constraints.NotNull;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +28,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
@@ -138,7 +138,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private boolean isPrimaryMetaStoreRegistered(AbstractMetaStore metaStore) {
-    return metaStore.getFederationType() == FederationType.PRIMARY && primaryDatabaseMapping != null;
+    return (metaStore.getFederationType() == FederationType.PRIMARY) && (primaryDatabaseMapping != null);
   }
 
   @Override
@@ -169,7 +169,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private boolean includeInResults(MetaStoreMapping metaStoreMapping) {
-    return metaStoreMapping != null && metaStoreMapping.isAvailable();
+    return (metaStoreMapping != null) && metaStoreMapping.isAvailable();
   }
 
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
@@ -237,7 +237,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private boolean isWhitelisted(String databasePrefix, String database) {
     Whitelist whitelist = mappedDbByPrefix.get(databasePrefix);
-    if (whitelist == null || whitelist.isEmpty()) {
+    if ((whitelist == null) || whitelist.isEmpty()) {
       // Accept everything
       return true;
     }

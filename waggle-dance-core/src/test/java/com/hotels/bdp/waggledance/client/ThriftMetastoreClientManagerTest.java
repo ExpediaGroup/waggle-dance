@@ -31,19 +31,43 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ThriftMetastoreClientTest {
+public class ThriftMetastoreClientManagerTest {
 
   private @Mock TSocket transport;
 
   private final HiveConf hiveConf = new HiveConf();
-  private ThriftMetastoreClient client;
+  private ThriftMetastoreClientManager client;
 
   @Before
   public void init() throws Exception {
     hiveConf.setVar(ConfVars.METASTOREURIS, "thrift://localhost:123");
-    client = new ThriftMetastoreClient(hiveConf);
+    client = new ThriftMetastoreClientManager(hiveConf);
     ReflectionTestUtils.setField(client, "transport", transport);
     ReflectionTestUtils.setField(client, "isConnected", true);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void constructorEmptyURI() {
+    hiveConf.setVar(ConfVars.METASTOREURIS, "");
+    client = new ThriftMetastoreClientManager(hiveConf);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void constructorNullURI() {
+    hiveConf.setVar(ConfVars.METASTOREURIS, null);
+    client = new ThriftMetastoreClientManager(hiveConf);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void constructorNullURISchema() {
+    hiveConf.setVar(ConfVars.METASTOREURIS, "123");
+    client = new ThriftMetastoreClientManager(hiveConf);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void constructorInvalidURI() {
+    hiveConf.setVar(ConfVars.METASTOREURIS, "://localhost:123");
+    client = new ThriftMetastoreClientManager(hiveConf);
   }
 
   @Test
