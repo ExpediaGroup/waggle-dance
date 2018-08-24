@@ -92,16 +92,17 @@ public class MonitoringConfiguration {
   }
 
   private GraphiteReporter.Builder graphiteReporterBuilder() {
-    return GraphiteReporter
-        .forRegistry(metricRegistry)
-        .convertRatesTo(TimeUnit.SECONDS)
-        .convertDurationsTo(TimeUnit.MILLISECONDS)
-        .filter(MetricFilter.ALL)
+    return GraphiteReporter.forRegistry(metricRegistry).convertRatesTo(TimeUnit.SECONDS)
+        .convertDurationsTo(TimeUnit.MILLISECONDS).filter(MetricFilter.ALL)
         .prefixedWith(graphiteConfiguration.getPrefix());
   }
 
   private Graphite newGraphite() {
     return new Graphite(new InetSocketAddress(graphiteConfiguration.getHost(), graphiteConfiguration.getPort()));
+  }
+
+  Set<Closeable> getReporters() {
+    return reporters;
   }
 
   void setGraphiteConfiguration(GraphiteConfiguration graphiteConfiguration) {

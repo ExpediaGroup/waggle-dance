@@ -96,8 +96,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       Whitelist mappedDbWhitelist = null;
       if (FederatedMetaStore.class.isAssignableFrom(federatedMetaStore.getClass())) {
         mappedDbWhitelist = getWhitelistedDatabases((FederatedMetaStore) federatedMetaStore);
+        mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
       }
-      mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
     }
   }
 
@@ -221,8 +221,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private Map<DatabaseMapping, String> databaseMappingsByDbPattern(@NotNull String databasePatterns) {
     Map<DatabaseMapping, String> mappings = new HashMap<>();
-    Map<String, String> matchingPrefixes = GrammarUtils.selectMatchingPrefixes(mappingsByPrefix.keySet(),
-        databasePatterns);
+    Map<String, String> matchingPrefixes = GrammarUtils
+        .selectMatchingPrefixes(mappingsByPrefix.keySet(), databasePatterns);
     for (Entry<String, String> prefixWithPattern : matchingPrefixes.entrySet()) {
       DatabaseMapping mapping = mappingsByPrefix.get(prefixWithPattern.getKey());
       if (mapping == null) {

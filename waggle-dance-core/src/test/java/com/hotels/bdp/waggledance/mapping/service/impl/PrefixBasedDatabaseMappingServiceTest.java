@@ -33,8 +33,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
+import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +56,7 @@ import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
+import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PrefixBasedDatabaseMappingServiceTest {
@@ -104,8 +107,10 @@ public class PrefixBasedDatabaseMappingServiceTest {
     service.onRegister(newMetastore);
     List<DatabaseMapping> databaseMappings = service.databaseMappings();
     assertThat(databaseMappings.size(), is(3));
-    assertThat(ImmutableSet.of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
-        databaseMappings.get(2).getDatabasePrefix()), is(ImmutableSet.of("", DB_PREFIX, "newname_")));
+    assertThat(ImmutableSet
+        .of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
+            databaseMappings.get(2).getDatabasePrefix()),
+        is(ImmutableSet.of("", DB_PREFIX, "newname_")));
   }
 
   @Test(expected = WaggleDanceException.class)
@@ -153,8 +158,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Test
   public void onInitOverridesDuplicates() throws Exception {
-    List<AbstractMetaStore> duplicates = Arrays.asList(primaryMetastore, federatedMetastore, primaryMetastore,
-        federatedMetastore);
+    List<AbstractMetaStore> duplicates = Arrays
+        .asList(primaryMetastore, federatedMetastore, primaryMetastore, federatedMetastore);
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, duplicates, queryMapping);
     assertThat(service.databaseMappings().size(), is(2));
   }
@@ -355,4 +360,110 @@ public class PrefixBasedDatabaseMappingServiceTest {
     assertThat(result, containsInAnyOrder("ugi", "ugi2"));
   }
 
+  @Test(expected = NoPrimaryMetastoreException.class)
+  public void noPrimaryMappingThrowsException() {
+    when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Collections.singletonList((AbstractMetaStore) federatedMetastore), queryMapping);
+    service.primaryDatabaseMapping();
+  }
+
+  @Test(expected = NoPrimaryMetastoreException.class)
+  public void noPrimaryThrowsExceptionForUnmappedDatabase() {
+    when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Collections.singletonList((AbstractMetaStore) federatedMetastore), queryMapping);
+    service.databaseMapping("some_unknown_prefix_db");
+  }
+
+  @Test
+  public void databaseBelongingToFederatedMetastoreMapsToItWithEmptyPrefix() {
+    String testDatabase = "testDatabase";
+
+    // set metastore whitelist to be nonempty
+    federatedMetastore.setMappedDatabases(Arrays.asList("testName"));
+    metaStoreMappingFederated = mockNewMapping(true, DB_PREFIX);
+    when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+    when(metaStoreMappingFederated.transformInboundDatabaseName(DB_PREFIX + testDatabase)).thenReturn(testDatabase);
+
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+
+    DatabaseMapping mapping = service.databaseMapping(DB_PREFIX + testDatabase);
+    assertThat(mapping.getDatabasePrefix(), is(""));
+  }
+
+  @Test
+  public void panopticOperationsHandlerGetTableMetaWithNonWhitelistedDb() throws MetaException, TException {
+    List<String> tblTypes = Lists.newArrayList();
+    TableMeta tableMeta = new TableMeta("federated_db", "tbl", null);
+
+    Iface federatedDatabaseClient = mock(Iface.class);
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    when(federatedDatabaseClient.get_table_meta("federated_*", "*", tblTypes))
+        .thenReturn(Lists.newArrayList(tableMeta));
+
+    // set metastore whitelist to be nonempty
+    federatedMetastore.setMappedDatabases(Arrays.asList("testName"));
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<TableMeta> tableMetas = handler.getTableMeta("name_federated_*", "*", tblTypes);
+    assertThat(tableMetas.size(), is(0));
+  }
+
+  @Test
+  public void panopticOperationsHandlerGetTableMetaLogsException() throws MetaException, TException {
+    List<String> tblTypes = Lists.newArrayList();
+    TableMeta tableMeta = new TableMeta("federated_db", "tbl", null);
+
+    Iface federatedDatabaseClient = mock(Iface.class);
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    when(federatedDatabaseClient.get_table_meta("federated_*", "*", tblTypes)).thenThrow(new TException());
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<TableMeta> tableMetas = handler.getTableMeta("name_federated_*", "*", tblTypes);
+    assertThat(tableMetas.size(), is(0));
+  }
+
+  @Test
+  public void panopticStoreOperationsHandlerGetAllDatabasesByPatternLogsException() throws Exception {
+    String pattern = "*_db";
+    when(primaryDatabaseClient.get_databases(pattern)).thenThrow(new TException());
+
+    Iface federatedDatabaseClient = mock(Iface.class);
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    when(federatedDatabaseClient.get_databases(pattern)).thenThrow(new TException());
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    assertThat(handler.getAllDatabases(pattern).size(), is(0));
+  }
+
+  @Test
+  public void panopticStoreOperationsHandlerGetAllDatabasesLogsException() throws Exception {
+    when(primaryDatabaseClient.get_all_databases()).thenThrow(new TException());
+
+    Iface federatedClient = mock(Iface.class);
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedClient);
+    when(federatedClient.get_all_databases()).thenThrow(new TException());
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<String> allDatabases = Lists.newArrayList("primary_db", "federated_db");
+    assertThat(handler.getAllDatabases().size(), is(0));
+  }
+
+  @Test
+  public void panopticOperationsHandlerSetUgiLogsException() throws Exception {
+    String user = "user";
+    List<String> groups = Lists.newArrayList();
+    when(primaryDatabaseClient.set_ugi(user, groups)).thenThrow(new TException());
+
+    Iface federatedClient = mock(Iface.class);
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedClient);
+    when(federatedClient.set_ugi(user, groups)).thenThrow(new TException());
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    assertThat(handler.setUgi(user, groups).size(), is(0));
+  }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import org.junit.Test;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import com.google.common.collect.ImmutableMap;
+
+import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 
 public class WaggleDanceConfigurationTest {
 
@@ -117,4 +119,30 @@ public class WaggleDanceConfigurationTest {
     assertThat(violations.size(), is(1));
   }
 
+  @Test
+  public void setterGetterDatabaseResolution() {
+    waggleDanceConfiguration.setDatabaseResolution(DatabaseResolution.PREFIXED);
+    assertThat(waggleDanceConfiguration.getDatabaseResolution(), is(DatabaseResolution.PREFIXED));
+  }
+
+  @Test
+  public void setterGetterThriftServerStopTimeoutValInSeconds() {
+    int timeout = 10;
+    waggleDanceConfiguration.setThriftServerStopTimeoutValInSeconds(timeout);
+    assertThat(waggleDanceConfiguration.getThriftServerStopTimeoutValInSeconds(), is(timeout));
+  }
+
+  @Test
+  public void setterGetterThriftServerRequestTimeout() {
+    int timeout = 10;
+    waggleDanceConfiguration.setThriftServerRequestTimeout(timeout);
+    assertThat(waggleDanceConfiguration.getThriftServerRequestTimeout(), is(timeout));
+  }
+
+  @Test
+  public void setterGetterThriftServerRequestTimeoutUnit() {
+    TimeUnit timeUnit = TimeUnit.NANOSECONDS;
+    waggleDanceConfiguration.setThriftServerRequestTimeoutUnit(timeUnit);
+    assertThat(waggleDanceConfiguration.getThriftServerRequestTimeoutUnit(), is(timeUnit));
+  }
 }

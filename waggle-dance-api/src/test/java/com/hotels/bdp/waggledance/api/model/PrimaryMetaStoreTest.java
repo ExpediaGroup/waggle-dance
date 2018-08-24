@@ -19,6 +19,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -29,6 +31,11 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore> {
+
+  private final String name = "name";
+  private final String remoteMetaStoreUris = "remoteMetaStoreUris";
+  private final List<String> whitelist = new ArrayList<>();
+  private final AccessControlType accessControlType = AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
 
   public PrimaryMetaStoreTest() {
     super(new PrimaryMetaStore());
@@ -89,4 +96,28 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
     String json = mapper.writerFor(PrimaryMetaStore.class).writeValueAsString(metaStore);
     assertThat(json, is(expected));
   }
+
+  @Test
+  public void nonEmptyConstructor() {
+    whitelist.add("databaseOne");
+    whitelist.add("databaseTwo");
+    PrimaryMetaStore store = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, whitelist.get(0),
+        whitelist.get(1));
+    assertThat(store.getName(), is(name));
+    assertThat(store.getRemoteMetaStoreUris(), is(remoteMetaStoreUris));
+    assertThat(store.getAccessControlType(), is(accessControlType));
+    assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
+  }
+
+  @Test
+  public void constructorWithArrayListForWhtelist() {
+    whitelist.add("databaseOne");
+    whitelist.add("databaseTwo");
+    PrimaryMetaStore store = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, whitelist);
+    assertThat(store.getName(), is(name));
+    assertThat(store.getRemoteMetaStoreUris(), is(remoteMetaStoreUris));
+    assertThat(store.getAccessControlType(), is(accessControlType));
+    assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
+  }
+
 }

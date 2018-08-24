@@ -18,6 +18,8 @@ package com.hotels.bdp.waggledance.api.model;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -78,4 +80,22 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     String json = mapper.writerFor(FederatedMetaStore.class).writeValueAsString(metaStore);
     assertThat(json, is(expected));
   }
+
+  @Test
+  public void mappedDatabases() {
+    List<String> mappedDatabases = new ArrayList<>();
+    mappedDatabases.add("database");
+    metaStore.setMappedDatabases(mappedDatabases);
+    assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
+  }
+
+  @Test
+  public void nonEmptyConstructor() {
+    String storeName = "name";
+    String storeUri = "remoteMetaStoreUris";
+    FederatedMetaStore store = new FederatedMetaStore(storeName, storeUri);
+    assertThat(store.getName(), is(storeName));
+    assertThat(store.getRemoteMetaStoreUris(), is(storeUri));
+  }
+
 }

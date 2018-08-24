@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
@@ -144,6 +145,15 @@ public class NotifyingFederationServiceTest {
     verify(federatedMetaStoreStorage).getAll();
     assertThat(federatedMetaStores.size(), is(1));
     assertThat(federatedMetaStores.get(0).getName(), is(METASTORE_NAME));
+  }
+
+  @Test
+  public void unsubscribe() {
+    service.unsubscribe(federationEventListener);
+    AbstractMetaStore federatedMetaStore = newFederatedInstance("new_name", URI);
+    service.register(federatedMetaStore);
+    verify(federatedMetaStoreStorage).insert(federatedMetaStore);
+    verifyZeroInteractions(federationEventListener);
   }
 
 }
