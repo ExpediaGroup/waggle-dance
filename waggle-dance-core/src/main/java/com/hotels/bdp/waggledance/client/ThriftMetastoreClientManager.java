@@ -1,9 +1,5 @@
 /**
- * Copyright (C) 2015-2017 The Apache Software Foundation and Expedia Inc.
- *
- * This code is based on Hive's HiveMetaStoreClient:
- *
- * https://github.com/apache/hive/blob/rel/release-2.1.0/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStoreClient.java
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

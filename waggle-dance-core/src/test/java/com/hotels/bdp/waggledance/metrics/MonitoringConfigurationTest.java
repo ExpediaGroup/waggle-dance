@@ -25,15 +25,14 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.graphite.GraphiteReporter;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 
-@RunWith(MockitoJUnitRunner.class)
+//@RunWith(MockitoJUnitRunner.class)
 public class MonitoringConfigurationTest {
 
   private final MetricRegistry metricRegistry = new MetricRegistry();
@@ -44,11 +43,11 @@ public class MonitoringConfigurationTest {
   @Before
   public void setUp() {
     monitoringConfiguration.setMetricRegistry(metricRegistry);
-    monitoringConfiguration.setGraphiteConfiguration(graphiteConfiguration);
   }
 
   @Test
   public void disabledGraphiteConfiguration() {
+    monitoringConfiguration.setGraphiteConfiguration(graphiteConfiguration);
     monitoringConfiguration.init();
     Set<Closeable> reporters = monitoringConfiguration.getReporters();
     assertThat(reporters.size(), is(1));
@@ -70,7 +69,7 @@ public class MonitoringConfigurationTest {
     Closeable firstReporter = iterator.next();
     Closeable secondReporter = iterator.next();
     if (JmxReporter.class.isInstance(firstReporter)) {
-      assertThat(secondReporter, instanceOf(GraphiteConfiguration.class));
+      assertThat(secondReporter, instanceOf(GraphiteReporter.class));
     } else {
       assertThat(secondReporter, instanceOf(JmxReporter.class));
     }
