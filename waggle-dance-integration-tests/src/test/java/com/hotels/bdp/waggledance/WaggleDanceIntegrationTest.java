@@ -15,16 +15,16 @@
  */
 package com.hotels.bdp.waggledance;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
 import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.newPartition;
 import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
 import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -49,7 +50,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +83,6 @@ public class WaggleDanceIntegrationTest {
   private static final String REMOTE_TABLE = "remote_table";
 
   public @Rule ServerSocketRule graphite = new ServerSocketRule();
-  public @Rule ExpectedSystemExit exit = ExpectedSystemExit.none();
   public @Rule TemporaryFolder temporaryFolder = new TemporaryFolder();
   public @Rule ThriftHiveMetaStoreJUnitRule localServer = new ThriftHiveMetaStoreJUnitRule(LOCAL_DATABASE);
   public @Rule ThriftHiveMetaStoreJUnitRule remoteServer = new ThriftHiveMetaStoreJUnitRule(REMOTE_DATABASE);
@@ -135,9 +134,12 @@ public class WaggleDanceIntegrationTest {
     File partitionAsia = new File(tableUri, "continent=Asia");
     File partitionChina = new File(partitionAsia, "country=China");
 
-    LOG.info(">>>> Partitions added: {}",
-        client.add_partitions(Arrays.asList(newPartition(hiveTable, Arrays.asList("Europe", "UK"), partitionUk),
-            newPartition(hiveTable, Arrays.asList("Asia", "China"), partitionChina))));
+    LOG
+        .info(">>>> Partitions added: {}",
+            client
+                .add_partitions(Arrays
+                    .asList(newPartition(hiveTable, Arrays.asList("Europe", "UK"), partitionUk),
+                        newPartition(hiveTable, Arrays.asList("Asia", "China"), partitionChina))));
   }
 
   private String getWaggleDanceThriftUri() {
@@ -170,14 +172,14 @@ public class WaggleDanceIntegrationTest {
   private Federations stopServerAndGetConfiguration() throws Exception, FileNotFoundException {
     runner.stop();
     // Stopping the server triggers the saving of the config file.
-    Federations federations = YamlFactory.newYaml().loadAs(new FileInputStream(runner.federationConfig()),
-        Federations.class);
+    Federations federations = YamlFactory
+        .newYaml()
+        .loadAs(new FileInputStream(runner.federationConfig()), Federations.class);
     return federations;
   }
 
   @Test
   public void typical() throws Exception {
-    exit.expectSystemExitWithStatus(0);
     runner = WaggleDanceRunner
         .builder(configLocation)
         .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
@@ -199,7 +201,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void usePrefix() throws Exception {
-    exit.expectSystemExitWithStatus(0);
     runner = WaggleDanceRunner
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.PREFIXED)
@@ -233,10 +234,11 @@ public class WaggleDanceIntegrationTest {
 
     List<String> partitionNames = Arrays.asList("continent=Europe/country=UK", "continent=Asia/country=China");
 
-    List<Partition> remotePartitions = remoteServer.client().getPartitionsByNames(REMOTE_DATABASE, REMOTE_TABLE,
-        partitionNames);
-    List<Partition> waggledRemotePartitions = proxy.getPartitionsByNames(waggledRemoteDbName, REMOTE_TABLE,
-        partitionNames);
+    List<Partition> remotePartitions = remoteServer
+        .client()
+        .getPartitionsByNames(REMOTE_DATABASE, REMOTE_TABLE, partitionNames);
+    List<Partition> waggledRemotePartitions = proxy
+        .getPartitionsByNames(waggledRemoteDbName, REMOTE_TABLE, partitionNames);
     assertThat(waggledRemotePartitions.size(), is(2));
     for (int i = 0; i < waggledRemotePartitions.size(); ++i) {
       Partition remotePartition = remotePartitions.get(i);
@@ -254,8 +256,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void typicalWithGraphite() throws Exception {
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
@@ -273,8 +273,8 @@ public class WaggleDanceIntegrationTest {
     proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
     runner.stop();
 
-    Set<String> metrics = new TreeSet<>(Arrays.asList(new String(graphite.getOutput()).split("\n")));
-    // print(metrics);
+    Set<String> metrics = new TreeSet<>(
+        Arrays.asList(new String(graphite.waitAndgetOutput(2, TimeUnit.SECONDS)).split("\n")));
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.calls.count 2");
     assertMetric(metrics,
@@ -300,7 +300,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void readWriteCreateAllowed() throws Exception {
-    exit.expectSystemExitWithStatus(0);
     String writableDatabase = "writable_db";
 
     localServer.createDatabase(writableDatabase);
@@ -335,8 +334,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void federatedWritesSucceedIfReadAndWriteOnDatabaseWhiteListIsConfigured() throws Exception {
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.PREFIXED)
@@ -368,8 +365,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void federatedWritesFailIfReadAndWriteOnDatabaseWhiteListIsNotConfigured() throws Exception {
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.PREFIXED)
@@ -399,8 +394,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void federatedWritesFailIfReadAndWriteOnDatabaseWhiteListDoesNotIncludeDb() throws Exception {
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.PREFIXED)
@@ -431,7 +424,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void databaseWhitelisting() throws Exception {
-    exit.expectSystemExitWithStatus(0);
     String writableDatabase = "writable_db";
 
     localServer.createDatabase(writableDatabase);
@@ -461,8 +453,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void createDatabaseUsingManualAndWhitelistingUpdatesConfig() throws Exception {
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .primary("primary", localServer.getThriftConnectionUri(),
@@ -487,8 +477,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void createDatabaseDatabaseUsingPrefixAndWhitelistingUpdates() throws Exception {
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.PREFIXED)
@@ -515,8 +503,6 @@ public class WaggleDanceIntegrationTest {
   @Test
   public void doesNotOverwriteConfigOnShutdownManualMode() throws Exception {
     // Note a similar test for PREFIX is not required
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.MANUAL)
@@ -550,8 +536,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void overwritesConfigOnShutdownAfterAddingFederation() throws Exception {
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.PREFIXED)
@@ -589,8 +573,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void doesNotOverwriteConfigOnShutdownAfterAddingFederation() throws Exception {
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.PREFIXED)
@@ -625,8 +607,6 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void restApiGetStatus() throws Exception {
-    exit.expectSystemExitWithStatus(0);
-
     runner = WaggleDanceRunner
         .builder(configLocation)
         .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
@@ -636,8 +616,8 @@ public class WaggleDanceIntegrationTest {
     runWaggleDance(runner);
 
     RestTemplate rest = new RestTemplateBuilder().build();
-    PrimaryMetaStore primaryMetastore = rest.getForObject("http://localhost:18000/api/admin/federations/primary",
-        PrimaryMetaStore.class);
+    PrimaryMetaStore primaryMetastore = rest
+        .getForObject("http://localhost:18000/api/admin/federations/primary", PrimaryMetaStore.class);
     assertThat(primaryMetastore.getStatus(), is(MetaStoreStatus.AVAILABLE));
     FederatedMetaStore federatedMetastore = rest
         .getForObject("http://localhost:18000/api/admin/federations/waggle_remote", FederatedMetaStore.class);

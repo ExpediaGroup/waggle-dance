@@ -1,19 +1,31 @@
+/**
+ * Copyright (C) 2016-2018 Expedia Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.hotels.bdp.waggledance.metrics;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
 
 import java.io.Closeable;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.codahale.metrics.JmxReporter;
@@ -25,7 +37,7 @@ import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 public class MonitoringConfigurationTest {
 
   private final MetricRegistry metricRegistry = new MetricRegistry();
-  private @Mock GraphiteConfiguration graphiteConfiguration;
+  private final GraphiteConfiguration graphiteConfiguration = new GraphiteConfiguration();
 
   private final MonitoringConfiguration monitoringConfiguration = new MonitoringConfiguration();
 
@@ -45,11 +57,9 @@ public class MonitoringConfigurationTest {
 
   @Test
   public void enabledGraphiteConfiguration() {
-    when(graphiteConfiguration.isEnabled()).thenReturn(true);
-    when(graphiteConfiguration.getHost()).thenReturn("host");
-    when(graphiteConfiguration.getPort()).thenReturn(42);
-    when(graphiteConfiguration.getPollInterval()).thenReturn((long) 42);
-    when(graphiteConfiguration.getPollIntervalTimeUnit()).thenReturn(TimeUnit.NANOSECONDS);
+    graphiteConfiguration.setHost("host");
+    graphiteConfiguration.setPort(42);
+    graphiteConfiguration.init();
     monitoringConfiguration.setGraphiteConfiguration(graphiteConfiguration);
     monitoringConfiguration.init();
     Set<Closeable> reporters = monitoringConfiguration.getReporters();
