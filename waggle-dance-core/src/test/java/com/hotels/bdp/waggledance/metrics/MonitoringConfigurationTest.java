@@ -32,7 +32,6 @@ import com.codahale.metrics.graphite.GraphiteReporter;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 
-//@RunWith(MockitoJUnitRunner.class)
 public class MonitoringConfigurationTest {
 
   private final MetricRegistry metricRegistry = new MetricRegistry();
@@ -64,7 +63,7 @@ public class MonitoringConfigurationTest {
     Set<Closeable> reporters = monitoringConfiguration.getReporters();
     assertThat(reporters.size(), is(2));
 
-    // if one reporter is JmxReporter, then the other is GraphiteConfiguration
+    // if one reporter is JmxReporter, then the other is GraphiteReporter
     Iterator<Closeable> iterator = reporters.iterator();
     Closeable firstReporter = iterator.next();
     Closeable secondReporter = iterator.next();

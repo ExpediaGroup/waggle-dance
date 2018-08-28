@@ -62,7 +62,7 @@ public class FederatedHMSHandlerFactoryTest {
   }
 
   @Test
-  public void prefixecDatabase() throws Exception {
+  public void prefixedDatabase() throws Exception {
     when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.PREFIXED);
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
         waggleDanceConfiguration, queryMapping);
