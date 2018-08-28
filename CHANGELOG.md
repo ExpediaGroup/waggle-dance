@@ -1,7 +1,6 @@
 ## [TBD] - TBD
 ### Changed
 * Minimum supported Java version is now 8 (was 7). See [#108](https://github.com/HotelsDotCom/waggle-dance/issues/108).
-* Increased coverage for waggle-dance-core. See [#25](https://github.com/HotelsDotCom/waggle-dance/issues/25) and [#100](https://github.com/HotelsDotCom/waggle-dance/issues/100).
 
 ## [2.4.2] - 2018-08-21
 ### Changed
