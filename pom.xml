@@ -90,6 +90,11 @@
         <scope>compile</scope>
       </dependency>
       <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>1.19</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.derby</groupId>
         <artifactId>derby</artifactId>
         <!-- we should use whatever hive-metastore is using. Cannot rely on the transitive dep because we want it test scoped. -->

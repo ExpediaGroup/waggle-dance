@@ -15,6 +15,7 @@
  */
 package com.hotels.bdp.waggledance.yaml;
 
+import java.beans.IntrospectionException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

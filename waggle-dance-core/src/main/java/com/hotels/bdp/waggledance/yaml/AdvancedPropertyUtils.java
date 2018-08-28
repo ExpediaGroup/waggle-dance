@@ -15,6 +15,7 @@
  */
 package com.hotels.bdp.waggledance.yaml;
 
+import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.beans.Transient;
 import java.lang.reflect.Field;
