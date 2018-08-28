@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.hotels.bdp.waggledance.yaml;
 
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.CollectionNode;
 import org.yaml.snakeyaml.nodes.MappingNode;
@@ -34,6 +36,7 @@ public class AdvancedRepresenter extends Representer {
       Property property,
       Object propertyValue,
       Tag customTag) {
+    setDefaultScalarStyle(ScalarStyle.PLAIN);
     NodeTuple nodeTuple = super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
     Node valueNode = nodeTuple.getValueNode();
     if (Tag.NULL.equals(valueNode.getTag())) {

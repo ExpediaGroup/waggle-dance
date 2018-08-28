@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.context;
 
 import java.util.Map;
 
+import com.codahale.metrics.MetricRegistry;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.context.annotation.Bean;
@@ -44,6 +45,11 @@ public class CommonBeans {
       }
     }
     return hiveConf;
+  }
+
+  @Bean
+  public MetricRegistry metricRegistry(WaggleDanceConfiguration waggleDanceConfiguration) {
+    return new MetricRegistry();
   }
 
   @Bean
