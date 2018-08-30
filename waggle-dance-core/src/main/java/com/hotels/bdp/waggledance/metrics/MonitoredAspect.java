@@ -25,11 +25,14 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
+
+import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 
 @Aspect
 @Configurable
@@ -38,8 +41,9 @@ public class MonitoredAspect {
   private static final String TIMER = "timer";
   private static final String COUNTER = "counter";
   private static final Joiner DOT_JOINER = Joiner.on(".");
+  private @Autowired GraphiteConfiguration graphiteConfiguration;
 
-  private @Autowired MeterRegistry meterRegistry;
+  private @Autowired GraphiteMeterRegistry meterRegistry;
   // private @Autowired CounterService counterService;
   // private @Autowired GaugeService gaugeService;
 
@@ -50,6 +54,7 @@ public class MonitoredAspect {
 
   @Around("@annotation(monitored)")
   public Object monitor(ProceedingJoinPoint pjp, Monitored monitored) throws Throwable {
+
     String metricBasePath = buildMetricBasePath(pjp);
 
     String result = null;
@@ -71,20 +76,22 @@ public class MonitoredAspect {
   }
 
   @VisibleForTesting
-  void setMeterRegistry(MeterRegistry meterRegistry) {
+  void setMeterRegistry(GraphiteMeterRegistry meterRegistry) {
     this.meterRegistry = meterRegistry;
   }
 
   private void increment(String metricName) {
     if (meterRegistry != null) {
-      meterRegistry.counter(metricName).increment();
+      Metrics.counter(metricName).increment();
+      //meterRegistry.counter(metricName).increment();
     }
   }
 
   private void submit(String metricName, long value) {
     if (meterRegistry != null) {
-      meterRegistry.gauge(metricName, value);
-      // gaugeService.submit(metricName, value);
+      Metrics.gauge(metricName, value);
+    // meterRegistry.gauge(metricName, value);
+    // gaugeService.submit(metricName, value);
     }
   }
 

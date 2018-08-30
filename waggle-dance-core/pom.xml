@@ -104,6 +104,12 @@
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
 
+    <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-graphite</artifactId>
+        <version>1.0.6</version>
+    </dependency>
+
     <!-- Waggle Dance -->
     <dependency>
       <groupId>com.hotels</groupId>

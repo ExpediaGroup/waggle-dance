@@ -29,11 +29,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.search.RequiredSearch;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.core.instrument.util.HierarchicalNameMapper;
+import io.micrometer.graphite.GraphiteConfig;
+import io.micrometer.graphite.GraphiteMeterRegistry;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MonitoredAspectTest {
@@ -41,7 +44,7 @@ public class MonitoredAspectTest {
   private static final String MONITORED_TYPE = "Type$Anonymous";
   private static final String MONITORED_METHOD = "myMethod";
 
-  private MeterRegistry meterRegistry;
+  private GraphiteMeterRegistry meterRegistry;
   private @Mock Counter callsCounter;
   private @Mock Counter successCounter;
   private @Mock Gauge durationGauge;
@@ -55,14 +58,14 @@ public class MonitoredAspectTest {
   public void init() throws Exception {
     CurrentMonitoredMetaStoreHolder.monitorMetastore(null);
 
-    meterRegistry = new SimpleMeterRegistry();
+    meterRegistry = new GraphiteMeterRegistry(GraphiteConfig.DEFAULT, Clock.SYSTEM, HierarchicalNameMapper.DEFAULT);
 
     when(signature.getDeclaringTypeName()).thenReturn(MONITORED_TYPE);
     when(signature.getName()).thenReturn(MONITORED_METHOD);
     when(pjp.getSignature()).thenReturn(signature);
 
     aspect = new MonitoredAspect();
-    aspect.setMeterRegistry(meterRegistry);
+    // aspect.setMeterRegistry(meterRegistry);
   }
 
   @Test
@@ -72,13 +75,13 @@ public class MonitoredAspectTest {
     when(signature.getName()).thenReturn("<method$x>");
     aspect.monitor(pjp, monitored);
 
-    RequiredSearch rs = meterRegistry.get("counter._Type_Enc__._method_x_.all.calls");
+    RequiredSearch rs = Metrics.globalRegistry.get("counter._Type_Enc__._method_x_.all.calls");
     assertThat(rs.counter().count(), is(1.0));
 
-    rs = meterRegistry.get("counter._Type_Enc__._method_x_.all.success");
+    rs = Metrics.globalRegistry.get("counter._Type_Enc__._method_x_.all.success");
     assertThat(rs.counter().count(), is(1.0));
 
-    rs = meterRegistry.get("timer._Type_Enc__._method_x_.all.duration");
+    rs = Metrics.globalRegistry.get("timer._Type_Enc__._method_x_.all.duration");
     assertThat(rs.gauge().value(), is(lessThan(1.0)));
 
   }
@@ -158,7 +161,7 @@ public class MonitoredAspectTest {
     when(signature.getDeclaringTypeName()).thenReturn("Type");
     when(signature.getName()).thenReturn("method");
 
-    aspect.setMeterRegistry(null);
+    // aspect.setMeterRegistry(null);
     // aspect.setGaugeService(null);
     aspect.monitor(pjp, monitored);
   }
