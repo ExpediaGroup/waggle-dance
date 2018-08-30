@@ -82,15 +82,15 @@ public class MonitoredAspect {
 
   private void increment(String metricName) {
     if (meterRegistry != null) {
-      Metrics.counter(metricName).increment();
-      //meterRegistry.counter(metricName).increment();
+      //Metrics.counter(metricName).increment();
+      meterRegistry.counter(metricName).increment();
     }
   }
 
   private void submit(String metricName, long value) {
     if (meterRegistry != null) {
-      Metrics.gauge(metricName, value);
-    // meterRegistry.gauge(metricName, value);
+      //Metrics.gauge(metricName, value);
+      meterRegistry.gauge(metricName, value);
     // gaugeService.submit(metricName, value);
     }
   }

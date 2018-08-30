@@ -24,6 +24,12 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
+import io.micrometer.graphite.GraphiteMeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +88,12 @@ public class MonitoringConfiguration {
   }
 
   private void registerBaseMetrics() {
+//    new JvmThreadMetrics().bindTo(meterRegistry);
+//    new JvmGcMetrics().bindTo(meterRegistry);
+//    new JvmMemoryMetrics().bindTo(meterRegistry);
+//    new JvmThreadMetrics().bindTo(meterRegistry);
+
+
     metricRegistry.register("gc", new GarbageCollectorMetricSet());
     metricRegistry.register("memory", new MemoryUsageGaugeSet());
     metricRegistry.register("threads", new ThreadStatesGaugeSet());

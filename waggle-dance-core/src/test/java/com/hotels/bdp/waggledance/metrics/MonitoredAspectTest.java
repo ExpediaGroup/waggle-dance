@@ -65,7 +65,7 @@ public class MonitoredAspectTest {
     when(pjp.getSignature()).thenReturn(signature);
 
     aspect = new MonitoredAspect();
-    // aspect.setMeterRegistry(meterRegistry);
+    aspect.setMeterRegistry(meterRegistry);
   }
 
   @Test
@@ -75,13 +75,13 @@ public class MonitoredAspectTest {
     when(signature.getName()).thenReturn("<method$x>");
     aspect.monitor(pjp, monitored);
 
-    RequiredSearch rs = Metrics.globalRegistry.get("counter._Type_Enc__._method_x_.all.calls");
+    RequiredSearch rs = meterRegistry.get("counter._Type_Enc__._method_x_.all.calls");
     assertThat(rs.counter().count(), is(1.0));
 
-    rs = Metrics.globalRegistry.get("counter._Type_Enc__._method_x_.all.success");
+    rs = meterRegistry.get("counter._Type_Enc__._method_x_.all.success");
     assertThat(rs.counter().count(), is(1.0));
 
-    rs = Metrics.globalRegistry.get("timer._Type_Enc__._method_x_.all.duration");
+    rs = meterRegistry.get("timer._Type_Enc__._method_x_.all.duration");
     assertThat(rs.gauge().value(), is(lessThan(1.0)));
 
   }
