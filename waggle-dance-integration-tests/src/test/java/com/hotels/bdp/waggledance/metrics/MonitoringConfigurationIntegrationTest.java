@@ -50,7 +50,7 @@ public class MonitoringConfigurationIntegrationTest {
     graphiteConfiguration.init();
 
     monitoringConfiguration.setGraphiteConfiguration(graphiteConfiguration);
-    monitoringConfiguration.setMetricRegistry(metricRegistry);
+    //monitoringConfiguration.setMetricRegistry(metricRegistry);
 
     monitoringConfiguration.init();
     monitoringConfiguration.destroy();

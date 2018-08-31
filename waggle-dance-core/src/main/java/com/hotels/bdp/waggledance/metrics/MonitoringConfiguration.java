@@ -24,16 +24,15 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
-import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
-import io.micrometer.graphite.GraphiteMeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
+import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricFilter;
@@ -41,9 +40,6 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
-import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
-import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
-import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 
@@ -52,8 +48,9 @@ public class MonitoringConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(MonitoringConfiguration.class);
 
   private final Set<Closeable> reporters = new HashSet<>();
-  private @Autowired MetricRegistry metricRegistry;
+  //private @Autowired MetricRegistry metricRegistry;
   private @Autowired GraphiteConfiguration graphiteConfiguration;
+  private @Autowired GraphiteMeterRegistry graphiteMeterRegistry;
 
   private <R extends Closeable> R registerReporter(R reporter) {
     reporters.add(reporter);
@@ -79,38 +76,38 @@ public class MonitoringConfiguration {
   @PostConstruct()
   public void init() {
     registerBaseMetrics();
-    registerReporter(jmxReporterBuilder().build()).start();
+    // registerReporter(jmxReporterBuilder().build()).start();
     if (graphiteConfiguration.isEnabled()) {
-      GraphiteReporter graphiteReporter = graphiteReporterBuilder().build(newGraphite());
-      registerReporter(graphiteReporter);
-      graphiteReporter.start(graphiteConfiguration.getPollInterval(), graphiteConfiguration.getPollIntervalTimeUnit());
+      // GraphiteReporter graphiteReporter = graphiteReporterBuilder().build(newGraphite());
+      // registerReporter(graphiteReporter);
+      // graphiteMeterRegistry.start();
     }
   }
 
   private void registerBaseMetrics() {
-//    new JvmThreadMetrics().bindTo(meterRegistry);
-//    new JvmGcMetrics().bindTo(meterRegistry);
-//    new JvmMemoryMetrics().bindTo(meterRegistry);
-//    new JvmThreadMetrics().bindTo(meterRegistry);
+    new JvmThreadMetrics().bindTo(graphiteMeterRegistry);
+    new JvmGcMetrics().bindTo(graphiteMeterRegistry);
+    new JvmMemoryMetrics().bindTo(graphiteMeterRegistry);
+    new JvmThreadMetrics().bindTo(graphiteMeterRegistry);
 
-
-    metricRegistry.register("gc", new GarbageCollectorMetricSet());
-    metricRegistry.register("memory", new MemoryUsageGaugeSet());
-    metricRegistry.register("threads", new ThreadStatesGaugeSet());
+    //
+    // metricRegistry.register("gc", new GarbageCollectorMetricSet());
+    // metricRegistry.register("memory", new MemoryUsageGaugeSet());
+    // metricRegistry.register("threads", new ThreadStatesGaugeSet());
   }
 
-  private JmxReporter.Builder jmxReporterBuilder() {
-    return JmxReporter.forRegistry(metricRegistry);
-  }
+//  private JmxReporter.Builder jmxReporterBuilder() {
+//    return JmxReporter.forRegistry(metricRegistry);
+//  }
 
-  private GraphiteReporter.Builder graphiteReporterBuilder() {
-    return GraphiteReporter
-        .forRegistry(metricRegistry)
-        .convertRatesTo(TimeUnit.SECONDS)
-        .convertDurationsTo(TimeUnit.MILLISECONDS)
-        .filter(MetricFilter.ALL)
-        .prefixedWith(graphiteConfiguration.getPrefix());
-  }
+//  private GraphiteReporter.Builder graphiteReporterBuilder() {
+//    return GraphiteReporter
+//        .forRegistry(metricRegistry)
+//        .convertRatesTo(TimeUnit.SECONDS)
+//        .convertDurationsTo(TimeUnit.MILLISECONDS)
+//        .filter(MetricFilter.ALL)
+//        .prefixedWith(graphiteConfiguration.getPrefix());
+//  }
 
   private Graphite newGraphite() {
     return new Graphite(new InetSocketAddress(graphiteConfiguration.getHost(), graphiteConfiguration.getPort()));
@@ -120,8 +117,8 @@ public class MonitoringConfiguration {
     this.graphiteConfiguration = graphiteConfiguration;
   }
 
-  void setMetricRegistry(MetricRegistry metricRegistry) {
-    this.metricRegistry = metricRegistry;
-  }
+//  void setMetricRegistry(MetricRegistry metricRegistry) {
+//    this.metricRegistry = metricRegistry;
+//  }
 
 }
