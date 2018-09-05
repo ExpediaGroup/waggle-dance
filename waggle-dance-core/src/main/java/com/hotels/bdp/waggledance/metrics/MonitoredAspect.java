@@ -19,6 +19,7 @@ import static com.hotels.bdp.waggledance.metrics.CurrentMonitoredMetaStoreHolder
 
 import java.util.concurrent.TimeUnit;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -39,7 +40,7 @@ public class MonitoredAspect {
   private static final String COUNTER = "counter";
   private static final Joiner DOT_JOINER = Joiner.on(".");
 
-  private @Autowired GraphiteMeterRegistry graphiteMeterRegistry;
+  private @Autowired MeterRegistry graphiteMeterRegistry;
   // private @Autowired CounterService counterService;
   // private @Autowired GaugeService gaugeService;
 
