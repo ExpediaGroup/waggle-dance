@@ -85,8 +85,9 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     if (table.isSetViewExpandedText()) {
       try {
         log.debug("Transforming ViewExpandedText: {}", table.getViewExpandedText());
-        table.setViewExpandedText(
-            queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewExpandedText()));
+        table
+            .setViewExpandedText(
+                queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewExpandedText()));
       } catch (WaggleDanceException e) {
         log.debug("Error while transforming databaseName in ViewExpandedText, keeping original", e);
       }
@@ -94,8 +95,9 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     if (table.isSetViewOriginalText()) {
       try {
         log.debug("Transforming ViewOriginalText: {}", table.getViewOriginalText());
-        table.setViewOriginalText(
-            queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewOriginalText()));
+        table
+            .setViewOriginalText(
+                queryMapping.transformOutboundDatabaseName(metaStoreMapping, table.getViewOriginalText()));
       } catch (WaggleDanceException e) {
         // We are hitting a bug in hive (https://issues.apache.org/jira/browse/HIVE-19896) that prevents the
         // ViewOriginalText to be parsed, if we leave the ViewOriginalText we'll have the wrong database names in it so
@@ -364,15 +366,17 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public ColumnStatistics transformInboundColumnStatistics(ColumnStatistics columnStatistics) {
-    columnStatistics.getStatsDesc().setDbName(
-        metaStoreMapping.transformInboundDatabaseName(columnStatistics.getStatsDesc().getDbName()));
+    columnStatistics
+        .getStatsDesc()
+        .setDbName(metaStoreMapping.transformInboundDatabaseName(columnStatistics.getStatsDesc().getDbName()));
     return columnStatistics;
   }
 
   @Override
   public ColumnStatistics transformOutboundColumnStatistics(ColumnStatistics columnStatistics) {
-    columnStatistics.getStatsDesc().setDbName(
-        metaStoreMapping.transformOutboundDatabaseName(columnStatistics.getStatsDesc().getDbName()));
+    columnStatistics
+        .getStatsDesc()
+        .setDbName(metaStoreMapping.transformOutboundDatabaseName(columnStatistics.getStatsDesc().getDbName()));
     return columnStatistics;
   }
 

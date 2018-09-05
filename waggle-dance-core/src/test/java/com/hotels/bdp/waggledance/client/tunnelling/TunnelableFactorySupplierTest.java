@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.client;
+package com.hotels.bdp.waggledance.client.tunnelling;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
+import com.hotels.bdp.waggledance.client.tunnelling.TunnelableFactorySupplier;
 
 public class TunnelableFactorySupplierTest {
 
@@ -107,6 +110,12 @@ public class TunnelableFactorySupplierTest {
   @Test(expected = IllegalArgumentException.class)
   public void incorrectStrictHostKeyCheckingSetting() {
     hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "foo");
+    supplier.get(hiveConf);
+  }
+
+  @Test
+  public void noStrictHostKeyCheckingSetting() {
+    hiveConf.set(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname, "no");
     supplier.get(hiveConf);
   }
 

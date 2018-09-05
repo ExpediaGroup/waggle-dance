@@ -108,7 +108,7 @@ public class ServerSocketRule extends ExternalResource {
   }
 
   public byte[] getOutput() {
-    return waitAndgetOutput(100, TimeUnit.MILLISECONDS);
+    return waitAndgetOutput(1, TimeUnit.SECONDS);
   }
 
   /**
