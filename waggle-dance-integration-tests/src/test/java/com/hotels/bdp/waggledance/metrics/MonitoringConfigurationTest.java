@@ -17,30 +17,16 @@ package com.hotels.bdp.waggledance.metrics;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.TreeSet;
-
-import com.hotels.bdp.waggledance.context.CommonBeans;
-import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.graphite.GraphiteMeterRegistry;
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.junit.Rule;
 import org.junit.Test;
-
-import com.codahale.metrics.MetricRegistry;
-
-import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
-import com.hotels.bdp.waggledance.junit.ServerSocketRule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.graphite.GraphiteMeterRegistry;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { MonitoringConfigurationTestContext.class, MonitoringConfiguration.class })

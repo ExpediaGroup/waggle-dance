@@ -16,32 +16,18 @@
 package com.hotels.bdp.waggledance.context;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import com.codahale.metrics.graphite.Graphite;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
-
-import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.config.NamingConvention;
-import io.micrometer.core.instrument.util.HierarchicalNameMapper;
-import io.micrometer.graphite.GraphiteConfig;
-import io.micrometer.graphite.GraphiteMeterRegistry;
-import io.micrometer.graphite.GraphiteProtocol;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.TunnelingMetaStoreClientFactory;
-import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
-import org.springframework.context.annotation.Conditional;
 
 @org.springframework.context.annotation.Configuration
 public class CommonBeans {

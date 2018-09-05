@@ -19,13 +19,13 @@ import static com.hotels.bdp.waggledance.metrics.CurrentMonitoredMetaStoreHolder
 
 import java.util.concurrent.TimeUnit;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.google.common.annotations.VisibleForTesting;

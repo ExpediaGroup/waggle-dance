@@ -15,14 +15,10 @@
  */
 package com.hotels.bdp.waggledance.metrics;
 
-import java.io.Closeable;
-import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -32,18 +28,8 @@ import io.micrometer.core.instrument.util.HierarchicalNameMapper;
 import io.micrometer.graphite.GraphiteConfig;
 import io.micrometer.graphite.GraphiteMeterRegistry;
 import io.micrometer.graphite.GraphiteProtocol;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
-
-import com.codahale.metrics.ScheduledReporter;
-import com.codahale.metrics.graphite.Graphite;
+import io.micrometer.jmx.JmxConfig;
+import io.micrometer.jmx.JmxMeterRegistry;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 
@@ -93,17 +79,22 @@ public class MonitoringConfiguration {
 
     MeterRegistry graphiteMeterRegistry = null;
     if (graphiteConfiguration.isEnabled()) {
-      HierarchicalNameMapper wdHierarchicalNameMapper = (id, convention) -> graphiteConfiguration.getPrefix() + "." + HierarchicalNameMapper.DEFAULT.toHierarchicalName(id, convention);
+      HierarchicalNameMapper wdHierarchicalNameMapper = (id, convention) -> graphiteConfiguration.getPrefix()
+          + "."
+          + HierarchicalNameMapper.DEFAULT.toHierarchicalName(id, convention);
 
-      graphiteMeterRegistry = new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM,
-          wdHierarchicalNameMapper);
+      graphiteMeterRegistry = new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM, wdHierarchicalNameMapper);
 
       graphiteMeterRegistry.config().namingConvention(NamingConvention.dot);
-    }
-    else {
+    } else {
       graphiteMeterRegistry = new SimpleMeterRegistry();
     }
     return graphiteMeterRegistry;
+  }
+
+  @Bean
+  public JmxMeterRegistry jmxMeterRegistry() {
+    return new JmxMeterRegistry(JmxConfig.DEFAULT, Clock.SYSTEM);
   }
 
 }

@@ -15,12 +15,10 @@
  */
 package com.hotels.bdp.waggledance.metrics;
 
-import com.google.common.collect.ImmutableMap;
-import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
-import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
-import io.micrometer.graphite.GraphiteConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 
 @Configuration
 public class MonitoringConfigurationTestContext {
