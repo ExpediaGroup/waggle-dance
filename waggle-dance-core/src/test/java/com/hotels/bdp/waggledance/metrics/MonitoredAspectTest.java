@@ -32,7 +32,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.search.RequiredSearch;
 import io.micrometer.core.instrument.util.HierarchicalNameMapper;
 import io.micrometer.graphite.GraphiteConfig;
@@ -161,8 +160,7 @@ public class MonitoredAspectTest {
     when(signature.getDeclaringTypeName()).thenReturn("Type");
     when(signature.getName()).thenReturn("method");
 
-    // aspect.setMeterRegistry(null);
-    // aspect.setGaugeService(null);
+    aspect.setMeterRegistry(null);
     aspect.monitor(pjp, monitored);
   }
 
