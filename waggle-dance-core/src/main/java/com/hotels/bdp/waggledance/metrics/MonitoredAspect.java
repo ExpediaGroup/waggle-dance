@@ -40,9 +40,7 @@ public class MonitoredAspect {
   private static final String COUNTER = "counter";
   private static final Joiner DOT_JOINER = Joiner.on(".");
 
-  private @Autowired MeterRegistry graphiteMeterRegistry;
-  // private @Autowired CounterService counterService;
-  // private @Autowired GaugeService gaugeService;
+  private @Autowired MeterRegistry meterRegistry;
 
   @Around("execution(public * *(..)) && within(@com.hotels.bdp.waggledance.metrics.Monitored *)")
   public Object monitor(ProceedingJoinPoint pjp) throws Throwable {
@@ -74,22 +72,19 @@ public class MonitoredAspect {
 
   @VisibleForTesting
   void setMeterRegistry(GraphiteMeterRegistry graphiteMeterRegistry) {
-    this.graphiteMeterRegistry = graphiteMeterRegistry;
+    this.meterRegistry = graphiteMeterRegistry;
   }
 
   private void increment(String metricName) {
-    if (graphiteMeterRegistry != null) {
-      // Metrics.counter(metricName).increment();
-      graphiteMeterRegistry.counter(metricName).increment();
+    if (meterRegistry != null) {
+      meterRegistry.counter(metricName).increment();
 
     }
   }
 
   private void submit(String metricName, long value) {
-    if (graphiteMeterRegistry != null) {
-      // Metrics.gauge(metricName, value);
-      graphiteMeterRegistry.gauge(metricName, value);
-      // gaugeService.submit(metricName, value);
+    if (meterRegistry != null) {
+      meterRegistry.gauge(metricName, value);
     }
   }
 

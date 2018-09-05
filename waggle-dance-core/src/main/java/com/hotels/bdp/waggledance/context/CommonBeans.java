@@ -47,62 +47,6 @@ import org.springframework.context.annotation.Conditional;
 public class CommonBeans {
 
   @Bean
-  public MeterRegistry graphiteMeterRegistry(GraphiteConfiguration graphiteConfiguration) {
-
-    GraphiteConfig graphiteConfig = new GraphiteConfig() {
-
-      @Override
-      public String host() {
-        return graphiteConfiguration.getHost();
-      }
-
-      @Override
-      public int port() {
-        return graphiteConfiguration.getPort();
-      }
-
-      @Override
-      public boolean enabled() {
-        return graphiteConfiguration.isEnabled();
-      }
-
-      @Override
-      public String[] tagsAsPrefix() {
-        return new String[] { graphiteConfiguration.getPrefix() };
-      }
-
-      @Override
-      public TimeUnit durationUnits() {
-        return graphiteConfiguration.getPollIntervalTimeUnit();
-      }
-
-      @Override
-      public GraphiteProtocol protocol() {
-        return GraphiteProtocol.PLAINTEXT;
-      }
-
-      @Override
-      public String get(String arg0) {
-        return null;
-      }
-    };
-
-    GraphiteMeterRegistry graphiteMeterRegistry = null;
-      if (graphiteConfiguration.isEnabled()) {
-        HierarchicalNameMapper wdHierarchicalNameMapper = (id, convention) -> graphiteConfiguration.getPrefix() + "." + HierarchicalNameMapper.DEFAULT.toHierarchicalName(id, convention);
-
-        graphiteMeterRegistry = new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM,
-            wdHierarchicalNameMapper);
-
-        graphiteMeterRegistry.config().namingConvention(NamingConvention.dot);
-      }
-  else {
-        graphiteMeterRegistry = null;
-      }
-    return graphiteMeterRegistry;
-  }
-
-  @Bean
   public HiveConf hiveConf(WaggleDanceConfiguration waggleDanceConfiguration) {
     Map<String, String> confProps = waggleDanceConfiguration.getConfigurationProperties();
 
@@ -115,11 +59,6 @@ public class CommonBeans {
     }
     return hiveConf;
   }
-
-  // @Bean
-  // public MetricRegistry metricRegistry(WaggleDanceConfiguration waggleDanceConfiguration) {
-  // return new MetricRegistry();
-  // }
 
   @Bean
   public PrefixNamingStrategy prefixNamingStrategy(WaggleDanceConfiguration waggleDanceConfiguration) {

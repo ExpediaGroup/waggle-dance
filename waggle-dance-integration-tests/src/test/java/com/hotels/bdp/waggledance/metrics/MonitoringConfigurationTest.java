@@ -13,44 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.context;
+package com.hotels.bdp.waggledance.metrics;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
-import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+
+import com.hotels.bdp.waggledance.context.CommonBeans;
+import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.graphite.GraphiteMeterRegistry;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.junit.Rule;
+import org.junit.Test;
+
+import com.codahale.metrics.MetricRegistry;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.junit.Test;
+import com.hotels.bdp.waggledance.junit.ServerSocketRule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
-import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
-
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { CommonBeansTestContext.class, CommonBeans.class })
-public class CommonBeansTest {
+@ContextConfiguration(classes = { MonitoringConfigurationTestContext.class, MonitoringConfiguration.class })
+public class MonitoringConfigurationTest {
 
-  private @Autowired HiveConf hiveConf;
-  private @Autowired PrefixNamingStrategy namingStrategy;
-
-  @Test
-  public void hiveConf() {
-    assertThat(hiveConf, is(notNullValue()));
-    assertThat(hiveConf.get(CommonBeansTestContext.PROP_1), is(CommonBeansTestContext.VAL_1));
-    assertThat(hiveConf.get(CommonBeansTestContext.PROP_2), is(CommonBeansTestContext.VAL_2));
-  }
+  private @Autowired MeterRegistry meterRegistry;
 
   @Test
-  public void namingStrategy() {
-    assertThat(namingStrategy, is(instanceOf(LowerCasePrefixNamingStrategy.class)));
-    assertThat(namingStrategy.apply(newFederatedInstance("Name", null)), is("name_"));
+  public void meterRegistry() {
+    assertThat(meterRegistry, is(instanceOf(GraphiteMeterRegistry.class)));
   }
-
 }
