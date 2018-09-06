@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.yaml;
 
-import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.CollectionNode;

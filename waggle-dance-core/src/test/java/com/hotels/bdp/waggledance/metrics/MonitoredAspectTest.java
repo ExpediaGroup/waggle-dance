@@ -29,13 +29,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.search.RequiredSearch;
-import io.micrometer.core.instrument.util.HierarchicalNameMapper;
-import io.micrometer.graphite.GraphiteConfig;
-import io.micrometer.graphite.GraphiteMeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MonitoredAspectTest {
@@ -43,7 +41,7 @@ public class MonitoredAspectTest {
   private static final String MONITORED_TYPE = "Type$Anonymous";
   private static final String MONITORED_METHOD = "myMethod";
 
-  private GraphiteMeterRegistry meterRegistry;
+  private MeterRegistry meterRegistry;
   private @Mock Counter callsCounter;
   private @Mock Counter successCounter;
   private @Mock Gauge durationGauge;
@@ -57,7 +55,7 @@ public class MonitoredAspectTest {
   public void init() throws Exception {
     CurrentMonitoredMetaStoreHolder.monitorMetastore(null);
 
-    meterRegistry = new GraphiteMeterRegistry(GraphiteConfig.DEFAULT, Clock.SYSTEM, HierarchicalNameMapper.DEFAULT);
+    meterRegistry = new SimpleMeterRegistry();
 
     when(signature.getDeclaringTypeName()).thenReturn(MONITORED_TYPE);
     when(signature.getName()).thenReturn(MONITORED_METHOD);

@@ -22,7 +22,6 @@ import static org.junit.Assert.assertThat;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
-import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.Test;
 import org.junit.runner.RunWith;

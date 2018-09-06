@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -71,8 +70,8 @@ public class MonitoredAspect {
   }
 
   @VisibleForTesting
-  void setMeterRegistry(GraphiteMeterRegistry graphiteMeterRegistry) {
-    this.meterRegistry = graphiteMeterRegistry;
+  void setMeterRegistry(MeterRegistry meterRegistry) {
+    this.meterRegistry = meterRegistry;
   }
 
   private void increment(String metricName) {
