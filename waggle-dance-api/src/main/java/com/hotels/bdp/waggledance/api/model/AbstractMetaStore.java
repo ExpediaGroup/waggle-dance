@@ -34,6 +34,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import com.hotels.hcommon.ssh.SshSettings;
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "federationType")
 @JsonSubTypes({
     @Type(value = PrimaryMetaStore.class, name = "PRIMARY"),
@@ -44,7 +46,7 @@ public abstract class AbstractMetaStore {
   private List<String> writableDatabaseWhitelist;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
-  private @Valid MetastoreTunnel metastoreTunnel;
+  private @Valid SshSettings sshSettings;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
 
@@ -106,12 +108,12 @@ public abstract class AbstractMetaStore {
     this.remoteMetaStoreUris = remoteMetaStoreUris;
   }
 
-  public MetastoreTunnel getMetastoreTunnel() {
-    return metastoreTunnel;
+  public SshSettings getMetastoreTunnel() {
+    return sshSettings;
   }
 
-  public void setMetastoreTunnel(MetastoreTunnel metastoreTunnel) {
-    this.metastoreTunnel = metastoreTunnel;
+  public void setSshSettings(SshSettings sshSettings) {
+    this.sshSettings = sshSettings;
   }
 
   public ConnectionType getConnectionType() {
@@ -171,16 +173,9 @@ public abstract class AbstractMetaStore {
 
   @Override
   public String toString() {
-    return MoreObjects
-        .toStringHelper(this)
-        .add("name", name)
-        .add("databasePrefix", databasePrefix)
-        .add("federationType", getFederationType())
-        .add("remoteMetaStoreUris", remoteMetaStoreUris)
-        .add("metastoreTunnel", metastoreTunnel)
-        .add("accessControlType", accessControlType)
-        .add("writableDatabaseWhiteList", writableDatabaseWhitelist)
-        .add("status", status)
-        .toString();
+    return MoreObjects.toStringHelper(this).add("name", name).add("databasePrefix", databasePrefix)
+        .add("federationType", getFederationType()).add("remoteMetaStoreUris", remoteMetaStoreUris)
+        .add("metastoreTunnel", sshSettings).add("accessControlType", accessControlType)
+        .add("writableDatabaseWhiteList", writableDatabaseWhitelist).add("status", status).toString();
   }
 }

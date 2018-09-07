@@ -16,7 +16,6 @@
 package com.hotels.bdp.waggledance.api.model;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.Set;
@@ -28,174 +27,172 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import com.hotels.hcommon.ssh.SshSettings;
+import com.hotels.hcommon.ssh.SshSettings.Builder;
+
 public class MetastoreTunnelTest {
 
   private final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
-  private final MetastoreTunnel tunnel = new MetastoreTunnel();
+  private Builder tunnelBuilder;
 
   @Before
   public void before() {
     validator.setProviderClass(HibernateValidator.class);
     validator.afterPropertiesSet();
-
-    tunnel.setKnownHosts("knownHosts");
-    tunnel.setPrivateKeys("privateKey");
-    tunnel.setRoute("hostA -> hostB");
-    tunnel.setTimeout(123);
+    tunnelBuilder = SshSettings
+        .builder()
+        .withKnownHosts("knownHosts")
+        .withPrivateKeys("privateKey")
+        .withRoute("hostA -> hostB")
+        .withSessionTimeout(123);
   }
 
   @Test
   public void typical() {
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
-
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnelBuilder.build());
     assertThat(violations.size(), is(0));
   }
 
   @Test
   public void infiniteTimeout() {
-    tunnel.setTimeout(0);
-
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
-
+    SshSettings tunnel = tunnelBuilder.withSessionTimeout(0).build();
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
     assertThat(violations.size(), is(0));
   }
 
   @Test
   public void portTooHigh() {
-    tunnel.setPort(65536);
-
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    SshSettings tunnel = tunnelBuilder.withSshPort(65536).build();
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void portTooLow() {
-    tunnel.setPort(0);
-
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    SshSettings tunnel = tunnelBuilder.withSshPort(0).build();
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void nullRoute() {
-    tunnel.setRoute(null);
-
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    SshSettings tunnel = tunnelBuilder.withRoute(null).build();
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void emptyRoute() {
-    tunnel.setRoute("");
+    SshSettings tunnel = tunnelBuilder.withRoute("").build();
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void blankRoute() {
-    tunnel.setRoute(" ");
+    SshSettings tunnel = tunnelBuilder.withRoute(" ").build();
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void nullKnownHosts() {
-    tunnel.setKnownHosts(null);
+    SshSettings tunnel = tunnelBuilder.withKnownHosts(null).build();
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void emptyKnownHosts() {
-    tunnel.setKnownHosts("");
+    SshSettings tunnel = tunnelBuilder.withKnownHosts("").build();
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void blankKnownHosts() {
-    tunnel.setKnownHosts(" ");
+    SshSettings tunnel = tunnelBuilder.withKnownHosts(" ").build();
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void nullPrivateKey() {
-    tunnel.setPrivateKeys(null);
+    SshSettings tunnel = tunnelBuilder.withPrivateKeys(null).build();
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void emptyPrivateKey() {
-    tunnel.setPrivateKeys("");
+    SshSettings tunnel = tunnelBuilder.withPrivateKeys("").build();
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void blankPrivateKey() {
-    tunnel.setPrivateKeys(" ");
+    SshSettings tunnel = tunnelBuilder.withPrivateKeys(" ").build();
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void negativeTimeout() {
-    tunnel.setTimeout(-1);
-
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    SshSettings tunnel = tunnelBuilder.withSessionTimeout(-1).build();
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void strictHostKeyCheckingSetToYes() {
-    tunnel.setStrictHostKeyChecking("yes");
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    SshSettings tunnel = tunnelBuilder.withStrictHostKeyChecking(true).build();
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
     assertThat(violations.size(), is(0));
   }
 
   @Test
   public void strictHostKeyCheckingSetToNo() {
-    tunnel.setStrictHostKeyChecking("no");
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    SshSettings tunnel = tunnelBuilder.withStrictHostKeyChecking(false).build();
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
     assertThat(violations.size(), is(0));
   }
 
   @Test
   public void strictHostKeyCheckingSetToIncorrectValue() {
-    tunnel.setStrictHostKeyChecking("foo");
+    SshSettings tunnel = tunnelBuilder.withStrictHostKeyChecking((Boolean) null).build();
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(1));
   }
 
   @Test
   public void strictHostKeyCheckingDefaultsToYes() {
-    assertEquals("yes", tunnel.getStrictHostKeyChecking());
+    SshSettings tunnel = tunnelBuilder.build();
+    assertThat(tunnel.isStrictHostKeyChecking(), is(true));
 
-    Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
+    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
 
     assertThat(violations.size(), is(0));
   }

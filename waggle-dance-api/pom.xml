@@ -94,6 +94,13 @@
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
     </dependency>
+    
+    <!-- SSH library -->
+     <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>hcommon-ssh</artifactId>
+      <version>1.0.2-SNAPSHOT</version>
+    </dependency>
 
     <!-- Test -->
     <dependency>
