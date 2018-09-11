@@ -16,11 +16,9 @@
 package com.hotels.bdp.waggledance.metrics;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 
-@Configuration
 public class MonitoringConfigurationTestContext {
 
   @Bean

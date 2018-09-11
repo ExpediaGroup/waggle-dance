@@ -47,7 +47,7 @@ public class MonitoringConfiguration {
   };
 
   @Bean
-  public GraphiteMeterRegistry graphteMeterRegistry(GraphiteConfiguration graphiteConfiguration) {
+  public GraphiteMeterRegistry graphiteMeterRegistry(GraphiteConfiguration graphiteConfiguration) {
     GraphiteConfig graphiteConfig = DISABLED_GRAPHITE_CONFIG;
     if (graphiteConfiguration.isEnabled()) {
 
