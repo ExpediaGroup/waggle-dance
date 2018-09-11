@@ -15,9 +15,7 @@
  */
 package com.hotels.bdp.waggledance.metrics;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,17 +23,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.graphite.GraphiteMeterRegistry;
+import io.micrometer.jmx.JmxMeterRegistry;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { MonitoringConfigurationTestContext.class, MonitoringConfiguration.class })
 public class MonitoringConfigurationTest {
 
-  private @Autowired MeterRegistry meterRegistry;
+  private @Autowired GraphiteMeterRegistry graphiteMeterRegistry;
+  private @Autowired JmxMeterRegistry jmxMeterRegistry;
 
   @Test
   public void meterRegistry() {
-    assertThat(meterRegistry, is(instanceOf(GraphiteMeterRegistry.class)));
+    assertNotNull(graphiteMeterRegistry);
+    assertNotNull(jmxMeterRegistry);
   }
 }

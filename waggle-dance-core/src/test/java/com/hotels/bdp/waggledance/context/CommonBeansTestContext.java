@@ -16,13 +16,11 @@
 package com.hotels.bdp.waggledance.context;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import com.google.common.collect.ImmutableMap;
 
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 
-@Configuration
 public class CommonBeansTestContext {
 
   static final String PROP_1 = "prop_1";
@@ -33,8 +31,9 @@ public class CommonBeansTestContext {
   @Bean
   WaggleDanceConfiguration waggleDanceConfiguration() {
     WaggleDanceConfiguration conf = new WaggleDanceConfiguration();
-    conf.setConfigurationProperties(
-        ImmutableMap.<String, String> builder().put(PROP_1, VAL_1).put(PROP_2, VAL_2).build());
+    conf
+        .setConfigurationProperties(
+            ImmutableMap.<String, String> builder().put(PROP_1, VAL_1).put(PROP_2, VAL_2).build());
     return conf;
   }
 
