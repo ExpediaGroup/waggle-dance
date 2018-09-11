@@ -81,7 +81,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
         .build();
 
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
-    federatedMetaStore.setSshSettings(sshSettings);
+    federatedMetaStore.setMetastoreTunnel(sshSettings);
 
     factory.newInstance(federatedMetaStore);
     verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());

@@ -46,7 +46,7 @@ public abstract class AbstractMetaStore {
   private List<String> writableDatabaseWhitelist;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
-  private @Valid SshSettings sshSettings;
+  private @Valid SshSettings metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
 
@@ -109,11 +109,12 @@ public abstract class AbstractMetaStore {
   }
 
   public SshSettings getMetastoreTunnel() {
-    return sshSettings;
+    return metastoreTunnel;
   }
 
-  public void setSshSettings(SshSettings sshSettings) {
-    this.sshSettings = sshSettings;
+  public void setMetastoreTunnel(SshSettings sshSettings) {
+
+    metastoreTunnel = sshSettings;
   }
 
   public ConnectionType getConnectionType() {
@@ -173,9 +174,16 @@ public abstract class AbstractMetaStore {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("name", name).add("databasePrefix", databasePrefix)
-        .add("federationType", getFederationType()).add("remoteMetaStoreUris", remoteMetaStoreUris)
-        .add("metastoreTunnel", sshSettings).add("accessControlType", accessControlType)
-        .add("writableDatabaseWhiteList", writableDatabaseWhitelist).add("status", status).toString();
+    return MoreObjects
+        .toStringHelper(this)
+        .add("name", name)
+        .add("databasePrefix", databasePrefix)
+        .add("federationType", getFederationType())
+        .add("remoteMetaStoreUris", remoteMetaStoreUris)
+        .add("metastoreTunnel", metastoreTunnel)
+        .add("accessControlType", accessControlType)
+        .add("writableDatabaseWhiteList", writableDatabaseWhitelist)
+        .add("status", status)
+        .toString();
   }
 }

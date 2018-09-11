@@ -60,7 +60,7 @@ public class MetastoreTunnelTest {
     assertThat(violations.size(), is(0));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void portTooHigh() {
     SshSettings tunnel = tunnelBuilder.withSshPort(65536).build();
     Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
@@ -68,7 +68,7 @@ public class MetastoreTunnelTest {
     assertThat(violations.size(), is(1));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void portTooLow() {
     SshSettings tunnel = tunnelBuilder.withSshPort(0).build();
     Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
@@ -129,7 +129,7 @@ public class MetastoreTunnelTest {
     assertThat(violations.size(), is(1));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void nullPrivateKey() {
     SshSettings tunnel = tunnelBuilder.withPrivateKeys(null).build();
 
@@ -138,7 +138,7 @@ public class MetastoreTunnelTest {
     assertThat(violations.size(), is(1));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void emptyPrivateKey() {
     SshSettings tunnel = tunnelBuilder.withPrivateKeys("").build();
 
@@ -147,7 +147,7 @@ public class MetastoreTunnelTest {
     assertThat(violations.size(), is(1));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void blankPrivateKey() {
     SshSettings tunnel = tunnelBuilder.withPrivateKeys(" ").build();
 
@@ -156,7 +156,7 @@ public class MetastoreTunnelTest {
     assertThat(violations.size(), is(1));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void negativeTimeout() {
     SshSettings tunnel = tunnelBuilder.withSessionTimeout(-1).build();
     Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
@@ -176,15 +176,6 @@ public class MetastoreTunnelTest {
     SshSettings tunnel = tunnelBuilder.withStrictHostKeyChecking(false).build();
     Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
     assertThat(violations.size(), is(0));
-  }
-
-  @Test
-  public void strictHostKeyCheckingSetToIncorrectValue() {
-    SshSettings tunnel = tunnelBuilder.withStrictHostKeyChecking((Boolean) null).build();
-
-    Set<ConstraintViolation<SshSettings>> violations = validator.validate(tunnel);
-
-    assertThat(violations.size(), is(1));
   }
 
   @Test

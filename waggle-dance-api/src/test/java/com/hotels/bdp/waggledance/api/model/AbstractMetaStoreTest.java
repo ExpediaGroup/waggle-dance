@@ -86,15 +86,15 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   @Test
   public void validMetastoreTunnel() {
     SshSettings sshSettings = newSshSettingsBuilder().build();
-    metaStore.setSshSettings(sshSettings);
+    metaStore.setMetastoreTunnel(sshSettings);
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(0));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void invalidMetastoreTunnel() {
     SshSettings sshSettings = newSshSettingsBuilder().withSshPort(-1).build();
-    metaStore.setSshSettings(sshSettings);
+    metaStore.setMetastoreTunnel(sshSettings);
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(1));
   }
