@@ -53,6 +53,7 @@ import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
+import com.hotels.hcommon.ssh.SshSettings;
 
 public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
@@ -123,12 +124,38 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       return this;
     }
 
-    public Builder federate(String name, String remoteMetaStoreUris, AccessControlType accessControlType, String[] mappableDatabases, String[] writeableDatabaseWhiteList) {
+    public Builder federate(
+        String name,
+        String remoteMetaStoreUris,
+        AccessControlType accessControlType,
+        String[] mappableDatabases,
+        String[] writeableDatabaseWhiteList) {
       checkArgument(isNotEmpty(name));
       checkArgument(isNotEmpty(remoteMetaStoreUris));
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris, accessControlType);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
       federatedMetaStore.setWritableDatabaseWhiteList(Arrays.asList(writeableDatabaseWhiteList));
+      federatedMetaStores.add(federatedMetaStore);
+      return this;
+    }
+
+    public Builder federateWithMetastoreTunnel(
+        String name,
+        String remoteMetaStoreUris,
+        String mappableDatabases,
+        String route,
+        String privateKeys,
+        String knownHosts) {
+      FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
+      federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
+
+      SshSettings metastoreTunnel = SshSettings
+          .builder()
+          .withRoute(route)
+          .withPrivateKeys(privateKeys)
+          .withKnownHosts(knownHosts)
+          .build();
+      federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
       federatedMetaStores.add(federatedMetaStore);
       return this;
     }

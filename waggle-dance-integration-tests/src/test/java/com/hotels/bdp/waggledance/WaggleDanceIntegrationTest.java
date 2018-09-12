@@ -623,4 +623,32 @@ public class WaggleDanceIntegrationTest {
         .getForObject("http://localhost:18000/api/admin/federations/waggle_remote", FederatedMetaStore.class);
     assertThat(federatedMetastore.getStatus(), is(MetaStoreStatus.AVAILABLE));
   }
+
+  @Test
+  public void configTunnelling() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federateWithMetastoreTunnel("waggle_remote", remoteServer.getThriftConnectionUri(), REMOTE_DATABASE,
+            "ec2-user@bastion-host -> hadoop@emr-master",
+            "/home/user/.ssh/bastion-key-pair.pem,/home/user/.ssh/emr-key-pair.pem", "/home/user/.ssh/known_hosts")
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    RestTemplate rest = new RestTemplateBuilder().build();
+
+    // Local table
+    Table localTable = localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    assertThat(waggledLocalTable, is(localTable));
+
+    // Remote table
+    String waggledRemoteDbName = REMOTE_DATABASE;
+    assertTypicalRemoteTable(proxy, waggledRemoteDbName);
+    FederatedMetaStore federatedMetastore = rest
+        .getForObject("http://localhost:18000/api/admin/federations/waggle_remote", FederatedMetaStore.class);
+    federatedMetastore.getMetastoreTunnel().getRoute();
+  }
+
 }
