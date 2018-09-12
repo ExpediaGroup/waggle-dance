@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.metrics;
 
 import static com.hotels.bdp.waggledance.metrics.CurrentMonitoredMetaStoreHolder.getMonitorMetastore;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -83,7 +84,7 @@ public class MonitoredAspect {
 
   private void submit(String metricName, long value) {
     if (meterRegistry != null) {
-      meterRegistry.gauge(metricName, value);
+      meterRegistry.timer(metricName).record(Duration.ofMillis(value));
     }
   }
 

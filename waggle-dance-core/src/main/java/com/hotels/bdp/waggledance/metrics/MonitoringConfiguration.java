@@ -69,11 +69,6 @@ public class MonitoringConfiguration {
         }
 
         @Override
-        public String[] tagsAsPrefix() {
-          return new String[] { graphiteConfiguration.getPrefix() };
-        }
-
-        @Override
         public Duration step() {
           return Duration
               .ofMillis(
