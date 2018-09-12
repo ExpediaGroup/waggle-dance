@@ -16,7 +16,6 @@
 package com.hotels.bdp.waggledance.metrics;
 
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -29,8 +28,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.search.RequiredSearch;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -42,9 +39,6 @@ public class MonitoredAspectTest {
   private static final String MONITORED_METHOD = "myMethod";
 
   private MeterRegistry meterRegistry;
-  private @Mock Counter callsCounter;
-  private @Mock Counter successCounter;
-  private @Mock Gauge durationGauge;
   private @Mock ProceedingJoinPoint pjp;
   private @Mock Signature signature;
   private @Mock Monitored monitored;
@@ -79,8 +73,7 @@ public class MonitoredAspectTest {
     assertThat(rs.counter().count(), is(1.0));
 
     rs = meterRegistry.get("timer._Type_Enc__._method_x_.all.duration");
-    assertThat(rs.gauge().value(), is(lessThan(1.0)));
-
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
@@ -99,8 +92,7 @@ public class MonitoredAspectTest {
     assertThat(rs.counter().count(), is(1.0));
 
     rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
-    assertThat(rs.gauge().value(), is(lessThan(1.0)));
-
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
@@ -114,7 +106,7 @@ public class MonitoredAspectTest {
     assertThat(rs.counter().count(), is(1.0));
 
     rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
-    assertThat(rs.gauge().value(), is(lessThan(1.0)));
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
@@ -134,7 +126,7 @@ public class MonitoredAspectTest {
     assertThat(rs.counter().count(), is(1.0));
 
     rs = meterRegistry.get("timer.Type_Anonymous.myMethod.metastoreName.duration");
-    assertThat(rs.gauge().value(), is(lessThan(1.0)));
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
@@ -149,7 +141,7 @@ public class MonitoredAspectTest {
     assertThat(rs.counter().count(), is(1.0));
 
     rs = meterRegistry.get("timer.Type_Anonymous.myMethod.metastoreName.duration");
-    assertThat(rs.gauge().value(), is(lessThan(1.0)));
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
