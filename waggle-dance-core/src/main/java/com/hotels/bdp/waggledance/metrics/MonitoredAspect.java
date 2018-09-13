@@ -78,7 +78,6 @@ public class MonitoredAspect {
   private void increment(String metricName) {
     if (meterRegistry != null) {
       meterRegistry.counter(metricName).increment();
-
     }
   }
 
