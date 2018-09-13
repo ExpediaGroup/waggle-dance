@@ -53,7 +53,7 @@ import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
-import com.hotels.hcommon.ssh.SshSettings;
+import com.hotels.hcommon.ssh.MetastoreTunnel;
 
 public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
@@ -149,12 +149,17 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
 
-      SshSettings metastoreTunnel = SshSettings
-          .builder()
-          .withRoute(route)
-          .withPrivateKeys(privateKeys)
-          .withKnownHosts(knownHosts)
-          .build();
+      // SshSettings sshSettings = SshSettings
+      // .builder()
+      // .withRoute(route)
+      // .withPrivateKeys(privateKeys)
+      // .withKnownHosts(knownHosts)
+      // .build();
+
+      MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
+      metastoreTunnel.setRoute(route);
+      metastoreTunnel.setPrivateKeys(privateKeys);
+      metastoreTunnel.setKnownHosts(knownHosts);
       federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
       federatedMetaStores.add(federatedMetaStore);
       return this;

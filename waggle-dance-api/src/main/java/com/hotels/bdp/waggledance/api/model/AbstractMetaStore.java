@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-import com.hotels.hcommon.ssh.SshSettings;
+import com.hotels.hcommon.ssh.MetastoreTunnel;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "federationType")
 @JsonSubTypes({
@@ -46,7 +46,7 @@ public abstract class AbstractMetaStore {
   private List<String> writableDatabaseWhitelist;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
-  private @Valid SshSettings metastoreTunnel;
+  private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
 
@@ -108,13 +108,13 @@ public abstract class AbstractMetaStore {
     this.remoteMetaStoreUris = remoteMetaStoreUris;
   }
 
-  public SshSettings getMetastoreTunnel() {
+  public MetastoreTunnel getMetastoreTunnel() {
     return metastoreTunnel;
   }
 
-  public void setMetastoreTunnel(SshSettings sshSettings) {
+  public void setMetastoreTunnel(MetastoreTunnel metastoreTunnel) {
 
-    metastoreTunnel = sshSettings;
+    this.metastoreTunnel = metastoreTunnel;
   }
 
   public ConnectionType getConnectionType() {
