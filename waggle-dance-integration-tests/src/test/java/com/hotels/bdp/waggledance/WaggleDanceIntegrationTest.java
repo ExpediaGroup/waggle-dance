@@ -134,9 +134,12 @@ public class WaggleDanceIntegrationTest {
     File partitionAsia = new File(tableUri, "continent=Asia");
     File partitionChina = new File(partitionAsia, "country=China");
 
-    LOG.info(">>>> Partitions added: {}",
-        client.add_partitions(Arrays.asList(newPartition(hiveTable, Arrays.asList("Europe", "UK"), partitionUk),
-            newPartition(hiveTable, Arrays.asList("Asia", "China"), partitionChina))));
+    LOG
+        .info(">>>> Partitions added: {}",
+            client
+                .add_partitions(Arrays
+                    .asList(newPartition(hiveTable, Arrays.asList("Europe", "UK"), partitionUk),
+                        newPartition(hiveTable, Arrays.asList("Asia", "China"), partitionChina))));
   }
 
   private String getWaggleDanceThriftUri() {
@@ -169,8 +172,9 @@ public class WaggleDanceIntegrationTest {
   private Federations stopServerAndGetConfiguration() throws Exception, FileNotFoundException {
     runner.stop();
     // Stopping the server triggers the saving of the config file.
-    Federations federations = YamlFactory.newYaml().loadAs(new FileInputStream(runner.federationConfig()),
-        Federations.class);
+    Federations federations = YamlFactory
+        .newYaml()
+        .loadAs(new FileInputStream(runner.federationConfig()), Federations.class);
     return federations;
   }
 
@@ -230,10 +234,11 @@ public class WaggleDanceIntegrationTest {
 
     List<String> partitionNames = Arrays.asList("continent=Europe/country=UK", "continent=Asia/country=China");
 
-    List<Partition> remotePartitions = remoteServer.client().getPartitionsByNames(REMOTE_DATABASE, REMOTE_TABLE,
-        partitionNames);
-    List<Partition> waggledRemotePartitions = proxy.getPartitionsByNames(waggledRemoteDbName, REMOTE_TABLE,
-        partitionNames);
+    List<Partition> remotePartitions = remoteServer
+        .client()
+        .getPartitionsByNames(REMOTE_DATABASE, REMOTE_TABLE, partitionNames);
+    List<Partition> waggledRemotePartitions = proxy
+        .getPartitionsByNames(waggledRemoteDbName, REMOTE_TABLE, partitionNames);
     assertThat(waggledRemotePartitions.size(), is(2));
     for (int i = 0; i < waggledRemotePartitions.size(); ++i) {
       Partition remotePartition = remotePartitions.get(i);
@@ -611,8 +616,8 @@ public class WaggleDanceIntegrationTest {
     runWaggleDance(runner);
 
     RestTemplate rest = new RestTemplateBuilder().build();
-    PrimaryMetaStore primaryMetastore = rest.getForObject("http://localhost:18000/api/admin/federations/primary",
-        PrimaryMetaStore.class);
+    PrimaryMetaStore primaryMetastore = rest
+        .getForObject("http://localhost:18000/api/admin/federations/primary", PrimaryMetaStore.class);
     assertThat(primaryMetastore.getStatus(), is(MetaStoreStatus.AVAILABLE));
     FederatedMetaStore federatedMetastore = rest
         .getForObject("http://localhost:18000/api/admin/federations/waggle_remote", FederatedMetaStore.class);
