@@ -2,9 +2,9 @@
 ### Changed
 * Minimum supported Java version is now 8 (was 7). See [#108](https://github.com/HotelsDotCom/waggle-dance/issues/108).
 * Waggle Dance updated to use Spring-Boot-2.0.4 instead of Spring Platform BOM. See [#105](https://github.com/HotelsDotCom/waggle-dance/issues/105).
-* Changed JVM Metrics:
-    * `memory.heap.used` -> `sum(jvm.memory.used.area.heap.id.*), 'Sum of all kinds of Heap Spaces')`
-    * `memory.heap.max` -> `sum(jvm.memory.max.area.heap.id.*), 'Sum of all Max used Heap Spaces'`
+* Changed JVM Metrics, the following modifications are needed if you are tracking these metrics and want to achieve equivalency:
+    * `memory.heap.used` -> `sum(jvm.memory.used.area.heap.id.*)` - i.e. you now need to sum up all the heap spaces
+    * `memory.heap.max` -> `sum(jvm.memory.max.area.heap.id.*)` - i.e. you now need to sum up all the max used heap spaces
     * `threads.*` -> `jvm.threads.*`
 
 ## [2.4.2] - 2018-08-21
