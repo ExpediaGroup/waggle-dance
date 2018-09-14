@@ -68,6 +68,7 @@ import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.Federations;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
+import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.junit.ServerSocketRule;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
@@ -626,12 +627,14 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void metastoreTunnelConfiguration() throws Exception {
+    String route = "ec2-user@bastion-host -> hadoop@emr-master";
+    String privateKeys = "/home/user/.ssh/bastion-key-pair.pem,/home/user/.ssh/emr-key-pair.pem";
+    String knownHosts = "/home/user/.ssh/known_hosts";
     runner = WaggleDanceRunner
         .builder(configLocation)
         .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
-        .federateWithMetastoreTunnel("waggle_remote", remoteServer.getThriftConnectionUri(), REMOTE_DATABASE,
-            "ec2-user@bastion-host -> hadoop@emr-master",
-            "/home/user/.ssh/bastion-key-pair.pem,/home/user/.ssh/emr-key-pair.pem", "/home/user/.ssh/known_hosts")
+        .federateWithMetastoreTunnel("waggle_remote", remoteServer.getThriftConnectionUri(), REMOTE_DATABASE, route,
+            privateKeys, knownHosts)
         .build();
 
     runWaggleDance(runner);
@@ -639,7 +642,10 @@ public class WaggleDanceIntegrationTest {
     FederatedMetaStore federatedMetastore = rest
         .getForObject("http://localhost:18000/api/admin/federations/waggle_remote", FederatedMetaStore.class);
 
-    assertThat(federatedMetastore.getMetastoreTunnel().getRoute(), is("ec2-user@bastion-host -> hadoop@emr-master"));
+    MetastoreTunnel metastoreTunnel = federatedMetastore.getMetastoreTunnel();
+    assertThat(metastoreTunnel.getRoute(), is(route));
+    assertThat(metastoreTunnel.getKnownHosts(), is(knownHosts));
+    assertThat(metastoreTunnel.getPrivateKeys(), is(privateKeys));
   }
 
 }
