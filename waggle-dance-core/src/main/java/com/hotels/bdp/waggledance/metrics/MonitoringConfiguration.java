@@ -49,6 +49,19 @@ public class MonitoringConfiguration {
   @Bean
   public GraphiteMeterRegistry graphiteMeterRegistry(GraphiteConfiguration graphiteConfiguration) {
     GraphiteConfig graphiteConfig = DISABLED_GRAPHITE_CONFIG;
+
+    /*
+     * This is being done temporarily until micrometer-registry-graphite 1.0.7 gets released which fixes the issue.
+     * https://github.com/micrometer-metrics/micrometer/issues/853
+     * https://github.com/micrometer-metrics/micrometer/milestone/31
+     */
+    if (!graphiteConfiguration.isEnabled()) {
+      return new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM) {
+        @Override
+        public void close() {};
+      };
+    }
+
     if (graphiteConfiguration.isEnabled()) {
 
       graphiteConfig = new GraphiteConfig() {
