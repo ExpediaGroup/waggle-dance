@@ -70,26 +70,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   public void hiveConfForTunneling() throws Exception {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
 
-    // SshSettings metastoreTunnel = SshSettings
-    // .builder()
-    // .withKnownHosts("knownHosts")
-    // .withRoute("a -> b -> c")
-    // .withPrivateKeys("privateKeys")
-    // .withSshPort(2222)
-    // .withSessionTimeout(123)
-    // .withLocalHost("local-machine")
-    // .build();
-
-    // MetastoreTunnel.Builder metastoreTunnelBuilder = new MetastoreTunnel.Builder();
-    // MetastoreTunnel metastoreTunnel = (MetastoreTunnel) metastoreTunnelBuilder
-    // .withKnownHosts("knownHosts")
-    // .withRoute("a -> b -> c")
-    // .withPrivateKeys("privateKeys")
-    // .withSshPort(2222)
-    // .withSessionTimeout(123)
-    // .withLocalHost("local-machine")
-    // .build();
-
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
     metastoreTunnel.setLocalHost("local-machine");
     metastoreTunnel.setPort(2222);

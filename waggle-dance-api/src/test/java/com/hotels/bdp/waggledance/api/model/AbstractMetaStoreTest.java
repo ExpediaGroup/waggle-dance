@@ -41,30 +41,11 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
     this.metaStore = metaStore;
   }
 
-  // private static Builder newSshSettingsBuilder() {
-  // String route = "user@jumpbox -> host";
-  // String privateKeys = "privateKeys";
-  // String knownHosts = "knownHosts";
-  // // Builder sshSettings = SshSettings
-  // // .builder()
-  // // .withRoute("user@jumpbox -> host")
-  // // .withPrivateKeys("privateKeys")
-  // // .withKnownHosts("knownHosts");
-  //
-  // Builder metasoreTunnel = SshSettings
-  // .builder()
-  // .withRoute(route)
-  // .withPrivateKeys(privateKeys)
-  // .withKnownHosts(knownHosts);
-  // return metasoreTunnel;
-  // }
-
   private static MetastoreTunnel newMetastoreTunnel() {
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
     metastoreTunnel.setRoute("user@jumpbox -> host");
-    metastoreTunnel.setKnownHosts("knownHosts");
     metastoreTunnel.setPrivateKeys("privateKeys");
-
+    metastoreTunnel.setKnownHosts("knownHosts");
     return metastoreTunnel;
   }
 
@@ -99,8 +80,6 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   @Test
   public void validMetastoreTunnel() {
-    // SshSettings sshSettings = newSshSettingsBuilder().build();
-    // metaStore.setMetastoreTunnel(sshSettings);
     metaStore.setMetastoreTunnel(newMetastoreTunnel());
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(0));
@@ -108,11 +87,6 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   @Test
   public void invalidMetastoreTunnel() {
-    // SshSettings sshSettings = newSshSettingsBuilder().withSshPort(-1).build();
-    // Builder metastoreTunnel = newSshSettingsBuilder();
-    // metastoreTunnel.withSshPort(-1);
-    // metaStore.setMetastoreTunnel(metastoreTunnel.build());
-
     MetastoreTunnel metastoreTunnel = newMetastoreTunnel();
     metastoreTunnel.setPort(-1);
     metaStore.setMetastoreTunnel(metastoreTunnel);
