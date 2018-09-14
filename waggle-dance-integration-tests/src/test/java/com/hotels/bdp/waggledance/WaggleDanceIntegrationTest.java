@@ -635,9 +635,11 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
+    RestTemplate rest = new RestTemplateBuilder().build();
+    FederatedMetaStore federatedMetastore = rest
+        .getForObject("http://localhost:18000/api/admin/federations/waggle_remote", FederatedMetaStore.class);
 
-    // TODO: find out how to correctly put into the yaml file metastoreTunnel
-    // currently it does not show up in the config, even when using federateWithMetastoreTunnel
+    assertThat(federatedMetastore.getMetastoreTunnel().getRoute(), is("ec2-user@bastion-host -> hadoop@emr-master"));
   }
 
 }

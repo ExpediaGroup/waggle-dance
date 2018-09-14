@@ -111,7 +111,6 @@ public abstract class AbstractMetaStore {
   }
 
   public void setMetastoreTunnel(MetastoreTunnel metastoreTunnel) {
-
     this.metastoreTunnel = metastoreTunnel;
   }
 

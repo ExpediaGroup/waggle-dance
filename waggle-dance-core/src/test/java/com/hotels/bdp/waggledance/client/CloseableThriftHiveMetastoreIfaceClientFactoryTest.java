@@ -91,12 +91,12 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     // .build();
 
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
-    metastoreTunnel.setKnownHosts("knownHosts");
-    metastoreTunnel.setRoute("a -> b -> c");
-    metastoreTunnel.setPrivateKeys("privateKeys");
-    metastoreTunnel.setPort(2222);
-    metastoreTunnel.setTimeout(123);
     metastoreTunnel.setLocalHost("local-machine");
+    metastoreTunnel.setPort(2222);
+    metastoreTunnel.setRoute("a -> b -> c");
+    metastoreTunnel.setKnownHosts("knownHosts");
+    metastoreTunnel.setPrivateKeys("privateKeys");
+    metastoreTunnel.setTimeout(123);
 
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);

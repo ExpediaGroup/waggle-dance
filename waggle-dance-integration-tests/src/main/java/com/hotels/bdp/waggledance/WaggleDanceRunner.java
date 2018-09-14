@@ -71,7 +71,6 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
     private final YamlStorageConfiguration yamlStorageConfiguration = new YamlStorageConfiguration();
     private final GraphiteConfiguration graphiteConfiguration = new GraphiteConfiguration();
     private final List<FederatedMetaStore> federatedMetaStores = new ArrayList<>();
-    private MetastoreTunnel metastoreTunnel;
     private PrimaryMetaStore primaryMetaStore;
 
     private Builder(File workingDirectory) {
@@ -150,19 +149,6 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
 
-      // SshSettings metastoreTunnel = SshSettings
-      // .builder()
-      // .withRoute(route)
-      // .withPrivateKeys(privateKeys)
-      // .withKnownHosts(knownHosts)
-      // .build();
-
-      // MetastoreTunnel metastoreTunnel = (MetastoreTunnel) new MetastoreTunnel.Builder()
-      // .withRoute(route)
-      // .withPrivateKeys(privateKeys)
-      // .withKnownHosts(knownHosts)
-      // .build();
-      // this.metastoreTunnel = metastoreTunnel;
       MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
       metastoreTunnel.setRoute(route);
       metastoreTunnel.setPrivateKeys(privateKeys);
