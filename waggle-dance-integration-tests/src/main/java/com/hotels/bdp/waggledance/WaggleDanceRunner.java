@@ -47,13 +47,13 @@ import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.Federations;
+import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
-import com.hotels.hcommon.ssh.MetastoreTunnel;
 
 public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
@@ -71,6 +71,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
     private final YamlStorageConfiguration yamlStorageConfiguration = new YamlStorageConfiguration();
     private final GraphiteConfiguration graphiteConfiguration = new GraphiteConfiguration();
     private final List<FederatedMetaStore> federatedMetaStores = new ArrayList<>();
+    private MetastoreTunnel metastoreTunnel;
     private PrimaryMetaStore primaryMetaStore;
 
     private Builder(File workingDirectory) {
@@ -149,13 +150,19 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
 
-      // SshSettings sshSettings = SshSettings
+      // SshSettings metastoreTunnel = SshSettings
       // .builder()
       // .withRoute(route)
       // .withPrivateKeys(privateKeys)
       // .withKnownHosts(knownHosts)
       // .build();
 
+      // MetastoreTunnel metastoreTunnel = (MetastoreTunnel) new MetastoreTunnel.Builder()
+      // .withRoute(route)
+      // .withPrivateKeys(privateKeys)
+      // .withKnownHosts(knownHosts)
+      // .build();
+      // this.metastoreTunnel = metastoreTunnel;
       MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
       metastoreTunnel.setRoute(route);
       metastoreTunnel.setPrivateKeys(privateKeys);

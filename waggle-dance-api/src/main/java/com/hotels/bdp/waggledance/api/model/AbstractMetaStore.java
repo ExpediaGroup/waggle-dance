@@ -34,8 +34,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-import com.hotels.hcommon.ssh.MetastoreTunnel;
-
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "federationType")
 @JsonSubTypes({
     @Type(value = PrimaryMetaStore.class, name = "PRIMARY"),

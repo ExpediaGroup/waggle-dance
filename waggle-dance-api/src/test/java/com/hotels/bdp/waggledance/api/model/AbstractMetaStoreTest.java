@@ -28,8 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import com.hotels.hcommon.ssh.MetastoreTunnel;
-
 public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   protected final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
@@ -43,18 +41,31 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
     this.metaStore = metaStore;
   }
 
-  private static MetastoreTunnel newSshSettingsBuilder() {
-    // Builder sshSettings = SshSettings
-    // .builder()
-    // .withRoute("user@jumpbox -> host")
-    // .withPrivateKeys("privateKeys")
-    // .withKnownHosts("knownHosts");
+  // private static Builder newSshSettingsBuilder() {
+  // String route = "user@jumpbox -> host";
+  // String privateKeys = "privateKeys";
+  // String knownHosts = "knownHosts";
+  // // Builder sshSettings = SshSettings
+  // // .builder()
+  // // .withRoute("user@jumpbox -> host")
+  // // .withPrivateKeys("privateKeys")
+  // // .withKnownHosts("knownHosts");
+  //
+  // Builder metasoreTunnel = SshSettings
+  // .builder()
+  // .withRoute(route)
+  // .withPrivateKeys(privateKeys)
+  // .withKnownHosts(knownHosts);
+  // return metasoreTunnel;
+  // }
 
-    MetastoreTunnel metasoreTunnel = new MetastoreTunnel();
-    metasoreTunnel.setRoute("user@jumpbox -> host");
-    metasoreTunnel.setPrivateKeys("privateKeys");
-    metasoreTunnel.setKnownHosts("knownHosts");
-    return metasoreTunnel;
+  private static MetastoreTunnel newMetastoreTunnel() {
+    MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
+    metastoreTunnel.setRoute("user@jumpbox -> host");
+    metastoreTunnel.setKnownHosts("knownHosts");
+    metastoreTunnel.setPrivateKeys("privateKeys");
+
+    return metastoreTunnel;
   }
 
   @Before
@@ -89,17 +100,23 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   @Test
   public void validMetastoreTunnel() {
     // SshSettings sshSettings = newSshSettingsBuilder().build();
-    metaStore.setMetastoreTunnel(newSshSettingsBuilder());
+    // metaStore.setMetastoreTunnel(sshSettings);
+    metaStore.setMetastoreTunnel(newMetastoreTunnel());
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(0));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void invalidMetastoreTunnel() {
     // SshSettings sshSettings = newSshSettingsBuilder().withSshPort(-1).build();
-    MetastoreTunnel metastoreTunnel = newSshSettingsBuilder();
+    // Builder metastoreTunnel = newSshSettingsBuilder();
+    // metastoreTunnel.withSshPort(-1);
+    // metaStore.setMetastoreTunnel(metastoreTunnel.build());
+
+    MetastoreTunnel metastoreTunnel = newMetastoreTunnel();
     metastoreTunnel.setPort(-1);
     metaStore.setMetastoreTunnel(metastoreTunnel);
+
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(1));
   }

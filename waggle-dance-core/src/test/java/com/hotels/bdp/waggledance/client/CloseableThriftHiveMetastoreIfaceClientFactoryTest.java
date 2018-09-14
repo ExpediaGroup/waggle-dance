@@ -34,7 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.hcommon.ssh.MetastoreTunnel;
+import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
@@ -70,8 +70,18 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   public void hiveConfForTunneling() throws Exception {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
 
-    // SshSettings sshSettings = SshSettings
+    // SshSettings metastoreTunnel = SshSettings
     // .builder()
+    // .withKnownHosts("knownHosts")
+    // .withRoute("a -> b -> c")
+    // .withPrivateKeys("privateKeys")
+    // .withSshPort(2222)
+    // .withSessionTimeout(123)
+    // .withLocalHost("local-machine")
+    // .build();
+
+    // MetastoreTunnel.Builder metastoreTunnelBuilder = new MetastoreTunnel.Builder();
+    // MetastoreTunnel metastoreTunnel = (MetastoreTunnel) metastoreTunnelBuilder
     // .withKnownHosts("knownHosts")
     // .withRoute("a -> b -> c")
     // .withPrivateKeys("privateKeys")
@@ -86,7 +96,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     metastoreTunnel.setPrivateKeys("privateKeys");
     metastoreTunnel.setPort(2222);
     metastoreTunnel.setTimeout(123);
-    metastoreTunnel.setLocalhost("local-machine");
+    metastoreTunnel.setLocalHost("local-machine");
 
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
