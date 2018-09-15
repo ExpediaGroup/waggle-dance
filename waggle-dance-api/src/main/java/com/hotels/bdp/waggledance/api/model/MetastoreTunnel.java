@@ -15,12 +15,6 @@
  */
 package com.hotels.bdp.waggledance.api.model;
 
-import com.hotels.hcommon.ssh.SshSettingsFactory;
+import com.hotels.hcommon.ssh.SshSettingsMapper;
 
-public class MetastoreTunnel extends SshSettingsFactory {
-
-  public MetastoreTunnel() {
-    super();
-  }
-
-}
+public class MetastoreTunnel extends SshSettingsMapper {}
