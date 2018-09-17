@@ -24,8 +24,6 @@ public class MonitoringConfigurationTestContext {
   @Bean
   GraphiteConfiguration graphiteConfiguration() {
     GraphiteConfiguration conf = new GraphiteConfiguration();
-    conf.setHost("localhost");
-    conf.setPrefix("graphitePrefix");
     return conf;
   }
 
