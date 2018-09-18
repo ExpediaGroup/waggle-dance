@@ -100,7 +100,7 @@ public class MetastoreTunnelTest {
 
   @Test
   public void emptyKnownHosts() {
-    tunnel.setKnownHosts(" ");
+    tunnel.setKnownHosts("");
     Set<ConstraintViolation<MetastoreTunnel>> violations = validator.validate(tunnel);
     assertThat(violations.size(), is(1));
   }
