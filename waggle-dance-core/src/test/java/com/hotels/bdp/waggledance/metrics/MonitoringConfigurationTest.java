@@ -15,63 +15,27 @@
  */
 package com.hotels.bdp.waggledance.metrics;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
 
-import java.io.Closeable;
-import java.util.Iterator;
-import java.util.Set;
-
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.graphite.GraphiteReporter;
+import io.micrometer.graphite.GraphiteMeterRegistry;
+import io.micrometer.jmx.JmxMeterRegistry;
 
-import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
-
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = { MonitoringConfigurationTestContext.class, MonitoringConfiguration.class })
 public class MonitoringConfigurationTest {
 
-  private final MetricRegistry metricRegistry = new MetricRegistry();
-  private final GraphiteConfiguration graphiteConfiguration = new GraphiteConfiguration();
-
-  private final MonitoringConfiguration monitoringConfiguration = new MonitoringConfiguration();
-
-  @Before
-  public void setUp() {
-    monitoringConfiguration.setMetricRegistry(metricRegistry);
-  }
+  private @Autowired GraphiteMeterRegistry graphiteMeterRegistry;
+  private @Autowired JmxMeterRegistry jmxMeterRegistry;
 
   @Test
-  public void disabledGraphiteConfiguration() {
-    monitoringConfiguration.setGraphiteConfiguration(graphiteConfiguration);
-    monitoringConfiguration.init();
-    Set<Closeable> reporters = monitoringConfiguration.getReporters();
-    assertThat(reporters.size(), is(1));
-    assertThat(reporters.iterator().next(), instanceOf(JmxReporter.class));
+  public void meterRegistry() {
+    assertNotNull(graphiteMeterRegistry);
+    assertNotNull(jmxMeterRegistry);
   }
-
-  @Test
-  public void enabledGraphiteConfiguration() {
-    graphiteConfiguration.setHost("host");
-    graphiteConfiguration.setPort(42);
-    graphiteConfiguration.init();
-    monitoringConfiguration.setGraphiteConfiguration(graphiteConfiguration);
-    monitoringConfiguration.init();
-    Set<Closeable> reporters = monitoringConfiguration.getReporters();
-    assertThat(reporters.size(), is(2));
-
-    // if one reporter is JmxReporter, then the other is GraphiteReporter
-    Iterator<Closeable> iterator = reporters.iterator();
-    Closeable firstReporter = iterator.next();
-    Closeable secondReporter = iterator.next();
-    if (JmxReporter.class.isInstance(firstReporter)) {
-      assertThat(secondReporter, instanceOf(GraphiteReporter.class));
-    } else {
-      assertThat(secondReporter, instanceOf(JmxReporter.class));
-    }
-  }
-
 }

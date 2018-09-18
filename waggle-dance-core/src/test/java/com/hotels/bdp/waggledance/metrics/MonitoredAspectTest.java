@@ -18,8 +18,6 @@ package com.hotels.bdp.waggledance.metrics;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -27,11 +25,12 @@ import org.aspectj.lang.Signature;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.actuate.metrics.CounterService;
-import org.springframework.boot.actuate.metrics.GaugeService;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.search.RequiredSearch;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MonitoredAspectTest {
@@ -39,8 +38,7 @@ public class MonitoredAspectTest {
   private static final String MONITORED_TYPE = "Type$Anonymous";
   private static final String MONITORED_METHOD = "myMethod";
 
-  private @Mock CounterService counterService;
-  private @Mock GaugeService gaugeService;
+  private MeterRegistry meterRegistry;
   private @Mock ProceedingJoinPoint pjp;
   private @Mock Signature signature;
   private @Mock Monitored monitored;
@@ -50,13 +48,15 @@ public class MonitoredAspectTest {
   @Before
   public void init() throws Exception {
     CurrentMonitoredMetaStoreHolder.monitorMetastore(null);
+
+    meterRegistry = new SimpleMeterRegistry();
+
     when(signature.getDeclaringTypeName()).thenReturn(MONITORED_TYPE);
     when(signature.getName()).thenReturn(MONITORED_METHOD);
     when(pjp.getSignature()).thenReturn(signature);
 
     aspect = new MonitoredAspect();
-    aspect.setCounterService(counterService);
-    aspect.setGaugeService(gaugeService);
+    aspect.setMeterRegistry(meterRegistry);
   }
 
   @Test
@@ -64,18 +64,16 @@ public class MonitoredAspectTest {
     reset(signature);
     when(signature.getDeclaringTypeName()).thenReturn("$Type<Enc>$");
     when(signature.getName()).thenReturn("<method$x>");
-
     aspect.monitor(pjp, monitored);
 
-    ArgumentCaptor<String> metricCaptor = ArgumentCaptor.forClass(String.class);
-    verify(counterService, times(2)).increment(metricCaptor.capture());
-    assertThat(metricCaptor.getAllValues().get(0), is("counter._Type_Enc__._method_x_.all.calls"));
-    assertThat(metricCaptor.getAllValues().get(1), is("counter._Type_Enc__._method_x_.all.success"));
+    RequiredSearch rs = meterRegistry.get("counter._Type_Enc__._method_x_.all.calls");
+    assertThat(rs.counter().count(), is(1.0));
 
-    metricCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<Long> durationCaptor = ArgumentCaptor.forClass(Long.class);
-    verify(gaugeService).submit(metricCaptor.capture(), durationCaptor.capture());
-    assertThat(metricCaptor.getValue(), is("timer._Type_Enc__._method_x_.all.duration"));
+    rs = meterRegistry.get("counter._Type_Enc__._method_x_.all.success");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("timer._Type_Enc__._method_x_.all.duration");
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
@@ -87,30 +85,28 @@ public class MonitoredAspectTest {
       // Expected
     }
 
-    ArgumentCaptor<String> metricCaptor = ArgumentCaptor.forClass(String.class);
-    verify(counterService, times(2)).increment(metricCaptor.capture());
-    assertThat(metricCaptor.getAllValues().get(0), is("counter.Type_Anonymous.myMethod.all.calls"));
-    assertThat(metricCaptor.getAllValues().get(1), is("counter.Type_Anonymous.myMethod.all.failure"));
+    RequiredSearch rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.calls");
+    assertThat(rs.counter().count(), is(1.0));
 
-    metricCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<Long> durationCaptor = ArgumentCaptor.forClass(Long.class);
-    verify(gaugeService).submit(metricCaptor.capture(), durationCaptor.capture());
-    assertThat(metricCaptor.getValue(), is("timer.Type_Anonymous.myMethod.all.duration"));
+    rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.failure");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
   public void monitorSuccesses() throws Throwable {
     aspect.monitor(pjp, monitored);
 
-    ArgumentCaptor<String> metricCaptor = ArgumentCaptor.forClass(String.class);
-    verify(counterService, times(2)).increment(metricCaptor.capture());
-    assertThat(metricCaptor.getAllValues().get(0), is("counter.Type_Anonymous.myMethod.all.calls"));
-    assertThat(metricCaptor.getAllValues().get(1), is("counter.Type_Anonymous.myMethod.all.success"));
+    RequiredSearch rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.calls");
+    assertThat(rs.counter().count(), is(1.0));
 
-    metricCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<Long> durationCaptor = ArgumentCaptor.forClass(Long.class);
-    verify(gaugeService).submit(metricCaptor.capture(), durationCaptor.capture());
-    assertThat(metricCaptor.getValue(), is("timer.Type_Anonymous.myMethod.all.duration"));
+    rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.success");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
@@ -123,15 +119,14 @@ public class MonitoredAspectTest {
       // Expected
     }
 
-    ArgumentCaptor<String> metricCaptor = ArgumentCaptor.forClass(String.class);
-    verify(counterService, times(2)).increment(metricCaptor.capture());
-    assertThat(metricCaptor.getAllValues().get(0), is("counter.Type_Anonymous.myMethod.metastoreName.calls"));
-    assertThat(metricCaptor.getAllValues().get(1), is("counter.Type_Anonymous.myMethod.metastoreName.failure"));
+    RequiredSearch rs = meterRegistry.get("counter.Type_Anonymous.myMethod.metastoreName.calls");
+    assertThat(rs.counter().count(), is(1.0));
 
-    metricCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<Long> durationCaptor = ArgumentCaptor.forClass(Long.class);
-    verify(gaugeService).submit(metricCaptor.capture(), durationCaptor.capture());
-    assertThat(metricCaptor.getValue(), is("timer.Type_Anonymous.myMethod.metastoreName.duration"));
+    rs = meterRegistry.get("counter.Type_Anonymous.myMethod.metastoreName.failure");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("timer.Type_Anonymous.myMethod.metastoreName.duration");
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
@@ -139,25 +134,23 @@ public class MonitoredAspectTest {
     CurrentMonitoredMetaStoreHolder.monitorMetastore("metastoreName");
     aspect.monitor(pjp, monitored);
 
-    ArgumentCaptor<String> metricCaptor = ArgumentCaptor.forClass(String.class);
-    verify(counterService, times(2)).increment(metricCaptor.capture());
-    assertThat(metricCaptor.getAllValues().get(0), is("counter.Type_Anonymous.myMethod.metastoreName.calls"));
-    assertThat(metricCaptor.getAllValues().get(1), is("counter.Type_Anonymous.myMethod.metastoreName.success"));
+    RequiredSearch rs = meterRegistry.get("counter.Type_Anonymous.myMethod.metastoreName.calls");
+    assertThat(rs.counter().count(), is(1.0));
 
-    metricCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<Long> durationCaptor = ArgumentCaptor.forClass(Long.class);
-    verify(gaugeService).submit(metricCaptor.capture(), durationCaptor.capture());
-    assertThat(metricCaptor.getValue(), is("timer.Type_Anonymous.myMethod.metastoreName.duration"));
+    rs = meterRegistry.get("counter.Type_Anonymous.myMethod.metastoreName.success");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("timer.Type_Anonymous.myMethod.metastoreName.duration");
+    assertThat(rs.timer().count(), is(1L));
   }
 
   @Test
-  public void nullServices() throws Throwable {
+  public void nullMeterRegistry() throws Throwable {
     reset(signature);
     when(signature.getDeclaringTypeName()).thenReturn("Type");
     when(signature.getName()).thenReturn("method");
 
-    aspect.setCounterService(null);
-    aspect.setGaugeService(null);
+    aspect.setMeterRegistry(null);
     aspect.monitor(pjp, monitored);
   }
 

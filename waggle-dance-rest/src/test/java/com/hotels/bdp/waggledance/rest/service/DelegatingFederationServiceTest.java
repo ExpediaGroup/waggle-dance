@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
@@ -34,9 +34,6 @@ import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DelegatingFederationServiceTest {
-
-  private static final String FEDERATED_METASTORE1_URI = "thrift://federatedMetaStore1:9083";
-  private static final String FEDERATED_METASTORE2_URI = "thrift://federatedMetaStore2:9083";
 
   private @Mock FederationService federationService;
   private @Mock FederationStatusService federationStatusService;
@@ -47,10 +44,7 @@ public class DelegatingFederationServiceTest {
 
   @Before
   public void init() {
-    when(federatedMetaStore1.getRemoteMetaStoreUris()).thenReturn(FEDERATED_METASTORE1_URI);
-    when(federatedMetaStore2.getRemoteMetaStoreUris()).thenReturn(FEDERATED_METASTORE2_URI);
     when(federationService.get("federatedMetaStore1")).thenReturn(federatedMetaStore1);
-    when(federationService.get("federatedMetaStore2")).thenReturn(federatedMetaStore2);
     when(federationService.getAll()).thenReturn(Arrays.asList(federatedMetaStore1, federatedMetaStore2));
     when(federationStatusService.checkStatus(federatedMetaStore1)).thenReturn(MetaStoreStatus.AVAILABLE);
     when(federationStatusService.checkStatus(federatedMetaStore2)).thenReturn(MetaStoreStatus.UNAVAILABLE);

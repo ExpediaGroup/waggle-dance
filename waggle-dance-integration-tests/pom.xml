@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -19,23 +20,12 @@
       <groupId>com.hotels</groupId>
       <artifactId>waggle-dance-core</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    
-    <!-- Dropwizard -->
-    <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-core</artifactId>
-      <version>${dropwizard.metrics.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-graphite</artifactId>
-      <version>${dropwizard.metrics.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-jvm</artifactId>
-      <version>${dropwizard.metrics.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>log4j-slf4j-impl</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Hive -->
@@ -67,6 +57,10 @@
           <groupId>javax.servlet</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>log4j-slf4j-impl</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -92,12 +86,24 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>spring-boot-starter-logging</artifactId>
+          <groupId>org.springframework.boot</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.github.stefanbirkner</groupId>
       <artifactId>system-rules</artifactId>
-      <version>1.16.0</version>
+      <version>1.18.0</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>junit-dep</artifactId>
+          <groupId>junit</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>fm.last.commons</groupId>

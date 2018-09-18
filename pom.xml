@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -33,7 +34,7 @@
 
   <properties>
     <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
-    <spring-platform.version>Brussels-SR5</spring-platform.version>
+    <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
     <hadoop.version>2.7.2</hadoop.version>
     <hive.version>2.3.3</hive.version>
     <dropwizard.metrics.version>3.1.5</dropwizard.metrics.version>
@@ -41,14 +42,46 @@
     <jdk.version>1.8</jdk.version>
     <aspectj.version>1.8.9</aspectj.version>
     <beeju.version>1.2.1</beeju.version>
+    <guava.version>23.0</guava.version>
+    <guice.version>4.0</guice.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>io.spring.platform</groupId>
-        <artifactId>platform-bom</artifactId>
-        <version>${spring-platform.version}</version>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>${guice.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.el</groupId>
+        <artifactId>javax.el-api</artifactId>
+        <version>3.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.web</groupId>
+        <artifactId>javax.el</artifactId>
+        <version>2.2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -81,6 +114,11 @@
         <artifactId>hive-exec</artifactId>
         <version>${hive.version}</version>
         <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>1.23</version>
       </dependency>
       <dependency>
         <groupId>org.apache.derby</groupId>
@@ -193,5 +231,5 @@
       </plugins>
     </pluginManagement>
   </build>
-  
+
 </project>

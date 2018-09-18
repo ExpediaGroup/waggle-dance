@@ -44,9 +44,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import jersey.repackaged.com.google.common.collect.Lists;
-
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
@@ -107,10 +106,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     service.onRegister(newMetastore);
     List<DatabaseMapping> databaseMappings = service.databaseMappings();
     assertThat(databaseMappings.size(), is(3));
-    assertThat(ImmutableSet
-        .of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
-            databaseMappings.get(2).getDatabasePrefix()),
-        is(ImmutableSet.of("", DB_PREFIX, "newname_")));
+    assertThat(ImmutableSet.of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
+        databaseMappings.get(2).getDatabasePrefix()), is(ImmutableSet.of("", DB_PREFIX, "newname_")));
   }
 
   @Test(expected = WaggleDanceException.class)
@@ -158,8 +155,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Test
   public void onInitOverridesDuplicates() throws Exception {
-    List<AbstractMetaStore> duplicates = Arrays
-        .asList(primaryMetastore, federatedMetastore, primaryMetastore, federatedMetastore);
+    List<AbstractMetaStore> duplicates = Arrays.asList(primaryMetastore, federatedMetastore, primaryMetastore,
+        federatedMetastore);
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, duplicates, queryMapping);
     assertThat(service.databaseMappings().size(), is(2));
   }

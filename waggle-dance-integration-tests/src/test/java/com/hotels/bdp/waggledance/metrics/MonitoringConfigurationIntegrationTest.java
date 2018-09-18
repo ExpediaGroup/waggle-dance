@@ -20,11 +20,12 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Rule;
 import org.junit.Test;
 
-import com.codahale.metrics.MetricRegistry;
+import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 import com.hotels.bdp.waggledance.junit.ServerSocketRule;
@@ -33,8 +34,6 @@ public class MonitoringConfigurationIntegrationTest {
 
   public @Rule ServerSocketRule graphite = new ServerSocketRule();
   private final GraphiteConfiguration graphiteConfiguration = new GraphiteConfiguration();
-  private final MetricRegistry metricRegistry = new MetricRegistry();
-  private final MonitoringConfiguration monitoringConfiguration = new MonitoringConfiguration();
 
   @Test
   public void graphiteReporterAllMetricsAreLoggedWhenPollNotCalled() throws Exception {
@@ -43,22 +42,22 @@ public class MonitoringConfigurationIntegrationTest {
     graphiteConfiguration.setHost("localhost");
     graphiteConfiguration.setPort(graphite.port());
     graphiteConfiguration.setPrefix(graphitePrefix);
+
     // Using a very long poll interval so it won't actually poll in the test, this is because we want to test that the
     // GraphiteReporter (ScheduledReporter) report() method is called to flush the remaining metrics before closing.
     long longPollInterval = 1000000;
     graphiteConfiguration.setPollInterval(longPollInterval);
     graphiteConfiguration.init();
 
-    monitoringConfiguration.setGraphiteConfiguration(graphiteConfiguration);
-    monitoringConfiguration.setMetricRegistry(metricRegistry);
+    MonitoringConfiguration monitoringConfiguration = new MonitoringConfiguration();
+    GraphiteMeterRegistry graphiteMeterRegistry = monitoringConfiguration.graphiteMeterRegistry(graphiteConfiguration);
 
-    monitoringConfiguration.init();
-    monitoringConfiguration.destroy();
+    graphiteMeterRegistry.counter("test-counter").increment();
+    graphiteMeterRegistry.close();
 
-    Set<String> metrics = new TreeSet<>(Arrays.asList(new String(graphite.getOutput()).split("\n")));
-    assertMetricContainsPrefix(metrics, graphitePrefix + ".gc");
-    assertMetricContainsPrefix(metrics, graphitePrefix + ".memory");
-    assertMetricContainsPrefix(metrics, graphitePrefix + ".threads");
+    Set<String> metrics = new TreeSet<>(
+        Arrays.asList(new String(graphite.waitAndgetOutput(1, TimeUnit.SECONDS)).split("\n")));
+    assertMetricContainsPrefix(metrics, graphitePrefix + ".test-counter");
   }
 
   private void assertMetricContainsPrefix(Set<String> metrics, String partialMetric) {

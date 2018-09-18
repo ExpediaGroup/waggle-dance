@@ -15,102 +15,102 @@
  */
 package com.hotels.bdp.waggledance.metrics;
 
-import java.io.Closeable;
-import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricFilter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.ScheduledReporter;
-import com.codahale.metrics.graphite.Graphite;
-import com.codahale.metrics.graphite.GraphiteReporter;
-import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
-import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
-import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
+import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.config.NamingConvention;
+import io.micrometer.core.instrument.util.HierarchicalNameMapper;
+import io.micrometer.graphite.GraphiteConfig;
+import io.micrometer.graphite.GraphiteMeterRegistry;
+import io.micrometer.graphite.GraphiteProtocol;
+import io.micrometer.jmx.JmxConfig;
+import io.micrometer.jmx.JmxMeterRegistry;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 
 @Configuration
 public class MonitoringConfiguration {
-  private static final Logger LOG = LoggerFactory.getLogger(MonitoringConfiguration.class);
 
-  private final Set<Closeable> reporters = new HashSet<>();
-  private @Autowired MetricRegistry metricRegistry;
-  private @Autowired GraphiteConfiguration graphiteConfiguration;
-
-  private <R extends Closeable> R registerReporter(R reporter) {
-    reporters.add(reporter);
-    return reporter;
-  }
-
-  @PreDestroy
-  public void destroy() {
-    if (reporters != null) {
-      for (Closeable reporter : reporters) {
-        try {
-          if (reporter instanceof ScheduledReporter) {
-            ((ScheduledReporter) reporter).report();
-          }
-          reporter.close();
-        } catch (Exception e) {
-          LOG.warn("Problem closing reporter", e);
-        }
-      }
+  private final GraphiteConfig DISABLED_GRAPHITE_CONFIG = new GraphiteConfig() {
+    @Override
+    public boolean enabled() {
+      return false;
     }
-  }
 
-  @PostConstruct()
-  public void init() {
-    registerBaseMetrics();
-    registerReporter(jmxReporterBuilder().build()).start();
+    @Override
+    public String get(String key) {
+      return null;
+    }
+  };
+
+  @Bean
+  public GraphiteMeterRegistry graphiteMeterRegistry(GraphiteConfiguration graphiteConfiguration) {
+    GraphiteConfig graphiteConfig = DISABLED_GRAPHITE_CONFIG;
+
+    /*
+     * This is being done temporarily until micrometer-registry-graphite 1.0.7 gets released which fixes the issue.
+     * https://github.com/micrometer-metrics/micrometer/issues/853
+     * https://github.com/micrometer-metrics/micrometer/milestone/31
+     */
+    if (!graphiteConfiguration.isEnabled()) {
+      return new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM) {
+        @Override
+        public void close() {};
+      };
+    }
+
     if (graphiteConfiguration.isEnabled()) {
-      GraphiteReporter graphiteReporter = graphiteReporterBuilder().build(newGraphite());
-      registerReporter(graphiteReporter);
-      graphiteReporter.start(graphiteConfiguration.getPollInterval(), graphiteConfiguration.getPollIntervalTimeUnit());
+
+      graphiteConfig = new GraphiteConfig() {
+
+        @Override
+        public String host() {
+          return graphiteConfiguration.getHost();
+        }
+
+        @Override
+        public int port() {
+          return graphiteConfiguration.getPort();
+        }
+
+        @Override
+        public boolean enabled() {
+          return graphiteConfiguration.isEnabled();
+        }
+
+        @Override
+        public Duration step() {
+          return Duration
+              .ofMillis(
+                  graphiteConfiguration.getPollIntervalTimeUnit().toMillis(graphiteConfiguration.getPollInterval()));
+        }
+
+        @Override
+        public GraphiteProtocol protocol() {
+          return GraphiteProtocol.PLAINTEXT;
+        }
+
+        @Override
+        public String get(String arg0) {
+          return null;
+        }
+      };
     }
+    HierarchicalNameMapper wdHierarchicalNameMapper = (id, convention) -> graphiteConfiguration.getPrefix()
+        + "."
+        + HierarchicalNameMapper.DEFAULT.toHierarchicalName(id, convention);
+    GraphiteMeterRegistry graphiteMeterRegistry = new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM,
+        wdHierarchicalNameMapper);
+    graphiteMeterRegistry.config().namingConvention(NamingConvention.dot);
+    return graphiteMeterRegistry;
   }
 
-  private void registerBaseMetrics() {
-    metricRegistry.register("gc", new GarbageCollectorMetricSet());
-    metricRegistry.register("memory", new MemoryUsageGaugeSet());
-    metricRegistry.register("threads", new ThreadStatesGaugeSet());
-  }
-
-  private JmxReporter.Builder jmxReporterBuilder() {
-    return JmxReporter.forRegistry(metricRegistry);
-  }
-
-  private GraphiteReporter.Builder graphiteReporterBuilder() {
-    return GraphiteReporter.forRegistry(metricRegistry).convertRatesTo(TimeUnit.SECONDS)
-        .convertDurationsTo(TimeUnit.MILLISECONDS).filter(MetricFilter.ALL)
-        .prefixedWith(graphiteConfiguration.getPrefix());
-  }
-
-  private Graphite newGraphite() {
-    return new Graphite(new InetSocketAddress(graphiteConfiguration.getHost(), graphiteConfiguration.getPort()));
-  }
-
-  Set<Closeable> getReporters() {
-    return reporters;
-  }
-
-  void setGraphiteConfiguration(GraphiteConfiguration graphiteConfiguration) {
-    this.graphiteConfiguration = graphiteConfiguration;
-  }
-
-  void setMetricRegistry(MetricRegistry metricRegistry) {
-    this.metricRegistry = metricRegistry;
+  @Bean
+  public JmxMeterRegistry jmxMeterRegistry() {
+    return new JmxMeterRegistry(JmxConfig.DEFAULT, Clock.SYSTEM);
   }
 
 }
