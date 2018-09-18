@@ -60,7 +60,7 @@ public class HiveThriftMetaStoreIfaceCompatibility1xx implements HiveThriftMetaS
   @Override
   public GetTablesResult get_table_objects_by_name_req(GetTablesRequest req)
     throws MetaException, InvalidOperationException, UnknownDBException, TException {
-    List<Table> get_table_objects_by_name = client.get_table_objects_by_name(req.getDbName(), req.getTblNames());
-    return new GetTablesResult(get_table_objects_by_name);
+    List<Table> tables = client.get_table_objects_by_name(req.getDbName(), req.getTblNames());
+    return new GetTablesResult(tables);
   }
 }

@@ -50,7 +50,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
       } catch (InvocationTargetException e) {
         try {
           log.info("Couldn't invoke method {}", method.toGenericString());
-          if (compatibility != null && e.getCause().getClass().isAssignableFrom(TApplicationException.class)) {
+          if (e.getCause().getClass().isAssignableFrom(TApplicationException.class)) {
             log.info("Attempting to invoke with {}", compatibility.getClass().getName());
             return invokeCompatibility(method, args);
           }
@@ -70,6 +70,9 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
     }
 
     private Class<?>[] getTypes(Object[] args) {
+      if (args == null) {
+        return (Class<?>[]) args;
+      }
       Class<?>[] argTypes = new Class<?>[args.length];
       for (int i = 0; i < args.length; ++i) {
         argTypes[i] = args[i].getClass();
@@ -84,7 +87,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
     return newInstance(delegate, compatibility);
   }
 
-  CloseableThriftHiveMetastoreIface newInstance(
+  private CloseableThriftHiveMetastoreIface newInstance(
       ThriftHiveMetastore.Client delegate,
       HiveThriftMetaStoreIfaceCompatibility compatibility) {
     ClassLoader classLoader = CloseableThriftHiveMetastoreIface.class.getClassLoader();
