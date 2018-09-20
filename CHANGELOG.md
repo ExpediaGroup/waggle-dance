@@ -1,4 +1,4 @@
-## [TBD] - TBD
+## [3.0.0] - 2018-09-20
 ### Changed
 * Minimum supported Java version is now 8 (was 7). See [#108](https://github.com/HotelsDotCom/waggle-dance/issues/108).
 * Waggle Dance updated to use Spring-Boot-2.0.4 instead of Spring Platform BOM. See [#105](https://github.com/HotelsDotCom/waggle-dance/issues/105).
