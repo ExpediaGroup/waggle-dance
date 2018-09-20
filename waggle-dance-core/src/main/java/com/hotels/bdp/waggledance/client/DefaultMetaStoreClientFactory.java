@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
+
 public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
   static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
@@ -38,7 +40,10 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private final String name;
     private final int maxRetries;
 
-    private ReconnectingMetastoreClientInvocationHandler(String name, int maxRetries, ThriftMetastoreClientManager base) {
+    private ReconnectingMetastoreClientInvocationHandler(
+        String name,
+        int maxRetries,
+        ThriftMetastoreClientManager base) {
       this.name = name;
       this.maxRetries = maxRetries;
       this.base = base;
@@ -114,11 +119,15 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
    */
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    return newInstance(name, reconnectionRetries, new ThriftMetastoreClientManager(hiveConf));
+    return newInstance(name, reconnectionRetries,
+        new ThriftMetastoreClientManager(hiveConf, new HiveCompatibleThriftHiveMetastoreIfaceFactory()));
   }
 
   @VisibleForTesting
-  CloseableThriftHiveMetastoreIface newInstance(String name, int reconnectionRetries, ThriftMetastoreClientManager base) {
+  CloseableThriftHiveMetastoreIface newInstance(
+      String name,
+      int reconnectionRetries,
+      ThriftMetastoreClientManager base) {
     ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
         name, reconnectionRetries, base);
     return (CloseableThriftHiveMetastoreIface) Proxy

@@ -42,6 +42,8 @@ import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
+
 class ThriftMetastoreClientManager implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(ThriftMetastoreClientManager.class);
@@ -53,14 +55,18 @@ class ThriftMetastoreClientManager implements Closeable {
   private boolean isConnected = false;
   private URI metastoreUris[];
   private String tokenStrForm;
-  protected final HiveConf conf;
+  private final HiveConf conf;
+  private final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
 
   // for thrift connects
   private int retries = 5;
   private long retryDelaySeconds = 0;
 
-  public ThriftMetastoreClientManager(HiveConf conf) {
+  public ThriftMetastoreClientManager(
+      HiveConf conf,
+      HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory) {
     this.conf = conf;
+    this.hiveCompatibleThriftHiveMetastoreIfaceFactory = hiveCompatibleThriftHiveMetastoreIfaceFactory;
     String msUri = conf.getVar(ConfVars.METASTOREURIS);
 
     if (HiveConfUtil.isEmbeddedMetaStore(msUri)) {
@@ -127,12 +133,14 @@ class ThriftMetastoreClientManager implements Closeable {
               tokenStrForm = Utils.getTokenStrForm(tokenSig);
               if (tokenStrForm != null) {
                 // authenticate using delegation tokens via the "DIGEST" mechanism
-                transport = authBridge.createClientTransport(null, store.getHost(), "DIGEST", tokenStrForm, transport,
-                    MetaStoreUtils.getMetaStoreSaslProperties(conf));
+                transport = authBridge
+                    .createClientTransport(null, store.getHost(), "DIGEST", tokenStrForm, transport,
+                        MetaStoreUtils.getMetaStoreSaslProperties(conf));
               } else {
                 String principalConfig = conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL);
-                transport = authBridge.createClientTransport(principalConfig, store.getHost(), "KERBEROS", null,
-                    transport, MetaStoreUtils.getMetaStoreSaslProperties(conf));
+                transport = authBridge
+                    .createClientTransport(principalConfig, store.getHost(), "KERBEROS", null, transport,
+                        MetaStoreUtils.getMetaStoreSaslProperties(conf));
               }
             } catch (IOException ioe) {
               LOG.error("Couldn't create client transport", ioe);
@@ -147,13 +155,14 @@ class ThriftMetastoreClientManager implements Closeable {
           } else {
             protocol = new TBinaryProtocol(transport);
           }
-          client = new ThriftHiveMetastore.Client(protocol);
+          client = hiveCompatibleThriftHiveMetastoreIfaceFactory.newInstance(new ThriftHiveMetastore.Client(protocol));
           try {
             transport.open();
-            LOG.info("Opened a connection to metastore '"
-                + store
-                + "', total current connections to all metastores: "
-                + CONN_COUNT.incrementAndGet());
+            LOG
+                .info("Opened a connection to metastore '"
+                    + store
+                    + "', total current connections to all metastores: "
+                    + CONN_COUNT.incrementAndGet());
 
             isConnected = true;
           } catch (TException e) {

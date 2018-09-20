@@ -6,10 +6,12 @@
     * `memory.heap.used` -> `sum(jvm.memory.used.area.heap.id.*)` - i.e. you now need to sum up all the heap spaces
     * `memory.heap.max` -> `sum(jvm.memory.max.area.heap.id.*)` - i.e. you now need to sum up all the max used heap spaces
     * `threads.*` -> `jvm.threads.*`
+### Fixed
+* Added workaround when federating to a Hive 1.x Metastore. See [#110](https://github.com/HotelsDotCom/waggle-dance/issues/110).
 
 ## [2.4.2] - 2018-08-21
 ### Changed
-* Removed performance hit we get from checking if a connection is alive for non-tunnelled connections. See [#115](https://github.com/HotelsDotCom/waggle-dance/issues/115).
+* Removed performance hit we get from checking if a connection is alive for non-tunneled connections. See [#115](https://github.com/HotelsDotCom/waggle-dance/issues/115).
 * Removed System.exit calls from the service instead it will exit with an exception if the Spring Boot exit code is not 0.
 
 ## [2.4.1] - 2018-08-10

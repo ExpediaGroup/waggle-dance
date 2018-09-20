@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -36,13 +37,14 @@ public class ThriftMetastoreClientManagerIntegrationTest {
   @Rule
   public ThriftHiveMetaStoreJUnitRule hive = new ThriftHiveMetaStoreJUnitRule("dbname");
 
+  private final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory = new HiveCompatibleThriftHiveMetastoreIfaceFactory();
   private final HiveConf hiveConf = new HiveConf();
   private ThriftMetastoreClientManager manager;
 
   @Before
   public void init() throws Exception {
     hiveConf.setVar(ConfVars.METASTOREURIS, hive.getThriftConnectionUri());
-    manager = new ThriftMetastoreClientManager(hiveConf);
+    manager = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
   }
 
   @Test
@@ -64,7 +66,7 @@ public class ThriftMetastoreClientManagerIntegrationTest {
   @Test
   public void openWithDummyConnectionThrowsRuntimeWithOriginalExceptionInMessage() throws Exception {
     hiveConf.setVar(ConfVars.METASTOREURIS, "thrift://localhost:123");
-    manager = new ThriftMetastoreClientManager(hiveConf);
+    manager = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
 
     try {
       manager.open();

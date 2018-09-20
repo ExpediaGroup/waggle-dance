@@ -30,10 +30,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
+
 @RunWith(MockitoJUnitRunner.class)
 public class ThriftMetastoreClientManagerTest {
 
   private @Mock TSocket transport;
+  private @Mock HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
 
   private final HiveConf hiveConf = new HiveConf();
   private ThriftMetastoreClientManager client;
@@ -41,7 +44,7 @@ public class ThriftMetastoreClientManagerTest {
   @Before
   public void init() throws Exception {
     hiveConf.setVar(ConfVars.METASTOREURIS, "thrift://localhost:123");
-    client = new ThriftMetastoreClientManager(hiveConf);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
     ReflectionTestUtils.setField(client, "transport", transport);
     ReflectionTestUtils.setField(client, "isConnected", true);
   }
@@ -49,25 +52,25 @@ public class ThriftMetastoreClientManagerTest {
   @Test(expected = RuntimeException.class)
   public void constructorEmptyURI() {
     hiveConf.setVar(ConfVars.METASTOREURIS, "");
-    client = new ThriftMetastoreClientManager(hiveConf);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
   }
 
   @Test(expected = RuntimeException.class)
   public void constructorNullURI() {
     hiveConf.setVar(ConfVars.METASTOREURIS, null);
-    client = new ThriftMetastoreClientManager(hiveConf);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
   }
 
   @Test(expected = RuntimeException.class)
   public void constructorNullURISchema() {
     hiveConf.setVar(ConfVars.METASTOREURIS, "123");
-    client = new ThriftMetastoreClientManager(hiveConf);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
   }
 
   @Test(expected = RuntimeException.class)
   public void constructorInvalidURI() {
     hiveConf.setVar(ConfVars.METASTOREURIS, "://localhost:123");
-    client = new ThriftMetastoreClientManager(hiveConf);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
   }
 
   @Test
