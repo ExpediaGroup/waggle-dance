@@ -1,3 +1,8 @@
+## [TBD] - TBD
+### Changed
+* Refactored general metastore tunnelling code to leverage hcommon-hive-metastore libraries. See [#103](https://github.com/HotelsDotCom/waggle-dance/issues/103).
+
+
 ## [3.0.0] - 2018-09-20
 ### Changed
 * Minimum supported Java version is now 8 (was 7). See [#108](https://github.com/HotelsDotCom/waggle-dance/issues/108).
