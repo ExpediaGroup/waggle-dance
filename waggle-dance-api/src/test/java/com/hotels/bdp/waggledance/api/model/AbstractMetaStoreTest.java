@@ -28,6 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
+
 public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   protected final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();

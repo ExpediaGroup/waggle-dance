@@ -34,7 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
+import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
@@ -71,7 +71,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
 
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
-    metastoreTunnel.setLocalHost("local-machine");
+    metastoreTunnel.setLocalhost("local-machine");
     metastoreTunnel.setPort(2222);
     metastoreTunnel.setRoute("a -> b -> c");
     metastoreTunnel.setKnownHosts("knownHosts");

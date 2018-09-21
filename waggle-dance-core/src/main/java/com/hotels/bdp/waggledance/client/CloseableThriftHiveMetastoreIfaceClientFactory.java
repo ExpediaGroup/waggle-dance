@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.MetastoreTunnel;
+import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
@@ -42,7 +42,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     properties.put(ConfVars.METASTOREURIS.varname, uris);
     if (metaStore.getConnectionType() == TUNNELED) {
       MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
-      properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalHost());
+      properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
       properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
       properties.put(WaggleDanceHiveConfVars.SSH_ROUTE.varname, metastoreTunnel.getRoute());
       properties.put(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, metastoreTunnel.getKnownHosts());

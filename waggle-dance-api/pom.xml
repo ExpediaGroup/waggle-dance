@@ -90,10 +90,10 @@
     </dependency>
     
     <!-- SSH library -->
-     <dependency>
+    <dependency>
       <groupId>com.hotels</groupId>
-      <artifactId>hcommon-ssh</artifactId>
-      <version>1.0.2-SNAPSHOT</version>
+      <artifactId>hcommon-hive-metastore</artifactId>
+      <version>1.2.0-SNAPSHOT</version>
     </dependency>
 
     <!-- Test -->
