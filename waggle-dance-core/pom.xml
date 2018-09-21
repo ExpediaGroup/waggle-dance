@@ -180,7 +180,6 @@
       </exclusions>
     </dependency>
     
-    <!-- Hive common -->
     <dependency>
       <groupId>com.hotels</groupId>
       <artifactId>hcommon-hive-metastore</artifactId>
