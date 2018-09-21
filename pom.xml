@@ -43,6 +43,7 @@
     <beeju.version>1.2.1</beeju.version>
     <guava.version>23.0</guava.version>
     <guice.version>4.0</guice.version>
+    <hcommon-hive-metastore.version>1.2.0</hcommon-hive-metastore.version>
   </properties>
 
   <dependencyManagement>
@@ -131,6 +132,11 @@
         <artifactId>beeju</artifactId>
         <version>${beeju.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.hotels</groupId>
+        <artifactId>hcommon-hive-metastore</artifactId>
+        <version>${hcommon-hive-metastore.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -14,7 +14,6 @@
     <mockito.version>2.8.47</mockito.version>
     <powermock.version>1.7.4</powermock.version>
     <jcabi-aspects.version>0.22.6</jcabi-aspects.version>
-    <hcommon-hive-metastore.version>1.2.0</hcommon-hive-metastore.version>
   </properties>
 
   <dependencies>
@@ -111,13 +110,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- SSH library -->
-    <dependency>
-      <groupId>com.hotels</groupId>
-      <artifactId>hcommon-hive-metastore</artifactId>
-      <version>${hcommon-hive-metastore.version}</version>
-    </dependency>
-
     <!-- Hive -->
     <dependency>
       <groupId>org.apache.hive</groupId>
@@ -187,6 +179,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    
+    <!-- Hive common -->
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>hcommon-hive-metastore</artifactId>
+    </dependency>
 
     <!-- Apache VFS -->
     <dependency>
@@ -237,7 +235,6 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
