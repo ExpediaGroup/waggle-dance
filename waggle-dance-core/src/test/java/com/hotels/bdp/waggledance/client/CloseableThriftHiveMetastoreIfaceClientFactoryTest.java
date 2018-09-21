@@ -77,7 +77,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     metastoreTunnel.setKnownHosts("knownHosts");
     metastoreTunnel.setPrivateKeys("privateKeys");
     metastoreTunnel.setTimeout(123);
-
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
 
