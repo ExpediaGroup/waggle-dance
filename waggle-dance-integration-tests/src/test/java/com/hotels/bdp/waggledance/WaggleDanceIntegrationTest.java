@@ -625,6 +625,7 @@ public class WaggleDanceIntegrationTest {
     assertThat(federatedMetastore.getStatus(), is(MetaStoreStatus.AVAILABLE));
   }
 
+  // This does not set up a tunnel, but tests if a configuration with metastore-tunnel can be read correctly
   @Test
   public void metastoreTunnelConfiguration() throws Exception {
     String route = "ec2-user@bastion-host -> hadoop@emr-master";
