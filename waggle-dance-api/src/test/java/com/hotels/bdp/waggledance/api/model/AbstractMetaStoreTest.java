@@ -28,14 +28,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
+
 public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   protected final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
 
   protected final T metaStore;
 
-  private String name = "name";
-  private String remoteMetaStoreUri = "uri";
+  private final String name = "name";
+  private final String remoteMetaStoreUri = "uri";
 
   public AbstractMetaStoreTest(T metaStore) {
     this.metaStore = metaStore;
@@ -80,8 +82,7 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   @Test
   public void validMetastoreTunnel() {
-    MetastoreTunnel metastoreTunnel = newMetastoreTunnel();
-    metaStore.setMetastoreTunnel(metastoreTunnel);
+    metaStore.setMetastoreTunnel(newMetastoreTunnel());
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(0));
   }
@@ -91,6 +92,7 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
     MetastoreTunnel metastoreTunnel = newMetastoreTunnel();
     metastoreTunnel.setPort(-1);
     metaStore.setMetastoreTunnel(metastoreTunnel);
+
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(1));
   }

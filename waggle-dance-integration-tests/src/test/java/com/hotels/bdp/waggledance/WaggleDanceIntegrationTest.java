@@ -73,6 +73,7 @@ import com.hotels.bdp.waggledance.junit.ServerSocketRule;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
+import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 public class WaggleDanceIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(WaggleDanceIntegrationTest.class);
@@ -623,4 +624,29 @@ public class WaggleDanceIntegrationTest {
         .getForObject("http://localhost:18000/api/admin/federations/waggle_remote", FederatedMetaStore.class);
     assertThat(federatedMetastore.getStatus(), is(MetaStoreStatus.AVAILABLE));
   }
+
+  // This does not set up a tunnel, but tests if a configuration with metastore-tunnel can be read correctly
+  @Test
+  public void metastoreTunnelConfiguration() throws Exception {
+    String route = "ec2-user@bastion-host -> hadoop@emr-master";
+    String privateKeys = "/home/user/.ssh/bastion-key-pair.pem,/home/user/.ssh/emr-key-pair.pem";
+    String knownHosts = "/home/user/.ssh/known_hosts";
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federateWithMetastoreTunnel("waggle_remote", remoteServer.getThriftConnectionUri(), REMOTE_DATABASE, route,
+            privateKeys, knownHosts)
+        .build();
+
+    runWaggleDance(runner);
+    RestTemplate rest = new RestTemplateBuilder().build();
+    FederatedMetaStore federatedMetastore = rest
+        .getForObject("http://localhost:18000/api/admin/federations/waggle_remote", FederatedMetaStore.class);
+
+    MetastoreTunnel metastoreTunnel = federatedMetastore.getMetastoreTunnel();
+    assertThat(metastoreTunnel.getRoute(), is(route));
+    assertThat(metastoreTunnel.getKnownHosts(), is(knownHosts));
+    assertThat(metastoreTunnel.getPrivateKeys(), is(privateKeys));
+  }
+
 }
