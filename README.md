@@ -339,7 +339,12 @@ NOTE: in the case of manual database resolution the configuration still requires
 
 ##### Database resolution: `PREFIXED`
 
-Waggle Dance can be configured to use a prefix when resolving the names of databases in its primary or federated metastores. All queries issued to Waggle Dance need to use fully qualified database names and the database names need to use the same prefixes configured here.
+Waggle Dance can be configured to use a prefix when resolving the names of databases in its primary or federated metastores. All queries issued to Waggle Dance need to use 
+fully qualified database names and the database names need to use the same prefixes configured here. In the example below Waggle Dance is configured to have a federated 
+metastore with the prefix `waggle_prod`. Because of this it will inspect the database names in all requests, and if they start with this configured prefix, it will route 
+the request to the configured matching metastore. The prefix will be removed for those requests as the underlying metastore knows nothing of the prefixes. So, the 
+query: `select * from waggle_prod_etldata.my_table` will effectively be translated into this query: `select * from etldata.my_table` on the federated metastore. If a 
+database is encountered that is not prefixed the primary metastore is used to resolve the database name.
 
 `waggle-dance-server.yml`:
 
@@ -351,14 +356,16 @@ Waggle Dance can be configured to use a prefix when resolving the names of datab
       name: primary
       remote-meta-store-uris: thrift://primaryLocalMetastore:9083
     federated-meta-stores:
-      - name: waggle_prod
+      - name: waggle_prod_
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
 
-Using this example Waggle Dance will prefix all databases and will require the prefix to be present in queries in order to map to correct metastores. The query: `select * from waggle_prod_etldata` will effectively be this query: `select * from etldata` on the federated metastore. If a database is encountered that is not prefixed the primary metastore is used to resolve the database name. Any duplicate database name is made unique by prefixing it.
+Note: When choosing a prefix ensure that it does not match the start of _any_ existing database names in your metastores. To illustrate the problem this would cause, 
+imagine you have a database in Metastore "A" named "my_database" and you configure another Metastore "B" with the prefix `my_`. Waggle Dance will register the prefix 
+and any requests for a database starting with `my_` will be routed to Metastore "B" even if they were intended to go to Metastore "A".
 
-Newly created databases are immediately accessible - no service restart is necessary.
-
-Alternatively, Waggle Dance can be configured to use a static list of unprefixed databases in the configuration `waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases`. Example configuration:
+In this mode any databases that are created while Waggle Dance is running will be automatically visible and will need to stick to the naming rules described above 
+(e.g. not clash with the prefix). Alternatively, Waggle Dance can be configured to use a static list of unprefixed databases in the configuration 
+`waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases`. Example configuration:
 
 `waggle-dance-server.yml`:
 
@@ -375,7 +382,8 @@ Alternatively, Waggle Dance can be configured to use a static list of unprefixed
         mapped-databases:
         - etldata
 
-In this scenario, like in the previous example, the query: `select * from waggle_prod_etldata` will effectively be this query: `select * from etldata` on the federated metastore. If another database exists in `waggle_prod` this won't be visible to clients.
+In this scenario, like in the previous example, the query: `select * from waggle_prod_etldata.my_table` will effectively be this query: `select * from etldata.my_table` on 
+the federated metastore. Any other databases which exist in the metastore named `waggle_prod` won't be visible to clients.
 
 ## Sample run through
 
