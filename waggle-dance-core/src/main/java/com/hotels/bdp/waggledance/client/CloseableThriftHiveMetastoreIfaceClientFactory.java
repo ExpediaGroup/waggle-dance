@@ -26,6 +26,7 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
+import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
