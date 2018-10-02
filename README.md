@@ -359,7 +359,7 @@ database is encountered that is not prefixed then the primary metastore is used 
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
 
 Note: When choosing a prefix ensure that it does not match the start of _any_ existing database names in any of the configured metastores. To illustrate the problem this would cause, 
-imagine you have a database in the `primary` metastore named "my_database" and you configure the `federated` metastore the prefix `my_`. Waggle Dance will register the prefix 
+imagine you have a database in the `primary` metastore named "my_database" and you configure the `federated` metastore with the prefix `my_`. Waggle Dance will register the prefix 
 and any requests for a database starting with `my_` will be routed to the `federated` metastore even if they were intended to go to the `primary` metastore.
 
 In `PREFIXED` mode any databases that are created while Waggle Dance is running will be automatically visible and will need to adhere to the naming rules described above 
@@ -383,7 +383,7 @@ In `PREFIXED` mode any databases that are created while Waggle Dance is running 
         - etldata
 
 In this scenario, like in the previous example, the query: `select * from waggle_prod_etldata.my_table` will effectively be this query: `select * from etldata.my_table` on 
-the federated metastore. Any other databases which exist in the metastore named `waggle_prod` won't be visible to clients.
+the federated metastore. Any other databases which exist in the metastore named `federated` won't be visible to clients.
 
 ## Sample run through
 
