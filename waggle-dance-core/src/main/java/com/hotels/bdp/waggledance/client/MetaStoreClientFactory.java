@@ -17,8 +17,16 @@ package com.hotels.bdp.waggledance.client;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 
+import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
+
 public interface MetaStoreClientFactory {
 
   CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
+
+  CloseableThriftHiveMetastoreIface newInstance(
+      HiveConf hiveConf,
+      String name,
+      int reconnectionRetries,
+      MetastoreTunnel metastoreTunnel);
 
 }

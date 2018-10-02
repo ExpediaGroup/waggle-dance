@@ -15,8 +15,6 @@
  */
 package com.hotels.bdp.waggledance.client.tunnelling;
 
-import static org.springframework.util.StringUtils.isEmpty;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URI;
@@ -30,7 +28,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
-import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
+import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.ssh.MethodChecker;
 import com.hotels.hcommon.ssh.SshException;
 import com.hotels.hcommon.ssh.TunnelableFactory;
@@ -43,11 +41,10 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
 
   private final TunnelableFactorySupplier tunnelableFactorySupplier;
   private final MetaStoreClientFactory defaultFactory;
-  private final LocalHiveConfFactory localHiveConfFactory;
   private final HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
 
   public TunnelingMetaStoreClientFactory() {
-    this(new TunnelableFactorySupplier(), new DefaultMetaStoreClientFactory(), new LocalHiveConfFactory(),
+    this(new TunnelableFactorySupplier(), new DefaultMetaStoreClientFactory(),
         new HiveMetaStoreClientSupplierFactory());
   }
 
@@ -55,35 +52,39 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
   TunnelingMetaStoreClientFactory(
       TunnelableFactorySupplier tunnelableFactorySupplier,
       MetaStoreClientFactory defaultFactory,
-      LocalHiveConfFactory localHiveConfFactory,
       HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory) {
     this.tunnelableFactorySupplier = tunnelableFactorySupplier;
     this.defaultFactory = defaultFactory;
-    this.localHiveConfFactory = localHiveConfFactory;
     this.hiveMetaStoreClientSupplierFactory = hiveMetaStoreClientSupplierFactory;
   }
 
   @Override
-  public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    if (isEmpty(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))) {
-      return defaultFactory.newInstance(hiveConf, name, reconnectionRetries);
+  public CloseableThriftHiveMetastoreIface newInstance(
+      HiveConf hiveConf,
+      String name,
+      int reconnectionRetries,
+      MetastoreTunnel metastoreTunnel) {
+    // if (isEmpty(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))) {
+    if (metastoreTunnel == null) {
+      return defaultFactory.newInstance(hiveConf, name, reconnectionRetries, metastoreTunnel);
     }
 
-    String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname);
+    // String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname);
+    String localHost = metastoreTunnel.getLocalhost();
     int localPort = getLocalPort();
+    String metastoreUri = hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
 
-    URI metaStoreUri = URI.create(hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
+    URI metaStoreUri = URI.create(metastoreUri);
     String remoteHost = metaStoreUri.getHost();
     int remotePort = metaStoreUri.getPort();
 
-    HiveConf localHiveConf = localHiveConfFactory.newInstance(localHost, localPort, hiveConf);
+    HiveConf localHiveConf = newLocalConf(localHost, localPort, hiveConf);
+    String localMetastoreUri = localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
 
     TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactorySupplier
-        .get(localHiveConf);
+        .get(metastoreTunnel);
 
-    LOG
-        .info("Metastore URI {} is being proxied through {}", hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS),
-            localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
+    LOG.info("Metastore URI {} is being proxied through {}", metastoreUri, localMetastoreUri);
 
     HiveMetaStoreClientSupplier supplier = hiveMetaStoreClientSupplierFactory
         .newInstance(localHiveConf, name, reconnectionRetries);
@@ -92,11 +93,23 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
         .wrap(supplier, METHOD_CHECKER, localHost, localPort, remoteHost, remotePort);
   }
 
+  private HiveConf newLocalConf(String localHost, int localPort, HiveConf hiveConf) {
+    HiveConf localHiveConf = new HiveConf(hiveConf);
+    String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
+    localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
+    return localHiveConf;
+  }
+
   private int getLocalPort() {
     try (ServerSocket socket = new ServerSocket(0)) {
       return socket.getLocalPort();
     } catch (IOException | RuntimeException e) {
       throw new SshException("Unable to bind to a free localhost port", e);
     }
+  }
+
+  @Override
+  public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
+    throw new IllegalStateException("Should not use tunnelling if there is no metastore tunnel used");
   }
 }

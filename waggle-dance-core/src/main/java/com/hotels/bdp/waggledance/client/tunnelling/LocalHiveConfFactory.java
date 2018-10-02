@@ -15,15 +15,13 @@
  */
 package com.hotels.bdp.waggledance.client.tunnelling;
 
-import org.apache.hadoop.hive.conf.HiveConf;
-
 class LocalHiveConfFactory {
 
-  HiveConf newInstance(String localHost, int localPort, HiveConf hiveConf) {
-    HiveConf localHiveConf = new HiveConf(hiveConf);
-    String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
-    localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
-    return localHiveConf;
-  }
+  // HiveConf newInstance(String localHost, int localPort, HiveConf hiveConf) {
+  // HiveConf localHiveConf = new HiveConf(hiveConf);
+  // String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
+  // localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
+  // return localHiveConf;
+  // }
 
 }

@@ -36,7 +36,7 @@ class HiveMetaStoreClientSupplier implements TunnelableSupplier<CloseableThriftH
 
   @Override
   public CloseableThriftHiveMetastoreIface get() {
-    return factory.newInstance(hiveConf, name, reconnectionRetries);
+    return factory.newInstance(hiveConf, name, reconnectionRetries, null);
   }
 
 }

@@ -39,21 +39,28 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
-    String name = metaStore.getName().toLowerCase();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
-    if (metaStore.getConnectionType() == TUNNELED) {
-      MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
-      properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
-      properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
-      properties.put(WaggleDanceHiveConfVars.SSH_ROUTE.varname, metastoreTunnel.getRoute());
-      properties.put(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, metastoreTunnel.getKnownHosts());
-      properties.put(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, metastoreTunnel.getPrivateKeys());
-      properties.put(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, String.valueOf(metastoreTunnel.getTimeout()));
-      properties
-          .put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname,
-              metastoreTunnel.getStrictHostKeyChecking());
-    }
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
-    return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
+
+    String name = metaStore.getName().toLowerCase();
+    if (metaStore.getConnectionType() == TUNNELED) {
+
+      MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
+
+      // properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
+      // properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
+      // properties.put(WaggleDanceHiveConfVars.SSH_ROUTE.varname, metastoreTunnel.getRoute());
+      // properties.put(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, metastoreTunnel.getKnownHosts());
+      // properties.put(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, metastoreTunnel.getPrivateKeys());
+      // properties.put(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname,
+      // String.valueOf(metastoreTunnel.getTimeout()));
+      // properties
+      // .put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname,
+      // metastoreTunnel.getStrictHostKeyChecking());
+
+      return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3, metastoreTunnel);
+    } else {
+      return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
+    }
   }
 }

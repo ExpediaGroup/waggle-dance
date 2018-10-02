@@ -15,8 +15,8 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
-import static com.hotels.bdp.waggledance.validation.Preconditions.checkIsTrue;
-import static com.hotels.bdp.waggledance.validation.Preconditions.checkNotNull;
+import static com.hotels.hcommon.ssh.validation.Preconditions.checkIsTrue;
+import static com.hotels.hcommon.ssh.validation.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;

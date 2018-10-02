@@ -16,19 +16,19 @@
 package com.hotels.bdp.waggledance.client;
 
 public enum WaggleDanceHiveConfVars {
-
-  SSH_LOCALHOST("com.hotels.bdp.waggledance.client.ssh.localhost"),
-  SSH_PORT("com.hotels.bdp.waggledance.client.ssh.port"),
-  SSH_ROUTE("com.hotels.bdp.waggledance.client.ssh.route"),
-  SSH_PRIVATE_KEYS("com.hotels.bdp.waggledance.client.ssh.private_keys"),
-  SSH_KNOWN_HOSTS("com.hotels.bdp.waggledance.client.ssh.known_hosts"),
-  SSH_SESSION_TIMEOUT("com.hotels.bdp.waggledance.client.ssh.session_timeout"),
-  SSH_STRICT_HOST_KEY_CHECKING("com.hotels.bdp.waggledance.client.ssh.strict_host_key_checking");
-
-  public final String varname;
-
-  private WaggleDanceHiveConfVars(String varname) {
-    this.varname = varname;
-  }
+  //
+  // SSH_LOCALHOST("com.hotels.bdp.waggledance.client.ssh.localhost"),
+  // SSH_PORT("com.hotels.bdp.waggledance.client.ssh.port"),
+  // SSH_ROUTE("com.hotels.bdp.waggledance.client.ssh.route"),
+  // SSH_PRIVATE_KEYS("com.hotels.bdp.waggledance.client.ssh.private_keys"),
+  // SSH_KNOWN_HOSTS("com.hotels.bdp.waggledance.client.ssh.known_hosts"),
+  // SSH_SESSION_TIMEOUT("com.hotels.bdp.waggledance.client.ssh.session_timeout"),
+  // SSH_STRICT_HOST_KEY_CHECKING("com.hotels.bdp.waggledance.client.ssh.strict_host_key_checking");
+  //
+  // public final String varname;
+  //
+  // private WaggleDanceHiveConfVars(String varname) {
+  // this.varname = varname;
+  // }
 
 }
