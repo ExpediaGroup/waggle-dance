@@ -140,15 +140,16 @@ The table below describes all the available configuration values for Waggle Danc
 |:----|:----:|:----|
 | `primary-meta-store`                                    | No       | Primary MetaStore config. Can be empty but it is advised to configure it. |
 | `primary-meta-store.remote-meta-store-uris`             | Yes      | Thrift URIs of the federated read-only metastore. |
-| `primary-meta-store.name`                               | Yes      | Database name that uniquely identifies this metastore used internally. Cannot be empty. |
+| `primary-meta-store.name`                               | Yes      | Database name that uniquely identifies this metastore. Used internally. Cannot be empty. |
 | `primary-meta-store.database-prefix`                    | No       | This will be ignored for the primary metastore and an empty string will always be used instead. |
 | `primary-meta-store.access-control-type`                | No       | Sets how the client access controls should be handled. Default is `READ_ONLY` Other options `READ_AND_WRITE_AND_CREATE`, `READ_AND_WRITE_ON_DATABASE_WHITELIST` and `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST` see Access Control section below. |
 | `primary-meta-store.writable-database-white-list`       | No       | White-list of databases used to verify write access used in conjunction with `primary-meta-store.access-control-type`. The list of databases should be listed without any `primary-meta-store.database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
 | `primary-meta-store.metastore-tunnel`                   | No       | See metastore tunnel configuration values below. |
 | `federated-meta-stores`                                 | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`       | Yes      | Thrift URIs of the federated read-only metastore. |
-| `federated-meta-stores[n].name`                         | Yes      | Name that uniquely identifies this metastore, used internally. Cannot be empty. |
-| `federated-meta-stores[n].database-prefix`              | No       | Prefix used to access this particular metastore and differentiate databases in it from databases in another metastore. Typically used if databases have the same name across metastores but federated access to them is still needed. Default prefix is {federated-meta-stores[n].name} lowercased and postfixed with an underscore. For example if the metastore name was configured as "waggle" and no database prefix was provided but `PREFIXED` database resolution was used then the value of `database-prefix` would be "waggle_". |
+| `federated-meta-stores[n].name`                         | Yes      | Name that uniquely identifies this metastore. Used internally. Cannot be empty. |
+| `federated-meta-stores[n].database-prefix`              | No       | Prefix used to access this particular metastore and differentiate databases in it from databases in another metastore. Typically used if databases have the same name across metastores but federated access to them is still needed. The default prefix (i.e. if this value isn't explicitly set) 
+is {federated-meta-stores[n].name} lowercased and postfixed with an underscore. For example if the metastore name was configured as "waggle" and no database prefix was provided but `PREFIXED` database resolution was used then the value of `database-prefix` would be "waggle_". |
 | `federated-meta-stores[n].metastore-tunnel`             | No       | See metastore tunnel configuration values below. |
 | `federated-meta-stores[n].mapped-databases`             | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html). |
 | `federated-meta-stores[n].writable-database-white-list` | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
@@ -311,7 +312,7 @@ Waggle Dance presents a view over multiple (federated) Hive metastores and there
 
 ##### Database resolution: `MANUAL`
 
-Waggle Dance can be configured to use a static list of databases in the configuration `waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases`. It is up to the user to make sure there are no conflicting database names with the primary-metastore or other federated metastores. If Waggle Dance encounters a duplicate database it will throw an error and won't start. Example configuration:
+Waggle Dance can be configured to use a static list of databases in the configuration `waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases`. It is up to the user to make sure there are no conflicting database names in the primary-metastore or other federated metastores. If Waggle Dance encounters a duplicate database it will throw an error and won't start. Example configuration:
 
 `waggle-dance-server.yml`:
 
@@ -335,16 +336,13 @@ All non-mapped databases of a federated metastore are ignored and are not access
 
 Adding a mapped database in the configuration requires a restart of the Waggle Dance service in order to detect the new database name and to ensure that there are no clashes.
 
-NOTE: in the case of manual database resolution the configuration still requires a unique prefix per metastore, this is used internally.
-
 ##### Database resolution: `PREFIXED`
 
-Waggle Dance can be configured to use a prefix when resolving the names of databases in its primary or federated metastores. In this mode all queries that are issued to Waggle Dance need to be written to use 
-fully qualified database names that start with the prefixes configured here. In the example below Waggle Dance is configured with a federated 
+Waggle Dance can be configured to use a prefix when resolving the names of databases in its primary or federated metastores. In this mode all queries that are issued to Waggle Dance need to be written to use fully qualified database names that start with the prefixes configured here. In the example below Waggle Dance is configured with a federated 
 metastore with the prefix `waggle_prod_`. Because of this it will inspect the database names in all requests, and if any start with `waggle_prod_` it will route 
 the request to the configured matching metastore. The prefix will be removed for those requests as the underlying metastore knows nothing of the prefixes. So, the 
 query: `select * from waggle_prod_etldata.my_table` will effectively be translated into this query: `select * from etldata.my_table` on the federated metastore. If a 
-database is encountered that is not prefixed the primary metastore is used to resolve the database name.
+database is encountered that is not prefixed then the primary metastore is used to resolve the database name.
 
 `waggle-dance-server.yml`:
 
@@ -356,15 +354,15 @@ database is encountered that is not prefixed the primary metastore is used to re
       name: primary
       remote-meta-store-uris: thrift://primaryLocalMetastore:9083
     federated-meta-stores:
-      - name: waggle_prod
-        prefix: waggle_prod
+      - name: federated
+        prefix: prod_
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
 
-Note: When choosing a prefix ensure that it does not match the start of _any_ existing database names in your metastores. To illustrate the problem this would cause, 
-imagine you have a database in Metastore "A" named "my_database" and you configure another Metastore "B" with the prefix `my_`. Waggle Dance will register the prefix 
-and any requests for a database starting with `my_` will be routed to Metastore "B" even if they were intended to go to Metastore "A".
+Note: When choosing a prefix ensure that it does not match the start of _any_ existing database names in any of the configured metastores. To illustrate the problem this would cause, 
+imagine you have a database in the `primary` metastore named "my_database" and you configure the `federated` metastore the prefix `my_`. Waggle Dance will register the prefix 
+and any requests for a database starting with `my_` will be routed to the `federated` metastore even if they were intended to go to the `primary` metastore.
 
-In this mode any databases that are created while Waggle Dance is running will be automatically visible and will need to adhere to the naming rules described above 
+In `PREFIXED` mode any databases that are created while Waggle Dance is running will be automatically visible and will need to adhere to the naming rules described above 
 (e.g. not clash with the prefix). Alternatively, Waggle Dance can be configured to use a static list of unprefixed databases in the configuration 
 `waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases`. Example configuration:
 
@@ -378,8 +376,8 @@ In this mode any databases that are created while Waggle Dance is running will b
       name: primary
       remote-meta-store-uris: thrift://primaryLocalMetastore:9083
     federated-meta-stores:
-      - name: waggle_prod
-        prefix: waggle_prod
+      - name: federated
+        prefix: waggle_prod_
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
         mapped-databases:
         - etldata
