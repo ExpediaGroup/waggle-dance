@@ -23,7 +23,7 @@ public interface MetaStoreClientFactory {
 
   CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
 
-  CloseableThriftHiveMetastoreIface newInstance(
+  CloseableThriftHiveMetastoreIface newInstanceWithTunnelling(
       HiveConf hiveConf,
       String name,
       int reconnectionRetries,

@@ -137,7 +137,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
   }
 
   @Override
-  public CloseableThriftHiveMetastoreIface newInstance(
+  public CloseableThriftHiveMetastoreIface newInstanceWithTunnelling(
       HiveConf hiveConf,
       String name,
       int reconnectionRetries,

@@ -39,37 +39,32 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
   @VisibleForTesting
   final MethodChecker METHOD_CHECKER = new MetastoreClientMethodChecker();
 
-  private final TunnelableFactorySupplier tunnelableFactorySupplier;
   private final MetaStoreClientFactory defaultFactory;
   private final HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
+  private final TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
 
   public TunnelingMetaStoreClientFactory() {
-    this(new TunnelableFactorySupplier(), new DefaultMetaStoreClientFactory(),
-        new HiveMetaStoreClientSupplierFactory());
+    this(new DefaultMetaStoreClientFactory(), new HiveMetaStoreClientSupplierFactory());
   }
 
   @VisibleForTesting
   TunnelingMetaStoreClientFactory(
-      TunnelableFactorySupplier tunnelableFactorySupplier,
       MetaStoreClientFactory defaultFactory,
       HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory) {
-    this.tunnelableFactorySupplier = tunnelableFactorySupplier;
     this.defaultFactory = defaultFactory;
     this.hiveMetaStoreClientSupplierFactory = hiveMetaStoreClientSupplierFactory;
   }
 
   @Override
-  public CloseableThriftHiveMetastoreIface newInstance(
+  public CloseableThriftHiveMetastoreIface newInstanceWithTunnelling(
       HiveConf hiveConf,
       String name,
       int reconnectionRetries,
       SshSettings sshSettings) {
-    // if (isEmpty(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))) {
     if (sshSettings == null) {
       return defaultFactory.newInstance(hiveConf, name, reconnectionRetries);
     }
 
-    // String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname);
     String localHost = sshSettings.getLocalhost();
     int localPort = getLocalPort();
     String metastoreUri = hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);

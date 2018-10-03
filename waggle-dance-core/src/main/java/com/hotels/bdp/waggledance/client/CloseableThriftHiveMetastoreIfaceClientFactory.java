@@ -63,19 +63,8 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
           .withStrictHostKeyChecking(strictHostKeyChecking)
           .build();
 
-      // properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
-      // properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
-      // properties.put(WaggleDanceHiveConfVars.SSH_ROUTE.varname, metastoreTunnel.getRoute());
-      // properties.put(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, metastoreTunnel.getKnownHosts());
-      // properties.put(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, metastoreTunnel.getPrivateKeys());
-      // properties.put(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname,
-      // String.valueOf(metastoreTunnel.getTimeout()));
-      // properties
-      // .put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname,
-      // metastoreTunnel.getStrictHostKeyChecking());
-
-      // try to create SshSettings from here and keep passing them on
-      return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3, sshSettings);
+      return metaStoreClientFactory
+          .newInstanceWithTunnelling(confFactory.newInstance(), "waggledance-" + name, 3, sshSettings);
     } else {
       return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
     }

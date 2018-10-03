@@ -16,13 +16,14 @@
 package com.hotels.bdp.waggledance.client;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
+
+import java.util.Collections;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -35,6 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
+import com.hotels.hcommon.ssh.SshSettings;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
@@ -58,39 +60,44 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
     HiveConf hiveConf = hiveConfCaptor.getValue();
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PORT.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname), is(nullValue()));
   }
 
   @Test
   public void hiveConfForTunneling() throws Exception {
-    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
+    String localhost = "local-machine";
+    int port = 2222;
+    String route = "a -> b -> c";
+    String knownHosts = "knownHosts";
+    String privateKeys = "privateKey";
+    int timeout = 123;
 
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
-    metastoreTunnel.setLocalhost("local-machine");
-    metastoreTunnel.setPort(2222);
-    metastoreTunnel.setRoute("a -> b -> c");
-    metastoreTunnel.setKnownHosts("knownHosts");
-    metastoreTunnel.setPrivateKeys("privateKeys");
-    metastoreTunnel.setTimeout(123);
+    metastoreTunnel.setLocalhost(localhost);
+    metastoreTunnel.setPort(port);
+    metastoreTunnel.setRoute(route);
+    metastoreTunnel.setKnownHosts(knownHosts);
+    metastoreTunnel.setPrivateKeys(privateKeys);
+    metastoreTunnel.setTimeout(timeout);
+
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
-
     factory.newInstance(federatedMetaStore);
-    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
+
+    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
+    ArgumentCaptor<SshSettings> sshSettingsCaptor = ArgumentCaptor.forClass(SshSettings.class);
+    verify(metaStoreClientFactory)
+        .newInstanceWithTunnelling(hiveConfCaptor.capture(), anyString(), anyInt(), sshSettingsCaptor.capture());
 
     HiveConf hiveConf = hiveConfCaptor.getValue();
+    SshSettings sshSettings = sshSettingsCaptor.getValue();
+
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname), is("local-machine"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PORT.varname), is("2222"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname), is("a -> b -> c"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname), is("knownHosts"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is("privateKeys"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname), is("123"));
+    assertThat(sshSettings.getLocalhost(), is(localhost));
+    assertThat(sshSettings.getSshPort(), is(port));
+    assertThat(sshSettings.getRoute(), is(route));
+    assertThat(sshSettings.getKnownHosts(), is(knownHosts));
+    assertThat(sshSettings.getPrivateKeys(), is(Collections.singletonList(privateKeys)));
+    assertThat(sshSettings.getSessionTimeout(), is(timeout));
   }
 
 }
