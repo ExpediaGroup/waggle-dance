@@ -28,9 +28,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
-import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.ssh.MethodChecker;
 import com.hotels.hcommon.ssh.SshException;
+import com.hotels.hcommon.ssh.SshSettings;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 
 public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
@@ -63,14 +63,14 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
       HiveConf hiveConf,
       String name,
       int reconnectionRetries,
-      MetastoreTunnel metastoreTunnel) {
+      SshSettings sshSettings) {
     // if (isEmpty(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))) {
-    if (metastoreTunnel == null) {
-      return defaultFactory.newInstance(hiveConf, name, reconnectionRetries, metastoreTunnel);
+    if (sshSettings == null) {
+      return defaultFactory.newInstance(hiveConf, name, reconnectionRetries);
     }
 
     // String localHost = hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname);
-    String localHost = metastoreTunnel.getLocalhost();
+    String localHost = sshSettings.getLocalhost();
     int localPort = getLocalPort();
     String metastoreUri = hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
 
@@ -81,8 +81,7 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
     HiveConf localHiveConf = newLocalConf(localHost, localPort, hiveConf);
     String localMetastoreUri = localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
 
-    TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactorySupplier
-        .get(metastoreTunnel);
+    TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = new TunnelableFactory<>(sshSettings);
 
     LOG.info("Metastore URI {} is being proxied through {}", metastoreUri, localMetastoreUri);
 

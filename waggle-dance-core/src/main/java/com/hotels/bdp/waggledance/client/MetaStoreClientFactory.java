@@ -17,7 +17,7 @@ package com.hotels.bdp.waggledance.client;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 
-import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
+import com.hotels.hcommon.ssh.SshSettings;
 
 public interface MetaStoreClientFactory {
 
@@ -27,6 +27,6 @@ public interface MetaStoreClientFactory {
       HiveConf hiveConf,
       String name,
       int reconnectionRetries,
-      MetastoreTunnel metastoreTunnel);
+      SshSettings sshSettings);
 
 }

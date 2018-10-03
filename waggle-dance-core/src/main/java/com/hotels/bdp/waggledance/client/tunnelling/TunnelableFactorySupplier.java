@@ -16,7 +16,6 @@
 package com.hotels.bdp.waggledance.client.tunnelling;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.ssh.SshSettings;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 
@@ -31,32 +30,32 @@ public class TunnelableFactorySupplier {
    * HiveConf, i.e. federated metastore configuration, and share the tunnel for all its clients. We must evaluate what's
    * more convenient/efficient in Waggle Dance.
    */
-  public TunnelableFactory<CloseableThriftHiveMetastoreIface> get(MetastoreTunnel metastoreTunnel) {
+  public TunnelableFactory<CloseableThriftHiveMetastoreIface> get(SshSettings sshSettings) {
     // String strictHostKeyCheckingString = hiveConf.get(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname);
-    String strictHostKeyCheckingString = metastoreTunnel.getStrictHostKeyChecking();
-    if (!(YES.equals(strictHostKeyCheckingString) || NO.equals(strictHostKeyCheckingString))) {
-      throw new IllegalArgumentException("Invalid strict host key checking: must be either 'yes' or 'no'");
-    }
-    boolean strictHostKeyChecking = YES.equals(strictHostKeyCheckingString) ? true : false;
+    // String strictHostKeyCheckingString = metastoreTunnel.getStrictHostKeyChecking();
+    // if (!(YES.equals(strictHostKeyCheckingString) || NO.equals(strictHostKeyCheckingString))) {
+    // throw new IllegalArgumentException("Invalid strict host key checking: must be either 'yes' or 'no'");
+    // }
+    // boolean strictHostKeyChecking = YES.equals(strictHostKeyCheckingString) ? true : false;
+    // // SshSettings sshSettings = SshSettings
+    // // .builder()
+    // // .withSshPort(hiveConf.getInt(WaggleDanceHiveConfVars.SSH_PORT.varname, SshSettings.DEFAULT_SSH_PORT))
+    // // .withSessionTimeout(
+    // // hiveConf.getInt(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, SshSettings.DEFAULT_SESSION_TIMEOUT))
+    // // .withRoute(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))
+    // // .withKnownHosts(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname))
+    // // .withPrivateKeys(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname))
+    // // .withStrictHostKeyChecking(strictHostKeyChecking)
+    // // .build();
     // SshSettings sshSettings = SshSettings
     // .builder()
-    // .withSshPort(hiveConf.getInt(WaggleDanceHiveConfVars.SSH_PORT.varname, SshSettings.DEFAULT_SSH_PORT))
-    // .withSessionTimeout(
-    // hiveConf.getInt(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, SshSettings.DEFAULT_SESSION_TIMEOUT))
-    // .withRoute(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))
-    // .withKnownHosts(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname))
-    // .withPrivateKeys(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname))
+    // .withSshPort(metastoreTunnel.getPort())
+    // .withSessionTimeout(metastoreTunnel.getTimeout())
+    // .withRoute(metastoreTunnel.getRoute())
+    // .withKnownHosts(metastoreTunnel.getKnownHosts())
+    // .withPrivateKeys(metastoreTunnel.getPrivateKeys())
     // .withStrictHostKeyChecking(strictHostKeyChecking)
     // .build();
-    SshSettings sshSettings = SshSettings
-        .builder()
-        .withSshPort(metastoreTunnel.getPort())
-        .withSessionTimeout(metastoreTunnel.getTimeout())
-        .withRoute(metastoreTunnel.getRoute())
-        .withKnownHosts(metastoreTunnel.getKnownHosts())
-        .withPrivateKeys(metastoreTunnel.getPrivateKeys())
-        .withStrictHostKeyChecking(strictHostKeyChecking)
-        .build();
     return new TunnelableFactory<>(sshSettings);
 
   }

@@ -27,6 +27,7 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
+import com.hotels.hcommon.ssh.SshSettings;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
@@ -46,6 +47,21 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     if (metaStore.getConnectionType() == TUNNELED) {
 
       MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
+      boolean strictHostKeyChecking = true;
+      if (metastoreTunnel.getStrictHostKeyChecking().toLowerCase() == "no") {
+        strictHostKeyChecking = false;
+      }
+
+      SshSettings sshSettings = SshSettings
+          .builder()
+          .withSshPort(metastoreTunnel.getPort())
+          .withSessionTimeout(metastoreTunnel.getTimeout())
+          .withRoute(metastoreTunnel.getRoute())
+          .withKnownHosts(metastoreTunnel.getKnownHosts())
+          .withLocalhost(metastoreTunnel.getLocalhost())
+          .withPrivateKeys(metastoreTunnel.getPrivateKeys())
+          .withStrictHostKeyChecking(strictHostKeyChecking)
+          .build();
 
       // properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
       // properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
@@ -58,7 +74,8 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
       // .put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname,
       // metastoreTunnel.getStrictHostKeyChecking());
 
-      return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3, metastoreTunnel);
+      // try to create SshSettings from here and keep passing them on
+      return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3, sshSettings);
     } else {
       return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
     }

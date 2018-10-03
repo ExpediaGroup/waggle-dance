@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
-import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
+import com.hotels.hcommon.ssh.SshSettings;
 
 public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
@@ -141,7 +141,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       HiveConf hiveConf,
       String name,
       int reconnectionRetries,
-      MetastoreTunnel metastoreTunnel) {
+      SshSettings sshSettings) {
     throw new IllegalStateException(
         "If metastore tunnelling is needed, then TunnelingMetaStoreClientFactory should be used");
   }
