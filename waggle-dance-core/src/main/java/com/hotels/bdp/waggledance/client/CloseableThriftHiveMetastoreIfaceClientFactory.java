@@ -28,6 +28,7 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 import com.hotels.hcommon.ssh.SshSettings;
+import com.hotels.hcommon.ssh.TunnelableFactory;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
@@ -63,10 +64,10 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
           .withStrictHostKeyChecking(strictHostKeyChecking)
           .build();
 
-      return metaStoreClientFactory
-          .newInstanceWithTunnelling(confFactory.newInstance(), "waggledance-" + name, 3, sshSettings);
-    } else {
-      return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
+      metaStoreClientFactory.setTunnelableFactory(new TunnelableFactory<>(sshSettings));
+      metaStoreClientFactory.setLocalhost(metastoreTunnel.getLocalhost());
     }
+    return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
   }
+
 }

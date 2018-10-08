@@ -30,7 +30,6 @@ import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
 import com.hotels.hcommon.ssh.MethodChecker;
 import com.hotels.hcommon.ssh.SshException;
-import com.hotels.hcommon.ssh.SshSettings;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 
 public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
@@ -41,7 +40,9 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
 
   private final MetaStoreClientFactory defaultFactory;
   private final HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
-  private final TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
+  private TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
+  private String localhost;
+  private HiveConf localHiveConf;
 
   public TunnelingMetaStoreClientFactory() {
     this(new DefaultMetaStoreClientFactory(), new HiveMetaStoreClientSupplierFactory());
@@ -56,16 +57,25 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
   }
 
   @Override
-  public CloseableThriftHiveMetastoreIface newInstanceWithTunnelling(
-      HiveConf hiveConf,
-      String name,
-      int reconnectionRetries,
-      SshSettings sshSettings) {
-    if (sshSettings == null) {
+  public void setTunnelableFactory(TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory) {
+    this.tunnelableFactory = tunnelableFactory;
+  }
+
+  @Override
+  public void setLocalhost(String localhost) {
+    this.localhost = localhost;
+  }
+
+  @Override
+  public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
+    if (tunnelableFactory == null) {
       return defaultFactory.newInstance(hiveConf, name, reconnectionRetries);
     }
 
-    String localHost = sshSettings.getLocalhost();
+    if (localhost == null) {
+      throw new NullPointerException();
+    }
+
     int localPort = getLocalPort();
     String metastoreUri = hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
 
@@ -73,10 +83,9 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
     String remoteHost = metaStoreUri.getHost();
     int remotePort = metaStoreUri.getPort();
 
-    HiveConf localHiveConf = newLocalConf(localHost, localPort, hiveConf);
-    String localMetastoreUri = localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
+    newLocalConf(localhost, localPort, hiveConf);
 
-    TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = new TunnelableFactory<>(sshSettings);
+    String localMetastoreUri = localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
 
     LOG.info("Metastore URI {} is being proxied through {}", metastoreUri, localMetastoreUri);
 
@@ -84,14 +93,13 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
         .newInstance(localHiveConf, name, reconnectionRetries);
 
     return (CloseableThriftHiveMetastoreIface) tunnelableFactory
-        .wrap(supplier, METHOD_CHECKER, localHost, localPort, remoteHost, remotePort);
+        .wrap(supplier, METHOD_CHECKER, localhost, localPort, remoteHost, remotePort);
   }
 
-  private HiveConf newLocalConf(String localHost, int localPort, HiveConf hiveConf) {
-    HiveConf localHiveConf = new HiveConf(hiveConf);
+  private void newLocalConf(String localHost, int localPort, HiveConf hiveConf) {
+    localHiveConf = new HiveConf(hiveConf);
     String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
     localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
-    return localHiveConf;
   }
 
   private int getLocalPort() {
@@ -102,8 +110,8 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
     }
   }
 
-  @Override
-  public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    throw new IllegalStateException("Should not use tunnelling if there is no metastore tunnel used");
+  HiveConf getLocalHiveConf() {
+    return localHiveConf;
   }
+
 }

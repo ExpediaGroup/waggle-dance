@@ -29,7 +29,7 @@ import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
 import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
-import com.hotels.hcommon.ssh.SshSettings;
+import com.hotels.hcommon.ssh.TunnelableFactory;
 
 public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
@@ -137,13 +137,9 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
   }
 
   @Override
-  public CloseableThriftHiveMetastoreIface newInstanceWithTunnelling(
-      HiveConf hiveConf,
-      String name,
-      int reconnectionRetries,
-      SshSettings sshSettings) {
-    throw new IllegalStateException(
-        "If metastore tunnelling is needed, then TunnelingMetaStoreClientFactory should be used");
-  }
+  public void setTunnelableFactory(TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory) {}
+
+  @Override
+  public void setLocalhost(String localhost) {}
 
 }

@@ -17,16 +17,14 @@ package com.hotels.bdp.waggledance.client;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 
-import com.hotels.hcommon.ssh.SshSettings;
+import com.hotels.hcommon.ssh.TunnelableFactory;
 
 public interface MetaStoreClientFactory {
 
   CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
 
-  CloseableThriftHiveMetastoreIface newInstanceWithTunnelling(
-      HiveConf hiveConf,
-      String name,
-      int reconnectionRetries,
-      SshSettings sshSettings);
+  void setTunnelableFactory(TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory);
+
+  void setLocalhost(String localhost);
 
 }

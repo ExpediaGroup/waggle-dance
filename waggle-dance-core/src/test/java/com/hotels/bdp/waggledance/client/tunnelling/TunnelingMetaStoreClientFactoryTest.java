@@ -15,9 +15,17 @@
  */
 package com.hotels.bdp.waggledance.client.tunnelling;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.Before;
@@ -32,6 +40,7 @@ import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.ssh.SshSettings;
+import com.hotels.hcommon.ssh.TunnelableFactory;
 import com.hotels.hcommon.ssh.TunnelableSupplier;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -42,7 +51,9 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Mock MetaStoreClientFactory metaStoreClientFactory;
   private @Mock HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
   private @Mock HiveMetaStoreClientSupplier hiveMetaStoreClientSupplier;
-  private @Mock HiveConf localHiveConf;
+  // private @Mock HiveConf localHiveConf;
+  private TunnelableFactory<CloseableThriftHiveMetastoreIface> realTunnelableFactory;
+  private @Mock TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
   private HiveConf hiveConf;
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private SshSettings sshSettings;
@@ -55,7 +66,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   @Before
   public void init() {
     hiveConf = metastore.conf();
-    when(localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS)).thenReturn(metastoreUri);
+    // hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
     when(hiveMetaStoreClientSupplierFactory.newInstance(any(), eq(name), eq(reconnectionRetries)))
         .thenReturn(hiveMetaStoreClientSupplier);
 
@@ -67,53 +78,75 @@ public class TunnelingMetaStoreClientFactoryTest {
         .withLocalhost(localhost)
         .build();
 
+    realTunnelableFactory = new TunnelableFactory<>(sshSettings);
+
     tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(metaStoreClientFactory,
         hiveMetaStoreClientSupplierFactory);
+    tunnelingMetaStoreClientFactory.setTunnelableFactory(tunnelableFactory);
+    tunnelingMetaStoreClientFactory.setLocalhost(localhost);
   }
 
   @Test
-  public void newInstanceWithTunneling() throws Exception {
-    ArgumentCaptor<TunnelableSupplier> captor = ArgumentCaptor.forClass(TunnelableSupplier.class);
-    CloseableThriftHiveMetastoreIface closeableThriftHiveMetastoreIface = tunnelingMetaStoreClientFactory
-        .newInstanceWithTunnelling(hiveConf, name, reconnectionRetries, sshSettings);
+  public void newInstanceWithTunneling() {
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
 
-    System.out.print(closeableThriftHiveMetastoreIface);
-    // verify(tunnelableFactory)
-    // .wrap(captor.capture(), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq("my-machine"), anyInt(),
-    // eq("localhost"), eq(metastore.getThriftPort()));
+    ArgumentCaptor<TunnelableSupplier> captor = ArgumentCaptor.forClass(TunnelableSupplier.class);
+    verify(tunnelableFactory)
+        .wrap(captor.capture(), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq("my-machine"), anyInt(),
+            eq("localhost"), eq(metastore.getThriftPort()));
+    assertThat(captor.getValue(), is(hiveMetaStoreClientSupplier));
   }
-  //
-  // @Test
-  // public void localHiveConfigUsesCorrectParameters() {
-  // tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
-  // ArgumentCaptor<String> stringArgument = ArgumentCaptor.forClass(String.class);
-  // verify(localHiveConfFactory).newInstance(stringArgument.capture(), anyInt(), eq(hiveConf));
-  // assertThat(stringArgument.getValue(), is(localhost));
-  // }
-  //
-  // @Test
-  // public void tunnelableFactorySupplierUsesCorrectParameters() {
-  // tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
-  // verify(tunnelableFactorySupplier).get(eq(localHiveConf));
-  // }
-  //
-  // @Test
-  // public void hiveMetaStoreClientSupplierFactoryUsesCorrectParameters() {
-  // tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
-  // verify(hiveMetaStoreClientSupplierFactory).newInstance(eq(localHiveConf), eq(name), eq(reconnectionRetries));
-  // }
-  //
-  // @Test
-  // public void tunnelableFactoryUsesCorrectParameters() throws URISyntaxException {
-  // URI uri = new URI(metastore.getThriftConnectionUri());
-  // String remoteHost = uri.getHost();
-  // int remotePort = uri.getPort();
-  // tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
-  // verify(tunnelableFactory)
-  // .wrap(eq(hiveMetaStoreClientSupplier), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq(localhost),
-  // any(Integer.class), eq(remoteHost), eq(remotePort));
-  // }
-  //
+
+  @Test
+  public void newInstanceNoTunnelableFactorySet() {
+    tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(metaStoreClientFactory,
+        hiveMetaStoreClientSupplierFactory);
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+    verify(metaStoreClientFactory).newInstance(hiveConf, name, reconnectionRetries);
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void newInstanceNoLocalHostSet() {
+    tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(metaStoreClientFactory,
+        hiveMetaStoreClientSupplierFactory);
+    tunnelingMetaStoreClientFactory.setTunnelableFactory(tunnelableFactory);
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+  }
+
+  @Test
+  public void localHiveConfigUsesCorrectParameters() {
+    // sshSettings = SshSettings
+    // .builder()
+    // .withPrivateKeys("private_key")
+    // .withKnownHosts("")
+    // .withRoute("user@hop1 -> hop2")
+    // .withLocalhost(localhost)
+    // .build();
+    //
+    // realTunnelableFactory = new TunnelableFactory<>(sshSettings);
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+    HiveConf localHiveConf = tunnelingMetaStoreClientFactory.getLocalHiveConf();
+    assertThat(localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS), startsWith("thrift://" + localhost));
+  }
+
+  @Test
+  public void hiveMetaStoreClientSupplierFactoryUsesCorrectParameters() {
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+    HiveConf localHiveConf = tunnelingMetaStoreClientFactory.getLocalHiveConf();
+    verify(hiveMetaStoreClientSupplierFactory).newInstance(eq(localHiveConf), eq(name), eq(reconnectionRetries));
+  }
+
+  @Test
+  public void tunnelableFactoryUsesCorrectParameters() throws URISyntaxException {
+    URI uri = new URI(metastore.getThriftConnectionUri());
+    String remoteHost = uri.getHost();
+    int remotePort = uri.getPort();
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+    verify(tunnelableFactory)
+        .wrap(eq(hiveMetaStoreClientSupplier), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq(localhost),
+            any(Integer.class), eq(remoteHost), eq(remotePort));
+  }
+
   // @Test
   // public void newInstanceWithoutTunneling() throws Exception {
   // hiveConf.unset(WaggleDanceHiveConfVars.SSH_ROUTE.varname);
@@ -133,10 +166,4 @@ public class TunnelingMetaStoreClientFactoryTest {
   // .newInstance(hiveConf, name, reconnectionRetries);
   // assertNotNull(closeableThriftHiveMetastoreIface);
   // }
-
-  @Test(expected = IllegalStateException.class)
-  public void newInstanceWithoutTunnelling() {
-    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
-  }
-
 }

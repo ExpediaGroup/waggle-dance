@@ -19,11 +19,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
-
-import java.util.Collections;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -37,6 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.ssh.SshSettings;
+import com.hotels.hcommon.ssh.TunnelableFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
@@ -85,19 +85,27 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
     ArgumentCaptor<SshSettings> sshSettingsCaptor = ArgumentCaptor.forClass(SshSettings.class);
-    verify(metaStoreClientFactory)
-        .newInstanceWithTunnelling(hiveConfCaptor.capture(), anyString(), anyInt(), sshSettingsCaptor.capture());
+    ArgumentCaptor<TunnelableFactory<CloseableThriftHiveMetastoreIface>> tunnelableFactoryCaptor = ArgumentCaptor
+        .forClass(TunnelableFactory.class);
+    verify(metaStoreClientFactory).setLocalhost(eq(localhost));
+    verify(metaStoreClientFactory).setTunnelableFactory(tunnelableFactoryCaptor.capture());
+    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
 
     HiveConf hiveConf = hiveConfCaptor.getValue();
-    SshSettings sshSettings = sshSettingsCaptor.getValue();
+    // SshSettings sshSettings = sshSettingsCaptor.getValue();
+    tunnelableFactoryCaptor.TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactoryCaptor
+        .getValue();
 
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
-    assertThat(sshSettings.getLocalhost(), is(localhost));
-    assertThat(sshSettings.getSshPort(), is(port));
-    assertThat(sshSettings.getRoute(), is(route));
-    assertThat(sshSettings.getKnownHosts(), is(knownHosts));
-    assertThat(sshSettings.getPrivateKeys(), is(Collections.singletonList(privateKeys)));
-    assertThat(sshSettings.getSessionTimeout(), is(timeout));
+
+    assertThat(tunnelableFactory, is(new TunnelableFactory<>(
+        SshSettings.builder().withPrivateKeys(privateKeys).withKnownHosts(knownHosts).withRoute(route).build())));
+    // assertThat(sshSettings.getLocalhost(), is(localhost));
+    // assertThat(sshSettings.getSshPort(), is(port));
+    // assertThat(sshSettings.getRoute(), is(route));
+    // assertThat(sshSettings.getKnownHosts(), is(knownHosts));
+    // assertThat(sshSettings.getPrivateKeys(), is(Collections.singletonList(privateKeys)));
+    // assertThat(sshSettings.getSessionTimeout(), is(timeout));
   }
 
 }
