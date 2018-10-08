@@ -23,6 +23,8 @@ import java.util.Map;
 
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
@@ -33,6 +35,7 @@ import com.hotels.hcommon.ssh.TunnelableFactory;
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
   private final MetaStoreClientFactory metaStoreClientFactory;
+  private SshSettings sshSettings;
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(MetaStoreClientFactory metaStoreClientFactory) {
     this.metaStoreClientFactory = metaStoreClientFactory;
@@ -53,7 +56,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
         strictHostKeyChecking = false;
       }
 
-      SshSettings sshSettings = SshSettings
+      sshSettings = SshSettings
           .builder()
           .withSshPort(metastoreTunnel.getPort())
           .withSessionTimeout(metastoreTunnel.getTimeout())
@@ -68,6 +71,11 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
       metaStoreClientFactory.setLocalhost(metastoreTunnel.getLocalhost());
     }
     return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
+  }
+
+  @VisibleForTesting
+  SshSettings getSshSettings() {
+    return sshSettings;
   }
 
 }

@@ -17,12 +17,15 @@ package com.hotels.bdp.waggledance.client;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
+
+import java.util.Collections;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -84,28 +87,20 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     factory.newInstance(federatedMetaStore);
 
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
-    ArgumentCaptor<SshSettings> sshSettingsCaptor = ArgumentCaptor.forClass(SshSettings.class);
-    ArgumentCaptor<TunnelableFactory<CloseableThriftHiveMetastoreIface>> tunnelableFactoryCaptor = ArgumentCaptor
-        .forClass(TunnelableFactory.class);
     verify(metaStoreClientFactory).setLocalhost(eq(localhost));
-    verify(metaStoreClientFactory).setTunnelableFactory(tunnelableFactoryCaptor.capture());
+    verify(metaStoreClientFactory).setTunnelableFactory(any(TunnelableFactory.class));
     verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
 
     HiveConf hiveConf = hiveConfCaptor.getValue();
-    // SshSettings sshSettings = sshSettingsCaptor.getValue();
-    tunnelableFactoryCaptor.TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactoryCaptor
-        .getValue();
+    SshSettings sshSettings = factory.getSshSettings();
 
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
-
-    assertThat(tunnelableFactory, is(new TunnelableFactory<>(
-        SshSettings.builder().withPrivateKeys(privateKeys).withKnownHosts(knownHosts).withRoute(route).build())));
-    // assertThat(sshSettings.getLocalhost(), is(localhost));
-    // assertThat(sshSettings.getSshPort(), is(port));
-    // assertThat(sshSettings.getRoute(), is(route));
-    // assertThat(sshSettings.getKnownHosts(), is(knownHosts));
-    // assertThat(sshSettings.getPrivateKeys(), is(Collections.singletonList(privateKeys)));
-    // assertThat(sshSettings.getSessionTimeout(), is(timeout));
+    assertThat(sshSettings.getLocalhost(), is(localhost));
+    assertThat(sshSettings.getSshPort(), is(port));
+    assertThat(sshSettings.getRoute(), is(route));
+    assertThat(sshSettings.getKnownHosts(), is(knownHosts));
+    assertThat(sshSettings.getPrivateKeys(), is(Collections.singletonList(privateKeys)));
+    assertThat(sshSettings.getSessionTimeout(), is(timeout));
   }
 
 }
