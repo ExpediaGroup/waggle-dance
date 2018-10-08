@@ -46,31 +46,34 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     properties.put(ConfVars.METASTOREURIS.varname, uris);
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
-
     String name = metaStore.getName().toLowerCase();
+
     if (metaStore.getConnectionType() == TUNNELED) {
-
       MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
-      boolean strictHostKeyChecking = true;
-      if (metastoreTunnel.getStrictHostKeyChecking().toLowerCase() == "no") {
-        strictHostKeyChecking = false;
-      }
 
-      sshSettings = SshSettings
-          .builder()
-          .withSshPort(metastoreTunnel.getPort())
-          .withSessionTimeout(metastoreTunnel.getTimeout())
-          .withRoute(metastoreTunnel.getRoute())
-          .withKnownHosts(metastoreTunnel.getKnownHosts())
-          .withLocalhost(metastoreTunnel.getLocalhost())
-          .withPrivateKeys(metastoreTunnel.getPrivateKeys())
-          .withStrictHostKeyChecking(strictHostKeyChecking)
-          .build();
-
+      sshSettings = buildSshSettings(metastoreTunnel);
       metaStoreClientFactory.setTunnelableFactory(new TunnelableFactory<>(sshSettings));
       metaStoreClientFactory.setLocalhost(metastoreTunnel.getLocalhost());
     }
+
     return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
+  }
+
+  private SshSettings buildSshSettings(MetastoreTunnel metastoreTunnel) {
+    boolean strictHostKeyChecking = true;
+    if (metastoreTunnel.getStrictHostKeyChecking().toLowerCase() == "no") {
+      strictHostKeyChecking = false;
+    }
+    return SshSettings
+        .builder()
+        .withSshPort(metastoreTunnel.getPort())
+        .withSessionTimeout(metastoreTunnel.getTimeout())
+        .withRoute(metastoreTunnel.getRoute())
+        .withKnownHosts(metastoreTunnel.getKnownHosts())
+        .withLocalhost(metastoreTunnel.getLocalhost())
+        .withPrivateKeys(metastoreTunnel.getPrivateKeys())
+        .withStrictHostKeyChecking(strictHostKeyChecking)
+        .build();
   }
 
   @VisibleForTesting
