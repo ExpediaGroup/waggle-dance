@@ -83,7 +83,7 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
     String remoteHost = metaStoreUri.getHost();
     int remotePort = metaStoreUri.getPort();
 
-    newLocalConf(localhost, localPort, hiveConf);
+    setNewLocalConf(localhost, localPort, hiveConf);
 
     String localMetastoreUri = localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
 
@@ -96,7 +96,7 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
         .wrap(supplier, METHOD_CHECKER, localhost, localPort, remoteHost, remotePort);
   }
 
-  private void newLocalConf(String localHost, int localPort, HiveConf hiveConf) {
+  private void setNewLocalConf(String localHost, int localPort, HiveConf hiveConf) {
     localHiveConf = new HiveConf(hiveConf);
     String proxyMetaStoreUris = "thrift://" + localHost + ":" + localPort;
     localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
