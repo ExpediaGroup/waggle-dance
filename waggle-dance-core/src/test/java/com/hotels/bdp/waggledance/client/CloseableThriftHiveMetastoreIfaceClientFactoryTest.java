@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.client;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -70,6 +71,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
     HiveConf hiveConf = hiveConfCaptor.getValue();
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
+    assertNull(factory.getSshSettings());
   }
 
   @Test
@@ -84,7 +86,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
     HiveConf hiveConf = hiveConfCaptor.getValue();
     SshSettings sshSettings = factory.getSshSettings();
-
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
     checkSshSettingsParameters(sshSettings);
     assertThat(sshSettings.isStrictHostKeyChecking(), is(true));

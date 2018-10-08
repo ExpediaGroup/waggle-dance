@@ -77,7 +77,6 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
 
     int localPort = getLocalPort();
     String remoteMetastoreUri = hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
-
     URI metaStoreUri = URI.create(remoteMetastoreUri);
     String remoteHost = metaStoreUri.getHost();
     int remotePort = metaStoreUri.getPort();
@@ -85,7 +84,6 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
     setNewLocalConf(localhost, localPort, hiveConf);
 
     String localMetastoreUri = localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
-
     LOG.info("Metastore URI {} is being proxied through {}", remoteMetastoreUri, localMetastoreUri);
 
     HiveMetaStoreClientSupplier supplier = hiveMetaStoreClientSupplierFactory
