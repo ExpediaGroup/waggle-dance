@@ -46,8 +46,15 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
   private static final String THRIFT_URI = "thrift://host:port";
 
-  private CloseableThriftHiveMetastoreIfaceClientFactory factory;
   private @Mock DefaultMetaStoreClientFactory metaStoreClientFactory;
+  private final String localhost = "local-machine";
+  private final int port = 2222;
+  private final String route = "a -> b -> c";
+  private final String knownHosts = "knownHosts";
+  private final String privateKeys = "privateKey";
+  private final int timeout = 123;
+  private CloseableThriftHiveMetastoreIfaceClientFactory factory;
+  private final MetastoreTunnel metastoreTunnel = setMetastoreTunnel();
 
   @Before
   public void setUp() {
@@ -67,21 +74,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
   @Test
   public void hiveConfForTunneling() throws Exception {
-    String localhost = "local-machine";
-    int port = 2222;
-    String route = "a -> b -> c";
-    String knownHosts = "knownHosts";
-    String privateKeys = "privateKey";
-    int timeout = 123;
-
-    MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
-    metastoreTunnel.setLocalhost(localhost);
-    metastoreTunnel.setPort(port);
-    metastoreTunnel.setRoute(route);
-    metastoreTunnel.setKnownHosts(knownHosts);
-    metastoreTunnel.setPrivateKeys(privateKeys);
-    metastoreTunnel.setTimeout(timeout);
-
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
     factory.newInstance(federatedMetaStore);
@@ -95,12 +87,40 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     SshSettings sshSettings = factory.getSshSettings();
 
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
+    checkSshSettingsParameters(sshSettings);
+    assertThat(sshSettings.isStrictHostKeyChecking(), is(true));
+  }
+
+  @Test
+  public void hiveConfWithTunnellingAndNoStrictHostKeyChecking() {
+    metastoreTunnel.setStrictHostKeyChecking("no");
+    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
+    federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
+    factory.newInstance(federatedMetaStore);
+
+    SshSettings sshSettings = factory.getSshSettings();
+    checkSshSettingsParameters(sshSettings);
+    assertThat(sshSettings.isStrictHostKeyChecking(), is(false));
+  }
+
+  private void checkSshSettingsParameters(SshSettings sshSettings) {
     assertThat(sshSettings.getLocalhost(), is(localhost));
     assertThat(sshSettings.getSshPort(), is(port));
     assertThat(sshSettings.getRoute(), is(route));
     assertThat(sshSettings.getKnownHosts(), is(knownHosts));
     assertThat(sshSettings.getPrivateKeys(), is(Collections.singletonList(privateKeys)));
     assertThat(sshSettings.getSessionTimeout(), is(timeout));
+  }
+
+  private MetastoreTunnel setMetastoreTunnel() {
+    MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
+    metastoreTunnel.setLocalhost(localhost);
+    metastoreTunnel.setPort(port);
+    metastoreTunnel.setRoute(route);
+    metastoreTunnel.setKnownHosts(knownHosts);
+    metastoreTunnel.setPrivateKeys(privateKeys);
+    metastoreTunnel.setTimeout(timeout);
+    return metastoreTunnel;
   }
 
 }

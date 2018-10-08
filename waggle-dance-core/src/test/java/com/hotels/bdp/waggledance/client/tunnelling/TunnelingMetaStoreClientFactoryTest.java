@@ -50,8 +50,8 @@ public class TunnelingMetaStoreClientFactoryTest {
   public @Rule ThriftHiveMetaStoreJUnitRule metastore = new ThriftHiveMetaStoreJUnitRule();
 
   private @Mock MetaStoreClientFactory metaStoreClientFactory;
-  private @Mock HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
   private @Mock HiveMetaStoreClientSupplier hiveMetaStoreClientSupplier;
+  private @Mock HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
   private @Mock TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
   private HiveConf hiveConf;
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
@@ -63,7 +63,6 @@ public class TunnelingMetaStoreClientFactoryTest {
   @Before
   public void init() {
     hiveConf = metastore.conf();
-    // hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
     when(hiveMetaStoreClientSupplierFactory.newInstance(any(), eq(name), eq(reconnectionRetries)))
         .thenReturn(hiveMetaStoreClientSupplier);
 
