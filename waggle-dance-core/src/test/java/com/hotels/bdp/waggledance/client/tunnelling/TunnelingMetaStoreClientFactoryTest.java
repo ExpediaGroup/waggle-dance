@@ -75,7 +75,6 @@ public class TunnelingMetaStoreClientFactoryTest {
   @Test
   public void newInstanceWithTunneling() {
     tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
-
     ArgumentCaptor<TunnelableSupplier<CloseableThriftHiveMetastoreIface>> captor = ArgumentCaptor
         .forClass(TunnelableSupplier.class);
     verify(tunnelableFactory)

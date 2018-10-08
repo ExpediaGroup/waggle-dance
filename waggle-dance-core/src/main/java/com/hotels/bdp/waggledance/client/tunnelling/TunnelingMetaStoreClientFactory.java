@@ -38,11 +38,11 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
   @VisibleForTesting
   final MethodChecker METHOD_CHECKER = new MetastoreClientMethodChecker();
 
-  private final MetaStoreClientFactory defaultFactory;
-  private final HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
   private TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
   private String localhost;
   private HiveConf localHiveConf;
+  private final MetaStoreClientFactory defaultFactory;
+  private final HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
 
   public TunnelingMetaStoreClientFactory() {
     this(new DefaultMetaStoreClientFactory(), new HiveMetaStoreClientSupplierFactory());
@@ -71,15 +71,14 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
     if (tunnelableFactory == null) {
       return defaultFactory.newInstance(hiveConf, name, reconnectionRetries);
     }
-
     if (localhost == null) {
-      throw new NullPointerException();
+      throw new NullPointerException("localhost not set before calling newInstance");
     }
 
     int localPort = getLocalPort();
-    String metastoreUri = hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
+    String remoteMetastoreUri = hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
 
-    URI metaStoreUri = URI.create(metastoreUri);
+    URI metaStoreUri = URI.create(remoteMetastoreUri);
     String remoteHost = metaStoreUri.getHost();
     int remotePort = metaStoreUri.getPort();
 
@@ -87,7 +86,7 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
 
     String localMetastoreUri = localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
 
-    LOG.info("Metastore URI {} is being proxied through {}", metastoreUri, localMetastoreUri);
+    LOG.info("Metastore URI {} is being proxied through {}", remoteMetastoreUri, localMetastoreUri);
 
     HiveMetaStoreClientSupplier supplier = hiveMetaStoreClientSupplierFactory
         .newInstance(localHiveConf, name, reconnectionRetries);

@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -46,15 +47,16 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
   private static final String THRIFT_URI = "thrift://host:port";
 
+  private @Captor ArgumentCaptor<HiveConf> hiveConfCaptor;
   private @Mock DefaultMetaStoreClientFactory metaStoreClientFactory;
   private final String localhost = "local-machine";
-  private final int port = 2222;
   private final String route = "a -> b -> c";
   private final String knownHosts = "knownHosts";
   private final String privateKeys = "privateKey";
   private final int timeout = 123;
-  private CloseableThriftHiveMetastoreIfaceClientFactory factory;
+  private final int port = 2222;
   private final MetastoreTunnel metastoreTunnel = setMetastoreTunnel();
+  private CloseableThriftHiveMetastoreIfaceClientFactory factory;
 
   @Before
   public void setUp() {
@@ -63,8 +65,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
   @Test
   public void hiveConf() throws Exception {
-    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
-
     factory.newInstance(newFederatedInstance("fed1", THRIFT_URI));
     verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
 
@@ -78,7 +78,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
     factory.newInstance(federatedMetaStore);
 
-    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
     verify(metaStoreClientFactory).setLocalhost(eq(localhost));
     verify(metaStoreClientFactory).setTunnelableFactory(any(TunnelableFactory.class));
     verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
