@@ -61,7 +61,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
   private SshSettings buildSshSettings(MetastoreTunnel metastoreTunnel) {
     boolean strictHostKeyChecking = true;
-    if (metastoreTunnel.getStrictHostKeyChecking().toLowerCase() == "no") {
+    if (metastoreTunnel.getStrictHostKeyChecking().toLowerCase().equals("no")) {
       strictHostKeyChecking = false;
     }
     return SshSettings
