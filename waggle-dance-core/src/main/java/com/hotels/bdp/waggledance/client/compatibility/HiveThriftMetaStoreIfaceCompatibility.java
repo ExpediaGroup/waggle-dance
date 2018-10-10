@@ -15,6 +15,8 @@
  */
 package com.hotels.bdp.waggledance.client.compatibility;
 
+import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
+import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
@@ -22,6 +24,8 @@ import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.thrift.TException;
 
@@ -42,4 +46,18 @@ public interface HiveThriftMetaStoreIfaceCompatibility {
    */
   GetTablesResult get_table_objects_by_name_req(GetTablesRequest req)
     throws MetaException, InvalidOperationException, UnknownDBException, TException;
+
+  /*
+   * https://hive.apache.org/javadocs/r2.3.3/api/org/apache/hadoop/hive/metastore/api/ThriftHiveMetastore.Client.html#
+   * get_primary_keys(org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest). Missing in hive 1.x.x
+   */
+  PrimaryKeysResponse get_primary_keys(PrimaryKeysRequest request)
+    throws MetaException, NoSuchObjectException, TException;
+
+  /*
+   * https://hive.apache.org/javadocs/r2.3.3/api/org/apache/hadoop/hive/metastore/api/ThriftHiveMetastore.Client.html#
+   * get_foreign_keys(org.apache.hadoop.hive.metastore.api.ForeignKeysRequest). Missing in Hive 1.x.x
+   */
+  ForeignKeysResponse get_foreign_keys(ForeignKeysRequest request)
+    throws MetaException, NoSuchObjectException, TException;
 }
