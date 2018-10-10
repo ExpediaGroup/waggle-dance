@@ -1,7 +1,8 @@
 ## [TBD] - TBD
 ### Changed
 * Refactored general metastore tunnelling code to leverage hcommon-hive-metastore libraries. See [#103](https://github.com/HotelsDotCom/waggle-dance/issues/103).
-
+### Fixed
+* Compatibility issue with get_foreign_keys() and get_primary_keys() methods.
 
 ## [3.0.0] - 2018-09-20
 ### Changed
