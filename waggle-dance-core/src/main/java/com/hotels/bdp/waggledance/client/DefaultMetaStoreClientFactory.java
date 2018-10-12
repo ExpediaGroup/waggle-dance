@@ -29,7 +29,6 @@ import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
 import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
-import com.hotels.hcommon.ssh.TunnelableFactory;
 
 public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
@@ -135,11 +134,5 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     return (CloseableThriftHiveMetastoreIface) Proxy
         .newProxyInstance(getClass().getClassLoader(), INTERFACES, reconnectingHandler);
   }
-
-  @Override
-  public void setTunnelableFactory(TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory) {}
-
-  @Override
-  public void setLocalhost(String localhost) {}
 
 }

@@ -38,31 +38,31 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
   @VisibleForTesting
   final MethodChecker METHOD_CHECKER = new MetastoreClientMethodChecker();
 
-  private TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
-  private String localhost;
   private HiveConf localHiveConf;
+  private final TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
+  private final String localhost;
   private final MetaStoreClientFactory defaultFactory;
   private final HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
 
   public TunnelingMetaStoreClientFactory() {
-    this(new DefaultMetaStoreClientFactory(), new HiveMetaStoreClientSupplierFactory());
+    this(new DefaultMetaStoreClientFactory(), new HiveMetaStoreClientSupplierFactory(), null, null);
+  }
+
+  public TunnelingMetaStoreClientFactory(
+      TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory,
+      String localhost) {
+    this(new DefaultMetaStoreClientFactory(), new HiveMetaStoreClientSupplierFactory(), tunnelableFactory, localhost);
   }
 
   @VisibleForTesting
   TunnelingMetaStoreClientFactory(
       MetaStoreClientFactory defaultFactory,
-      HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory) {
+      HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory,
+      TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory,
+      String localhost) {
     this.defaultFactory = defaultFactory;
     this.hiveMetaStoreClientSupplierFactory = hiveMetaStoreClientSupplierFactory;
-  }
-
-  @Override
-  public void setTunnelableFactory(TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory) {
     this.tunnelableFactory = tunnelableFactory;
-  }
-
-  @Override
-  public void setLocalhost(String localhost) {
     this.localhost = localhost;
   }
 

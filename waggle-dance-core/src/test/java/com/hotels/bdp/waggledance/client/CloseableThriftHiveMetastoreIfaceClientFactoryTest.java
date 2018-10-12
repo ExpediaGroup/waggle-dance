@@ -15,14 +15,10 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
@@ -39,14 +35,15 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
+import com.hotels.hcommon.hive.metastore.client.tunnelling.TunnellingMetaStoreClientSupplier;
 import com.hotels.hcommon.ssh.SshSettings;
-import com.hotels.hcommon.ssh.TunnelableFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
-  private static final String THRIFT_URI = "thrift://host:port";
+  private static final String THRIFT_URI = "thrift://1234";
 
   private @Captor ArgumentCaptor<HiveConf> hiveConfCaptor;
   private @Mock DefaultMetaStoreClientFactory metaStoreClientFactory;
@@ -56,35 +53,37 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   private final String privateKeys = "privateKey";
   private final int timeout = 123;
   private final int port = 2222;
-  private final MetastoreTunnel metastoreTunnel = setMetastoreTunnel();
+  private final MetastoreTunnel metastoreTunnel = createMetastoreTunnel();
   private CloseableThriftHiveMetastoreIfaceClientFactory factory;
 
   @Before
   public void setUp() {
-    factory = new CloseableThriftHiveMetastoreIfaceClientFactory(metaStoreClientFactory);
+    factory = new CloseableThriftHiveMetastoreIfaceClientFactory();
   }
 
   @Test
   public void hiveConf() throws Exception {
     factory.newInstance(newFederatedInstance("fed1", THRIFT_URI));
-    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
+    MetaStoreClientFactory defaultMetaStoreFactory = factory.getMetaStoreClientFactory();
+    assertThat(defaultMetaStoreFactory, instanceOf(DefaultMetaStoreClientFactory.class));
 
-    HiveConf hiveConf = hiveConfCaptor.getValue();
+    HiveConf hiveConf = factory.getHiveConf();
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
     assertNull(factory.getSshSettings());
   }
 
+  // TODO: make it so the test doesn't actually try to create a tunnel; the tunnel would fail
+
   @Test
   public void hiveConfForTunneling() throws Exception {
-    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
+    FederatedMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
     factory.newInstance(federatedMetaStore);
 
-    verify(metaStoreClientFactory).setLocalhost(eq(localhost));
-    verify(metaStoreClientFactory).setTunnelableFactory(any(TunnelableFactory.class));
-    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
+    MetaStoreClientFactory tunnelledMetaStoreFactory = factory.getMetaStoreClientFactory();
+    assertThat(tunnelledMetaStoreFactory, instanceOf(TunnellingMetaStoreClientSupplier.class));
 
-    HiveConf hiveConf = hiveConfCaptor.getValue();
+    HiveConf hiveConf = factory.getHiveConf();
     SshSettings sshSettings = factory.getSshSettings();
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
     checkSshSettingsParameters(sshSettings);
@@ -112,7 +111,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     assertThat(sshSettings.getSessionTimeout(), is(timeout));
   }
 
-  private MetastoreTunnel setMetastoreTunnel() {
+  private MetastoreTunnel createMetastoreTunnel() {
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
     metastoreTunnel.setLocalhost(localhost);
     metastoreTunnel.setPort(port);

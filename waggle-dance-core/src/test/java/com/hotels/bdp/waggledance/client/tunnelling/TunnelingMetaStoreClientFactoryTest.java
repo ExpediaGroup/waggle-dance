@@ -20,9 +20,7 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +40,6 @@ import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.ssh.TunnelableFactory;
-import com.hotels.hcommon.ssh.TunnelableSupplier;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TunnelingMetaStoreClientFactoryTest {
@@ -53,66 +50,75 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Mock HiveMetaStoreClientSupplier hiveMetaStoreClientSupplier;
   private @Mock HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
   private @Mock TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
+  private @Mock CloseableThriftHiveMetastoreIface expectedTunnelable;
   private HiveConf hiveConf;
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
 
   private final String name = "test";
-  private final int reconnectionRetries = 10;
+  private final int retries = 10;
   private final String localhost = "my-machine";
+  private int remotePort;
 
   @Before
   public void init() {
     hiveConf = metastore.conf();
-    when(hiveMetaStoreClientSupplierFactory.newInstance(any(), eq(name), eq(reconnectionRetries)))
+    remotePort = metastore.getThriftPort();
+    when(hiveMetaStoreClientSupplierFactory.newInstance(any(), eq(name), eq(retries)))
         .thenReturn(hiveMetaStoreClientSupplier);
 
     tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(metaStoreClientFactory,
-        hiveMetaStoreClientSupplierFactory);
-    tunnelingMetaStoreClientFactory.setTunnelableFactory(tunnelableFactory);
-    tunnelingMetaStoreClientFactory.setLocalhost(localhost);
+        hiveMetaStoreClientSupplierFactory, tunnelableFactory, localhost);
   }
 
   @Test
   public void newInstanceWithTunneling() {
-    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
-    ArgumentCaptor<TunnelableSupplier<CloseableThriftHiveMetastoreIface>> captor = ArgumentCaptor
-        .forClass(TunnelableSupplier.class);
-    verify(tunnelableFactory)
-        .wrap(captor.capture(), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq("my-machine"), anyInt(),
-            eq("localhost"), eq(metastore.getThriftPort()));
-    assertThat(captor.getValue(), is(hiveMetaStoreClientSupplier));
+    when(tunnelableFactory
+        .wrap(eq(hiveMetaStoreClientSupplier), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq(localhost),
+            anyInt(), eq("localhost"), eq(remotePort))).thenReturn(expectedTunnelable);
+    CloseableThriftHiveMetastoreIface result = tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, retries);
+    assertThat(result, is(expectedTunnelable));
+  }
+
+  @Test
+  public void newInstanceWithTunnelingAndLocalhost() {
+    tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(tunnelableFactory, localhost);
+    when(tunnelableFactory
+        .wrap(any(HiveMetaStoreClientSupplier.class), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq(localhost),
+            anyInt(), eq("localhost"), eq(remotePort))).thenReturn(expectedTunnelable);
+    CloseableThriftHiveMetastoreIface result = tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, retries);
+    assertThat(result, is(expectedTunnelable));
   }
 
   @Test
   public void newInstanceNoTunnelableFactorySet() {
     tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(metaStoreClientFactory,
-        hiveMetaStoreClientSupplierFactory);
-    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
-    verify(metaStoreClientFactory).newInstance(hiveConf, name, reconnectionRetries);
-    verify(metaStoreClientFactory, times(0)).setTunnelableFactory(any());
-    verify(metaStoreClientFactory, times(0)).setLocalhost(anyString());
+        hiveMetaStoreClientSupplierFactory, null, localhost);
+    when(metaStoreClientFactory.newInstance(hiveConf, name, retries)).thenReturn(expectedTunnelable);
+    CloseableThriftHiveMetastoreIface result = tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, retries);
+    assertThat(result, is(expectedTunnelable));
   }
 
   @Test(expected = NullPointerException.class)
   public void newInstanceNoLocalHostSet() {
     tunnelingMetaStoreClientFactory = new TunnelingMetaStoreClientFactory(metaStoreClientFactory,
-        hiveMetaStoreClientSupplierFactory);
-    tunnelingMetaStoreClientFactory.setTunnelableFactory(tunnelableFactory);
-    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+        hiveMetaStoreClientSupplierFactory, tunnelableFactory, null);
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, retries);
   }
 
   @Test
   public void localHiveConfigUsesCorrectParameters() {
-    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, retries);
     HiveConf localHiveConf = tunnelingMetaStoreClientFactory.getLocalHiveConf();
     assertThat(localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS), startsWith("thrift://" + localhost));
   }
 
   @Test
   public void hiveMetaStoreClientSupplierFactoryUsesCorrectParameters() {
-    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
+    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, retries);
+    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
+    verify(hiveMetaStoreClientSupplierFactory).newInstance(hiveConfCaptor.capture(), eq(name), eq(retries));
     HiveConf localHiveConf = tunnelingMetaStoreClientFactory.getLocalHiveConf();
-    verify(hiveMetaStoreClientSupplierFactory).newInstance(eq(localHiveConf), eq(name), eq(reconnectionRetries));
+    assertThat(hiveConfCaptor.getValue(), is(localHiveConf));
   }
 
   @Test
@@ -120,10 +126,11 @@ public class TunnelingMetaStoreClientFactoryTest {
     URI uri = new URI(metastore.getThriftConnectionUri());
     String remoteHost = uri.getHost();
     int remotePort = uri.getPort();
-    tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, reconnectionRetries);
-    verify(tunnelableFactory)
+    when(tunnelableFactory
         .wrap(eq(hiveMetaStoreClientSupplier), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER), eq(localhost),
-            any(Integer.class), eq(remoteHost), eq(remotePort));
+            anyInt(), eq(remoteHost), eq(remotePort))).thenReturn(expectedTunnelable);
+    CloseableThriftHiveMetastoreIface result = tunnelingMetaStoreClientFactory.newInstance(hiveConf, name, retries);
+    assertThat(result, is(expectedTunnelable));
   }
 
 }

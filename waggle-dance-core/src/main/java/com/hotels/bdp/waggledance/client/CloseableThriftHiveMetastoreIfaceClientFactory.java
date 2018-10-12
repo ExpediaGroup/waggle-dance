@@ -21,11 +21,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
@@ -34,11 +36,12 @@ import com.hotels.hcommon.ssh.TunnelableFactory;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
-  private final MetaStoreClientFactory metaStoreClientFactory;
+  private MetaStoreClientFactory metaStoreClientFactory;
   private SshSettings sshSettings;
+  private HiveConf hiveConf;
 
-  public CloseableThriftHiveMetastoreIfaceClientFactory(MetaStoreClientFactory metaStoreClientFactory) {
-    this.metaStoreClientFactory = metaStoreClientFactory;
+  public CloseableThriftHiveMetastoreIfaceClientFactory() {
+    metaStoreClientFactory = new DefaultMetaStoreClientFactory();
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
@@ -52,11 +55,12 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
       MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
 
       sshSettings = buildSshSettings(metastoreTunnel);
-      metaStoreClientFactory.setTunnelableFactory(new TunnelableFactory<>(sshSettings));
-      metaStoreClientFactory.setLocalhost(metastoreTunnel.getLocalhost());
+      metaStoreClientFactory = new TunnelingMetaStoreClientFactory(new TunnelableFactory<>(sshSettings),
+          metastoreTunnel.getLocalhost());
     }
 
-    return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
+    hiveConf = confFactory.newInstance();
+    return metaStoreClientFactory.newInstance(hiveConf, "waggledance-" + name, 3);
   }
 
   private SshSettings buildSshSettings(MetastoreTunnel metastoreTunnel) {
@@ -79,6 +83,16 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   @VisibleForTesting
   SshSettings getSshSettings() {
     return sshSettings;
+  }
+
+  @VisibleForTesting
+  MetaStoreClientFactory getMetaStoreClientFactory() {
+    return metaStoreClientFactory;
+  }
+
+  @VisibleForTesting
+  HiveConf getHiveConf() {
+    return hiveConf;
   }
 
 }
