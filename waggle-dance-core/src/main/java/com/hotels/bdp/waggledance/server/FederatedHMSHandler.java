@@ -1314,7 +1314,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Override
   public void init() throws MetaException {}
 
-  // 2.1
+  //Hive 2.1.0 methods
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   @Override
   public void abort_txns(AbortTxnsRequest rqst) throws NoSuchTxnException, TException {

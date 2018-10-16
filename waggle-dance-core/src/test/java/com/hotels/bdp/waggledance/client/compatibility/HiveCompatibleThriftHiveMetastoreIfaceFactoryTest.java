@@ -22,11 +22,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+
+import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
+import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
 import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Client;
 import org.apache.thrift.TApplicationException;
@@ -105,6 +111,26 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
       assertThat(e.getMessage(), is("Normal Error nothing to do with compatibility"));
       verify(delegate, never()).get_table(DB_NAME, TABLE_NAME);
     }
+  }
+
+  @Test
+  public void get_primary_keys() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    PrimaryKeysRequest primaryKeysRequest = new PrimaryKeysRequest(DB_NAME, TABLE_NAME);
+    when(delegate.get_primary_keys(primaryKeysRequest)).thenThrow(new TApplicationException("Error"));
+    PrimaryKeysResponse primaryKeysResponse = thriftHiveMetastoreIface.get_primary_keys(primaryKeysRequest);
+    assertThat(primaryKeysResponse, is(new PrimaryKeysResponse(Collections.emptyList())));
+    verify(delegate).get_table(DB_NAME, TABLE_NAME);
+  }
+
+  @Test
+  public void get_foreign_keys() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    ForeignKeysRequest foreignKeysRequest = new ForeignKeysRequest(null, null, DB_NAME, TABLE_NAME);
+    when(delegate.get_foreign_keys(foreignKeysRequest)).thenThrow(new TApplicationException("Error"));
+    ForeignKeysResponse foreignKeysResponse = thriftHiveMetastoreIface.get_foreign_keys(foreignKeysRequest);
+    assertThat(foreignKeysResponse, is(new ForeignKeysResponse(Collections.emptyList())));
+    verify(delegate).get_table(DB_NAME, TABLE_NAME);
   }
 
 }
