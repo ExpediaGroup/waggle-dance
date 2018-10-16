@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +40,7 @@ import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.client.MetastoreClientFactoryHelper;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
@@ -103,8 +105,10 @@ public class MetaStoreMappingFactoryImplTest {
     MetaStoreMappingFactoryImpl factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy,
         closeableThriftHiveMetastoreIfaceClientFactory, accessControlHandlerFactory);
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
-    when(closeableThriftHiveMetastoreIfaceClientFactory.newInstance(federatedMetaStore))
-        .thenThrow(new RuntimeException("Cannot create client"));
+
+    when(closeableThriftHiveMetastoreIfaceClientFactory
+        .newInstance(eq(federatedMetaStore), any(MetastoreClientFactoryHelper.class)))
+            .thenThrow(new RuntimeException("Cannot create client"));
 
     MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
     assertThat(mapping, is(notNullValue()));

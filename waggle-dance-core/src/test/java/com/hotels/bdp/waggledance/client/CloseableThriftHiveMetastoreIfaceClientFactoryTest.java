@@ -17,17 +17,20 @@ package com.hotels.bdp.waggledance.client;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
-import java.util.Collections;
+import java.lang.reflect.Proxy;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -36,24 +39,19 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
-import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
-import com.hotels.hcommon.hive.metastore.client.tunnelling.TunnellingMetaStoreClientSupplier;
-import com.hotels.hcommon.ssh.SshSettings;
+import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
-  private static final String THRIFT_URI = "thrift://1234";
+  private static final String THRIFT_URI = "thrift://localhost:1234";
+  public @Rule ExpectedException expectedException = ExpectedException.none();
 
-  private @Captor ArgumentCaptor<HiveConf> hiveConfCaptor;
-  private @Mock DefaultMetaStoreClientFactory metaStoreClientFactory;
-  private final String localhost = "local-machine";
-  private final String route = "a -> b -> c";
-  private final String knownHosts = "knownHosts";
-  private final String privateKeys = "privateKey";
-  private final int timeout = 123;
-  private final int port = 2222;
-  private final MetastoreTunnel metastoreTunnel = createMetastoreTunnel();
+  public @Captor ArgumentCaptor<HiveConf> hiveConfCaptor;
+  private @Mock MetastoreClientFactoryHelper helper;
+  private @Mock TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
+  private @Mock FederatedMetaStore federatedMetaStore;
+  private @Mock CloseableThriftHiveMetastoreIface closeableThriftHiveMetastoreIface;
   private CloseableThriftHiveMetastoreIfaceClientFactory factory;
 
   @Before
@@ -63,63 +61,22 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
   @Test
   public void hiveConf() throws Exception {
-    factory.newInstance(newFederatedInstance("fed1", THRIFT_URI));
-    MetaStoreClientFactory defaultMetaStoreFactory = factory.getMetaStoreClientFactory();
-    assertThat(defaultMetaStoreFactory, instanceOf(DefaultMetaStoreClientFactory.class));
-
-    HiveConf hiveConf = factory.getHiveConf();
-    assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
-    assertNull(factory.getSshSettings());
+    AbstractMetaStore metaStore = newFederatedInstance("fed1", THRIFT_URI);
+    MetastoreClientFactoryHelper helper = new MetastoreClientFactoryHelper(metaStore);
+    CloseableThriftHiveMetastoreIface result = factory.newInstance(metaStore, helper);
+    assertThat(result, instanceOf(Proxy.class));
   }
-
-  // TODO: make it so the test doesn't actually try to create a tunnel; the tunnel would fail
 
   @Test
   public void hiveConfForTunneling() throws Exception {
-    FederatedMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
-    federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
-    factory.newInstance(federatedMetaStore);
-
-    MetaStoreClientFactory tunnelledMetaStoreFactory = factory.getMetaStoreClientFactory();
-    assertThat(tunnelledMetaStoreFactory, instanceOf(TunnellingMetaStoreClientSupplier.class));
-
-    HiveConf hiveConf = factory.getHiveConf();
-    SshSettings sshSettings = factory.getSshSettings();
-    assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
-    checkSshSettingsParameters(sshSettings);
-    assertThat(sshSettings.isStrictHostKeyChecking(), is(true));
-  }
-
-  @Test
-  public void hiveConfWithTunnellingAndNoStrictHostKeyChecking() {
-    metastoreTunnel.setStrictHostKeyChecking("no");
-    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", THRIFT_URI);
-    federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
-    factory.newInstance(federatedMetaStore);
-
-    SshSettings sshSettings = factory.getSshSettings();
-    checkSshSettingsParameters(sshSettings);
-    assertThat(sshSettings.isStrictHostKeyChecking(), is(false));
-  }
-
-  private void checkSshSettingsParameters(SshSettings sshSettings) {
-    assertThat(sshSettings.getLocalhost(), is(localhost));
-    assertThat(sshSettings.getSshPort(), is(port));
-    assertThat(sshSettings.getRoute(), is(route));
-    assertThat(sshSettings.getKnownHosts(), is(knownHosts));
-    assertThat(sshSettings.getPrivateKeys(), is(Collections.singletonList(privateKeys)));
-    assertThat(sshSettings.getSessionTimeout(), is(timeout));
-  }
-
-  private MetastoreTunnel createMetastoreTunnel() {
-    MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
-    metastoreTunnel.setLocalhost(localhost);
-    metastoreTunnel.setPort(port);
-    metastoreTunnel.setRoute(route);
-    metastoreTunnel.setKnownHosts(knownHosts);
-    metastoreTunnel.setPrivateKeys(privateKeys);
-    metastoreTunnel.setTimeout(timeout);
-    return metastoreTunnel;
+    when(federatedMetaStore.getName()).thenReturn("fed1");
+    when(federatedMetaStore.getRemoteMetaStoreUris()).thenReturn(THRIFT_URI);
+    when(helper.get()).thenReturn(tunnelingMetaStoreClientFactory);
+    when(tunnelingMetaStoreClientFactory.newInstance(hiveConfCaptor.capture(), eq("waggledance-fed1"), eq(3)))
+        .thenReturn(closeableThriftHiveMetastoreIface);
+    CloseableThriftHiveMetastoreIface result = factory.newInstance(federatedMetaStore, helper);
+    assertThat(hiveConfCaptor.getValue().get(ConfVars.METASTOREURIS.varname), is(THRIFT_URI));
+    assertThat(result, is(closeableThriftHiveMetastoreIface));
   }
 
 }
