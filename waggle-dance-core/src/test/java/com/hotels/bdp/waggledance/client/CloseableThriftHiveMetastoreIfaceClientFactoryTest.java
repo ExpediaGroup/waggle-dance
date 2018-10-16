@@ -21,8 +21,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
-
 import java.lang.reflect.Proxy;
 
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -37,7 +35,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 
@@ -56,21 +53,20 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
   @Before
   public void setUp() {
+    when(federatedMetaStore.getName()).thenReturn("fed1");
+    when(federatedMetaStore.getRemoteMetaStoreUris()).thenReturn(THRIFT_URI);
     factory = new CloseableThriftHiveMetastoreIfaceClientFactory();
   }
 
   @Test
   public void hiveConf() throws Exception {
-    AbstractMetaStore metaStore = newFederatedInstance("fed1", THRIFT_URI);
-    MetastoreClientFactoryHelper helper = new MetastoreClientFactoryHelper(metaStore);
-    CloseableThriftHiveMetastoreIface result = factory.newInstance(metaStore, helper);
+    MetastoreClientFactoryHelper helper = new MetastoreClientFactoryHelper(federatedMetaStore);
+    CloseableThriftHiveMetastoreIface result = factory.newInstance(federatedMetaStore, helper);
     assertThat(result, instanceOf(Proxy.class));
   }
 
   @Test
   public void hiveConfForTunneling() throws Exception {
-    when(federatedMetaStore.getName()).thenReturn("fed1");
-    when(federatedMetaStore.getRemoteMetaStoreUris()).thenReturn(THRIFT_URI);
     when(helper.get()).thenReturn(tunnelingMetaStoreClientFactory);
     when(tunnelingMetaStoreClientFactory.newInstance(hiveConfCaptor.capture(), eq("waggledance-fed1"), eq(3)))
         .thenReturn(closeableThriftHiveMetastoreIface);

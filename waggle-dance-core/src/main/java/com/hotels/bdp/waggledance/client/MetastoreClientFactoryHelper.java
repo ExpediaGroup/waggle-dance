@@ -39,7 +39,6 @@ public class MetastoreClientFactoryHelper {
           metastoreTunnel.getLocalhost());
     }
     return metaStoreClientFactory;
-
   }
 
   private SshSettings buildSshSettings(MetastoreTunnel metastoreTunnel) {
