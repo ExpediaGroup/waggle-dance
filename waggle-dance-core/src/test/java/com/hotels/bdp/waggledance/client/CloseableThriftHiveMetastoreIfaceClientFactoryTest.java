@@ -26,9 +26,7 @@ import java.lang.reflect.Proxy;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -42,7 +40,6 @@ import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFact
 public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
   private static final String THRIFT_URI = "thrift://localhost:1234";
-  public @Rule ExpectedException expectedException = ExpectedException.none();
 
   public @Captor ArgumentCaptor<HiveConf> hiveConfCaptor;
   private @Mock MetastoreClientFactoryHelper helper;

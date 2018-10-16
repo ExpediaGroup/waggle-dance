@@ -27,19 +27,19 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 public class MetastoreClientFactoryHelperTest {
 
-  private @Mock AbstractMetaStore metastore;
   private static final String THRIFT_URI = "thrift://host:port";
 
-  private MetastoreClientFactoryHelper helper;
+  private @Mock AbstractMetaStore metastore;
   private final String name = "test";
-  String localhost = "localhost";
-  String route = "a -> b";
-  String knownHosts = "knownHosts";
-  String privateKeys = "privateKeys";
-  int timeout = 123;
-  int port = 222;
+  private final String localhost = "localhost";
+  private final String route = "a -> b";
+  private final String knownHosts = "knownHosts";
+  private final String privateKeys = "privateKeys";
+  private final int timeout = 123;
+  private final int port = 222;
   private final MetastoreTunnel metastoreTunnel = createMetastoreTunnel();
   private final AbstractMetaStore federatedMetaStore = AbstractMetaStore.newFederatedInstance(name, THRIFT_URI);
+  private MetastoreClientFactoryHelper helper;
 
   @Test
   public void getDefaultMetaStoreClientFactory() {
@@ -49,6 +49,7 @@ public class MetastoreClientFactoryHelperTest {
 
   @Test
   public void getTunnelingMetastoreClientFactoryWithStrictHostKeyChecking() {
+    metastoreTunnel.setStrictHostKeyChecking("yes");
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
     helper = new MetastoreClientFactoryHelper(federatedMetaStore);
     assertThat(helper.get(), instanceOf(TunnelingMetaStoreClientFactory.class));
@@ -56,7 +57,7 @@ public class MetastoreClientFactoryHelperTest {
 
   @Test
   public void getTunnelingMetastoreClientFactoryNoStrictHostKeyChecking() {
-    metastoreTunnel.setStrictHostKeyChecking("yes");
+    metastoreTunnel.setStrictHostKeyChecking("no");
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
     helper = new MetastoreClientFactoryHelper(federatedMetaStore);
     assertThat(helper.get(), instanceOf(TunnelingMetaStoreClientFactory.class));
@@ -70,7 +71,6 @@ public class MetastoreClientFactoryHelperTest {
     metastoreTunnel.setKnownHosts(knownHosts);
     metastoreTunnel.setPrivateKeys(privateKeys);
     metastoreTunnel.setTimeout(timeout);
-    metastoreTunnel.setStrictHostKeyChecking("no");
     return metastoreTunnel;
   }
 
