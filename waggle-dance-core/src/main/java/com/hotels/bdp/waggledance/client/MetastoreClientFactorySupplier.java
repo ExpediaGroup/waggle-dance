@@ -50,10 +50,6 @@ public class MetastoreClientFactorySupplier {
   }
 
   private SshSettings buildSshSettings(MetastoreTunnel metastoreTunnel) {
-    boolean strictHostKeyChecking = true;
-    if (metastoreTunnel.getStrictHostKeyChecking().toLowerCase().equals("no")) {
-      strictHostKeyChecking = false;
-    }
     return SshSettings
         .builder()
         .withSshPort(metastoreTunnel.getPort())
@@ -62,7 +58,7 @@ public class MetastoreClientFactorySupplier {
         .withKnownHosts(metastoreTunnel.getKnownHosts())
         .withLocalhost(metastoreTunnel.getLocalhost())
         .withPrivateKeys(metastoreTunnel.getPrivateKeys())
-        .withStrictHostKeyChecking(strictHostKeyChecking)
+        .withStrictHostKeyChecking(metastoreTunnel.isStrictHostKeyChecking())
         .build();
   }
 

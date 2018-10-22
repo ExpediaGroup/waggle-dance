@@ -43,7 +43,7 @@
     <beeju.version>1.2.1</beeju.version>
     <guava.version>23.0</guava.version>
     <guice.version>4.0</guice.version>
-    <hcommon-hive-metastore.version>1.2.1</hcommon-hive-metastore.version>
+    <hcommon-hive-metastore.version>1.2.2-SNAPSHOT</hcommon-hive-metastore.version>
   </properties>
 
   <dependencyManagement>

@@ -45,16 +45,7 @@ public class MetastoreClientFactorySupplierTest {
   }
 
   @Test
-  public void getTunnelingMetastoreClientFactoryWithStrictHostKeyChecking() {
-    metastoreTunnel.setStrictHostKeyChecking("yes");
-    federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
-    helper = new MetastoreClientFactorySupplier(federatedMetaStore);
-    assertThat(helper.get(), instanceOf(TunnelingMetaStoreClientFactory.class));
-  }
-
-  @Test
-  public void getTunnelingMetastoreClientFactoryNoStrictHostKeyChecking() {
-    metastoreTunnel.setStrictHostKeyChecking("no");
+  public void getTunnelingMetastoreClientFactory() {
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
     helper = new MetastoreClientFactorySupplier(federatedMetaStore);
     assertThat(helper.get(), instanceOf(TunnelingMetaStoreClientFactory.class));
@@ -78,6 +69,7 @@ public class MetastoreClientFactorySupplierTest {
     metastoreTunnel.setKnownHosts("knownHosts");
     metastoreTunnel.setPrivateKeys("privateKeys");
     metastoreTunnel.setTimeout(123);
+    metastoreTunnel.setStrictHostKeyChecking("yes");
     return metastoreTunnel;
   }
 
