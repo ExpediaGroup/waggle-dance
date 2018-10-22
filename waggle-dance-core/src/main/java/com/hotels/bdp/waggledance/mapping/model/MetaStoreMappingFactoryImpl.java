@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
-import com.hotels.bdp.waggledance.client.MetastoreClientFactoryHelper;
+import com.hotels.bdp.waggledance.client.MetastoreClientFactorySupplier;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
@@ -53,8 +53,8 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
 
   private CloseableThriftHiveMetastoreIface createClient(AbstractMetaStore metaStore) {
     try {
-      MetastoreClientFactoryHelper helper = new MetastoreClientFactoryHelper(metaStore);
-      return metaStoreClientFactory.newInstance(metaStore, helper);
+      MetastoreClientFactorySupplier helper = new MetastoreClientFactorySupplier(metaStore);
+      return metaStoreClientFactory.newInstance(helper);
     } catch (Exception e) {
       LOG.error("Can't create a client for metastore '{}':", metaStore.getName(), e);
       return newUnreachableMetatstoreClient(metaStore);

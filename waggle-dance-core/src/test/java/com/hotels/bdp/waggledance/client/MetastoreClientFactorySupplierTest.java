@@ -16,34 +16,31 @@
 package com.hotels.bdp.waggledance.client;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
-public class MetastoreClientFactoryHelperTest {
+public class MetastoreClientFactorySupplierTest {
 
-  private static final String THRIFT_URI = "thrift://host:port";
-
-  private @Mock AbstractMetaStore metastore;
-  private final String name = "test";
-  private final String localhost = "localhost";
-  private final String route = "a -> b";
-  private final String knownHosts = "knownHosts";
-  private final String privateKeys = "privateKeys";
-  private final int timeout = 123;
-  private final int port = 222;
+  private final String thriftUri = "thrift://host:port";
+  private final String name = "Test";
   private final MetastoreTunnel metastoreTunnel = createMetastoreTunnel();
-  private final AbstractMetaStore federatedMetaStore = AbstractMetaStore.newFederatedInstance(name, THRIFT_URI);
-  private MetastoreClientFactoryHelper helper;
+  private final AbstractMetaStore federatedMetaStore = AbstractMetaStore.newFederatedInstance(name, thriftUri);
+  private MetastoreClientFactorySupplier helper;
+
+  @Before
+  public void setUp() {
+    helper = new MetastoreClientFactorySupplier(federatedMetaStore);
+  }
 
   @Test
   public void getDefaultMetaStoreClientFactory() {
-    helper = new MetastoreClientFactoryHelper(federatedMetaStore);
     assertThat(helper.get(), instanceOf(DefaultMetaStoreClientFactory.class));
   }
 
@@ -51,7 +48,7 @@ public class MetastoreClientFactoryHelperTest {
   public void getTunnelingMetastoreClientFactoryWithStrictHostKeyChecking() {
     metastoreTunnel.setStrictHostKeyChecking("yes");
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
-    helper = new MetastoreClientFactoryHelper(federatedMetaStore);
+    helper = new MetastoreClientFactorySupplier(federatedMetaStore);
     assertThat(helper.get(), instanceOf(TunnelingMetaStoreClientFactory.class));
   }
 
@@ -59,18 +56,28 @@ public class MetastoreClientFactoryHelperTest {
   public void getTunnelingMetastoreClientFactoryNoStrictHostKeyChecking() {
     metastoreTunnel.setStrictHostKeyChecking("no");
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
-    helper = new MetastoreClientFactoryHelper(federatedMetaStore);
+    helper = new MetastoreClientFactorySupplier(federatedMetaStore);
     assertThat(helper.get(), instanceOf(TunnelingMetaStoreClientFactory.class));
+  }
+
+  @Test
+  public void getMetaStoreUris() {
+    assertThat(helper.getMetaStoreUris(), is(thriftUri));
+  }
+
+  @Test
+  public void getMetaStoreName() {
+    assertThat(helper.getMetaStoreName(), is(name.toLowerCase()));
   }
 
   private MetastoreTunnel createMetastoreTunnel() {
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
-    metastoreTunnel.setLocalhost(localhost);
-    metastoreTunnel.setPort(port);
-    metastoreTunnel.setRoute(route);
-    metastoreTunnel.setKnownHosts(knownHosts);
-    metastoreTunnel.setPrivateKeys(privateKeys);
-    metastoreTunnel.setTimeout(timeout);
+    metastoreTunnel.setLocalhost("localhost");
+    metastoreTunnel.setPort(222);
+    metastoreTunnel.setRoute("a -> b");
+    metastoreTunnel.setKnownHosts("knownHosts");
+    metastoreTunnel.setPrivateKeys("privateKeys");
+    metastoreTunnel.setTimeout(123);
     return metastoreTunnel;
   }
 

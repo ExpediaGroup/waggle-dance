@@ -22,18 +22,15 @@ import java.util.Map;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
-import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
-  public CloseableThriftHiveMetastoreIface newInstance(
-      AbstractMetaStore metaStore,
-      MetastoreClientFactoryHelper helper) {
-    HiveConfFactory confFactory = createHiveConfFactory(metaStore.getRemoteMetaStoreUris());
+  public CloseableThriftHiveMetastoreIface newInstance(MetastoreClientFactorySupplier helper) {
+    HiveConfFactory confFactory = createHiveConfFactory(helper.getMetaStoreUris());
     HiveConf hiveConf = confFactory.newInstance();
-    String name = metaStore.getName().toLowerCase();
+    String name = helper.getMetaStoreName();
 
     MetaStoreClientFactory metaStoreClientFactory = helper.get();
     return metaStoreClientFactory.newInstance(hiveConf, "waggledance-" + name, 3);

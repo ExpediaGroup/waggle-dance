@@ -22,10 +22,10 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.ssh.SshSettings;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 
-public class MetastoreClientFactoryHelper {
+public class MetastoreClientFactorySupplier {
   private final AbstractMetaStore metaStore;
 
-  public MetastoreClientFactoryHelper(AbstractMetaStore metaStore) {
+  public MetastoreClientFactorySupplier(AbstractMetaStore metaStore) {
     this.metaStore = metaStore;
   }
 
@@ -39,6 +39,14 @@ public class MetastoreClientFactoryHelper {
           metastoreTunnel.getLocalhost());
     }
     return metaStoreClientFactory;
+  }
+
+  public String getMetaStoreUris() {
+    return metaStore.getRemoteMetaStoreUris();
+  }
+
+  public String getMetaStoreName() {
+    return metaStore.getName().toLowerCase();
   }
 
   private SshSettings buildSshSettings(MetastoreTunnel metastoreTunnel) {

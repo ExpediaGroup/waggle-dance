@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
 import com.hotels.hcommon.ssh.MethodChecker;
 import com.hotels.hcommon.ssh.SshException;
@@ -38,50 +37,43 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
   @VisibleForTesting
   final MethodChecker METHOD_CHECKER = new MetastoreClientMethodChecker();
 
-  private HiveConf localHiveConf;
   private final TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory;
   private final String localhost;
-  private final MetaStoreClientFactory defaultFactory;
+  private final LocalHiveConfFactory localHiveConfFactory;
   private final HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory;
-
-  public TunnelingMetaStoreClientFactory() {
-    this(new DefaultMetaStoreClientFactory(), new HiveMetaStoreClientSupplierFactory(), null, null);
-  }
 
   public TunnelingMetaStoreClientFactory(
       TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory,
       String localhost) {
-    this(new DefaultMetaStoreClientFactory(), new HiveMetaStoreClientSupplierFactory(), tunnelableFactory, localhost);
+    this(new HiveMetaStoreClientSupplierFactory(), new LocalHiveConfFactory(), tunnelableFactory, localhost);
   }
 
   @VisibleForTesting
   TunnelingMetaStoreClientFactory(
-      MetaStoreClientFactory defaultFactory,
       HiveMetaStoreClientSupplierFactory hiveMetaStoreClientSupplierFactory,
+      LocalHiveConfFactory localHiveConfFactory,
       TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory,
       String localhost) {
-    this.defaultFactory = defaultFactory;
     this.hiveMetaStoreClientSupplierFactory = hiveMetaStoreClientSupplierFactory;
+    this.localHiveConfFactory = localHiveConfFactory;
     this.tunnelableFactory = tunnelableFactory;
     this.localhost = localhost;
+
+    if (localhost == null || tunnelableFactory == null) {
+      throw new IllegalStateException(
+          "A localhost and tunnelable factory need to be provided for TunnelingMetastoreClientFactory");
+    }
   }
 
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    if (tunnelableFactory == null) {
-      return defaultFactory.newInstance(hiveConf, name, reconnectionRetries);
-    }
-    if (localhost == null) {
-      throw new NullPointerException("localhost not set before calling newInstance");
-    }
-
     int localPort = getLocalPort();
     String remoteMetastoreUri = hiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
     URI metaStoreUri = URI.create(remoteMetastoreUri);
     String remoteHost = metaStoreUri.getHost();
     int remotePort = metaStoreUri.getPort();
 
-    setNewLocalConf(localPort, hiveConf);
+    HiveConf localHiveConf = localHiveConfFactory.newInstance(localhost, localPort, hiveConf);
 
     String localMetastoreUri = localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS);
     LOG.info("Metastore URI {} is being proxied through {}", remoteMetastoreUri, localMetastoreUri);
@@ -93,22 +85,12 @@ public class TunnelingMetaStoreClientFactory implements MetaStoreClientFactory {
         .wrap(supplier, METHOD_CHECKER, localhost, localPort, remoteHost, remotePort);
   }
 
-  private void setNewLocalConf(int localPort, HiveConf hiveConf) {
-    localHiveConf = new HiveConf(hiveConf);
-    String proxyMetaStoreUris = "thrift://" + localhost + ":" + localPort;
-    localHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, proxyMetaStoreUris);
-  }
-
   private int getLocalPort() {
     try (ServerSocket socket = new ServerSocket(0)) {
       return socket.getLocalPort();
     } catch (IOException | RuntimeException e) {
       throw new SshException("Unable to bind to a free localhost port", e);
     }
-  }
-
-  HiveConf getLocalHiveConf() {
-    return localHiveConf;
   }
 
 }
