@@ -483,7 +483,7 @@ public class DatabaseMappingImplTest {
   @Test
   public void checkWritePermissions() throws Exception {
     databaseMapping.checkWritePermissions(DB_NAME);
-    verify(metastoreMapping).checkWritePermissions(DB_NAME);
+    verify(metastoreMapping).checkWritePermissions(IN_DB_NAME);
   }
 
   @Test

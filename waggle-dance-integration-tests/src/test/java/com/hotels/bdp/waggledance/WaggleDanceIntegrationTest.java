@@ -502,6 +502,30 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
+  public void alterTableOnFederatedIsNotAllowedUsingManual() throws Exception {
+    String[] mappableDatabases = new String[] { REMOTE_DATABASE };
+    String[] writableDatabaseWhitelist = new String[] { REMOTE_DATABASE };
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.MANUAL)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .federate("doesNotMatterManualMode", remoteServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST, mappableDatabases, writableDatabaseWhitelist)
+        .build();
+
+    runWaggleDance(runner);
+
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    Table table = proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
+    Table newTable = new Table(table);
+    newTable.setTableName("new_remote_table");
+
+    proxy.alter_table_with_environmentContext(REMOTE_DATABASE, REMOTE_TABLE, newTable, null);
+    assertThat(proxy.tableExists(REMOTE_DATABASE, "new_remote_table"), is(true));
+  }
+
+  @Test
   public void doesNotOverwriteConfigOnShutdownManualMode() throws Exception {
     // Note a similar test for PREFIX is not required
     runner = WaggleDanceRunner

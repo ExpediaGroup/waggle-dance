@@ -136,14 +136,14 @@ public class MetaStoreMappingImplTest {
   public void checkWritePermissions() {
     String databaseName = "db";
     when(accessControlHandler.hasWritePermission(databaseName)).thenReturn(true);
-    assertThat(metaStoreMapping.checkWritePermissions(DATABASE_PREFIX + databaseName), is(metaStoreMapping));
+    assertThat(metaStoreMapping.checkWritePermissions(databaseName), is(metaStoreMapping));
   }
 
   @Test(expected = NotAllowedException.class)
   public void checkWritePermissionsThrowsException() {
     String databaseName = "db";
     when(accessControlHandler.hasWritePermission(databaseName)).thenReturn(false);
-    metaStoreMapping.checkWritePermissions(DATABASE_PREFIX + databaseName);
+    metaStoreMapping.checkWritePermissions(databaseName);
   }
 
   @Test

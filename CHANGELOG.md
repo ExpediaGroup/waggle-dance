@@ -1,4 +1,6 @@
 ## [TBD] - TBD
+### Fixed
+* Fixed IllegalArgumentException doing write operations on federated metastores in MANUAL database resolution. See [141](https://github.com/HotelsDotCom/waggle-dance/issues/141).
 ### Changed
 * Refactored general metastore tunnelling code to leverage hcommon-hive-metastore libraries. See [#103](https://github.com/HotelsDotCom/waggle-dance/issues/103).
 ### Fixed
