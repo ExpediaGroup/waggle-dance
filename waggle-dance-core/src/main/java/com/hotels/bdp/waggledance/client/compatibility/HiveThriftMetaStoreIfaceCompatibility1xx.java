@@ -15,8 +15,11 @@
  */
 package com.hotels.bdp.waggledance.client.compatibility;
 
+import java.util.Collections;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
+import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
@@ -24,6 +27,8 @@ import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -62,5 +67,35 @@ public class HiveThriftMetaStoreIfaceCompatibility1xx implements HiveThriftMetaS
     throws MetaException, InvalidOperationException, UnknownDBException, TException {
     List<Table> tables = client.get_table_objects_by_name(req.getDbName(), req.getTblNames());
     return new GetTablesResult(tables);
+  }
+
+  /*
+   * (non-Javadoc)
+   * @see
+   * com.hotels.bdp.waggledance.client.compatibility.HiveThriftMetaStoreIfaceCompatibility#get_primary_keys(org.apache.
+   * hadoop.hive.metastore.api.PrimaryKeysRequest)
+   */
+  @Override
+  public PrimaryKeysResponse get_primary_keys(PrimaryKeysRequest request)
+    throws MetaException, NoSuchObjectException, TException {
+    // making sure the table exists
+    client.get_table(request.getDb_name(), request.getTbl_name());
+    // get_primary_keys is not supported in hive < 2.1 so just returning empty list.
+    return new PrimaryKeysResponse(Collections.emptyList());
+  }
+
+  /*
+   * @Override(non-Javadoc)
+   * @see
+   * com.hotels.bdp.waggledance.client.compatibility.HiveThriftMetaStoreIfaceCompatibility#get_foreign_keys(org.apache.
+   * hadoop.hive.metastore.api.ForeignKeysRequest)
+   */
+  @Override
+  public ForeignKeysResponse get_foreign_keys(ForeignKeysRequest request)
+    throws MetaException, NoSuchObjectException, TException {
+    // making sure the table exists
+    client.get_table(request.getForeign_db_name(), request.getForeign_tbl_name());
+    // get_foreign_keys is not supported in hive < 2.1 so just returning empty list.
+    return new ForeignKeysResponse(Collections.emptyList());
   }
 }
