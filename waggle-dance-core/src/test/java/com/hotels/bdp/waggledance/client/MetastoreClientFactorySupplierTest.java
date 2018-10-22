@@ -32,33 +32,33 @@ public class MetastoreClientFactorySupplierTest {
   private final String name = "Test";
   private final MetastoreTunnel metastoreTunnel = createMetastoreTunnel();
   private final AbstractMetaStore federatedMetaStore = AbstractMetaStore.newFederatedInstance(name, thriftUri);
-  private MetastoreClientFactorySupplier helper;
+  private MetastoreClientFactorySupplier supplier;
 
   @Before
   public void setUp() {
-    helper = new MetastoreClientFactorySupplier(federatedMetaStore);
+    supplier = new MetastoreClientFactorySupplier(federatedMetaStore);
   }
 
   @Test
   public void getDefaultMetaStoreClientFactory() {
-    assertThat(helper.get(), instanceOf(DefaultMetaStoreClientFactory.class));
+    assertThat(supplier.get(), instanceOf(DefaultMetaStoreClientFactory.class));
   }
 
   @Test
   public void getTunnelingMetastoreClientFactory() {
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
-    helper = new MetastoreClientFactorySupplier(federatedMetaStore);
-    assertThat(helper.get(), instanceOf(TunnelingMetaStoreClientFactory.class));
+    supplier = new MetastoreClientFactorySupplier(federatedMetaStore);
+    assertThat(supplier.get(), instanceOf(TunnelingMetaStoreClientFactory.class));
   }
 
   @Test
   public void getMetaStoreUris() {
-    assertThat(helper.getMetaStoreUris(), is(thriftUri));
+    assertThat(supplier.getMetaStoreUris(), is(thriftUri));
   }
 
   @Test
   public void getMetaStoreName() {
-    assertThat(helper.getMetaStoreName(), is(name.toLowerCase()));
+    assertThat(supplier.getMetaStoreName(), is(name.toLowerCase()));
   }
 
   private MetastoreTunnel createMetastoreTunnel() {

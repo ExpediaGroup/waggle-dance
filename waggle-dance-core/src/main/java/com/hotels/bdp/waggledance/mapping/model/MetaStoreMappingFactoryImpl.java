@@ -53,8 +53,8 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
 
   private CloseableThriftHiveMetastoreIface createClient(AbstractMetaStore metaStore) {
     try {
-      MetastoreClientFactorySupplier helper = new MetastoreClientFactorySupplier(metaStore);
-      return metaStoreClientFactory.newInstance(helper);
+      MetastoreClientFactorySupplier supplier = new MetastoreClientFactorySupplier(metaStore);
+      return metaStoreClientFactory.newInstance(supplier);
     } catch (Exception e) {
       LOG.error("Can't create a client for metastore '{}':", metaStore.getName(), e);
       return newUnreachableMetatstoreClient(metaStore);

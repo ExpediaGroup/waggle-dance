@@ -30,8 +30,8 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   public void hiveConf() {
     FederatedMetaStore federatedMetaStore = new FederatedMetaStore("fed1", "thrift://localhost:1234");
     CloseableThriftHiveMetastoreIfaceClientFactory factory = new CloseableThriftHiveMetastoreIfaceClientFactory();
-    MetastoreClientFactorySupplier helper = new MetastoreClientFactorySupplier(federatedMetaStore);
-    CloseableThriftHiveMetastoreIface result = factory.newInstance(helper);
+    MetastoreClientFactorySupplier supplier = new MetastoreClientFactorySupplier(federatedMetaStore);
+    CloseableThriftHiveMetastoreIface result = factory.newInstance(supplier);
     assertThat(result, instanceOf(Proxy.class));
   }
 

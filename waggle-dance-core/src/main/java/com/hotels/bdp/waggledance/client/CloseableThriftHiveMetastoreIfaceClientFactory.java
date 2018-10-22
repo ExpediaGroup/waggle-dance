@@ -27,12 +27,12 @@ import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
-  public CloseableThriftHiveMetastoreIface newInstance(MetastoreClientFactorySupplier helper) {
-    HiveConfFactory confFactory = createHiveConfFactory(helper.getMetaStoreUris());
+  public CloseableThriftHiveMetastoreIface newInstance(MetastoreClientFactorySupplier supplier) {
+    HiveConfFactory confFactory = createHiveConfFactory(supplier.getMetaStoreUris());
     HiveConf hiveConf = confFactory.newInstance();
-    String name = helper.getMetaStoreName();
+    String name = supplier.getMetaStoreName();
 
-    MetaStoreClientFactory metaStoreClientFactory = helper.get();
+    MetaStoreClientFactory metaStoreClientFactory = supplier.get();
     return metaStoreClientFactory.newInstance(hiveConf, "waggledance-" + name, 3);
   }
 
