@@ -75,7 +75,8 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   public String transformInboundDatabaseName(String databaseName) {
     databaseName = databaseName.toLowerCase();
     if (!databaseName.startsWith(getDatabasePrefix())) {
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException(
+          "Database '" + databaseName + "' does not start with prefix '" + getDatabasePrefix() + "'");
     }
     return databaseName.substring(getDatabasePrefix().length());
   }
@@ -106,7 +107,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public MetaStoreMapping checkWritePermissions(String databaseName) {
-    if (!accessControlHandler.hasWritePermission(transformInboundDatabaseName(databaseName))) {
+    if (!accessControlHandler.hasWritePermission(databaseName)) {
       throw new NotAllowedException(
           "You cannot perform this operation on the virtual database '" + databaseName + "'.");
     }

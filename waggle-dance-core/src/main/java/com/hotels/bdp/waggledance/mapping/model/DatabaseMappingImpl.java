@@ -298,7 +298,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public MetaStoreMapping checkWritePermissions(String databaseName) throws IllegalArgumentException {
-    return metaStoreMapping.checkWritePermissions(databaseName);
+    return metaStoreMapping.checkWritePermissions(transformInboundDatabaseName(databaseName));
   }
 
   @Override
