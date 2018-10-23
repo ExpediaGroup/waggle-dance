@@ -24,35 +24,32 @@ import java.util.Map;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
+import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
+import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
-  private final MetaStoreClientFactory metaStoreClientFactory;
+  private static final int DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY = 3;
+  private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
+  private final DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
 
-  public CloseableThriftHiveMetastoreIfaceClientFactory(MetaStoreClientFactory metaStoreClientFactory) {
-    this.metaStoreClientFactory = metaStoreClientFactory;
+  public CloseableThriftHiveMetastoreIfaceClientFactory(
+      TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
+      DefaultMetaStoreClientFactory defaultMetaStoreClientFactory) {
+    this.tunnelingMetaStoreClientFactory = tunnelingMetaStoreClientFactory;
+    this.defaultMetaStoreClientFactory = defaultMetaStoreClientFactory;
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
-    Map<String, String> properties = new HashMap<>();
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase();
-    properties.put(ConfVars.METASTOREURIS.varname, uris);
     if (metaStore.getConnectionType() == TUNNELED) {
-      MetastoreTunnel metastoreTunnel = metaStore.getMetastoreTunnel();
-      properties.put(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname, metastoreTunnel.getLocalhost());
-      properties.put(WaggleDanceHiveConfVars.SSH_PORT.varname, String.valueOf(metastoreTunnel.getPort()));
-      properties.put(WaggleDanceHiveConfVars.SSH_ROUTE.varname, metastoreTunnel.getRoute());
-      properties.put(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname, metastoreTunnel.getKnownHosts());
-      properties.put(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname, metastoreTunnel.getPrivateKeys());
-      properties.put(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, String.valueOf(metastoreTunnel.getTimeout()));
-      properties
-          .put(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname,
-              metastoreTunnel.getStrictHostKeyChecking());
+      return tunnelingMetaStoreClientFactory.newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY);
     }
+    Map<String, String> properties = new HashMap<>();
+    properties.put(ConfVars.METASTOREURIS.varname, uris);
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
-    return metaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
+    return defaultMetaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
   }
 }

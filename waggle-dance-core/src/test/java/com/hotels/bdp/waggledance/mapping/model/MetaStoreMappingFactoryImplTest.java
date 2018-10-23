@@ -39,6 +39,7 @@ import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
@@ -54,7 +55,7 @@ public class MetaStoreMappingFactoryImplTest {
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
   private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceClientFactory(
-      new TunnelingMetaStoreClientFactory());;
+      new TunnelingMetaStoreClientFactory(), new DefaultMetaStoreClientFactory());
 
   private MetaStoreMappingFactoryImpl factory;
 
