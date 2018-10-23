@@ -67,7 +67,7 @@ public class TunnelingMetaStoreClientFactory {
       int reconnectionRetries) {
     String uri = uris;
     String[] urisSplit = uri.split(",");
-    if (urisSplit.length > 0) {
+    if (urisSplit.length > 1) {
       uri = urisSplit[0];
       LOG.debug("Can't support multiple uris '{}' for tunneling endpoint, using first '{}'", uris, uri);
     }

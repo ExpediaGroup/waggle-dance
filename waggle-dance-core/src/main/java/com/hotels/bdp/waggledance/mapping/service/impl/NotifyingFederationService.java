@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
-import static com.hotels.bdp.waggledance.validation.Preconditions.checkIsTrue;
-import static com.hotels.bdp.waggledance.validation.Preconditions.checkNotNull;
+import static com.hotels.hcommon.ssh.validation.Preconditions.checkIsTrue;
+import static com.hotels.hcommon.ssh.validation.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
