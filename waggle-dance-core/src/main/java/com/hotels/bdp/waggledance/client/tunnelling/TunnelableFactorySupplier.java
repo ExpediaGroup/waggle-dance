@@ -15,17 +15,14 @@
  */
 package com.hotels.bdp.waggledance.client.tunnelling;
 
-import org.apache.hadoop.hive.conf.HiveConf;
+import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.WaggleDanceHiveConfVars;
+import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 import com.hotels.hcommon.ssh.SshSettings;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 
 public class TunnelableFactorySupplier {
-
-  private static final String YES = "yes";
-  private static final String NO = "no";
 
   /*
    * Note at the moment this class will create a factory each time the method is invoked. This means that each new
@@ -33,24 +30,21 @@ public class TunnelableFactorySupplier {
    * HiveConf, i.e. federated metastore configuration, and share the tunnel for all its clients. We must evaluate what's
    * more convenient/efficient in Waggle Dance.
    */
-  public TunnelableFactory<CloseableThriftHiveMetastoreIface> get(HiveConf hiveConf) {
-    String strictHostKeyCheckingString = hiveConf.get(WaggleDanceHiveConfVars.SSH_STRICT_HOST_KEY_CHECKING.varname);
-    if (!(YES.equals(strictHostKeyCheckingString) || NO.equals(strictHostKeyCheckingString))) {
-      throw new IllegalArgumentException("Invalid strict host key checking: must be either 'yes' or 'no'");
-    }
-    boolean strictHostKeyChecking = YES.equals(strictHostKeyCheckingString) ? true : false;
-    SshSettings sshSettings = SshSettings
-        .builder()
-        .withSshPort(hiveConf.getInt(WaggleDanceHiveConfVars.SSH_PORT.varname, SshSettings.DEFAULT_SSH_PORT))
-        .withSessionTimeout(
-            hiveConf.getInt(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname, SshSettings.DEFAULT_SESSION_TIMEOUT))
-        .withRoute(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname))
-        .withKnownHosts(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname))
-        .withPrivateKeys(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname))
-        .withStrictHostKeyChecking(strictHostKeyChecking)
-        .build();
-    return new TunnelableFactory<>(sshSettings);
-
+  public TunnelableFactory<CloseableThriftHiveMetastoreIface> get(MetastoreTunnel metastoreTunnel) {
+    return new TunnelableFactory<>(buildSshSettings(metastoreTunnel));
   }
 
+  @VisibleForTesting
+  SshSettings buildSshSettings(MetastoreTunnel metastoreTunnel) {
+    return SshSettings
+        .builder()
+        .withSshPort(metastoreTunnel.getPort())
+        .withSessionTimeout(metastoreTunnel.getTimeout())
+        .withRoute(metastoreTunnel.getRoute())
+        .withKnownHosts(metastoreTunnel.getKnownHosts())
+        .withLocalhost(metastoreTunnel.getLocalhost())
+        .withPrivateKeys(metastoreTunnel.getPrivateKeys())
+        .withStrictHostKeyChecking(metastoreTunnel.isStrictHostKeyChecking())
+        .build();
+  }
 }

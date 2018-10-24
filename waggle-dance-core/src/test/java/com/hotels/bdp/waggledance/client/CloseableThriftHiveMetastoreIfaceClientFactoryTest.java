@@ -16,11 +16,10 @@
 package com.hotels.bdp.waggledance.client;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
@@ -34,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -42,34 +42,28 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   private static final String THRIFT_URI = "thrift://host:port";
 
   private CloseableThriftHiveMetastoreIfaceClientFactory factory;
-  private @Mock DefaultMetaStoreClientFactory metaStoreClientFactory;
+  private @Mock TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
+  private @Mock DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
 
   @Before
   public void setUp() {
-    factory = new CloseableThriftHiveMetastoreIfaceClientFactory(metaStoreClientFactory);
+    factory = new CloseableThriftHiveMetastoreIfaceClientFactory(tunnelingMetaStoreClientFactory,
+        defaultMetaStoreClientFactory);
   }
 
   @Test
-  public void hiveConf() throws Exception {
+  public void defaultFactory() throws Exception {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
 
     factory.newInstance(newFederatedInstance("fed1", THRIFT_URI));
-    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
-
+    verify(defaultMetaStoreClientFactory).newInstance(hiveConfCaptor.capture(), eq("waggledance-fed1"), eq(3));
+    verifyZeroInteractions(tunnelingMetaStoreClientFactory);
     HiveConf hiveConf = hiveConfCaptor.getValue();
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PORT.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is(nullValue()));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname), is(nullValue()));
   }
 
   @Test
-  public void hiveConfForTunneling() throws Exception {
-    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
-
+  public void tunnelingFactory() throws Exception {
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
     metastoreTunnel.setLocalhost("local-machine");
     metastoreTunnel.setPort(2222);
@@ -81,16 +75,8 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
 
     factory.newInstance(federatedMetaStore);
-    verify(metaStoreClientFactory).newInstance(hiveConfCaptor.capture(), anyString(), anyInt());
-
-    HiveConf hiveConf = hiveConfCaptor.getValue();
-    assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_LOCALHOST.varname), is("local-machine"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PORT.varname), is("2222"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_ROUTE.varname), is("a -> b -> c"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_KNOWN_HOSTS.varname), is("knownHosts"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_PRIVATE_KEYS.varname), is("privateKeys"));
-    assertThat(hiveConf.get(WaggleDanceHiveConfVars.SSH_SESSION_TIMEOUT.varname), is("123"));
+    verify(tunnelingMetaStoreClientFactory).newInstance(THRIFT_URI, metastoreTunnel, "fed1", 3);
+    verifyZeroInteractions(defaultMetaStoreClientFactory);
   }
 
 }

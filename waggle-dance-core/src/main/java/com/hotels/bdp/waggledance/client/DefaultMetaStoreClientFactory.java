@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
+import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
 
 public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 

@@ -16,22 +16,16 @@
 package com.hotels.bdp.waggledance.client.tunnelling;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.hotels.bdp.waggledance.client.tunnelling.LocalHiveConfFactory;
-import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
-
-@RunWith(MockitoJUnitRunner.class)
 public class LocalHiveConfFactoryTest {
-
-  public @Rule ThriftHiveMetaStoreJUnitRule metastore = new ThriftHiveMetaStoreJUnitRule();
 
   @Test
   public void getCorrectHiveConf() {
@@ -39,9 +33,10 @@ public class LocalHiveConfFactoryTest {
     int localPort = 10;
     String expectedUri = "thrift://" + localHost + ":" + localPort;
 
-    HiveConf conf = new LocalHiveConfFactory().newInstance(localHost, localPort, metastore.conf());
+    HiveConf hiveConf = new HiveConf();
+    HiveConf conf = new LocalHiveConfFactory().newInstance(localHost, localPort, hiveConf);
     assertThat(conf.getVar(HiveConf.ConfVars.METASTOREURIS), is(expectedUri));
-    assertFalse(conf.equals(metastore.conf()));
+    assertThat(conf, not(sameInstance(hiveConf)));
   }
 
 }

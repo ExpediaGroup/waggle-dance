@@ -30,6 +30,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
+
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultMetaStoreClientFactoryTest {
 
