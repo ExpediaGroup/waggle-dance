@@ -45,11 +45,13 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase();
     if (metaStore.getConnectionType() == TUNNELED) {
-      return tunnelingMetaStoreClientFactory.newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY);
+      return tunnelingMetaStoreClientFactory
+          .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY);
     }
     Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
-    return defaultMetaStoreClientFactory.newInstance(confFactory.newInstance(), "waggledance-" + name, 3);
+    return defaultMetaStoreClientFactory
+        .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY);
   }
 }
