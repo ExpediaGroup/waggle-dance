@@ -1,4 +1,4 @@
-## [TBD] - TBD
+## [3.1.0] - 2018-10-25
 ### Changed
 * Refactored general metastore tunnelling code to leverage hcommon-hive-metastore libraries. See [#103](https://github.com/HotelsDotCom/waggle-dance/issues/103).
 ### Fixed
