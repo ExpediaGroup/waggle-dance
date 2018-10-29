@@ -44,7 +44,7 @@ public class TunnelableFactorySupplier {
         .withKnownHosts(metastoreTunnel.getKnownHosts())
         .withLocalhost(metastoreTunnel.getLocalhost())
         .withPrivateKeys(metastoreTunnel.getPrivateKeys())
-        .withStrictHostKeyChecking(metastoreTunnel.getIsStrictHostKeyChecking())
+        .withStrictHostKeyChecking(metastoreTunnel.isStrictHostKeyCheckingEnabled())
         .build();
   }
 }
