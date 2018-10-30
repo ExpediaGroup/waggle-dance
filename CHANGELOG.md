@@ -1,3 +1,7 @@
+## [3.1.1] - 2018-10-30
+### Fixed
+* Issue where setting strict-host-key-checking for metastore-tunnel causes an error. See [#145](https://github.com/HotelsDotCom/waggle-dance/issues/145).
+
 ## [3.1.0] - 2018-10-25
 ### Changed
 * Refactored general metastore tunnelling code to leverage hcommon-hive-metastore libraries. See [#103](https://github.com/HotelsDotCom/waggle-dance/issues/103).
