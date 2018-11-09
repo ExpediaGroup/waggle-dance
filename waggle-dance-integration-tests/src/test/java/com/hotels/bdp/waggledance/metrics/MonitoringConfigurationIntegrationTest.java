@@ -20,7 +20,6 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,8 +54,7 @@ public class MonitoringConfigurationIntegrationTest {
     graphiteMeterRegistry.counter("test-counter").increment();
     graphiteMeterRegistry.close();
 
-    Set<String> metrics = new TreeSet<>(
-        Arrays.asList(new String(graphite.waitAndgetOutput(1, TimeUnit.SECONDS)).split("\n")));
+    Set<String> metrics = new TreeSet<>(Arrays.asList(new String(graphite.getOutput()).split("\n")));
     assertMetricContainsPrefix(metrics, graphitePrefix + ".test-counter");
   }
 

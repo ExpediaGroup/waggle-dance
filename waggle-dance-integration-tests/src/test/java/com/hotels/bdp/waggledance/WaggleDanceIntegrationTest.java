@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -274,8 +273,7 @@ public class WaggleDanceIntegrationTest {
     proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
     runner.stop();
 
-    Set<String> metrics = new TreeSet<>(
-        Arrays.asList(new String(graphite.waitAndgetOutput(2, TimeUnit.SECONDS)).split("\n")));
+    Set<String> metrics = new TreeSet<>(Arrays.asList(new String(graphite.getOutput()).split("\n")));
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.calls.count 2");
     assertMetric(metrics,
