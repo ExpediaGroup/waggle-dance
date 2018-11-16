@@ -413,6 +413,10 @@ Assumes database resolution is done by adding prefixes. If database resolution i
      where h.date = '2016-05-13'
        and h.hour = 1
     ;
+    
+## Supported APIs
+
+Being a Spring Boot Application, all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html) are supported.
 
 ## Notes
 
