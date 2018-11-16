@@ -414,9 +414,11 @@ Assumes database resolution is done by adding prefixes. If database resolution i
        and h.hour = 1
     ;
     
-## Supported APIs
+## Endpoints
 
 Being a Spring Boot Application, all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html) are supported.
+
+eg. Healthcheck Endpoint: http://localhost:18000/actuator/health
 
 ## Notes
 
