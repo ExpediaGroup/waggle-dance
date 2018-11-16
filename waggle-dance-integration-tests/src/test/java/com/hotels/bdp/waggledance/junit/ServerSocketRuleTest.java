@@ -35,21 +35,13 @@ public class ServerSocketRuleTest {
 
   @Test
   public void typical() throws Throwable {
-    rule.before();
     sendData(rule.port(), "my-data".getBytes());
     assertThat(new String(rule.getOutput()), is("my-data"));
     rule.after();
   }
 
-  @Test
-  public void notInitialised() throws Throwable {
-    sendData(rule.port(), "my-data".getBytes());
-    assertThat(new String(rule.getOutput()), is(""));
-  }
-
   @Test(expected = ConnectException.class)
   public void alreadyShutdown() throws Throwable {
-    rule.before();
     rule.after();
 
     sendData(rule.port(), "my-data".getBytes());
@@ -57,7 +49,6 @@ public class ServerSocketRuleTest {
 
   @Test
   public void noDataSent() throws Throwable {
-    rule.before();
     byte[] output = rule.getOutput();
     rule.after();
     assertThat(output, is(new byte[0]));
@@ -65,7 +56,6 @@ public class ServerSocketRuleTest {
 
   @Test
   public void expectMultipleRequests() throws Throwable {
-    rule.before();
     sendData(rule.port(), "1".getBytes());
     sendData(rule.port(), "2".getBytes());
     assertThat(new String(rule.getOutput()), is("12"));
