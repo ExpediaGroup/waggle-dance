@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class ValidationError {
 
-  public static final class ValidationErrorBuilder {
+  public static class ValidationErrorBuilder {
 
     private final ValidationError error;
 

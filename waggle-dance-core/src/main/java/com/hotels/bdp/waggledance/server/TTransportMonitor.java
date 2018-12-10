@@ -39,7 +39,7 @@ public class TTransportMonitor {
 
   private static final Logger LOG = LoggerFactory.getLogger(TTransportMonitor.class);
 
-  private static final class ActionContainer {
+  private static class ActionContainer {
     private final TTransport transport;
     private final Closeable action;
 

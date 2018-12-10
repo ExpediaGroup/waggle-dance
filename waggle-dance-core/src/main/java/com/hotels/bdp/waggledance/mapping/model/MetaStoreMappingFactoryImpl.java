@@ -84,7 +84,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
    * Handler that refuses to be open and will throw exceptions for any of the methods, serves as a dummy client if the
    * real one can't be created due to connection (i.e. tunneling) issues.
    */
-  private static final class UnreachableMetastoreClientInvocationHandler implements InvocationHandler {
+  private static class UnreachableMetastoreClientInvocationHandler implements InvocationHandler {
 
     private final String name;
 

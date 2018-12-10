@@ -55,7 +55,7 @@ import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
-public final class WaggleDanceRunner implements WaggleDance.ContextListener {
+public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
   public static final String SERVER_CONFIG = "server-config";
   public static final String FEDERATION_CONFIG = "federation-config";
@@ -65,7 +65,7 @@ public final class WaggleDanceRunner implements WaggleDance.ContextListener {
 
   private ApplicationContext applicationContext;
 
-  public static final class Builder {
+  public static class Builder {
     private final File workingDirectory;
     private final WaggleDanceConfiguration waggleDanceConfiguration = new WaggleDanceConfiguration();
     private final YamlStorageConfiguration yamlStorageConfiguration = new YamlStorageConfiguration();
