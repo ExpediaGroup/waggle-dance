@@ -750,8 +750,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public void alter_partitions(String db_name, String tbl_name, List<Partition> new_parts)
     throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissions(db_name);
-    for (Partition new_part : new_parts) {
-      mapping.checkWritePermissions(new_part.getDbName());
+    for (Partition newPart : new_parts) {
+      mapping.checkWritePermissions(newPart.getDbName());
     }
     mapping.getClient().alter_partitions(mapping.transformInboundDatabaseName(db_name), tbl_name,
         mapping.transformInboundPartitions(new_parts));

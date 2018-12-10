@@ -34,7 +34,7 @@ import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 @Configuration
 public class MonitoringConfiguration {
 
-  private final GraphiteConfig DISABLED_GRAPHITE_CONFIG = new GraphiteConfig() {
+  private final GraphiteConfig disabledGraphiteConfig = new GraphiteConfig() {
     @Override
     public boolean enabled() {
       return false;
@@ -48,7 +48,7 @@ public class MonitoringConfiguration {
 
   @Bean
   public GraphiteMeterRegistry graphiteMeterRegistry(GraphiteConfiguration graphiteConfiguration) {
-    GraphiteConfig graphiteConfig = DISABLED_GRAPHITE_CONFIG;
+    GraphiteConfig graphiteConfig = disabledGraphiteConfig;
 
     /*
      * This is being done temporarily until micrometer-registry-graphite 1.0.7 gets released which fixes the issue.
