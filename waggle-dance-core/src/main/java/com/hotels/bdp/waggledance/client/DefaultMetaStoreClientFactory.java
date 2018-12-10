@@ -34,7 +34,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
   static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
 
-  private static class ReconnectingMetastoreClientInvocationHandler implements InvocationHandler {
+  private static final class ReconnectingMetastoreClientInvocationHandler implements InvocationHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ReconnectingMetastoreClientInvocationHandler.class);
 
     private final ThriftMetastoreClientManager base;

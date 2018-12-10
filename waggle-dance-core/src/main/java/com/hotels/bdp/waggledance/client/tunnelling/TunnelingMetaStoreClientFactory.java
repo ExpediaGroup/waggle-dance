@@ -76,7 +76,7 @@ public class TunnelingMetaStoreClientFactory {
 
     Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uri);
-    HiveConfFactory confFactory = new HiveConfFactory(Collections.<String> emptyList(), properties);
+    HiveConfFactory confFactory = new HiveConfFactory(Collections.<String>emptyList(), properties);
     HiveConf localHiveConf = localHiveConfFactory.newInstance(localHost, localPort, confFactory.newInstance());
 
     TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactorySupplier

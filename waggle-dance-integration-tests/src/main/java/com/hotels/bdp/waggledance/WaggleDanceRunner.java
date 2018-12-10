@@ -55,7 +55,7 @@ import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
-public class WaggleDanceRunner implements WaggleDance.ContextListener {
+public final class WaggleDanceRunner implements WaggleDance.ContextListener {
 
   public static final String SERVER_CONFIG = "server-config";
   public static final String FEDERATION_CONFIG = "federation-config";
@@ -65,7 +65,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
   private ApplicationContext applicationContext;
 
-  public static class Builder {
+  public static final class Builder {
     private final File workingDirectory;
     private final WaggleDanceConfiguration waggleDanceConfiguration = new WaggleDanceConfiguration();
     private final YamlStorageConfiguration yamlStorageConfiguration = new YamlStorageConfiguration();
@@ -236,7 +236,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
   private Map<String, String> populateProperties() {
     ImmutableMap.Builder<String, String> builder = ImmutableMap
-        .<String, String> builder()
+        .<String, String>builder()
         // Logging
         .put("logging.config", "classpath:log4j2.xml")
         // Configuration files

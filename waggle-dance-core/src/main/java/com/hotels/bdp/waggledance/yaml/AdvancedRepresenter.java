@@ -39,19 +39,19 @@ public class AdvancedRepresenter extends Representer {
     NodeTuple nodeTuple = super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
     Node valueNode = nodeTuple.getValueNode();
     if (Tag.NULL.equals(valueNode.getTag())) {
-      return null;// skip 'null' values
+      return null; // skip 'null' values
     }
     if (valueNode instanceof CollectionNode) {
       if (Tag.SEQ.equals(valueNode.getTag())) {
         SequenceNode seq = (SequenceNode) valueNode;
         if (seq.getValue().isEmpty()) {
-          return null;// skip empty lists
+          return null; // skip empty lists
         }
       }
       if (Tag.MAP.equals(valueNode.getTag())) {
         MappingNode seq = (MappingNode) valueNode;
         if (seq.getValue().isEmpty()) {
-          return null;// skip empty maps
+          return null; // skip empty maps
         }
       }
     }

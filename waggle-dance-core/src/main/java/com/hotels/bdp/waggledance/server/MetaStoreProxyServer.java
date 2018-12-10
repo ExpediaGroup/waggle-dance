@@ -63,7 +63,7 @@ import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class MetaStoreProxyServer implements ApplicationRunner {
 
-  private static Logger LOG = LoggerFactory.getLogger(MetaStoreProxyServer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MetaStoreProxyServer.class);
 
   /**
    * default port on which to start the server (48869)
@@ -210,8 +210,9 @@ public class MetaStoreProxyServer implements ApplicationRunner {
         throw new IllegalArgumentException(
             ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PASSWORD.varname + " Not configured for SSL connection");
       }
-      String keyStorePassword = ShimLoader.getHadoopShims().getPassword(hiveConf,
-          HiveConf.ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PASSWORD.varname);
+      String keyStorePassword = ShimLoader
+          .getHadoopShims()
+          .getPassword(hiveConf, HiveConf.ConfVars.HIVE_METASTORE_SSL_KEYSTORE_PASSWORD.varname);
       serverSocket = HiveAuthUtils.getServerSSLSocket(null, port, keyStorePath, keyStorePassword, sslVersionBlacklist);
     }
     return serverSocket;

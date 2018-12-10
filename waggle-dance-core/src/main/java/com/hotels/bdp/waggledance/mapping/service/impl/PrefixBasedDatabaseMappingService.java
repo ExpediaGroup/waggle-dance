@@ -210,7 +210,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   @VisibleForTesting
   List<DatabaseMapping> databaseMappings() {
-    Builder<DatabaseMapping> builder = ImmutableList.<DatabaseMapping> builder();
+    Builder<DatabaseMapping> builder = ImmutableList.<DatabaseMapping>builder();
     for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
       if (includeInResults(databaseMapping)) {
         builder.add(databaseMapping);

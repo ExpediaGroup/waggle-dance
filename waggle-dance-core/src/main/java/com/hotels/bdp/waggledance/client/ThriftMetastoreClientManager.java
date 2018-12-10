@@ -53,7 +53,7 @@ class ThriftMetastoreClientManager implements Closeable {
   private ThriftHiveMetastore.Iface client = null;
   private TTransport transport = null;
   private boolean isConnected = false;
-  private URI metastoreUris[];
+  private URI[] metastoreUris;
   private String tokenStrForm;
   private final HiveConf conf;
   private final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
@@ -79,7 +79,7 @@ class ThriftMetastoreClientManager implements Closeable {
 
     // user wants file store based configuration
     if (msUri != null) {
-      String metastoreUrisString[] = msUri.split(",");
+      String[] metastoreUrisString = msUri.split(",");
       metastoreUris = new URI[metastoreUrisString.length];
       try {
         int i = 0;
