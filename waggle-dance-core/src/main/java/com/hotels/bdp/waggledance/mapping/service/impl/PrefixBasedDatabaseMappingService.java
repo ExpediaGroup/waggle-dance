@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,7 +182,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   @Override
   public DatabaseMapping databaseMapping(@NotNull String databaseName) {
     // Find a Metastore with a prefix
-    for (String metastorePrefix : mappingsByPrefix.keySet()) {
+    Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
+    while (iterator.hasNext()) {
+      String metastorePrefix = iterator.next().getKey();
       if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
         DatabaseMapping databaseMapping = mappingsByPrefix.get(metastorePrefix);
         LOG.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);

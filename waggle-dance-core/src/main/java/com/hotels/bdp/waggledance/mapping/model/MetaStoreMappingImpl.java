@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -57,7 +58,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
-    return getDatabasePrefix() + databaseName.toLowerCase();
+    return getDatabasePrefix() + databaseName.toLowerCase(Locale.ROOT);
   }
 
   @Override
@@ -73,7 +74,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public String transformInboundDatabaseName(String databaseName) {
-    databaseName = databaseName.toLowerCase();
+    databaseName = databaseName.toLowerCase(Locale.ROOT);
     if (!databaseName.startsWith(getDatabasePrefix())) {
       throw new IllegalArgumentException(
           "Database '" + databaseName + "' does not start with prefix '" + getDatabasePrefix() + "'");

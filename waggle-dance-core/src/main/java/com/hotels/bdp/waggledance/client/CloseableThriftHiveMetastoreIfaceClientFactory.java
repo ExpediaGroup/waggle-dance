@@ -19,6 +19,7 @@ import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -43,7 +44,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
-    String name = metaStore.getName().toLowerCase();
+    String name = metaStore.getName().toLowerCase(Locale.ROOT);
     if (metaStore.getConnectionType() == TUNNELED) {
       return tunnelingMetaStoreClientFactory
           .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY);

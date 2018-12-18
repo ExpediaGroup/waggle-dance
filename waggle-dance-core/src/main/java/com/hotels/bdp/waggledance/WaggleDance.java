@@ -71,11 +71,12 @@ public class WaggleDance {
           .build();
       exitCode = SpringApplication.exit(registerListeners(application).run(args));
     } catch (BeanCreationException e) {
-      if (e.getMostSpecificCause() instanceof BindException) {
-        printHelp(((BindException) e.getMostSpecificCause()).getAllErrors());
+      Throwable mostSpecificCause = e.getMostSpecificCause();
+      if (mostSpecificCause instanceof BindException) {
+        printHelp(((BindException) mostSpecificCause).getAllErrors());
       }
-      if (e.getMostSpecificCause() instanceof ConstraintViolationException) {
-        logConstraintErrors(((ConstraintViolationException) e.getMostSpecificCause()));
+      if (mostSpecificCause instanceof ConstraintViolationException) {
+        logConstraintErrors(((ConstraintViolationException) mostSpecificCause));
       }
       throw e;
     }

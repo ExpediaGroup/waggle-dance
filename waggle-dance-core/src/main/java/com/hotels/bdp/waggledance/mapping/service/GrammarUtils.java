@@ -57,7 +57,7 @@ public final class GrammarUtils {
         subPattern = subPattern.substring(0, index + 1);
       }
     }
-    return null;
+    return new String[] {};
   }
 
   /**
@@ -87,7 +87,7 @@ public final class GrammarUtils {
     for (String subPattern : OR_SPLITTER.split(dbPatterns)) {
       for (String prefix : prefixes) {
         String[] subPatternParts = splitPattern(prefix, subPattern);
-        if (subPatternParts == null) {
+        if (subPatternParts.length == 0) {
           continue;
         }
         List<String> prefixPatternList = prefixPatterns.get(prefix);

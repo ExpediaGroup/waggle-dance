@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.server.security;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
@@ -38,11 +39,11 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     this.metaStore = metaStore;
     this.federationService = federationService;
     this.hasCreatePermission = hasCreatePermission;
-    this.writeableDatabaseWhiteList = new Whitelist(metaStore.getWritableDatabaseWhiteList());
+    writeableDatabaseWhiteList = new Whitelist(metaStore.getWritableDatabaseWhiteList());
   }
 
   private String trimToLowerCase(String string) {
-    return string.trim().toLowerCase();
+    return string.trim().toLowerCase(Locale.ROOT);
   }
 
   @Override

@@ -31,7 +31,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
 
   private static final Logger log = LoggerFactory.getLogger(HiveCompatibleThriftHiveMetastoreIfaceFactory.class);
 
-  class ThriftMetaStoreClientInvocationHandler implements InvocationHandler {
+  private class ThriftMetaStoreClientInvocationHandler implements InvocationHandler {
 
     private final ThriftHiveMetastore.Client delegate;
     private final HiveThriftMetaStoreIfaceCompatibility compatibility;
