@@ -71,7 +71,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
 
     private Class<?>[] getTypes(Object[] args) {
       if (args == null) {
-        return (Class<?>[]) args;
+        return new Class<?>[] {};
       }
       Class<?>[] argTypes = new Class<?>[args.length];
       for (int i = 0; i < args.length; ++i) {
