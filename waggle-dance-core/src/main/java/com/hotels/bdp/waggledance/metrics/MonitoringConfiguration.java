@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 @Configuration
 public class MonitoringConfiguration {
 
-  private final GraphiteConfig disabledGraphiteConfig = new GraphiteConfig() {
+  private static class DisabledGraphiteConfig implements GraphiteConfig {
     @Override
     public boolean enabled() {
       return false;
@@ -44,11 +44,11 @@ public class MonitoringConfiguration {
     public String get(String key) {
       return null;
     }
-  };
+  }
 
   @Bean
   public GraphiteMeterRegistry graphiteMeterRegistry(GraphiteConfiguration graphiteConfiguration) {
-    GraphiteConfig graphiteConfig = disabledGraphiteConfig;
+    GraphiteConfig graphiteConfig = new DisabledGraphiteConfig();
 
     /*
      * This is being done temporarily until micrometer-registry-graphite 1.0.7 gets released which fixes the issue.
