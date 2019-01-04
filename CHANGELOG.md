@@ -1,3 +1,7 @@
+## [TBD]
+* Refactored project to remove checkstyle and findbugs warnings, which does not impact functionality.
+* Upgraded `hotels-oss-parent` to 2.3.5 (was 2.3.3).
+
 ## [3.1.1] - 2018-10-30
 ### Fixed
 * Issue where setting strict-host-key-checking for metastore-tunnel causes an error. See [#145](https://github.com/HotelsDotCom/waggle-dance/issues/145).
