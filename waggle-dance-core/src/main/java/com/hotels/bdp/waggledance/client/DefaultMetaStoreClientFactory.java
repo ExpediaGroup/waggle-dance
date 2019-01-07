@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException
 
 public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
-  static Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
+  static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
 
   private static class ReconnectingMetastoreClientInvocationHandler implements InvocationHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ReconnectingMetastoreClientInvocationHandler.class);
