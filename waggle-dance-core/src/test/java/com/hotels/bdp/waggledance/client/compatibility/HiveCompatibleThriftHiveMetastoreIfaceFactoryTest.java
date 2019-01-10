@@ -89,12 +89,13 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   @Test
   public void underlyingExceptionIsThrownWhenCompatibilityFails() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
-    when(delegate.get_all_databases()).thenThrow(new TApplicationException("CAUSE"));
+    TApplicationException cause = new TApplicationException("CAUSE");
+    when(delegate.get_all_databases()).thenThrow(cause);
     try {
       thriftHiveMetastoreIface.get_all_databases();
       fail("exception should have been thrown");
     } catch (TApplicationException e) {
-      assertThat(e.getMessage(), is("CAUSE"));
+      assertThat(e, is(cause));
     }
   }
 
@@ -104,13 +105,13 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
     GetTableRequest tableRequest = new GetTableRequest(DB_NAME, TABLE_NAME);
     when(delegate.get_table_req(tableRequest))
         .thenThrow(new TApplicationException("ApplicationException, should not be thrown"));
-    when(delegate.get_table(DB_NAME, TABLE_NAME))
-        .thenThrow(new NoSuchObjectException("Should be thrown, this is called from compatiblity layer"));
+    NoSuchObjectException cause = new NoSuchObjectException("Should be thrown, this is called from compatiblity layer");
+    when(delegate.get_table(DB_NAME, TABLE_NAME)).thenThrow(cause);
     try {
       thriftHiveMetastoreIface.get_table_req(tableRequest);
       fail("exception should have been thrown");
     } catch (NoSuchObjectException e) {
-      assertThat(e.getMessage(), is("Should be thrown, this is called from compatiblity layer"));
+      assertThat(e, is(cause));
     }
   }
 
@@ -118,14 +119,15 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   public void underlyingyExceptionIsThrownWhenCompatibilityFailsOnTApplication() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     GetTableRequest tableRequest = new GetTableRequest(DB_NAME, TABLE_NAME);
-    when(delegate.get_table_req(tableRequest)).thenThrow(new TApplicationException("Should be thrown"));
+    TApplicationException cause = new TApplicationException("Should be thrown");
+    when(delegate.get_table_req(tableRequest)).thenThrow(cause);
     when(delegate.get_table(DB_NAME, TABLE_NAME))
         .thenThrow(new TApplicationException("should not be thrown, this is called from compatiblity layer"));
     try {
       thriftHiveMetastoreIface.get_table_req(tableRequest);
       fail("exception should have been thrown");
     } catch (TApplicationException e) {
-      assertThat(e.getMessage(), is("Should be thrown"));
+      assertThat(e, is(cause));
     }
   }
 
@@ -133,13 +135,13 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   public void nonTApplicationExceptionsAreThrown() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     GetTableRequest tableRequest = new GetTableRequest(DB_NAME, TABLE_NAME);
-    when(delegate.get_table_req(tableRequest))
-        .thenThrow(new NoSuchObjectException("Normal Error nothing to do with compatibility"));
+    NoSuchObjectException cause = new NoSuchObjectException("Normal Error nothing to do with compatibility");
+    when(delegate.get_table_req(tableRequest)).thenThrow(cause);
     try {
       thriftHiveMetastoreIface.get_table_req(tableRequest);
       fail("exception should have been thrown");
     } catch (TException e) {
-      assertThat(e.getMessage(), is("Normal Error nothing to do with compatibility"));
+      assertThat(e, is(cause));
       verify(delegate, never()).get_table(DB_NAME, TABLE_NAME);
     }
   }
