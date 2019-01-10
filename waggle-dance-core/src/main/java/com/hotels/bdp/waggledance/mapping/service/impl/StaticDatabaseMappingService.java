@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,8 +70,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       MetaStoreMappingFactory metaStoreMappingFactory,
       List<AbstractMetaStore> initialMetastores) {
     this.metaStoreMappingFactory = metaStoreMappingFactory;
-    primaryDatabasesCache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES).maximumSize(1).build(
-        new CacheLoader<String, List<String>>() {
+    primaryDatabasesCache = CacheBuilder
+        .newBuilder()
+        .expireAfterAccess(1, TimeUnit.MINUTES)
+        .maximumSize(1)
+        .build(new CacheLoader<String, List<String>>() {
 
           @Override
           public List<String> load(String key) throws Exception {
@@ -116,7 +120,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
               + database
               + "' in primary that was already mapped to a federated metastore '"
               + mappingsByDatabaseName.get(database).getMetastoreMappingName()
-              + "', please remove the database from the federated metastore list it can't be accessed via Waggle Dance");
+              + "', please remove the database from the federated metastore list it can't be"
+              + " accessed via Waggle Dance");
         }
       }
     } catch (TException e) {
@@ -128,19 +133,21 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     try {
       Set<String> allPrimaryDatabases = Sets.newHashSet(primaryDatabasesCache.get(PRIMARY_KEY));
       for (String database : mappableDatabases) {
-        if (allPrimaryDatabases.contains(database.toLowerCase())) {
+        if (allPrimaryDatabases.contains(database.toLowerCase(Locale.ROOT))) {
           throw new WaggleDanceException("Database clash, found '"
               + database
               + "' to be mapped for the federated metastore '"
               + metaStoreMapping.getMetastoreMappingName()
-              + "' already present in the primary database, please remove the database from the list it can't be accessed via Waggle Dance");
+              + "' already present in the primary database, please remove the database from the list it can't be"
+              + " accessed via Waggle Dance");
         }
-        if (mappingsByDatabaseName.containsKey(database.toLowerCase())) {
+        if (mappingsByDatabaseName.containsKey(database.toLowerCase(Locale.ROOT))) {
           throw new WaggleDanceException("Database clash, found '"
               + database
               + "' to be mapped for the federated metastore '"
               + metaStoreMapping.getMetastoreMappingName()
-              + "' already present in another federated database, please remove the database from the list it can't be accessed via Waggle Dance");
+              + "' already present in another federated database, please remove the database from the list it can't"
+              + " be accessed via Waggle Dance");
         }
       }
     } catch (ExecutionException e) {
@@ -150,7 +157,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
   private void addDatabaseMappings(List<String> databases, DatabaseMapping databaseMapping) {
     for (String databaseName : databases) {
-      mappingsByDatabaseName.put(databaseName.toLowerCase(), databaseMapping);
+      mappingsByDatabaseName.put(databaseName.toLowerCase(Locale.ROOT), databaseMapping);
     }
   }
 
@@ -164,7 +171,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       primaryDatabasesCache.invalidateAll();
     } else {
       for (String databaseName : ((FederatedMetaStore) metaStore).getMappedDatabases()) {
-        mappingsByDatabaseName.remove(databaseName.trim().toLowerCase());
+        mappingsByDatabaseName.remove(databaseName.trim().toLowerCase(Locale.ROOT));
       }
     }
     DatabaseMapping removed = mappingsByMetaStoreName.remove(metaStore.getName());
@@ -220,10 +227,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
   @Override
   public DatabaseMapping databaseMapping(@NotNull String databaseName) {
-    DatabaseMapping databaseMapping = mappingsByDatabaseName.get(databaseName.toLowerCase());
+    DatabaseMapping databaseMapping = mappingsByDatabaseName.get(databaseName.toLowerCase(Locale.ROOT));
     if (databaseMapping != null) {
-      LOG.debug("Database Name `{}` maps to metastore with name '{}'", databaseName,
-          databaseMapping.getMetastoreMappingName());
+      LOG
+          .debug("Database Name `{}` maps to metastore with name '{}'", databaseName,
+              databaseMapping.getMetastoreMappingName());
       if (includeInResults(databaseMapping)) {
         return databaseMapping;
       }
@@ -246,8 +254,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         List<TableMeta> combined = new ArrayList<>();
         try {
-          for (TableMeta tableMeta : primaryDatabaseMapping.getClient().get_table_meta(db_patterns, tbl_patterns,
-              tbl_types)) {
+          for (TableMeta tableMeta : primaryDatabaseMapping
+              .getClient()
+              .get_table_meta(db_patterns, tbl_patterns, tbl_types)) {
             combined.add(primaryDatabaseMapping.transformOutboundTableMeta(tableMeta));
           }
           for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {

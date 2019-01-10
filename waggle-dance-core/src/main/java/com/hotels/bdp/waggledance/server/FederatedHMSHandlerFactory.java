@@ -56,8 +56,8 @@ public class FederatedHMSHandlerFactory {
     MappingEventListener service = createDatabaseMappingService();
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
     CloseableIHMSHandler baseHandler = new FederatedHMSHandler(monitoredService, notifyingFederationService);
-    HiveConf hiveConf = new HiveConf(this.hiveConf);
-    baseHandler.setConf(hiveConf);
+    HiveConf conf = new HiveConf(hiveConf);
+    baseHandler.setConf(conf);
     return baseHandler;
   }
 

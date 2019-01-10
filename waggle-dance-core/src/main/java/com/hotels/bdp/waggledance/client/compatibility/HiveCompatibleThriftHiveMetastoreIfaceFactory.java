@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
 
   private static final Logger log = LoggerFactory.getLogger(HiveCompatibleThriftHiveMetastoreIfaceFactory.class);
 
-  class ThriftMetaStoreClientInvocationHandler implements InvocationHandler {
+  private static class ThriftMetaStoreClientInvocationHandler implements InvocationHandler {
 
     private final ThriftHiveMetastore.Client delegate;
     private final HiveThriftMetaStoreIfaceCompatibility compatibility;
@@ -71,7 +71,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
 
     private Class<?>[] getTypes(Object[] args) {
       if (args == null) {
-        return (Class<?>[]) args;
+        return new Class<?>[] {};
       }
       Class<?>[] argTypes = new Class<?>[args.length];
       for (int i = 0; i < args.length; ++i) {

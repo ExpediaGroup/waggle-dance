@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.util;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,7 +47,7 @@ public class Whitelist {
   }
 
   private String trimToLowerCase(String string) {
-    return string.trim().toLowerCase();
+    return string.trim().toLowerCase(Locale.ROOT);
   }
 
   public boolean contains(String databaseName) {

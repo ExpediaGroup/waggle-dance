@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,9 +182,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   @Override
   public DatabaseMapping databaseMapping(@NotNull String databaseName) {
     // Find a Metastore with a prefix
-    for (String metastorePrefix : mappingsByPrefix.keySet()) {
+    Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
+    while (iterator.hasNext()) {
+      Entry<String, DatabaseMapping> entry = iterator.next();
+      String metastorePrefix = entry.getKey();
       if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
-        DatabaseMapping databaseMapping = mappingsByPrefix.get(metastorePrefix);
+        DatabaseMapping databaseMapping = entry.getValue();
         LOG.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
         if (includeInResults(databaseMapping, databaseName)) {
           return databaseMapping;
@@ -210,7 +214,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   @VisibleForTesting
   List<DatabaseMapping> databaseMappings() {
-    Builder<DatabaseMapping> builder = ImmutableList.<DatabaseMapping> builder();
+    Builder<DatabaseMapping> builder = ImmutableList.<DatabaseMapping>builder();
     for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
       if (includeInResults(databaseMapping)) {
         builder.add(databaseMapping);

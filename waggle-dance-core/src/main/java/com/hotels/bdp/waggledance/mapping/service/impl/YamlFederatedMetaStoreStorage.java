@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Expedia Inc.
+ * Copyright (C) 2016-2018 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ import com.hotels.bdp.waggledance.yaml.YamlFactory;
 public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage {
   private static final Logger LOG = LoggerFactory.getLogger(YamlFederatedMetaStoreStorage.class);
 
-  private static Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+  private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
   static class YamlMarshaller {
     private final FileSystemManager fsManager;
@@ -138,7 +138,7 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
   private final YamlMarshaller yamlMarshaller;
   private Map<String, AbstractMetaStore> federationsMap;
   private PrimaryMetaStore primaryMetaStore;
-  private boolean writeConfigOnShutdown;
+  private final boolean writeConfigOnShutdown;
 
   @Autowired
   public YamlFederatedMetaStoreStorage(
@@ -184,8 +184,8 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
   @PreDestroy
   public void saveFederation() {
     if (writeConfigOnShutdown) {
-      yamlMarshaller.marshall(federationConfigLocation,
-          new Federations(getPrimaryMetaStore(), getAllFederatedMetaStores()));
+      yamlMarshaller
+          .marshall(federationConfigLocation, new Federations(getPrimaryMetaStore(), getAllFederatedMetaStores()));
     }
   }
 

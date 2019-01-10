@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -188,7 +189,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       }
 
       try (FileObject target = fsManager.resolveFile(config.toURI());
-          Writer writer = new OutputStreamWriter(target.getContent().getOutputStream())) {
+          Writer writer = new OutputStreamWriter(target.getContent().getOutputStream(), StandardCharsets.UTF_8)) {
         for (Object object : objects) {
           yaml.dump(object, writer);
         }
@@ -236,7 +237,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
   private Map<String, String> populateProperties() {
     ImmutableMap.Builder<String, String> builder = ImmutableMap
-        .<String, String> builder()
+        .<String, String>builder()
         // Logging
         .put("logging.config", "classpath:log4j2.xml")
         // Configuration files

@@ -16,12 +16,12 @@
 package com.hotels.bdp.waggledance.mapping.service;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 
+import org.hamcrest.collection.IsArrayWithSize;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
@@ -33,7 +33,7 @@ public class GrammarUtilsTest {
   @Test
   public void emptySubPattern() {
     String[] patternParts = GrammarUtils.splitPattern(PREFIX, "");
-    assertThat(patternParts, is(nullValue()));
+    assertThat(patternParts, IsArrayWithSize.<String>emptyArray());
   }
 
   @Test
@@ -46,7 +46,7 @@ public class GrammarUtilsTest {
   @Test
   public void basicSubPatternNotMatchingPrefix() {
     String[] patternParts = GrammarUtils.splitPattern("prefix", "waggle_");
-    assertThat(patternParts, is(nullValue()));
+    assertThat(patternParts, IsArrayWithSize.<String>emptyArray());
   }
 
   @Test
@@ -101,8 +101,8 @@ public class GrammarUtilsTest {
 
   @Test
   public void matchesPatternSimplePrefixedDatabaseName() {
-    Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"),
-        "waggle_database");
+    Map<String, String> splits = GrammarUtils
+        .selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), "waggle_database");
     assertThat(splits.size(), is(1));
     assertThat(splits.get(PREFIX), is("database"));
   }
@@ -131,8 +131,8 @@ public class GrammarUtilsTest {
 
   @Test
   public void matchesComplexPatternWithWildcard() {
-    Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"),
-        "w*base|oth*_*dat");
+    Map<String, String> splits = GrammarUtils
+        .selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), "w*base|oth*_*dat");
     assertThat(splits.size(), is(2));
     assertThat(splits.get(PREFIX), is("*base"));
     assertThat(splits.get("other_"), is("*dat"));
@@ -140,8 +140,8 @@ public class GrammarUtilsTest {
 
   @Test
   public void multipleMatchesComplexPatternWithWildcard() {
-    Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "wother_"),
-        "w*base|woth*_*dat");
+    Map<String, String> splits = GrammarUtils
+        .selectMatchingPrefixes(ImmutableSet.of(PREFIX, "wother_"), "w*base|woth*_*dat");
     assertThat(splits.size(), is(2));
     assertThat(splits.get(PREFIX), is("*base"));
     assertThat(splits.get("wother_"), is("*base|*dat"));

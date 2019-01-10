@@ -31,7 +31,7 @@ public class FederatedMetaStore extends AbstractMetaStore {
   }
 
   public FederatedMetaStore(String name, String remoteMetaStoreUris, AccessControlType accessControlType) {
-    this(name, remoteMetaStoreUris, accessControlType, Collections.<String> emptyList());
+    this(name, remoteMetaStoreUris, accessControlType, Collections.<String>emptyList());
   }
 
   public FederatedMetaStore(FederatedMetaStore federatedMetaStore) {
