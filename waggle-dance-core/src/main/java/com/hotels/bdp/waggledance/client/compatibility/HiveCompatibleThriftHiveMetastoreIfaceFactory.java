@@ -47,19 +47,29 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       try {
         return method.invoke(delegate, args);
-      } catch (InvocationTargetException e) {
+      } catch (InvocationTargetException delegateException) {
         try {
           log.info("Couldn't invoke method {}", method.toGenericString());
-          if (e.getCause().getClass().isAssignableFrom(TApplicationException.class)) {
+          if (delegateException.getCause().getClass().isAssignableFrom(TApplicationException.class)) {
             log.info("Attempting to invoke with {}", compatibility.getClass().getName());
             return invokeCompatibility(method, args);
           }
+        } catch (InvocationTargetException compatibilityException) {
+          if (compatibilityException.getCause().getClass().isAssignableFrom(TApplicationException.class)) {
+            log
+                .warn(
+                    "Unable to run compatibility for metastore client method {}. Will rethrow original exception, logging exception from compatibility layer: ",
+                    method.getName(), compatibilityException);
+          } else {
+            throw compatibilityException.getCause();
+          }
         } catch (Throwable t) {
           log
-              .warn("Unable to run compatibility for metastore client method {}. Will rethrow original exception: ",
+              .warn(
+                  "Unable to run compatibility for metastore client method {}. Will rethrow original exception, logging exception from compatibility layer: ",
                   method.getName(), t);
         }
-        throw e.getCause();
+        throw delegateException.getCause();
       }
     }
 
