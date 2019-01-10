@@ -58,7 +58,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
           if (compatibilityException.getCause().getClass().isAssignableFrom(TApplicationException.class)) {
             log
                 .warn(
-                    "Unable to run compatibility for metastore client method {}. Will rethrow original exception, logging exception from compatibility layer: ",
+                    "Invocation of compatibility for metastore client method {} failed. Will rethrow original exception, logging exception from compatibility layer",
                     method.getName(), compatibilityException);
           } else {
             throw compatibilityException.getCause();
@@ -66,7 +66,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
         } catch (Throwable t) {
           log
               .warn(
-                  "Unable to run compatibility for metastore client method {}. Will rethrow original exception, logging exception from compatibility layer: ",
+                  "Unable to invoke compatibility for metastore client method {}. Will rethrow original exception, logging exception from invocation handler",
                   method.getName(), t);
         }
         throw delegateException.getCause();
