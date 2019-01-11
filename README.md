@@ -460,4 +460,4 @@ The Waggle Dance logo uses the [Beetype Filled font](http://www.1001fonts.com/be
 ## Legal
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
 
-Copyright 2016-2018 Expedia Inc.
+Copyright 2016-2019 Expedia Inc.

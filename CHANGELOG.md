@@ -1,7 +1,8 @@
-## [TBD]
+## [3.1.2] - 2019-01-11
 ### Changed
 * Refactored project to remove checkstyle and findbugs warnings, which does not impact functionality.
 * Upgraded `hotels-oss-parent` to 2.3.5 (was 2.3.3).
+
 ### Fixed
 * Fixed compatibility layer exception handling.
 
@@ -12,6 +13,7 @@
 ## [3.1.0] - 2018-10-25
 ### Changed
 * Refactored general metastore tunnelling code to leverage hcommon-hive-metastore libraries. See [#103](https://github.com/HotelsDotCom/waggle-dance/issues/103).
+
 ### Fixed
 * Fixed IllegalArgumentException thrown while doing write operations on federated metastores in MANUAL database resolution. See [141](https://github.com/HotelsDotCom/waggle-dance/issues/141).
 * Compatibility issue with get_foreign_keys() and get_primary_keys() methods.
@@ -24,6 +26,7 @@
     * `memory.heap.used` -> `sum(jvm.memory.used.area.heap.id.*)` - i.e. you now need to sum up all the heap spaces
     * `memory.heap.max` -> `sum(jvm.memory.max.area.heap.id.*)` - i.e. you now need to sum up all the max used heap spaces
     * `threads.*` -> `jvm.threads.*`
+
 ### Fixed
 * Added workaround when federating to a Hive 1.x Metastore. See [#110](https://github.com/HotelsDotCom/waggle-dance/issues/110).
 
@@ -57,6 +60,7 @@
 ## [2.3.5] - 2018-05-22
 ### Changed
 * Using hcommon-ssh-1.0.1 dependency to fix issue where metastore exceptions were lost and not propagated properly over tunnelled connections.
+
 ### Fixed
 * Issue where WD is unresponsive when a tunneled metastore connection becomes unreachable. See [#73](https://github.com/HotelsDotCom/waggle-dance/issues/73).
 
@@ -71,14 +75,17 @@
 ## [2.3.2] - 2018-05-03
 ### Added
 * Regex support in `federated-meta-stores.mapped-databases`. [#59](https://github.com/HotelsDotCom/waggle-dance/issues/59).
+
 ### Changed
 * Replace SSH support with [hcommon-ssh](https://github.com/HotelsDotCom/hcommon-ssh) library. [#51](https://github.com/HotelsDotCom/waggle-dance/issues/51).
+
 ### Fixed
 * Tables referenced in views are now correctly transformed to the context of the Waggle Dance client. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/62).
 
 ## [2.3.1] - 2018-04-09
 ### Added
 * Configure StrictHostKeyChecking for MetastoreTunnel in YAML configuration. See [#33](https://github.com/HotelsDotCom/waggle-dance/issues/33).
+
 ### Fixed
 * DESCRIBE FORMATTED query against federated tables now works. See [#60](https://github.com/HotelsDotCom/waggle-dance/issues/60).
 
@@ -108,6 +115,7 @@
 * Depend on latest parent with `test.arguments` build parameter.
 * Fixed bug where tunnel configuration wasn't being applied.
 * Hive dependency updated to 2.1.1 (Needed corresponding BeeJU dependency update as well).
+
 ### Removed
 * Removed SessionFactorySupplierFactory.
 
@@ -116,6 +124,7 @@
 ## [2.0.2] - 2017-08-01
 ### Added
 * Flag to prevent flushing the federation configuration out when the server stops.
+
 ### Changed
 * Configure Maven deploy plug-in.
 
@@ -126,6 +135,7 @@
 ## [2.0.0]
 ### Added
 * Allow database name patterns in DDL.
+
 ### Changed
 * NOTE: Backward incompatible config change. Renamed graphite config `inter-poll-time` and `inter-poll-time-unit` to `poll-interval` and `poll-interval-time-unit`.
 * Changed default rpm user from 'hadoop' to 'waggle-dance'. If not present 'root' will be used.
@@ -146,6 +156,7 @@
 ## [1.0.1]
 ### Added
 * Adding test and improved integration tests running time.
+
 ### Changed
 * Improved client-side error message.
 
@@ -155,6 +166,7 @@
 * Externalized log4j2.xml so we can change log levels.
 * Support for more flexible primary metastore configuration including database whitelist access controls.
 * Metastore metrics and Graphite support.
+
 ### Fixed
 * Bug where client exceptions were not properly propagated.
 * Small bugfix where we threw the wrong thrift Exception (TException).
@@ -166,5 +178,6 @@
 ## [0.0.3]
 ### Added
 * Support for SHH tunneling on federated metastores.
+
 ### Fixed
 * Fix memory leak.
