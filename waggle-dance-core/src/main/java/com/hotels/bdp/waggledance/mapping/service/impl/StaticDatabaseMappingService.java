@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
+import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +105,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       primaryDatabasesCache.invalidateAll();
       mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), primaryDatabaseMapping);
     } else {
-      List<String> mappableDatabases = ((FederatedMetaStore) metaStore).getMappedDatabases();
+      FederatedMetaStore federatedMetaStore = (FederatedMetaStore) metaStore;
+      List<String> mappableDatabases = getDatabasesFromPattern(metaStoreMapping.getClient(),
+          federatedMetaStore.getMappedDatabases());
       validateFederatedMetastoreDatabases(mappableDatabases, metaStoreMapping);
       DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
       mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
@@ -153,6 +156,18 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     } catch (ExecutionException e) {
       throw new WaggleDanceException("Can't validate database clashes", e.getCause());
     }
+  }
+
+  private List<String> getDatabasesFromPattern(Iface client, List<String> mappedDatabases) {
+    List<String> matchedDatabases = new ArrayList<String>();
+    for (String mappedDatabase : mappedDatabases) {
+      try {
+        matchedDatabases.addAll(client.get_databases(mappedDatabase));
+      } catch (TException e) {
+        LOG.error("Could not match databases for '{}'", mappedDatabase, e);
+      }
+    }
+    return matchedDatabases;
   }
 
   private void addDatabaseMappings(List<String> databases, DatabaseMapping databaseMapping) {

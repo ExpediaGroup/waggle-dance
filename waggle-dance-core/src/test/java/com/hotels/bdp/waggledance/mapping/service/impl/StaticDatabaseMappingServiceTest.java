@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,11 +65,12 @@ public class StaticDatabaseMappingServiceTest {
   private static final String URI = "uri";
 
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
+  private @Mock Iface primaryDatabaseClient;
+  private @Mock Iface federatedDatabaseClient;
 
   private StaticDatabaseMappingService service;
   private final AbstractMetaStore primaryMetastore = newPrimaryInstance(PRIMARY_NAME, URI);
   private final FederatedMetaStore federatedMetastore = newFederatedInstance(FEDERATED_NAME, URI);
-  private @Mock Iface primaryDatabaseClient;
   private MetaStoreMapping metaStoreMappingPrimary;
   private MetaStoreMapping metaStoreMappingFederated;
 
@@ -81,6 +82,8 @@ public class StaticDatabaseMappingServiceTest {
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
     metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    // when(federatedDatabaseClient.get_databases("federated_DB")).thenReturn(Arrays.asList("federated_DB"));
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
@@ -108,6 +111,14 @@ public class StaticDatabaseMappingServiceTest {
     assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
     assertTrue(databaseMapping instanceof IdentityMapping);
   }
+
+  // @Test
+  // public void databaseMappingFederatedWithRegex() throws MetaException, TException {
+  // DatabaseMapping databaseMapping = service.databaseMapping("federated_DB");
+  // when(federatedDatabaseClient.get_databases("federated.*")).thenReturn(Arrays.asList("federated_DB"));
+  // assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
+  // assertTrue(databaseMapping instanceof IdentityMapping);
+  // }
 
   @Test(expected = WaggleDanceException.class)
   public void validateFederatedMetaStoreClashThrowsException() throws MetaException, TException {
@@ -222,14 +233,14 @@ public class StaticDatabaseMappingServiceTest {
 
   @Test(expected = WaggleDanceException.class)
   public void onInitDuplicatesThrowsException() throws Exception {
-    List<AbstractMetaStore> duplicates = Arrays.asList(primaryMetastore, federatedMetastore, primaryMetastore,
-        federatedMetastore);
+    List<AbstractMetaStore> duplicates = Arrays
+        .asList(primaryMetastore, federatedMetastore, primaryMetastore, federatedMetastore);
     service = new StaticDatabaseMappingService(metaStoreMappingFactory, duplicates);
   }
 
   @Test
   public void onInitEmpty() throws Exception {
-    List<AbstractMetaStore> empty = Collections.<AbstractMetaStore> emptyList();
+    List<AbstractMetaStore> empty = Collections.<AbstractMetaStore>emptyList();
     try {
       service = new StaticDatabaseMappingService(metaStoreMappingFactory, empty);
     } catch (Exception e) {
@@ -296,7 +307,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   public void closeOnEmptyInit() throws Exception {
-    service = new StaticDatabaseMappingService(metaStoreMappingFactory, Collections.<AbstractMetaStore> emptyList());
+    service = new StaticDatabaseMappingService(metaStoreMappingFactory, Collections.<AbstractMetaStore>emptyList());
     service.close();
     verify(metaStoreMappingPrimary, never()).close();
     verify(metaStoreMappingFederated, never()).close();
@@ -314,8 +325,8 @@ public class StaticDatabaseMappingServiceTest {
     String pattern = "pattern";
     when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
 
-    Iface federatedDatabaseClient = mock(Iface.class);
-    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    // Iface federatedDatabaseClient = mock(Iface.class);
+    // when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(federatedDatabaseClient.get_databases(pattern))
         .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
 
