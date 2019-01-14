@@ -19,6 +19,7 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -106,8 +107,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), primaryDatabaseMapping);
     } else {
       FederatedMetaStore federatedMetaStore = (FederatedMetaStore) metaStore;
-      List<String> mappableDatabases = getDatabasesFromPattern(metaStoreMapping.getClient(),
-          federatedMetaStore.getMappedDatabases());
+      List<String> mappableDatabases = Collections.emptyList();
+      if (metaStoreMapping.isAvailable()) {
+        mappableDatabases = getDatabasesFromPattern(metaStoreMapping.getClient(),
+            federatedMetaStore.getMappedDatabases());
+        LOG.info("Added {} to the list of federated mappable databases", mappableDatabases.toString());
+      }
       validateFederatedMetastoreDatabases(mappableDatabases, metaStoreMapping);
       DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
       mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);

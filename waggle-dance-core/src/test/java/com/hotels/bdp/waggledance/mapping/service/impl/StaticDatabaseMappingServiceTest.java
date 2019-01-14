@@ -70,20 +70,21 @@ public class StaticDatabaseMappingServiceTest {
 
   private StaticDatabaseMappingService service;
   private final AbstractMetaStore primaryMetastore = newPrimaryInstance(PRIMARY_NAME, URI);
-  private final FederatedMetaStore federatedMetastore = newFederatedInstance(FEDERATED_NAME, URI);
+  private FederatedMetaStore federatedMetastore = newFederatedInstance(FEDERATED_NAME, URI);
   private MetaStoreMapping metaStoreMappingPrimary;
   private MetaStoreMapping metaStoreMappingFederated;
+  private final List<String> mappedFederatedDatabases = Lists.newArrayList("federated_DB");
 
   @Before
   public void init() throws Exception {
-    federatedMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
+    federatedMetastore.setMappedDatabases(mappedFederatedDatabases);
 
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
     metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    // when(federatedDatabaseClient.get_databases("federated_DB")).thenReturn(Arrays.asList("federated_DB"));
+    when(federatedDatabaseClient.get_databases("federated_DB")).thenReturn(mappedFederatedDatabases);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
@@ -96,6 +97,26 @@ public class StaticDatabaseMappingServiceTest {
     when(result.isAvailable()).thenReturn(isAvailable);
     when(result.getMetastoreMappingName()).thenReturn(metaStore.getName());
     return result;
+  }
+
+  private FederatedMetaStore newFederatedInstanceWithClient(
+      String name,
+      String uri,
+      List<String> mappedDatabases,
+      boolean availableMapping) {
+    FederatedMetaStore newMetastore = newFederatedInstance(name, uri);
+    newMetastore.setMappedDatabases(mappedDatabases);
+    MetaStoreMapping newMapping = mockNewMapping(availableMapping, newMetastore);
+    when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
+    when(newMapping.getClient()).thenReturn(federatedDatabaseClient);
+    for (String database : mappedDatabases) {
+      try {
+        when(federatedDatabaseClient.get_databases(database)).thenReturn(Lists.newArrayList(database));
+      } catch (TException e) {
+        e.printStackTrace();
+      }
+    }
+    return newMetastore;
   }
 
   @Test
@@ -112,40 +133,28 @@ public class StaticDatabaseMappingServiceTest {
     assertTrue(databaseMapping instanceof IdentityMapping);
   }
 
-  // @Test
-  // public void databaseMappingFederatedWithRegex() throws MetaException, TException {
-  // DatabaseMapping databaseMapping = service.databaseMapping("federated_DB");
-  // when(federatedDatabaseClient.get_databases("federated.*")).thenReturn(Arrays.asList("federated_DB"));
-  // assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
-  // assertTrue(databaseMapping instanceof IdentityMapping);
-  // }
-
   @Test(expected = WaggleDanceException.class)
   public void validateFederatedMetaStoreClashThrowsException() throws MetaException, TException {
-    federatedMetastore.setMappedDatabases(Lists.newArrayList("db"));
-    metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
-
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("db"));
-
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
-    when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+
+    federatedMetastore = newFederatedInstanceWithClient(FEDERATED_NAME, URI, Lists.newArrayList("db"), true);
+
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore));
   }
 
   @Test(expected = WaggleDanceException.class)
   public void validatePrimaryMetaStoreClashThrowsException() throws MetaException, TException {
-    federatedMetastore.setMappedDatabases(Lists.newArrayList("db"));
-    metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
+    federatedMetastore = newFederatedInstanceWithClient(FEDERATED_NAME, URI, Lists.newArrayList("db"), true);
 
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("db"));
-
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
-    when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(federatedMetastore, primaryMetastore));
   }
@@ -157,11 +166,8 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void onRegister() {
-    FederatedMetaStore newMetastore = newFederatedInstance("fed1", "abc");
-    newMetastore.setMappedDatabases(Lists.newArrayList("db1"));
-    MetaStoreMapping newMapping = mockNewMapping(true, newMetastore);
-    when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
+  public void onRegister() throws MetaException, TException {
+    FederatedMetaStore newMetastore = newFederatedInstanceWithClient("fed1", "abc", Lists.newArrayList("db1"), true);
     service.onRegister(newMetastore);
     DatabaseMapping databaseMapping = service.databaseMapping("db1");
     assertThat(databaseMapping.getMetastoreMappingName(), is("fed1"));
@@ -182,10 +188,8 @@ public class StaticDatabaseMappingServiceTest {
 
   @Test
   public void onUpdate() {
-    FederatedMetaStore newMetastore = newFederatedInstance(FEDERATED_NAME, "abc");
-    newMetastore.setMappedDatabases(Lists.newArrayList("db1", "federated_DB"));
-    MetaStoreMapping newMapping = mockNewMapping(true, newMetastore);
-    when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
+    FederatedMetaStore newMetastore = newFederatedInstanceWithClient(FEDERATED_NAME, "abc",
+        Lists.newArrayList("db1", "federated_DB"), true);
     service.onUpdate(federatedMetastore, newMetastore);
 
     DatabaseMapping databaseMapping = service.databaseMapping("db1");
@@ -219,10 +223,7 @@ public class StaticDatabaseMappingServiceTest {
   @Test
   public void onUpdateDifferentName() {
     String newName = "new";
-    FederatedMetaStore newMetastore = newFederatedInstance(newName, "abc");
-    newMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
-    MetaStoreMapping newMapping = mockNewMapping(true, newMetastore);
-    when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
+    FederatedMetaStore newMetastore = newFederatedInstanceWithClient(newName, "abc", mappedFederatedDatabases, true);
 
     service.onUpdate(federatedMetastore, newMetastore);
 
@@ -288,10 +289,7 @@ public class StaticDatabaseMappingServiceTest {
 
   @Test
   public void databaseMappingsIgnoreDisconnected() {
-    FederatedMetaStore newMetastore = newFederatedInstance("name2", "abc");
-    newMetastore.setMappedDatabases(Lists.newArrayList("db2"));
-    MetaStoreMapping newUnavailableMapping = mockNewMapping(false, newMetastore);
-    when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newUnavailableMapping);
+    FederatedMetaStore newMetastore = newFederatedInstanceWithClient("name2", "abc", Lists.newArrayList("db2"), false);
     service.onRegister(newMetastore);
 
     DatabaseMapping databaseMapping = service.databaseMapping("db2");
@@ -324,9 +322,6 @@ public class StaticDatabaseMappingServiceTest {
   public void panopticOperationsHandlerGetAllDatabasesByPattern() throws Exception {
     String pattern = "pattern";
     when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
-
-    // Iface federatedDatabaseClient = mock(Iface.class);
-    // when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(federatedDatabaseClient.get_databases(pattern))
         .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
 
