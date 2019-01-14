@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
@@ -669,6 +670,26 @@ public class WaggleDanceIntegrationTest {
     assertThat(metastoreTunnel.getRoute(), is(route));
     assertThat(metastoreTunnel.getKnownHosts(), is(knownHosts));
     assertThat(metastoreTunnel.getPrivateKeys(), is(privateKeys));
+  }
+
+  @Test
+  public void getDatabaseFromPatternManual() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.MANUAL)
+        .overwriteConfigOnShutdown(false)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .federate("waggle_remote", remoteServer.getThriftConnectionUri(), "remote.*")
+        .build();
+    runWaggleDance(runner);
+
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    List<String> allDatabases = proxy.getAllDatabases();
+
+    assertTrue(allDatabases.contains(REMOTE_DATABASE));
+
+    proxy.close();
   }
 
 }

@@ -111,7 +111,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       if (metaStoreMapping.isAvailable()) {
         mappableDatabases = getDatabasesFromPattern(metaStoreMapping.getClient(),
             federatedMetaStore.getMappedDatabases());
-        LOG.info("Added {} to the list of federated mappable databases", mappableDatabases.toString());
       }
       validateFederatedMetastoreDatabases(mappableDatabases, metaStoreMapping);
       DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
