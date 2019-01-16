@@ -28,19 +28,22 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
-import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Predicates;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -109,8 +112,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       FederatedMetaStore federatedMetaStore = (FederatedMetaStore) metaStore;
       List<String> mappableDatabases = Collections.emptyList();
       if (metaStoreMapping.isAvailable()) {
-        mappableDatabases = getDatabasesFromPattern(metaStoreMapping.getClient(),
-            federatedMetaStore.getMappedDatabases());
+        try {
+          List<String> allFederatedDatabases = metaStoreMapping.getClient().get_all_databases();
+          mappableDatabases = getDatabasesFromPattern(allFederatedDatabases, federatedMetaStore.getMappedDatabases());
+        } catch (TException e) {
+          LOG.error("Could not get databases for metastore {}", federatedMetaStore.getRemoteMetaStoreUris(), e);
+        }
       }
       validateFederatedMetastoreDatabases(mappableDatabases, metaStoreMapping);
       DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
@@ -162,12 +169,15 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
   }
 
-  private List<String> getDatabasesFromPattern(Iface client, List<String> mappedDatabases) {
+  private List<String> getDatabasesFromPattern(List<String> allDatabases, List<String> mappedDatabases) {
     List<String> matchedDatabases = new ArrayList<String>();
     for (String mappedDatabase : mappedDatabases) {
       try {
-        matchedDatabases.addAll(client.get_databases(mappedDatabase));
-      } catch (TException e) {
+        Iterable<String> matches = Iterables.filter(allDatabases, Predicates.contains(Pattern.compile(mappedDatabase)));
+        for (String matched : matches) {
+          matchedDatabases.add(matched);
+        }
+      } catch (PatternSyntaxException e) {
         LOG.error("Could not match databases for '{}'", mappedDatabase, e);
       }
     }

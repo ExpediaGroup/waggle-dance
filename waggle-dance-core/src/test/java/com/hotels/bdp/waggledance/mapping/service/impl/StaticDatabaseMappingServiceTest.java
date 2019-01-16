@@ -84,7 +84,7 @@ public class StaticDatabaseMappingServiceTest {
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
     metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_databases("federated_DB")).thenReturn(mappedFederatedDatabases);
+    when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedFederatedDatabases);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
@@ -109,12 +109,10 @@ public class StaticDatabaseMappingServiceTest {
     MetaStoreMapping newMapping = mockNewMapping(availableMapping, newMetastore);
     when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
     when(newMapping.getClient()).thenReturn(federatedDatabaseClient);
-    for (String database : mappedDatabases) {
-      try {
-        when(federatedDatabaseClient.get_databases(database)).thenReturn(Lists.newArrayList(database));
-      } catch (TException e) {
-        e.printStackTrace();
-      }
+    try {
+      when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedDatabases);
+    } catch (TException e) {
+      e.printStackTrace();
     }
     return newMetastore;
   }
