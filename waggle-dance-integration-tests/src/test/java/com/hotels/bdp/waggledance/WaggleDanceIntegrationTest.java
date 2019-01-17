@@ -695,8 +695,6 @@ public class WaggleDanceIntegrationTest {
 
     List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, REMOTE_DATABASE);
     assertThat(allDatabases, is(expected));
-    // assertTrue(allDatabases.contains(REMOTE_DATABASE));
-    // assertNoDatabaseMatchesThirdMetastore(allDatabases, "no_match");
   }
 
   @Test
@@ -717,18 +715,6 @@ public class WaggleDanceIntegrationTest {
 
     List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, PREFIXED_REMOTE_DATABASE);
     assertThat(allDatabases, is(expected));
-    //
-    // assertThat(allDatabases.size(), is(2));
-    // assertTrue(allDatabases.contains(PREFIXED_REMOTE_DATABASE));
-    // assertNoDatabaseMatchesThirdMetastore(allDatabases, "third_no_match");
-  }
-
-  private void assertNoDatabaseMatchesThirdMetastore(List<String> allDatabases, String pattern) {
-    for (String database : allDatabases) {
-      if (database.startsWith(pattern)) {
-        fail("Database in third metastore should not match regex");
-      }
-    }
   }
 
 }
