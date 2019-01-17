@@ -712,7 +712,6 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
     List<String> allDatabases = proxy.getAllDatabases();
-    LOG.info("ALL DATABASES: {}", allDatabases.toString());
 
     assertTrue(allDatabases.contains(PREFIXED_REMOTE_DATABASE));
     assertNoDatabaseMatchesThirdMetastore(allDatabases, "third_no_match");
