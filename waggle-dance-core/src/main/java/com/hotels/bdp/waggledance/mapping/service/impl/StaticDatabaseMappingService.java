@@ -28,8 +28,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import javax.validation.constraints.NotNull;
 
@@ -39,11 +37,9 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Predicates;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -58,6 +54,7 @@ import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
+import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class StaticDatabaseMappingService implements MappingEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(StaticDatabaseMappingService.class);
@@ -171,16 +168,23 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
   private List<String> getDatabasesFromPattern(List<String> allDatabases, List<String> mappedDatabases) {
     List<String> matchedDatabases = new ArrayList<String>();
-    for (String mappedDatabase : mappedDatabases) {
-      try {
-        Iterable<String> matches = Iterables.filter(allDatabases, Predicates.contains(Pattern.compile(mappedDatabase)));
-        for (String matched : matches) {
-          matchedDatabases.add(matched);
-        }
-      } catch (PatternSyntaxException e) {
-        LOG.error("Could not match databases for '{}'", mappedDatabase, e);
+    // for (String mappedDatabase : mappedDatabases) {
+    // try {
+    Whitelist whitelist = new Whitelist(mappedDatabases);
+    for (String database : allDatabases) {
+      if (whitelist.contains(database)) {
+        matchedDatabases.add(database);
       }
     }
+    //
+    // Iterable<String> matches = Iterables.filter(allDatabases, Predicates.contains(Pattern.compile(mappedDatabase)));
+    // for (String matched : matches) {
+    // matchedDatabases.add(matched);
+    // }
+    // } catch (PatternSyntaxException e) {
+    // LOG.error("Could not match databases for '{}'", mappedDatabase, e);
+    // }
+    // }
     return matchedDatabases;
   }
 

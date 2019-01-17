@@ -692,8 +692,6 @@ public class WaggleDanceIntegrationTest {
     List<String> allDatabases = proxy.getAllDatabases();
 
     assertTrue(allDatabases.contains(REMOTE_DATABASE));
-
-    proxy.close();
   }
 
   @Test
@@ -713,8 +711,6 @@ public class WaggleDanceIntegrationTest {
     LOG.info("ALL DATABASES: {}", allDatabases.toString());
 
     assertTrue(allDatabases.contains(PREFIXED_REMOTE_DATABASE));
-
-    proxy.close();
   }
 
 }

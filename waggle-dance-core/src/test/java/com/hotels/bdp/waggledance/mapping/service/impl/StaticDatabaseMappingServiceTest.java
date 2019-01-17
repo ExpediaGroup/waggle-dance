@@ -103,17 +103,14 @@ public class StaticDatabaseMappingServiceTest {
       String name,
       String uri,
       List<String> mappedDatabases,
-      boolean availableMapping) {
+      boolean availableMapping)
+    throws MetaException, TException {
     FederatedMetaStore newMetastore = newFederatedInstance(name, uri);
     newMetastore.setMappedDatabases(mappedDatabases);
     MetaStoreMapping newMapping = mockNewMapping(availableMapping, newMetastore);
     when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
     when(newMapping.getClient()).thenReturn(federatedDatabaseClient);
-    try {
-      when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedDatabases);
-    } catch (TException e) {
-      e.printStackTrace();
-    }
+    when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedDatabases);
     return newMetastore;
   }
 
@@ -185,7 +182,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void onUpdate() {
+  public void onUpdate() throws MetaException, TException {
     FederatedMetaStore newMetastore = newFederatedInstanceWithClient(FEDERATED_NAME, "abc",
         Lists.newArrayList("db1", "federated_DB"), true);
     service.onUpdate(federatedMetastore, newMetastore);
@@ -219,7 +216,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void onUpdateDifferentName() {
+  public void onUpdateDifferentName() throws MetaException, TException {
     String newName = "new";
     FederatedMetaStore newMetastore = newFederatedInstanceWithClient(newName, "abc", mappedFederatedDatabases, true);
 
@@ -286,7 +283,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void databaseMappingsIgnoreDisconnected() {
+  public void databaseMappingsIgnoreDisconnected() throws MetaException, TException {
     FederatedMetaStore newMetastore = newFederatedInstanceWithClient("name2", "abc", Lists.newArrayList("db2"), false);
     service.onRegister(newMetastore);
 
