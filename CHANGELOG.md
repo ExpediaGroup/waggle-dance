@@ -1,3 +1,7 @@
+## TBD
+### Fixed
+* Support for regex `mapped-databases` for MANUAL database resolution.
+
 ## [3.1.2] - 2019-01-11
 ### Changed
 * Refactored project to remove checkstyle and findbugs warnings, which does not impact functionality.

@@ -685,6 +685,7 @@ public class WaggleDanceIntegrationTest {
         .primary("primary", localServer.getThriftConnectionUri(),
             AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
         .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), "remote.?database")
+        .federate("third", remoteServer.getThriftConnectionUri(), "no_match.*")
         .build();
     runWaggleDance(runner);
 
@@ -692,6 +693,8 @@ public class WaggleDanceIntegrationTest {
     List<String> allDatabases = proxy.getAllDatabases();
 
     assertTrue(allDatabases.contains(REMOTE_DATABASE));
+    assertNoDatabaseMatchesThirdMetastore(allDatabases, "no_match");
+
   }
 
   @Test
@@ -703,6 +706,7 @@ public class WaggleDanceIntegrationTest {
         .primary("primary", localServer.getThriftConnectionUri(),
             AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
         .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), "remote.?database")
+        .federate("third", remoteServer.getThriftConnectionUri(), "no_match.*")
         .build();
     runWaggleDance(runner);
 
@@ -711,6 +715,15 @@ public class WaggleDanceIntegrationTest {
     LOG.info("ALL DATABASES: {}", allDatabases.toString());
 
     assertTrue(allDatabases.contains(PREFIXED_REMOTE_DATABASE));
+    assertNoDatabaseMatchesThirdMetastore(allDatabases, "third_no_match");
+  }
+
+  private void assertNoDatabaseMatchesThirdMetastore(List<String> allDatabases, String pattern) {
+    for (String database : allDatabases) {
+      if (database.startsWith(pattern)) {
+        fail("Database in third metastore should not match regex");
+      }
+    }
   }
 
 }
