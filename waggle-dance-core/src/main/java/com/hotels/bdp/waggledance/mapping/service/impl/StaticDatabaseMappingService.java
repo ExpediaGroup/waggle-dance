@@ -168,23 +168,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
   private List<String> getDatabasesFromPattern(List<String> allDatabases, List<String> mappedDatabases) {
     List<String> matchedDatabases = new ArrayList<String>();
-    // for (String mappedDatabase : mappedDatabases) {
-    // try {
     Whitelist whitelist = new Whitelist(mappedDatabases);
     for (String database : allDatabases) {
       if (whitelist.contains(database)) {
         matchedDatabases.add(database);
       }
     }
-    //
-    // Iterable<String> matches = Iterables.filter(allDatabases, Predicates.contains(Pattern.compile(mappedDatabase)));
-    // for (String matched : matches) {
-    // matchedDatabases.add(matched);
-    // }
-    // } catch (PatternSyntaxException e) {
-    // LOG.error("Could not match databases for '{}'", mappedDatabase, e);
-    // }
-    // }
     return matchedDatabases;
   }
 
