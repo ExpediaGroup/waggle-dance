@@ -71,7 +71,7 @@ public final class GrammarUtils {
    * Manual</a> for details
    *
    * @param prefixes Federation prefixes
-   * @param dbPatterns Database name patters
+   * @param dbPatterns Database name patterns
    * @return A map of possible database prefixes to be used for interrogation with their pattern
    */
   public static Map<String, String> selectMatchingPrefixes(Set<String> prefixes, String dbPatterns) {

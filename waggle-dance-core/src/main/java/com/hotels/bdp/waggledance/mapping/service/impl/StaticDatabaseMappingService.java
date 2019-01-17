@@ -19,6 +19,7 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -53,6 +54,7 @@ import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
+import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class StaticDatabaseMappingService implements MappingEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(StaticDatabaseMappingService.class);
@@ -104,7 +106,16 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       primaryDatabasesCache.invalidateAll();
       mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), primaryDatabaseMapping);
     } else {
-      List<String> mappableDatabases = ((FederatedMetaStore) metaStore).getMappedDatabases();
+      FederatedMetaStore federatedMetaStore = (FederatedMetaStore) metaStore;
+      List<String> mappableDatabases = Collections.emptyList();
+      if (metaStoreMapping.isAvailable()) {
+        try {
+          List<String> allFederatedDatabases = metaStoreMapping.getClient().get_all_databases();
+          mappableDatabases = applyWhitelist(allFederatedDatabases, federatedMetaStore.getMappedDatabases());
+        } catch (TException e) {
+          LOG.error("Could not get databases for metastore {}", federatedMetaStore.getRemoteMetaStoreUris(), e);
+        }
+      }
       validateFederatedMetastoreDatabases(mappableDatabases, metaStoreMapping);
       DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
       mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
@@ -153,6 +164,17 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     } catch (ExecutionException e) {
       throw new WaggleDanceException("Can't validate database clashes", e.getCause());
     }
+  }
+
+  private List<String> applyWhitelist(List<String> allDatabases, List<String> mappedDatabases) {
+    List<String> matchedDatabases = new ArrayList<String>();
+    Whitelist whitelist = new Whitelist(mappedDatabases);
+    for (String database : allDatabases) {
+      if (whitelist.contains(database)) {
+        matchedDatabases.add(database);
+      }
+    }
+    return matchedDatabases;
   }
 
   private void addDatabaseMappings(List<String> databases, DatabaseMapping databaseMapping) {

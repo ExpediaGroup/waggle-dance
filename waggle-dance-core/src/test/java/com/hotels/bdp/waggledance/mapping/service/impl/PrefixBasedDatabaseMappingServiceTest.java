@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,8 +106,10 @@ public class PrefixBasedDatabaseMappingServiceTest {
     service.onRegister(newMetastore);
     List<DatabaseMapping> databaseMappings = service.databaseMappings();
     assertThat(databaseMappings.size(), is(3));
-    assertThat(ImmutableSet.of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
-        databaseMappings.get(2).getDatabasePrefix()), is(ImmutableSet.of("", DB_PREFIX, "newname_")));
+    assertThat(ImmutableSet
+        .of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
+            databaseMappings.get(2).getDatabasePrefix()),
+        is(ImmutableSet.of("", DB_PREFIX, "newname_")));
   }
 
   @Test(expected = WaggleDanceException.class)
@@ -155,15 +157,15 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Test
   public void onInitOverridesDuplicates() throws Exception {
-    List<AbstractMetaStore> duplicates = Arrays.asList(primaryMetastore, federatedMetastore, primaryMetastore,
-        federatedMetastore);
+    List<AbstractMetaStore> duplicates = Arrays
+        .asList(primaryMetastore, federatedMetastore, primaryMetastore, federatedMetastore);
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, duplicates, queryMapping);
     assertThat(service.databaseMappings().size(), is(2));
   }
 
   @Test
   public void onInitEmpty() throws Exception {
-    List<AbstractMetaStore> empty = Collections.<AbstractMetaStore> emptyList();
+    List<AbstractMetaStore> empty = Collections.<AbstractMetaStore>emptyList();
     try {
       service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, empty, queryMapping);
     } catch (Exception e) {
@@ -240,8 +242,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   public void closeOnEmptyInit() throws Exception {
-    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Collections.<AbstractMetaStore> emptyList(), queryMapping);
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, Collections.<AbstractMetaStore>emptyList(),
+        queryMapping);
     service.close();
     verify(metaStoreMappingPrimary, never()).close();
     verify(metaStoreMappingFederated, never()).close();
