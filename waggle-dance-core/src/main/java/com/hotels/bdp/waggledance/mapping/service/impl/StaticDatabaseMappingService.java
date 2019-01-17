@@ -111,7 +111,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       if (metaStoreMapping.isAvailable()) {
         try {
           List<String> allFederatedDatabases = metaStoreMapping.getClient().get_all_databases();
-          mappableDatabases = getDatabasesFromPattern(allFederatedDatabases, federatedMetaStore.getMappedDatabases());
+          mappableDatabases = applyWhitelist(allFederatedDatabases, federatedMetaStore.getMappedDatabases());
         } catch (TException e) {
           LOG.error("Could not get databases for metastore {}", federatedMetaStore.getRemoteMetaStoreUris(), e);
         }
@@ -166,7 +166,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
   }
 
-  private List<String> getDatabasesFromPattern(List<String> allDatabases, List<String> mappedDatabases) {
+  private List<String> applyWhitelist(List<String> allDatabases, List<String> mappedDatabases) {
     List<String> matchedDatabases = new ArrayList<String>();
     Whitelist whitelist = new Whitelist(mappedDatabases);
     for (String database : allDatabases) {

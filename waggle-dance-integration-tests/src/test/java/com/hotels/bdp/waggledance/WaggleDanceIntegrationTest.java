@@ -18,7 +18,6 @@ package com.hotels.bdp.waggledance;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
@@ -62,6 +61,8 @@ import feign.jackson.JacksonEncoder;
 import feign.jaxrs.JAXRSContract;
 import fm.last.commons.test.file.ClassDataFolder;
 import fm.last.commons.test.file.DataFolder;
+
+import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
@@ -692,9 +693,10 @@ public class WaggleDanceIntegrationTest {
     HiveMetaStoreClient proxy = getWaggleDanceClient();
     List<String> allDatabases = proxy.getAllDatabases();
 
-    assertTrue(allDatabases.contains(REMOTE_DATABASE));
-    assertNoDatabaseMatchesThirdMetastore(allDatabases, "no_match");
-
+    List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, REMOTE_DATABASE);
+    assertThat(allDatabases, is(expected));
+    // assertTrue(allDatabases.contains(REMOTE_DATABASE));
+    // assertNoDatabaseMatchesThirdMetastore(allDatabases, "no_match");
   }
 
   @Test
@@ -713,8 +715,12 @@ public class WaggleDanceIntegrationTest {
     HiveMetaStoreClient proxy = getWaggleDanceClient();
     List<String> allDatabases = proxy.getAllDatabases();
 
-    assertTrue(allDatabases.contains(PREFIXED_REMOTE_DATABASE));
-    assertNoDatabaseMatchesThirdMetastore(allDatabases, "third_no_match");
+    List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, PREFIXED_REMOTE_DATABASE);
+    assertThat(allDatabases, is(expected));
+    //
+    // assertThat(allDatabases.size(), is(2));
+    // assertTrue(allDatabases.contains(PREFIXED_REMOTE_DATABASE));
+    // assertNoDatabaseMatchesThirdMetastore(allDatabases, "third_no_match");
   }
 
   private void assertNoDatabaseMatchesThirdMetastore(List<String> allDatabases, String pattern) {
