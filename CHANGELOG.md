@@ -1,6 +1,6 @@
 ## TBD
 ### Fixed
-* Support for regex `mapped-databases` for MANUAL database resolution.
+* Support for regex `mapped-databases` for MANUAL database resolution. See [#147](https://github.com/HotelsDotCom/waggle-dance/issues/147).
 
 ## [3.1.2] - 2019-01-11
 ### Changed
