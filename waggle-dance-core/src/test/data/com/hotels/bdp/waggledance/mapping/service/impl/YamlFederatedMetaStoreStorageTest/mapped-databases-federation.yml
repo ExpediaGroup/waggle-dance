@@ -1,0 +1,13 @@
+primary-meta-store:
+    remote-meta-store-uris: thrift://localhost:9083
+    name: name
+
+federated-meta-stores:
+ - remote-meta-store-uris: thrift://localhost:9083
+   name: second
+   mapped-databases: []
+ - remote-meta-store-uris: thrift://localhost:9083
+   name: third
+ - remote-meta-store-uris: thrift://localhost:9083
+   name: fourth
+   mapped-databases:

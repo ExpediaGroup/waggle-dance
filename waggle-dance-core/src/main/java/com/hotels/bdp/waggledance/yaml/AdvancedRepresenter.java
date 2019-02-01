@@ -15,19 +15,42 @@
  */
 package com.hotels.bdp.waggledance.yaml;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
 import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.CollectionNode;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
-import org.yaml.snakeyaml.nodes.SequenceNode;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
 import com.google.common.base.CaseFormat;
 
 public class AdvancedRepresenter extends Representer {
+
+  public AdvancedRepresenter() {
+    multiRepresenters.put(List.class, new RepresentList() {
+      @Override
+      public Node representData(Object data) {
+        return representWithoutRecordingDescendents(data, super::representData);
+      }
+    });
+  }
+
+  private Node representWithoutRecordingDescendents(Object data, Function<Object, Node> worker) {
+    Map<Object, Node> representedObjectsOnEntry = new LinkedHashMap<Object, Node>(representedObjects);
+    try {
+      return worker.apply(data);
+    } finally {
+      representedObjects.clear();
+      representedObjects.putAll(representedObjectsOnEntry);
+    }
+  }
 
   @Override
   protected NodeTuple representJavaBeanProperty(
@@ -41,13 +64,14 @@ public class AdvancedRepresenter extends Representer {
     if (Tag.NULL.equals(valueNode.getTag())) {
       return null; // skip 'null' values
     }
+
     if (valueNode instanceof CollectionNode) {
-      if (Tag.SEQ.equals(valueNode.getTag())) {
-        SequenceNode seq = (SequenceNode) valueNode;
-        if (seq.getValue().isEmpty()) {
-          return null; // skip empty lists
-        }
-      }
+      // if (Tag.SEQ.equals(valueNode.getTag())) {
+      // SequenceNode seq = (SequenceNode) valueNode;
+      // if (seq.getValue().isEmpty()) {
+      // return null; // skip empty lists
+      // }
+      // }
       if (Tag.MAP.equals(valueNode.getTag())) {
         MappingNode seq = (MappingNode) valueNode;
         if (seq.getValue().isEmpty()) {

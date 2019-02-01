@@ -170,6 +170,41 @@ public class YamlFederatedMetaStoreStorageTest {
     assertThat(lines.get(12), is("  remote-meta-store-uris: thrift://localhost:29083"));
   }
 
+  // TODO: finish test
+  @Test
+  public void loadFederation_singleFederation_emptyMappedDatabases() throws Exception {
+    File f = dataFolder.getFile("mapped-databases-federation.yml");
+    File copy = new File(tmp.newFolder(), "mapped-databases-created.yml");
+
+    Files.copy(f.toPath(), copy.toPath());
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(copy.toURI().toString(), configuration);
+    storage.loadFederation();
+
+    storage.saveFederation();
+    List<String> lines = Files.readAllLines(copy.toPath(), Charset.forName("UTF-8"));
+    System.out.println(lines.toString());
+    assertThat(lines.size(), is(15));
+    assertThat(lines.get(0), is("primary-meta-store:"));
+    assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
+    assertThat(lines.get(2), is("  database-prefix: ''"));
+    assertThat(lines.get(3), is("  name: name"));
+    assertThat(lines.get(4), is("  remote-meta-store-uris: thrift://localhost:9083"));
+    assertThat(lines.get(5), is("federated-meta-stores:"));
+    assertThat(lines.get(6), is("- access-control-type: READ_ONLY"));
+    assertThat(lines.get(7), is("  database-prefix: second_"));
+    assertThat(lines.get(8), is("  mapped-databases: []"));
+    assertThat(lines.get(9), is("  name: second"));
+    assertThat(lines.get(10), is("  remote-meta-store-uris: thrift://localhost:9083"));
+    assertThat(lines.get(11), is("- access-control-type: READ_ONLY"));
+    assertThat(lines.get(12), is("  database-prefix: third_"));
+    assertThat(lines.get(13), is("  name: third"));
+    assertThat(lines.get(14), is("  remote-meta-store-uris: thrift://localhost:9083"));
+    assertThat(lines.get(11), is("- access-control-type: READ_ONLY"));
+    assertThat(lines.get(12), is("  database-prefix: fourth"));
+    assertThat(lines.get(13), is("  name: fourth"));
+    assertThat(lines.get(14), is("  remote-meta-store-uris: thrift://localhost:9083"));
+  }
+
   @Test
   public void doNotSaveFederationWriteFederations() throws Exception {
     when(configuration.isOverwriteConfigOnShutdown()).thenReturn(false);

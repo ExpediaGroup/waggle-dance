@@ -133,9 +133,9 @@ public abstract class AbstractMetaStore {
   }
 
   public List<String> getWritableDatabaseWhiteList() {
-    if (writableDatabaseWhitelist == null) {
-      return Collections.emptyList();
-    }
+    // if (writableDatabaseWhitelist == null) {
+    // return Collections.emptyList();
+    // }
     return Collections.unmodifiableList(writableDatabaseWhitelist);
   }
 

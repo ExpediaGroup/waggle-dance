@@ -22,7 +22,7 @@ import org.hibernate.validator.constraints.NotBlank;
 
 public class FederatedMetaStore extends AbstractMetaStore {
 
-  private List<String> mappedDatabases = Collections.emptyList();
+  private List<String> mappedDatabases = null;
 
   public FederatedMetaStore() {}
 
