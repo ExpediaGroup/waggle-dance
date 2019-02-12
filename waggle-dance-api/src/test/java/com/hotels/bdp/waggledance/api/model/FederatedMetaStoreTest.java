@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
 
 public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaStore> {
 
@@ -87,6 +89,11 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     mappedDatabases.add("database");
     metaStore.setMappedDatabases(mappedDatabases);
     assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
+  }
+
+  @Test(expected = WaggleDanceException.class)
+  public void nullMappedDatabases() {
+    metaStore.setMappedDatabases(null);
   }
 
   @Test
