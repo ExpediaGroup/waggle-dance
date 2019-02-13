@@ -18,14 +18,13 @@ package com.hotels.bdp.waggledance.api.model;
 import java.util.Collections;
 import java.util.List;
 
-import org.hibernate.validator.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
-import com.hotels.bdp.waggledance.api.ValidationError;
-import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import org.hibernate.validator.constraints.NotBlank;
 
 public class FederatedMetaStore extends AbstractMetaStore {
 
-  private List<String> mappedDatabases = Collections.emptyList();
+  private @NotNull List<String> mappedDatabases = Collections.emptyList();
 
   public FederatedMetaStore() {}
 
@@ -70,10 +69,6 @@ public class FederatedMetaStore extends AbstractMetaStore {
   }
 
   public void setMappedDatabases(List<String> mappedDatabases) {
-    if (mappedDatabases == null) {
-      ValidationError validationError = ValidationError.builder().error("mapped-databases should not be null").build();
-      throw new WaggleDanceException(validationError.getErrorMessage());
-    }
     this.mappedDatabases = mappedDatabases;
   }
 }

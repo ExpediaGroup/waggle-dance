@@ -29,8 +29,6 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.hotels.bdp.waggledance.api.WaggleDanceException;
-
 public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaStore> {
 
   public FederatedMetaStoreTest() {
@@ -91,9 +89,11 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
   }
 
-  @Test(expected = WaggleDanceException.class)
+  @Test
   public void nullMappedDatabases() {
     metaStore.setMappedDatabases(null);
+    Set<ConstraintViolation<FederatedMetaStore>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(1));
   }
 
   @Test
