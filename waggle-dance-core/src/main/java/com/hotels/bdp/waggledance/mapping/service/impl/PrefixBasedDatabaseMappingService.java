@@ -259,16 +259,19 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         List<TableMeta> combined = new ArrayList<>();
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsByDbPattern(db_patterns).entrySet()) {
+
+          // TODO: mock a slow connection
+          try {
+            LOG.info("Putting WD ({}) to sleep getTableMeta", db_patterns);
+            Thread.sleep(5000l);
+            LOG.info("WD woke up");
+          } catch (Exception e) {
+            LOG.info("Error when putting WD to sleep");
+          }
+
           try {
             DatabaseMapping mapping = mappingWithPattern.getKey();
             String patterns = mappingWithPattern.getValue();
-            try {
-              LOG.info("Putting WD ({}) to sleep getTableMeta", db_patterns);
-              Thread.sleep(5000l);
-              LOG.info("WD woke up");
-            } catch (Exception e) {
-              LOG.info("Error when putting WD to sleep");
-            }
             List<TableMeta> tables = mapping.getClient().get_table_meta(patterns, tbl_patterns, tbl_types);
             for (TableMeta tableMeta : tables) {
               if (isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName())) {
@@ -285,27 +288,41 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases(String databasePattern) {
         List<String> combined = new ArrayList<>();
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsByDbPattern(databasePattern)
             .entrySet()) {
-          try {
-            DatabaseMapping mapping = mappingWithPattern.getKey();
-            String pattern = mappingWithPattern.getValue();
+          Runnable runnableTask = () -> {
+            // TODO: mock a slow connection
             try {
-              LOG.info("Putting WD ({}) to sleep getAllDatabases", pattern);
+              LOG.info("Putting WD ({}) to sleep getAllDatabases", mappingWithPattern.getKey().getDatabasePrefix());
               Thread.sleep(5000l);
               LOG.info("WD woke up");
             } catch (Exception e) {
               LOG.info("Error when putting WD to sleep");
             }
-            List<String> databases = mapping.getClient().get_databases(pattern);
-            for (String database : databases) {
-              if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
-                combined.add(mapping.transformOutboundDatabaseName(database));
+
+            try {
+              DatabaseMapping mapping = mappingWithPattern.getKey();
+              String pattern = mappingWithPattern.getValue();
+              List<String> databases = mapping.getClient().get_databases(pattern);
+              for (String database : databases) {
+                if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
+                  combined.add(mapping.transformOutboundDatabaseName(database));
+                }
               }
+            } catch (TException e) {
+              LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
             }
-          } catch (TException e) {
-            LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+          };
+        }
+        executorService.shutdown();
+        try {
+          if (!executorService.awaitTermination(5800, TimeUnit.MILLISECONDS)) {
+            executorService.shutdownNow();
           }
+        } catch (InterruptedException e) {
+          executorService.shutdownNow();
         }
         return combined;
       }
@@ -313,12 +330,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases() {
         List<String> combined = new ArrayList<>();
-
         ExecutorService executorService = Executors.newCachedThreadPool();
-        // List<Runnable> tasks = new ArrayList<>();
-
         for (final DatabaseMapping mapping : databaseMappings()) {
           Runnable runnableTask = () -> {
+
+            // TODO: mock a slow connection
             try {
               LOG.info("Putting WD ({}) to sleep getAllDatabases", mapping.getDatabasePrefix());
               Thread.sleep(5000l);
@@ -357,8 +373,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
         // Not sure if anything uses these results. We're assuming the order doesn't matter.
         Set<String> combined = new HashSet<>();
-        for (DatabaseMapping mapping : databaseMappings()) {
-          try {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        for (final DatabaseMapping mapping : databaseMappings()) {
+          Runnable runnableTask = () -> {
+
+            // TODO: mock a slow connection
             try {
               LOG.info("Putting WD ({}) to sleep setUgi", mapping.getDatabasePrefix());
               Thread.sleep(5000l);
@@ -366,11 +385,23 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             } catch (Exception e) {
               LOG.info("Error when putting WD to sleep");
             }
-            List<String> result = mapping.getClient().set_ugi(user_name, group_names);
-            combined.addAll(result);
-          } catch (TException e) {
-            LOG.warn("Can't set UGI: {}", e.getMessage());
+
+            try {
+              List<String> result = mapping.getClient().set_ugi(user_name, group_names);
+              combined.addAll(result);
+            } catch (TException e) {
+              LOG.warn("Can't set UGI: {}", e.getMessage());
+            }
+          };
+          executorService.submit(runnableTask);
+        }
+        executorService.shutdown();
+        try {
+          if (!executorService.awaitTermination(5800, TimeUnit.MILLISECONDS)) {
+            executorService.shutdownNow();
           }
+        } catch (InterruptedException e) {
+          executorService.shutdownNow();
         }
         return new ArrayList<>(combined);
       }
