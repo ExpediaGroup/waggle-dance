@@ -29,6 +29,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.validation.constraints.NotNull;
 
@@ -259,6 +262,13 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           try {
             DatabaseMapping mapping = mappingWithPattern.getKey();
             String patterns = mappingWithPattern.getValue();
+            try {
+              LOG.info("Putting WD ({}) to sleep getTableMeta", db_patterns);
+              Thread.sleep(5000l);
+              LOG.info("WD woke up");
+            } catch (Exception e) {
+              LOG.info("Error when putting WD to sleep");
+            }
             List<TableMeta> tables = mapping.getClient().get_table_meta(patterns, tbl_patterns, tbl_types);
             for (TableMeta tableMeta : tables) {
               if (isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName())) {
@@ -280,6 +290,13 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           try {
             DatabaseMapping mapping = mappingWithPattern.getKey();
             String pattern = mappingWithPattern.getValue();
+            try {
+              LOG.info("Putting WD ({}) to sleep getAllDatabases", pattern);
+              Thread.sleep(5000l);
+              LOG.info("WD woke up");
+            } catch (Exception e) {
+              LOG.info("Error when putting WD to sleep");
+            }
             List<String> databases = mapping.getClient().get_databases(pattern);
             for (String database : databases) {
               if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
@@ -296,17 +313,41 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases() {
         List<String> combined = new ArrayList<>();
-        for (DatabaseMapping mapping : databaseMappings()) {
-          try {
-            List<String> databases = mapping.getClient().get_all_databases();
-            for (String database : databases) {
-              if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
-                combined.add(mapping.transformOutboundDatabaseName(database));
-              }
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        // List<Runnable> tasks = new ArrayList<>();
+
+        for (final DatabaseMapping mapping : databaseMappings()) {
+          Runnable runnableTask = () -> {
+            try {
+              LOG.info("Putting WD ({}) to sleep getAllDatabases", mapping.getDatabasePrefix());
+              Thread.sleep(5000l);
+              LOG.info("WD woke up");
+            } catch (Exception e) {
+              LOG.info("Error when putting WD to sleep");
             }
-          } catch (TException e) {
-            LOG.warn("Can't fetch databases: {}", e.getMessage());
+
+            try {
+              List<String> databases = mapping.getClient().get_all_databases();
+              for (String database : databases) {
+                if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
+                  combined.add(mapping.transformOutboundDatabaseName(database));
+                }
+              }
+              LOG.info("Finished executing getAllDatabases for " + mapping.getDatabasePrefix());
+            } catch (TException e) {
+              LOG.warn("Can't fetch databases: {}", e.getMessage());
+            }
+          };
+          executorService.submit(runnableTask);
+        }
+        executorService.shutdown();
+        try {
+          if (!executorService.awaitTermination(5800, TimeUnit.MILLISECONDS)) {
+            executorService.shutdownNow();
           }
+        } catch (InterruptedException e) {
+          executorService.shutdownNow();
         }
         return combined;
       }
@@ -318,6 +359,13 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         Set<String> combined = new HashSet<>();
         for (DatabaseMapping mapping : databaseMappings()) {
           try {
+            try {
+              LOG.info("Putting WD ({}) to sleep setUgi", mapping.getDatabasePrefix());
+              Thread.sleep(5000l);
+              LOG.info("WD woke up");
+            } catch (Exception e) {
+              LOG.info("Error when putting WD to sleep");
+            }
             List<String> result = mapping.getClient().set_ugi(user_name, group_names);
             combined.addAll(result);
           } catch (TException e) {
