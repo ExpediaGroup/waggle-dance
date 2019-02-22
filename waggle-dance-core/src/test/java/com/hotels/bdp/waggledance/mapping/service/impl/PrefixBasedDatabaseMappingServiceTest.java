@@ -66,13 +66,14 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
   private @Mock QueryMapping queryMapping;
+  private @Mock Iface primaryDatabaseClient;
 
+  private MetaStoreMapping metaStoreMappingPrimary;
+  private MetaStoreMapping metaStoreMappingFederated;
   private PrefixBasedDatabaseMappingService service;
   private final AbstractMetaStore primaryMetastore = newPrimaryInstance("primary", URI);
   private final FederatedMetaStore federatedMetastore = newFederatedInstance(METASTORE_NAME, URI);
-  private @Mock Iface primaryDatabaseClient;
-  private MetaStoreMapping metaStoreMappingPrimary;
-  private MetaStoreMapping metaStoreMappingFederated;
+  private final List<String> primaryAndFederatedDbs = Lists.newArrayList("primary_db", "federated_db");
 
   @Before
   public void init() throws Exception {
@@ -259,8 +260,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(federatedClient.get_all_databases()).thenReturn(Lists.newArrayList("federated_db"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> allDatabases = Lists.newArrayList("primary_db", "federated_db");
-    assertThat(handler.getAllDatabases(), is(allDatabases));
+    assertThat(handler.getAllDatabases(), containsInAnyOrder(primaryAndFederatedDbs.toArray()));
   }
 
   @Test
@@ -278,8 +278,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
         .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> allDatabases = Lists.newArrayList("primary_db", "federated_db");
-    assertThat(handler.getAllDatabases(), is(allDatabases));
+    assertThat(handler.getAllDatabases(), containsInAnyOrder(primaryAndFederatedDbs.toArray()));
   }
 
   @Test
@@ -295,8 +294,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> allDatabases = handler.getAllDatabases(pattern);
     assertThat(allDatabases.size(), is(2));
-    assertThat(allDatabases.contains("primary_db"), is(true));
-    assertThat(allDatabases.contains("federated_db"), is(true));
+    assertThat(allDatabases, containsInAnyOrder(primaryAndFederatedDbs.toArray()));
   }
 
   @Test
@@ -317,8 +315,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> allDatabases = handler.getAllDatabases(pattern);
     assertThat(allDatabases.size(), is(2));
-    assertThat(allDatabases.contains("primary_db"), is(true));
-    assertThat(allDatabases.contains("federated_db"), is(true));
+    assertThat(allDatabases, containsInAnyOrder(primaryAndFederatedDbs.toArray()));
   }
 
   @Test
@@ -448,7 +445,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(federatedClient.get_all_databases()).thenThrow(new TException());
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> allDatabases = Lists.newArrayList("primary_db", "federated_db");
     assertThat(handler.getAllDatabases().size(), is(0));
   }
 

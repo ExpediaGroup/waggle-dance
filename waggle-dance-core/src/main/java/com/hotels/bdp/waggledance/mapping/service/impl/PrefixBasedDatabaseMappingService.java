@@ -255,20 +255,32 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
 
+      private void mockSlowConnection(String prefix) {
+        // TODO: mock a slow connection
+        try {
+          LOG.info("Putting WD ({}) to sleep getTableMeta", prefix);
+          Thread.sleep(5000l);
+          LOG.info("WD woke up");
+        } catch (Exception e) {
+          LOG.info("Error when putting WD to sleep");
+        }
+      }
+
+      private void shutdownExecutorService(ExecutorService executorService) {
+        executorService.shutdown();
+        try {
+          if (!executorService.awaitTermination(5800, TimeUnit.MILLISECONDS)) {
+            executorService.shutdownNow();
+          }
+        } catch (InterruptedException e) {
+          executorService.shutdownNow();
+        }
+      }
+
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         List<TableMeta> combined = new ArrayList<>();
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsByDbPattern(db_patterns).entrySet()) {
-
-          // TODO: mock a slow connection
-          try {
-            LOG.info("Putting WD ({}) to sleep getTableMeta", db_patterns);
-            Thread.sleep(5000l);
-            LOG.info("WD woke up");
-          } catch (Exception e) {
-            LOG.info("Error when putting WD to sleep");
-          }
-
           try {
             DatabaseMapping mapping = mappingWithPattern.getKey();
             String patterns = mappingWithPattern.getValue();
@@ -293,14 +305,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsByDbPattern(databasePattern)
             .entrySet()) {
           Runnable runnableTask = () -> {
+
             // TODO: mock a slow connection
-            try {
-              LOG.info("Putting WD ({}) to sleep getAllDatabases", mappingWithPattern.getKey().getDatabasePrefix());
-              Thread.sleep(5000l);
-              LOG.info("WD woke up");
-            } catch (Exception e) {
-              LOG.info("Error when putting WD to sleep");
-            }
+            mockSlowConnection(mappingWithPattern.getKey().getDatabasePrefix());
 
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
@@ -315,6 +322,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
               LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
             }
           };
+          executorService.submit(runnableTask);
         }
         executorService.shutdown();
         try {
@@ -335,13 +343,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           Runnable runnableTask = () -> {
 
             // TODO: mock a slow connection
-            try {
-              LOG.info("Putting WD ({}) to sleep getAllDatabases", mapping.getDatabasePrefix());
-              Thread.sleep(5000l);
-              LOG.info("WD woke up");
-            } catch (Exception e) {
-              LOG.info("Error when putting WD to sleep");
-            }
+            mockSlowConnection(mapping.getDatabasePrefix());
 
             try {
               List<String> databases = mapping.getClient().get_all_databases();
@@ -378,13 +380,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           Runnable runnableTask = () -> {
 
             // TODO: mock a slow connection
-            try {
-              LOG.info("Putting WD ({}) to sleep setUgi", mapping.getDatabasePrefix());
-              Thread.sleep(5000l);
-              LOG.info("WD woke up");
-            } catch (Exception e) {
-              LOG.info("Error when putting WD to sleep");
-            }
+            mockSlowConnection(mapping.getDatabasePrefix());
 
             try {
               List<String> result = mapping.getClient().set_ugi(user_name, group_names);
