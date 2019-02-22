@@ -258,7 +258,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       private void shutdownExecutorService(ExecutorService executorService) {
         executorService.shutdown();
         try {
-          if (!executorService.awaitTermination(5800, TimeUnit.MILLISECONDS)) {
+          if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
             executorService.shutdownNow();
           }
         } catch (InterruptedException e) {
