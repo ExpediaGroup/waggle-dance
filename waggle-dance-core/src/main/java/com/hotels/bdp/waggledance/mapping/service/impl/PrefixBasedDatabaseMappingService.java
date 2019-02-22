@@ -280,20 +280,29 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         List<TableMeta> combined = new ArrayList<>();
+        ExecutorService executorService = Executors.newCachedThreadPool();
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsByDbPattern(db_patterns).entrySet()) {
-          try {
-            DatabaseMapping mapping = mappingWithPattern.getKey();
-            String patterns = mappingWithPattern.getValue();
-            List<TableMeta> tables = mapping.getClient().get_table_meta(patterns, tbl_patterns, tbl_types);
-            for (TableMeta tableMeta : tables) {
-              if (isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName())) {
-                combined.add(mapping.transformOutboundTableMeta(tableMeta));
+          Runnable runnableTask = () -> {
+
+            // TODO: mock a slow connection
+            mockSlowConnection(mappingWithPattern.getKey().getDatabasePrefix());
+
+            try {
+              DatabaseMapping mapping = mappingWithPattern.getKey();
+              String patterns = mappingWithPattern.getValue();
+              List<TableMeta> tables = mapping.getClient().get_table_meta(patterns, tbl_patterns, tbl_types);
+              for (TableMeta tableMeta : tables) {
+                if (isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName())) {
+                  combined.add(mapping.transformOutboundTableMeta(tableMeta));
+                }
               }
+            } catch (TException e) {
+              LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
             }
-          } catch (TException e) {
-            LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
-          }
+          };
+          executorService.submit(runnableTask);
         }
+        shutdownExecutorService(executorService);
         return combined;
       }
 
@@ -324,14 +333,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           };
           executorService.submit(runnableTask);
         }
-        executorService.shutdown();
-        try {
-          if (!executorService.awaitTermination(5800, TimeUnit.MILLISECONDS)) {
-            executorService.shutdownNow();
-          }
-        } catch (InterruptedException e) {
-          executorService.shutdownNow();
-        }
+        shutdownExecutorService(executorService);
         return combined;
       }
 
@@ -359,14 +361,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           };
           executorService.submit(runnableTask);
         }
-        executorService.shutdown();
-        try {
-          if (!executorService.awaitTermination(5800, TimeUnit.MILLISECONDS)) {
-            executorService.shutdownNow();
-          }
-        } catch (InterruptedException e) {
-          executorService.shutdownNow();
-        }
+        shutdownExecutorService(executorService);
         return combined;
       }
 
@@ -391,14 +386,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           };
           executorService.submit(runnableTask);
         }
-        executorService.shutdown();
-        try {
-          if (!executorService.awaitTermination(5800, TimeUnit.MILLISECONDS)) {
-            executorService.shutdownNow();
-          }
-        } catch (InterruptedException e) {
-          executorService.shutdownNow();
-        }
+        shutdownExecutorService(executorService);
         return new ArrayList<>(combined);
       }
     };

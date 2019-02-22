@@ -42,7 +42,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.Lists;
 
@@ -336,6 +338,18 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
+  public void panopticOperationsHandlerGetAllDatabasesByPatternWithSlowConnection() throws Exception {
+    String pattern = "pattern";
+    when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
+    mockSlowConnectionFromFederatedMetastore();
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<String> result = handler.getAllDatabases(pattern);
+    assertThat(result.size(), is(1));
+    assertThat(result.contains("primary_db"), is(true));
+  }
+
+  @Test
   public void panopticOperationsHandlerGetTableMeta() throws Exception {
     String pattern = "pattern";
     List<String> tblTypes = Lists.newArrayList();
@@ -345,7 +359,6 @@ public class StaticDatabaseMappingServiceTest {
 
     when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(Lists.newArrayList(tableMeta1));
 
-    Iface federatedDatabaseClient = mock(Iface.class);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(federatedDatabaseClient.get_table_meta(pattern, pattern, tblTypes))
         .thenReturn(Lists.newArrayList(tableMeta2, tableMeta3Ignored));
@@ -367,14 +380,28 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
+  public void panopticOperationsHandlerGetTableMetaWithSlowConnection() throws Exception {
+    String pattern = "pattern";
+    List<String> tblTypes = Lists.newArrayList();
+    TableMeta tableMeta1 = mockTableMeta("primary_db");
+
+    when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(Lists.newArrayList(tableMeta1));
+    mockSlowConnectionFromFederatedMetastore();
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<TableMeta> result = handler.getTableMeta(pattern, pattern, tblTypes);
+    assertThat(result.size(), is(1));
+    assertThat(result.contains(tableMeta1), is(true));
+  }
+
+  @Test
   public void panopticOperationsHandlerSetUgi() throws Exception {
     String user = "user";
     List<String> groups = Lists.newArrayList();
     when(primaryDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi"));
 
-    Iface federatedClient = mock(Iface.class);
-    when(metaStoreMappingFederated.getClient()).thenReturn(federatedClient);
-    when(federatedClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi", "ugi2"));
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    when(federatedDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi", "ugi2"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.setUgi(user, groups);
@@ -392,10 +419,36 @@ public class StaticDatabaseMappingServiceTest {
     assertThat(result.size(), is(0));
   }
 
+  @Test
+  public void panopticOperationsHandlerSetUgiWithSlowConnection() throws Exception {
+    String user = "user";
+    List<String> groups = Lists.newArrayList();
+    when(primaryDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi"));
+    mockSlowConnectionFromFederatedMetastore();
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<String> result = handler.setUgi(user, groups);
+    assertThat(result.size(), is(1));
+    assertThat(result.contains("ugi"), is(true));
+  }
+
   private TableMeta mockTableMeta(String databaseName) {
     TableMeta tableMeta = mock(TableMeta.class);
     when(tableMeta.getDbName()).thenReturn(databaseName);
     return tableMeta;
+  }
+
+  private void mockSlowConnectionFromFederatedMetastore() {
+    when(metaStoreMappingFederated.getClient()).thenAnswer(new Answer<Iface>() {
+      @Override
+      public Iface answer(InvocationOnMock invocation) {
+        try {
+          Thread.sleep(5000l);
+          fail();
+        } catch (InterruptedException e) {}
+        return federatedDatabaseClient;
+      }
+    });
   }
 
 }

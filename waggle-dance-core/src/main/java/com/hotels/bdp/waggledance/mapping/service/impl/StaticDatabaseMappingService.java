@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.validation.constraints.NotNull;
@@ -272,45 +274,94 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
 
+      private void mockSlowConnection(String prefix) {
+        // TODO: mock a slow connection
+        try {
+          LOG.info("Putting WD ({}) to sleep getTableMeta", prefix);
+          Thread.sleep(5000l);
+          LOG.info("WD woke up");
+        } catch (Exception e) {
+          LOG.info("Error when putting WD to sleep");
+        }
+      }
+
+      private void shutdownExecutorService(ExecutorService executorService) {
+        executorService.shutdown();
+        try {
+          if (!executorService.awaitTermination(5800, TimeUnit.MILLISECONDS)) {
+            executorService.shutdownNow();
+          }
+        } catch (InterruptedException e) {
+          executorService.shutdownNow();
+        }
+      }
+
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         List<TableMeta> combined = new ArrayList<>();
+        ExecutorService executorService = Executors.newCachedThreadPool();
         try {
           for (TableMeta tableMeta : primaryDatabaseMapping
               .getClient()
               .get_table_meta(db_patterns, tbl_patterns, tbl_types)) {
             combined.add(primaryDatabaseMapping.transformOutboundTableMeta(tableMeta));
           }
-          for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-            for (TableMeta tableMeta : mapping.getClient().get_table_meta(db_patterns, tbl_patterns, tbl_types)) {
-              if (mappingsByDatabaseName.keySet().contains(tableMeta.getDbName())) {
-                combined.add(mapping.transformOutboundTableMeta(tableMeta));
+
+          for (final DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
+            Runnable runnableTask = () -> {
+
+              // TODO: REMOVE
+              mockSlowConnection(mapping.getDatabasePrefix());
+
+              try {
+                for (TableMeta tableMeta : mapping.getClient().get_table_meta(db_patterns, tbl_patterns, tbl_types)) {
+                  if (mappingsByDatabaseName.keySet().contains(tableMeta.getDbName())) {
+                    combined.add(mapping.transformOutboundTableMeta(tableMeta));
+                  }
+                }
+              } catch (TException e) {
+                LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
               }
-            }
+            };
+            executorService.submit(runnableTask);
           }
         } catch (TException e) {
           LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
         }
+        shutdownExecutorService(executorService);
         return combined;
       }
 
       @Override
       public List<String> getAllDatabases(String pattern) {
         List<String> combined = new ArrayList<>();
+        ExecutorService executorService = Executors.newCachedThreadPool();
         try {
           for (String database : primaryDatabaseMapping.getClient().get_databases(pattern)) {
             combined.add(primaryDatabaseMapping.transformOutboundDatabaseName(database));
           }
-          for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-            for (String database : mapping.getClient().get_databases(pattern)) {
-              if (mappingsByDatabaseName.keySet().contains(database)) {
-                combined.add(mapping.transformOutboundDatabaseName(database));
+          for (final DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
+            Runnable runnableTask = () -> {
+
+              // TODO: REMOVE
+              mockSlowConnection(mapping.getDatabasePrefix());
+
+              try {
+                for (String database : mapping.getClient().get_databases(pattern)) {
+                  if (mappingsByDatabaseName.keySet().contains(database)) {
+                    combined.add(mapping.transformOutboundDatabaseName(database));
+                  }
+                }
+              } catch (Exception e) {
+                LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
               }
-            }
+            };
+            executorService.submit(runnableTask);
           }
         } catch (TException e) {
           LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
         }
+        shutdownExecutorService(executorService);
         return combined;
       }
 
@@ -334,16 +385,29 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
         // Not sure if anything uses these results. We're assuming the order doesn't matter.
         Set<String> combined = new HashSet<>();
+        ExecutorService executorService = Executors.newCachedThreadPool();
         try {
           List<String> result = primaryDatabaseMapping.getClient().set_ugi(user_name, group_names);
           combined.addAll(result);
           for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-            List<String> federatedResult = mapping.getClient().set_ugi(user_name, group_names);
-            combined.addAll(federatedResult);
+            Runnable runnableTask = () -> {
+
+              // TODO: REMOVE
+              mockSlowConnection(mapping.getDatabasePrefix());
+
+              try {
+                List<String> federatedResult = mapping.getClient().set_ugi(user_name, group_names);
+                combined.addAll(federatedResult);
+              } catch (Exception e) {
+                LOG.warn("Got exception fetching UGI: {}", e.getMessage());
+              }
+            };
+            executorService.submit(runnableTask);
           }
         } catch (TException e) {
           LOG.warn("Got exception fetching UGI: {}", e.getMessage());
         }
+        shutdownExecutorService(executorService);
         return new ArrayList<>(combined);
       }
     };
