@@ -274,17 +274,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
 
-      private void mockSlowConnection(String prefix) {
-        // TODO: mock a slow connection
-        try {
-          LOG.info("Putting WD ({}) to sleep getTableMeta", prefix);
-          Thread.sleep(5000l);
-          LOG.info("WD woke up");
-        } catch (Exception e) {
-          LOG.info("Error when putting WD to sleep");
-        }
-      }
-
       private void shutdownExecutorService(ExecutorService executorService) {
         executorService.shutdown();
         try {
@@ -309,10 +298,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
           for (final DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
             Runnable runnableTask = () -> {
-
-              // TODO: REMOVE
-              mockSlowConnection(mapping.getDatabasePrefix());
-
               try {
                 for (TableMeta tableMeta : mapping.getClient().get_table_meta(db_patterns, tbl_patterns, tbl_types)) {
                   if (mappingsByDatabaseName.keySet().contains(tableMeta.getDbName())) {
@@ -342,10 +327,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
           }
           for (final DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
             Runnable runnableTask = () -> {
-
-              // TODO: REMOVE
-              mockSlowConnection(mapping.getDatabasePrefix());
-
               try {
                 for (String database : mapping.getClient().get_databases(pattern)) {
                   if (mappingsByDatabaseName.keySet().contains(database)) {
@@ -391,10 +372,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
           combined.addAll(result);
           for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
             Runnable runnableTask = () -> {
-
-              // TODO: REMOVE
-              mockSlowConnection(mapping.getDatabasePrefix());
-
               try {
                 List<String> federatedResult = mapping.getClient().set_ugi(user_name, group_names);
                 combined.addAll(federatedResult);

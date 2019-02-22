@@ -255,17 +255,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
 
-      private void mockSlowConnection(String prefix) {
-        // TODO: mock a slow connection
-        try {
-          LOG.info("Putting WD ({}) to sleep getTableMeta", prefix);
-          Thread.sleep(5000l);
-          LOG.info("WD woke up");
-        } catch (Exception e) {
-          LOG.info("Error when putting WD to sleep");
-        }
-      }
-
       private void shutdownExecutorService(ExecutorService executorService) {
         executorService.shutdown();
         try {
@@ -283,10 +272,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         ExecutorService executorService = Executors.newCachedThreadPool();
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsByDbPattern(db_patterns).entrySet()) {
           Runnable runnableTask = () -> {
-
-            // TODO: mock a slow connection
-            mockSlowConnection(mappingWithPattern.getKey().getDatabasePrefix());
-
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
               String patterns = mappingWithPattern.getValue();
@@ -314,10 +299,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsByDbPattern(databasePattern)
             .entrySet()) {
           Runnable runnableTask = () -> {
-
-            // TODO: mock a slow connection
-            mockSlowConnection(mappingWithPattern.getKey().getDatabasePrefix());
-
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
               String pattern = mappingWithPattern.getValue();
@@ -343,10 +324,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         ExecutorService executorService = Executors.newCachedThreadPool();
         for (final DatabaseMapping mapping : databaseMappings()) {
           Runnable runnableTask = () -> {
-
-            // TODO: mock a slow connection
-            mockSlowConnection(mapping.getDatabasePrefix());
-
             try {
               List<String> databases = mapping.getClient().get_all_databases();
               for (String database : databases) {
@@ -373,10 +350,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         ExecutorService executorService = Executors.newCachedThreadPool();
         for (final DatabaseMapping mapping : databaseMappings()) {
           Runnable runnableTask = () -> {
-
-            // TODO: mock a slow connection
-            mockSlowConnection(mapping.getDatabasePrefix());
-
             try {
               List<String> result = mapping.getClient().set_ugi(user_name, group_names);
               combined.addAll(result);
