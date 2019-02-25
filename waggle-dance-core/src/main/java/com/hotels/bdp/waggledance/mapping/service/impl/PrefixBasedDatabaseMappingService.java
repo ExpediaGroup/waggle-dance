@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
 import java.io.IOException;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -261,21 +263,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       private void shutdownExecutorService(ExecutorService executorService) {
         executorService.shutdown();
         try {
-          if (!executorService.awaitTermination(600, TimeUnit.MILLISECONDS)) {
+          if (!executorService.awaitTermination(200, TimeUnit.MILLISECONDS)) {
             executorService.shutdownNow();
           }
         } catch (InterruptedException e) {
           executorService.shutdownNow();
-        }
-      }
-
-      private void getResultFromFutures(List<Future<?>> futures) {
-        for (Future<?> future : futures) {
-          try {
-            future.get(200, TimeUnit.MILLISECONDS);
-          } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
-          }
         }
       }
 
@@ -284,26 +276,38 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<TableMeta> combined = new ArrayList<>();
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-        List<Future<?>> futures = new ArrayList<Future<?>>();
+        List<Future<SimpleEntry<DatabaseMapping, List<TableMeta>>>> futures = new ArrayList<>();
 
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
-          Runnable runnableTask = () -> {
+          Callable<SimpleEntry<DatabaseMapping, List<TableMeta>>> callableTask = () -> {
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
               String patterns = mappingWithPattern.getValue();
               List<TableMeta> tables = mapping.getClient().get_table_meta(patterns, tbl_patterns, tbl_types);
-              for (TableMeta tableMeta : tables) {
-                if (isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName())) {
-                  combined.add(mapping.transformOutboundTableMeta(tableMeta));
-                }
-              }
+              return new SimpleEntry<DatabaseMapping, List<TableMeta>>(mapping, tables);
+
             } catch (TException e) {
               LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
+              return null;
             }
           };
-          futures.add(executorService.submit(runnableTask));
+          futures.add(executorService.submit(callableTask));
         }
-        getResultFromFutures(futures);
+        for (Future<SimpleEntry<DatabaseMapping, List<TableMeta>>> future : futures) {
+          try {
+            SimpleEntry<DatabaseMapping, List<TableMeta>> tuple = future.get(600, TimeUnit.MILLISECONDS);
+            DatabaseMapping mapping = tuple.getKey();
+            List<TableMeta> objects = tuple.getValue();
+
+            for (TableMeta tableMeta : objects) {
+              if (isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName())) {
+                combined.add(mapping.transformOutboundTableMeta(tableMeta));
+              }
+            }
+          } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
+            LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
+          }
+        }
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -313,26 +317,38 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<String> combined = new ArrayList<>();
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(databasePattern);
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-        List<Future<?>> futures = new ArrayList<Future<?>>();
+        List<Future<SimpleEntry<DatabaseMapping, List<String>>>> futures = new ArrayList<>();
 
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
-          Runnable runnableTask = () -> {
+          Callable<SimpleEntry<DatabaseMapping, List<String>>> callableTask = () -> {
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
               String pattern = mappingWithPattern.getValue();
               List<String> databases = mapping.getClient().get_databases(pattern);
-              for (String database : databases) {
-                if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
-                  combined.add(mapping.transformOutboundDatabaseName(database));
-                }
-              }
+              return new SimpleEntry<DatabaseMapping, List<String>>(mapping, databases);
+
             } catch (TException e) {
               LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+              return null;
             }
           };
-          futures.add(executorService.submit(runnableTask));
+          futures.add(executorService.submit(callableTask));
         }
-        getResultFromFutures(futures);
+        for (Future<SimpleEntry<DatabaseMapping, List<String>>> future : futures) {
+          try {
+            SimpleEntry<DatabaseMapping, List<String>> tuple = future.get(600, TimeUnit.MILLISECONDS);
+            DatabaseMapping mapping = tuple.getKey();
+            List<String> databases = tuple.getValue();
+
+            for (String database : databases) {
+              if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
+                combined.add(mapping.transformOutboundDatabaseName(database));
+              }
+            }
+          } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
+            LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+          }
+        }
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -342,25 +358,35 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<String> combined = new ArrayList<>();
         List<DatabaseMapping> databaseMappings = databaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-        List<Future<?>> futures = new ArrayList<Future<?>>();
+        List<Future<SimpleEntry<DatabaseMapping, List<String>>>> futures = new ArrayList<>();
 
         for (final DatabaseMapping mapping : databaseMappings) {
-          Runnable runnableTask = () -> {
+          Callable<SimpleEntry<DatabaseMapping, List<String>>> callableTask = () -> {
             try {
               List<String> databases = mapping.getClient().get_all_databases();
-              for (String database : databases) {
-                if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
-                  combined.add(mapping.transformOutboundDatabaseName(database));
-                }
-              }
-              LOG.info("Finished executing getAllDatabases for " + mapping.getDatabasePrefix());
+              return new SimpleEntry<DatabaseMapping, List<String>>(mapping, databases);
             } catch (TException e) {
               LOG.warn("Can't fetch databases: {}", e.getMessage());
+              return null;
             }
           };
-          futures.add(executorService.submit(runnableTask));
+          futures.add(executorService.submit(callableTask));
         }
-        getResultFromFutures(futures);
+        for (Future<SimpleEntry<DatabaseMapping, List<String>>> future : futures) {
+          try {
+            SimpleEntry<DatabaseMapping, List<String>> tuple = future.get(600, TimeUnit.MILLISECONDS);
+            DatabaseMapping mapping = tuple.getKey();
+            List<String> databases = tuple.getValue();
+
+            for (String database : databases) {
+              if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
+                combined.add(mapping.transformOutboundDatabaseName(database));
+              }
+            }
+          } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
+            LOG.warn("Can't fetch databases: {}", e.getMessage());
+          }
+        }
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -372,20 +398,28 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         Set<String> combined = new HashSet<>();
         List<DatabaseMapping> databaseMappings = databaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-        List<Future<?>> futures = new ArrayList<Future<?>>();
+        List<Future<List<String>>> futures = new ArrayList<>();
 
         for (final DatabaseMapping mapping : databaseMappings) {
-          Runnable runnableTask = () -> {
+          Callable<List<String>> callableTask = () -> {
             try {
               List<String> result = mapping.getClient().set_ugi(user_name, group_names);
-              combined.addAll(result);
+              return result;
             } catch (TException e) {
               LOG.warn("Can't set UGI: {}", e.getMessage());
+              return null;
             }
           };
-          futures.add(executorService.submit(runnableTask));
+          futures.add(executorService.submit(callableTask));
         }
-        getResultFromFutures(futures);
+        for (Future<List<String>> future : futures) {
+          try {
+            List<String> result = future.get(200, TimeUnit.MILLISECONDS);
+            combined.addAll(result);
+          } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
+            LOG.warn("Can't set UGI: {}", e.getMessage());
+          }
+        }
         shutdownExecutorService(executorService);
         return new ArrayList<>(combined);
       }

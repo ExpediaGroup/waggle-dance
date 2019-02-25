@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
 import java.io.IOException;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -287,21 +289,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         }
       }
 
-      private void getResultFromFutures(List<Future<?>> futures) {
-        for (Future<?> future : futures) {
-          try {
-            future.get(200, TimeUnit.MILLISECONDS);
-          } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
-          }
-        }
-      }
-
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         List<TableMeta> combined = new ArrayList<>();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
-        List<Future<?>> futures = new ArrayList<Future<?>>();
+        List<Future<SimpleEntry<DatabaseMapping, List<TableMeta>>>> futures = new ArrayList<>();
         try {
           for (TableMeta tableMeta : primaryDatabaseMapping
               .getClient()
@@ -310,23 +302,36 @@ public class StaticDatabaseMappingService implements MappingEventListener {
           }
 
           for (final DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-            Runnable runnableTask = () -> {
+            Callable<SimpleEntry<DatabaseMapping, List<TableMeta>>> callableTask = () -> {
               try {
-                for (TableMeta tableMeta : mapping.getClient().get_table_meta(db_patterns, tbl_patterns, tbl_types)) {
-                  if (mappingsByDatabaseName.keySet().contains(tableMeta.getDbName())) {
-                    combined.add(mapping.transformOutboundTableMeta(tableMeta));
-                  }
-                }
+                List<TableMeta> tableMetas = mapping.getClient().get_table_meta(db_patterns, tbl_patterns, tbl_types);
+                return new SimpleEntry<DatabaseMapping, List<TableMeta>>(mapping, tableMetas);
               } catch (TException e) {
                 LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
+                return null;
               }
             };
-            futures.add(executorService.submit(runnableTask));
+            futures.add(executorService.submit(callableTask));
           }
         } catch (TException e) {
           LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
         }
-        getResultFromFutures(futures);
+
+        for (Future<SimpleEntry<DatabaseMapping, List<TableMeta>>> future : futures) {
+          try {
+            SimpleEntry<DatabaseMapping, List<TableMeta>> tuple = future.get(200, TimeUnit.MILLISECONDS);
+            DatabaseMapping mapping = tuple.getKey();
+            List<TableMeta> tableMetas = tuple.getValue();
+
+            for (TableMeta tableMeta : tableMetas) {
+              if (mappingsByDatabaseName.keySet().contains(tableMeta.getDbName())) {
+                combined.add(mapping.transformOutboundTableMeta(tableMeta));
+              }
+            }
+          } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
+          }
+        }
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -335,29 +340,41 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       public List<String> getAllDatabases(String pattern) {
         List<String> combined = new ArrayList<>();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
-        List<Future<?>> futures = new ArrayList<Future<?>>();
+        List<Future<SimpleEntry<DatabaseMapping, List<String>>>> futures = new ArrayList<>();
         try {
           for (String database : primaryDatabaseMapping.getClient().get_databases(pattern)) {
             combined.add(primaryDatabaseMapping.transformOutboundDatabaseName(database));
           }
           for (final DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-            Runnable runnableTask = () -> {
+            Callable<SimpleEntry<DatabaseMapping, List<String>>> callableTask = () -> {
               try {
-                for (String database : mapping.getClient().get_databases(pattern)) {
-                  if (mappingsByDatabaseName.keySet().contains(database)) {
-                    combined.add(mapping.transformOutboundDatabaseName(database));
-                  }
-                }
+                List<String> databases = mapping.getClient().get_databases(pattern);
+                return new SimpleEntry<DatabaseMapping, List<String>>(mapping, databases);
               } catch (Exception e) {
                 LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+                return null;
               }
             };
-            futures.add(executorService.submit(runnableTask));
+            futures.add(executorService.submit(callableTask));
           }
         } catch (TException e) {
           LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
         }
-        getResultFromFutures(futures);
+
+        for (Future<SimpleEntry<DatabaseMapping, List<String>>> future : futures) {
+          try {
+            SimpleEntry<DatabaseMapping, List<String>> tuple = future.get(200, TimeUnit.MILLISECONDS);
+            DatabaseMapping mapping = tuple.getKey();
+            List<String> databases = tuple.getValue();
+            for (String database : databases) {
+              if (mappingsByDatabaseName.keySet().contains(database)) {
+                combined.add(mapping.transformOutboundDatabaseName(database));
+              }
+            }
+          } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+          }
+        }
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -383,25 +400,34 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         // Not sure if anything uses these results. We're assuming the order doesn't matter.
         Set<String> combined = new HashSet<>();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
-        List<Future<?>> futures = new ArrayList<Future<?>>();
+        List<Future<List<String>>> futures = new ArrayList<>();
         try {
           List<String> result = primaryDatabaseMapping.getClient().set_ugi(user_name, group_names);
           combined.addAll(result);
           for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-            Runnable runnableTask = () -> {
+            Callable<List<String>> callableTask = () -> {
               try {
                 List<String> federatedResult = mapping.getClient().set_ugi(user_name, group_names);
-                combined.addAll(federatedResult);
+                return federatedResult;
               } catch (Exception e) {
                 LOG.warn("Got exception fetching UGI: {}", e.getMessage());
+                return null;
               }
             };
-            futures.add(executorService.submit(runnableTask));
+            futures.add(executorService.submit(callableTask));
           }
         } catch (TException e) {
           LOG.warn("Got exception fetching UGI: {}", e.getMessage());
         }
-        getResultFromFutures(futures);
+
+        for (Future<List<String>> future : futures) {
+          try {
+            List<String> federatedResult = future.get(200, TimeUnit.MILLISECONDS);
+            combined.addAll(federatedResult);
+          } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            LOG.warn("Got exception fetching UGI: {}", e.getMessage());
+          }
+        }
         shutdownExecutorService(executorService);
         return new ArrayList<>(combined);
       }
