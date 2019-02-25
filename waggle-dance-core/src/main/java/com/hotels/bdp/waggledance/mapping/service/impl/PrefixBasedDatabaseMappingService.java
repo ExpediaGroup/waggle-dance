@@ -18,7 +18,6 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
 import java.io.IOException;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -276,15 +275,21 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<TableMeta> combined = new ArrayList<>();
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-        List<Future<SimpleEntry<DatabaseMapping, List<TableMeta>>>> futures = new ArrayList<>();
+        List<Future<List<TableMeta>>> futures = new ArrayList<>();
 
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
-          Callable<SimpleEntry<DatabaseMapping, List<TableMeta>>> callableTask = () -> {
+          Callable<List<TableMeta>> callableTask = () -> {
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
               String patterns = mappingWithPattern.getValue();
               List<TableMeta> tables = mapping.getClient().get_table_meta(patterns, tbl_patterns, tbl_types);
-              return new SimpleEntry<DatabaseMapping, List<TableMeta>>(mapping, tables);
+              List<TableMeta> mappedTableMeta = new ArrayList<>();
+              for (TableMeta tableMeta : tables) {
+                if (isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName())) {
+                  mappedTableMeta.add(mapping.transformOutboundTableMeta(tableMeta));
+                }
+              }
+              return mappedTableMeta;
 
             } catch (TException e) {
               LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
@@ -293,17 +298,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           };
           futures.add(executorService.submit(callableTask));
         }
-        for (Future<SimpleEntry<DatabaseMapping, List<TableMeta>>> future : futures) {
+        for (Future<List<TableMeta>> future : futures) {
           try {
-            SimpleEntry<DatabaseMapping, List<TableMeta>> tuple = future.get(600, TimeUnit.MILLISECONDS);
-            DatabaseMapping mapping = tuple.getKey();
-            List<TableMeta> objects = tuple.getValue();
-
-            for (TableMeta tableMeta : objects) {
-              if (isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName())) {
-                combined.add(mapping.transformOutboundTableMeta(tableMeta));
-              }
-            }
+            List<TableMeta> mappedTableMeta = future.get(600, TimeUnit.MILLISECONDS);
+            combined.addAll(mappedTableMeta);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
           }
@@ -317,15 +315,21 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<String> combined = new ArrayList<>();
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(databasePattern);
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-        List<Future<SimpleEntry<DatabaseMapping, List<String>>>> futures = new ArrayList<>();
+        List<Future<List<String>>> futures = new ArrayList<>();
 
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
-          Callable<SimpleEntry<DatabaseMapping, List<String>>> callableTask = () -> {
+          Callable<List<String>> callableTask = () -> {
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
               String pattern = mappingWithPattern.getValue();
               List<String> databases = mapping.getClient().get_databases(pattern);
-              return new SimpleEntry<DatabaseMapping, List<String>>(mapping, databases);
+              List<String> mappedDatabases = new ArrayList<>();
+              for (String database : databases) {
+                if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
+                  mappedDatabases.add(mapping.transformOutboundDatabaseName(database));
+                }
+              }
+              return mappedDatabases;
 
             } catch (TException e) {
               LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
@@ -334,17 +338,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           };
           futures.add(executorService.submit(callableTask));
         }
-        for (Future<SimpleEntry<DatabaseMapping, List<String>>> future : futures) {
+        for (Future<List<String>> future : futures) {
           try {
-            SimpleEntry<DatabaseMapping, List<String>> tuple = future.get(600, TimeUnit.MILLISECONDS);
-            DatabaseMapping mapping = tuple.getKey();
-            List<String> databases = tuple.getValue();
-
-            for (String database : databases) {
-              if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
-                combined.add(mapping.transformOutboundDatabaseName(database));
-              }
-            }
+            List<String> mappedDatabases = future.get(600, TimeUnit.MILLISECONDS);
+            combined.addAll(mappedDatabases);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
           }
@@ -358,13 +355,19 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<String> combined = new ArrayList<>();
         List<DatabaseMapping> databaseMappings = databaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-        List<Future<SimpleEntry<DatabaseMapping, List<String>>>> futures = new ArrayList<>();
+        List<Future<List<String>>> futures = new ArrayList<>();
 
         for (final DatabaseMapping mapping : databaseMappings) {
-          Callable<SimpleEntry<DatabaseMapping, List<String>>> callableTask = () -> {
+          Callable<List<String>> callableTask = () -> {
             try {
               List<String> databases = mapping.getClient().get_all_databases();
-              return new SimpleEntry<DatabaseMapping, List<String>>(mapping, databases);
+              List<String> mappedDatabases = new ArrayList<>();
+              for (String database : databases) {
+                if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
+                  mappedDatabases.add(mapping.transformOutboundDatabaseName(database));
+                }
+              }
+              return mappedDatabases;
             } catch (TException e) {
               LOG.warn("Can't fetch databases: {}", e.getMessage());
               return null;
@@ -372,17 +375,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           };
           futures.add(executorService.submit(callableTask));
         }
-        for (Future<SimpleEntry<DatabaseMapping, List<String>>> future : futures) {
+        for (Future<List<String>> future : futures) {
           try {
-            SimpleEntry<DatabaseMapping, List<String>> tuple = future.get(600, TimeUnit.MILLISECONDS);
-            DatabaseMapping mapping = tuple.getKey();
-            List<String> databases = tuple.getValue();
-
-            for (String database : databases) {
-              if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
-                combined.add(mapping.transformOutboundDatabaseName(database));
-              }
-            }
+            List<String> mappedDatabases = future.get(600, TimeUnit.MILLISECONDS);
+            combined.addAll(mappedDatabases);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Can't fetch databases: {}", e.getMessage());
           }
