@@ -17,7 +17,6 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.never;
@@ -261,7 +260,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(federatedDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("federated_db"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    assertThat(handler.getAllDatabases(), containsInAnyOrder(primaryAndFederatedDbs.toArray()));
+    assertThat(handler.getAllDatabases(), is(primaryAndFederatedDbs));
   }
 
   @Test
@@ -278,7 +277,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
         .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    assertThat(handler.getAllDatabases(), containsInAnyOrder(primaryAndFederatedDbs.toArray()));
+    assertThat(handler.getAllDatabases(), is(primaryAndFederatedDbs));
   }
 
   @Test
@@ -304,7 +303,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> allDatabases = handler.getAllDatabases(pattern);
     assertThat(allDatabases.size(), is(2));
-    assertThat(allDatabases, containsInAnyOrder(primaryAndFederatedDbs.toArray()));
+    assertThat(allDatabases, is(primaryAndFederatedDbs));
   }
 
   @Test
@@ -324,7 +323,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> allDatabases = handler.getAllDatabases(pattern);
     assertThat(allDatabases.size(), is(2));
-    assertThat(allDatabases, containsInAnyOrder(primaryAndFederatedDbs.toArray()));
+    assertThat(allDatabases, is(primaryAndFederatedDbs));
   }
 
   @Test
@@ -382,7 +381,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.setUgi(user, groups);
-    assertThat(result, containsInAnyOrder("ugi", "ugi2"));
+    assertThat(result, is(Arrays.asList("ugi", "ugi2")));
   }
 
   @Test

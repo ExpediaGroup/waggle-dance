@@ -29,9 +29,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.validation.constraints.NotNull;
 
@@ -258,7 +261,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       private void shutdownExecutorService(ExecutorService executorService) {
         executorService.shutdown();
         try {
-          if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+          if (!executorService.awaitTermination(600, TimeUnit.MILLISECONDS)) {
             executorService.shutdownNow();
           }
         } catch (InterruptedException e) {
@@ -266,11 +269,24 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         }
       }
 
+      private void getResultFromFutures(List<Future<?>> futures) {
+        for (Future<?> future : futures) {
+          try {
+            future.get(200, TimeUnit.MILLISECONDS);
+          } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+          }
+        }
+      }
+
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         List<TableMeta> combined = new ArrayList<>();
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsByDbPattern(db_patterns).entrySet()) {
+        Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
+        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
+        List<Future<?>> futures = new ArrayList<Future<?>>();
+
+        for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
           Runnable runnableTask = () -> {
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
@@ -285,8 +301,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
               LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
             }
           };
-          executorService.submit(runnableTask);
+          futures.add(executorService.submit(runnableTask));
         }
+        getResultFromFutures(futures);
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -294,10 +311,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases(String databasePattern) {
         List<String> combined = new ArrayList<>();
-        ExecutorService executorService = Executors.newCachedThreadPool();
+        Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(databasePattern);
+        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
+        List<Future<?>> futures = new ArrayList<Future<?>>();
 
-        for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsByDbPattern(databasePattern)
-            .entrySet()) {
+        for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
           Runnable runnableTask = () -> {
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
@@ -312,8 +330,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
               LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
             }
           };
-          executorService.submit(runnableTask);
+          futures.add(executorService.submit(runnableTask));
         }
+        getResultFromFutures(futures);
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -321,8 +340,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases() {
         List<String> combined = new ArrayList<>();
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        for (final DatabaseMapping mapping : databaseMappings()) {
+        List<DatabaseMapping> databaseMappings = databaseMappings();
+        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
+        List<Future<?>> futures = new ArrayList<Future<?>>();
+
+        for (final DatabaseMapping mapping : databaseMappings) {
           Runnable runnableTask = () -> {
             try {
               List<String> databases = mapping.getClient().get_all_databases();
@@ -336,8 +358,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
               LOG.warn("Can't fetch databases: {}", e.getMessage());
             }
           };
-          executorService.submit(runnableTask);
+          futures.add(executorService.submit(runnableTask));
         }
+        getResultFromFutures(futures);
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -347,8 +370,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
         // Not sure if anything uses these results. We're assuming the order doesn't matter.
         Set<String> combined = new HashSet<>();
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        for (final DatabaseMapping mapping : databaseMappings()) {
+        List<DatabaseMapping> databaseMappings = databaseMappings();
+        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
+        List<Future<?>> futures = new ArrayList<Future<?>>();
+
+        for (final DatabaseMapping mapping : databaseMappings) {
           Runnable runnableTask = () -> {
             try {
               List<String> result = mapping.getClient().set_ugi(user_name, group_names);
@@ -357,8 +383,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
               LOG.warn("Can't set UGI: {}", e.getMessage());
             }
           };
-          executorService.submit(runnableTask);
+          futures.add(executorService.submit(runnableTask));
         }
+        getResultFromFutures(futures);
         shutdownExecutorService(executorService);
         return new ArrayList<>(combined);
       }

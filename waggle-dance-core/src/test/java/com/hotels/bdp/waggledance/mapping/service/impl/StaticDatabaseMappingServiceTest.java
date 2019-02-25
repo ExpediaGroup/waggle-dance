@@ -16,7 +16,6 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -405,7 +404,7 @@ public class StaticDatabaseMappingServiceTest {
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.setUgi(user, groups);
-    assertThat(result, containsInAnyOrder("ugi", "ugi2"));
+    assertThat(result, is(Arrays.asList("ugi", "ugi2")));
   }
 
   @Test

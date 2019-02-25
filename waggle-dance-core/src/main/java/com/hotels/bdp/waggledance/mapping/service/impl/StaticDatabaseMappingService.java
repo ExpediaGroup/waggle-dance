@@ -29,7 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.validation.constraints.NotNull;
 
@@ -285,10 +287,21 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         }
       }
 
+      private void getResultFromFutures(List<Future<?>> futures) {
+        for (Future<?> future : futures) {
+          try {
+            future.get(200, TimeUnit.MILLISECONDS);
+          } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+          }
+        }
+      }
+
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         List<TableMeta> combined = new ArrayList<>();
-        ExecutorService executorService = Executors.newCachedThreadPool();
+        ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
+        List<Future<?>> futures = new ArrayList<Future<?>>();
         try {
           for (TableMeta tableMeta : primaryDatabaseMapping
               .getClient()
@@ -308,11 +321,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
                 LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
               }
             };
-            executorService.submit(runnableTask);
+            futures.add(executorService.submit(runnableTask));
           }
         } catch (TException e) {
           LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
         }
+        getResultFromFutures(futures);
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -320,7 +334,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases(String pattern) {
         List<String> combined = new ArrayList<>();
-        ExecutorService executorService = Executors.newCachedThreadPool();
+        ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
+        List<Future<?>> futures = new ArrayList<Future<?>>();
         try {
           for (String database : primaryDatabaseMapping.getClient().get_databases(pattern)) {
             combined.add(primaryDatabaseMapping.transformOutboundDatabaseName(database));
@@ -337,11 +352,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
                 LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
               }
             };
-            executorService.submit(runnableTask);
+            futures.add(executorService.submit(runnableTask));
           }
         } catch (TException e) {
           LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
         }
+        getResultFromFutures(futures);
         shutdownExecutorService(executorService);
         return combined;
       }
@@ -366,7 +382,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
         // Not sure if anything uses these results. We're assuming the order doesn't matter.
         Set<String> combined = new HashSet<>();
-        ExecutorService executorService = Executors.newCachedThreadPool();
+        ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
+        List<Future<?>> futures = new ArrayList<Future<?>>();
         try {
           List<String> result = primaryDatabaseMapping.getClient().set_ugi(user_name, group_names);
           combined.addAll(result);
@@ -379,11 +396,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
                 LOG.warn("Got exception fetching UGI: {}", e.getMessage());
               }
             };
-            executorService.submit(runnableTask);
+            futures.add(executorService.submit(runnableTask));
           }
         } catch (TException e) {
           LOG.warn("Got exception fetching UGI: {}", e.getMessage());
         }
+        getResultFromFutures(futures);
         shutdownExecutorService(executorService);
         return new ArrayList<>(combined);
       }

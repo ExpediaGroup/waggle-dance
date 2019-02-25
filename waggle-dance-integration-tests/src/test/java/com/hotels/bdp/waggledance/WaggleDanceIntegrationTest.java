@@ -16,7 +16,6 @@
 package com.hotels.bdp.waggledance;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -695,7 +694,7 @@ public class WaggleDanceIntegrationTest {
     List<String> allDatabases = proxy.getAllDatabases();
 
     List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, REMOTE_DATABASE);
-    assertThat(allDatabases, containsInAnyOrder(expected.toArray()));
+    assertThat(allDatabases, is(expected));
   }
 
   @Test
@@ -715,7 +714,7 @@ public class WaggleDanceIntegrationTest {
     List<String> allDatabases = proxy.getAllDatabases();
 
     List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, PREFIXED_REMOTE_DATABASE);
-    assertThat(allDatabases, containsInAnyOrder(expected.toArray()));
+    assertThat(allDatabases, is(expected));
   }
 
 }
