@@ -20,7 +20,6 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -231,7 +230,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private Map<DatabaseMapping, String> databaseMappingsByDbPattern(@NotNull String databasePatterns) {
-    Map<DatabaseMapping, String> mappings = new HashMap<>();
+    Map<DatabaseMapping, String> mappings = new LinkedHashMap<>();
     Map<String, String> matchingPrefixes = GrammarUtils
         .selectMatchingPrefixes(mappingsByPrefix.keySet(), databasePatterns);
     for (Entry<String, String> prefixWithPattern : matchingPrefixes.entrySet()) {
@@ -300,7 +299,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         }
         for (Future<List<TableMeta>> future : futures) {
           try {
-            List<TableMeta> mappedTableMeta = future.get(600, TimeUnit.MILLISECONDS);
+            List<TableMeta> mappedTableMeta = future.get(800, TimeUnit.MILLISECONDS);
             combined.addAll(mappedTableMeta);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
@@ -340,7 +339,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         }
         for (Future<List<String>> future : futures) {
           try {
-            List<String> mappedDatabases = future.get(600, TimeUnit.MILLISECONDS);
+            List<String> mappedDatabases = future.get(800, TimeUnit.MILLISECONDS);
             combined.addAll(mappedDatabases);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
@@ -377,7 +376,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         }
         for (Future<List<String>> future : futures) {
           try {
-            List<String> mappedDatabases = future.get(600, TimeUnit.MILLISECONDS);
+            List<String> mappedDatabases = future.get(800, TimeUnit.MILLISECONDS);
             combined.addAll(mappedDatabases);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Can't fetch databases: {}", e.getMessage());
@@ -410,7 +409,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         }
         for (Future<List<String>> future : futures) {
           try {
-            List<String> result = future.get(200, TimeUnit.MILLISECONDS);
+            List<String> result = future.get(800, TimeUnit.MILLISECONDS);
             combined.addAll(result);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Can't set UGI: {}", e.getMessage());

@@ -280,7 +280,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       private void shutdownExecutorService(ExecutorService executorService) {
         executorService.shutdown();
         try {
-          if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+          if (!executorService.awaitTermination(200, TimeUnit.MILLISECONDS)) {
             executorService.shutdownNow();
           }
         } catch (InterruptedException e) {
@@ -324,7 +324,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
         for (Future<List<TableMeta>> future : futures) {
           try {
-            List<TableMeta> mappeTableMetas = future.get(200, TimeUnit.MILLISECONDS);
+            List<TableMeta> mappeTableMetas = future.get(800, TimeUnit.MILLISECONDS);
             combined.addAll(mappeTableMetas);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
@@ -367,7 +367,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
         for (Future<List<String>> future : futures) {
           try {
-            List<String> mappedDatabases = future.get(200, TimeUnit.MILLISECONDS);
+            List<String> mappedDatabases = future.get(800, TimeUnit.MILLISECONDS);
             combined.addAll(mappedDatabases);
           } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
@@ -420,7 +420,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
         for (Future<List<String>> future : futures) {
           try {
-            List<String> federatedResult = future.get(200, TimeUnit.MILLISECONDS);
+            List<String> federatedResult = future.get(800, TimeUnit.MILLISECONDS);
             combined.addAll(federatedResult);
           } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOG.warn("Got exception fetching UGI: {}", e.getMessage());
