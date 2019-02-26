@@ -40,6 +40,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final CloseableThriftHiveMetastoreIface client;
   private final AccessControlHandler accessControlHandler;
   private final String name;
+  private long timeout = 800l;
 
   private final ConnectionType connectionType;
 
@@ -48,12 +49,14 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
       String name,
       CloseableThriftHiveMetastoreIface client,
       AccessControlHandler accessControlHandler,
-      ConnectionType connectionType) {
+      ConnectionType connectionType,
+      long timeout) {
     this.databasePrefix = databasePrefix;
     this.name = name;
     this.client = client;
     this.accessControlHandler = accessControlHandler;
     this.connectionType = connectionType;
+    this.timeout = timeout;
   }
 
   @Override
@@ -129,5 +132,10 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   @Override
   public String getMetastoreMappingName() {
     return name;
+  }
+
+  @Override
+  public long getTimeout() {
+    return timeout;
   }
 }

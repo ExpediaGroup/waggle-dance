@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class ASTQueryMappingTest {
   @Test
   public void transformOutboundDatabaseName() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT);
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, 800l);
 
     String query = "SELECT *\n"
         + "FROM db1.table1 alias1 INNER JOIN db2.table2 alias2\n"
@@ -53,7 +53,7 @@ public class ASTQueryMappingTest {
   @Test
   public void transformOutboundDatabaseNameAliasWithBackTicks() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT);
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, 800l);
 
     String query = "";
     query += "SELECT col_id AS id ";
@@ -71,7 +71,7 @@ public class ASTQueryMappingTest {
   @Test(expected = WaggleDanceException.class)
   public void transformOutboundDatabaseNameParseException() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT);
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, 800l);
 
     String unparsableQuery = "SELCT *";
     queryMapping.transformOutboundDatabaseName(metaStoreMapping, unparsableQuery);

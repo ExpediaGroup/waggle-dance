@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,9 @@ public class MetaStoreMappingImplTest {
 
   @Before
   public void init() {
-    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT);
-    tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED);
+    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT, 800l);
+    tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED,
+        800l);
 
   }
 

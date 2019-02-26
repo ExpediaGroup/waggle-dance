@@ -80,10 +80,12 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void init() throws Exception {
     metaStoreMappingPrimary = mockNewMapping(true, "");
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
+    when(metaStoreMappingPrimary.getTimeout()).thenReturn(800l);
     metaStoreMappingFederated = mockNewMapping(true, DB_PREFIX);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+    when(metaStoreMappingFederated.getTimeout()).thenReturn(800l);
 
     AbstractMetaStore unavailableMetastore = newFederatedInstance("name2", "thrift:host:port");
     MetaStoreMapping unavailableMapping = mockNewMapping(false, "name2_");
