@@ -170,6 +170,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       checkArgument(isNotEmpty(name));
       checkArgument(isNotEmpty(remoteMetaStoreUris));
       primaryMetaStore = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, writableDatabaseWhiteList);
+      primaryMetaStore.setTimeout(2000l);
       return this;
     }
 

@@ -40,7 +40,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final CloseableThriftHiveMetastoreIface client;
   private final AccessControlHandler accessControlHandler;
   private final String name;
-  private long timeout = 800l;
+  private final long timeout;
 
   private final ConnectionType connectionType;
 

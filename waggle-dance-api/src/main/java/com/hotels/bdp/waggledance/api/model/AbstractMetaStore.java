@@ -48,7 +48,7 @@ public abstract class AbstractMetaStore {
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
-  private transient long timeout;
+  private transient long timeout = 800;
 
   public AbstractMetaStore() {}
 

@@ -66,16 +66,16 @@ import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class PrefixBasedDatabaseMappingService implements MappingEventListener {
+
   private static final Logger LOG = LoggerFactory.getLogger(PrefixBasedDatabaseMappingService.class);
 
   private static final String EMPTY_PREFIX = "";
-
-  private DatabaseMapping primaryDatabaseMapping;
-  private Map<String, DatabaseMapping> mappingsByPrefix;
-  private Map<String, Whitelist> mappedDbByPrefix;
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
   private final List<Long> timeouts = new ArrayList<>();
+  private DatabaseMapping primaryDatabaseMapping;
+  private Map<String, DatabaseMapping> mappingsByPrefix;
+  private Map<String, Whitelist> mappedDbByPrefix;
 
   public PrefixBasedDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -87,7 +87,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private void init(List<AbstractMetaStore> federatedMetaStores) {
-    mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<String, DatabaseMapping>());
+    mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<>());
     mappedDbByPrefix = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
       add(federatedMetaStore);
@@ -185,7 +185,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
         && isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
+        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
   }
 
   @Override
@@ -292,7 +292,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
                 }
               }
               return mappedTableMeta;
-
             } catch (TException e) {
               LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
               return null;
@@ -307,7 +306,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             Entry<DatabaseMapping, String> entry = iterator.next();
             DatabaseMapping mapping = entry.getKey();
             long timeout = mapping.getTimeout();
-            System.out.println("timeout is " + timeout + " and mapping is " + mapping.getDatabasePrefix());
+            LOG.info("timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
             List<TableMeta> mappedTableMeta = future.get(timeout, TimeUnit.MILLISECONDS);
             combined.addAll(mappedTableMeta);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
@@ -339,7 +338,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
                 }
               }
               return mappedDatabases;
-
             } catch (TException e) {
               LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
               return null;
@@ -354,7 +352,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             Entry<DatabaseMapping, String> entry = iterator.next();
             DatabaseMapping mapping = entry.getKey();
             long timeout = mapping.getTimeout();
-            System.out.println("timeout is " + timeout + " and mapping is " + mapping.getDatabasePrefix());
+            LOG.info("timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
             List<String> mappedDatabases = future.get(timeout, TimeUnit.MILLISECONDS);
             combined.addAll(mappedDatabases);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
@@ -372,7 +370,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<Future<List<String>>> futures = new ArrayList<>();
 
-        for (final DatabaseMapping mapping : databaseMappings) {
+        for (DatabaseMapping mapping : databaseMappings) {
           Callable<List<String>> callableTask = () -> {
             try {
               List<String> databases = mapping.getClient().get_all_databases();
@@ -397,7 +395,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             DatabaseMapping mapping = databaseMappings.get(index);
             long timeout = mapping.getTimeout();
             List<String> mappedDatabases = future.get(timeout, TimeUnit.MILLISECONDS);
-            System.out.println("timeout is " + timeout + " and mapping is " + mapping.getDatabasePrefix());
+            LOG.info("timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
             combined.addAll(mappedDatabases);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Can't fetch databases: {}", e.getMessage());
@@ -416,7 +414,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<Future<List<String>>> futures = new ArrayList<>();
 
-        for (final DatabaseMapping mapping : databaseMappings) {
+        for (DatabaseMapping mapping : databaseMappings) {
           Callable<List<String>> callableTask = () -> {
             try {
               List<String> result = mapping.getClient().set_ugi(user_name, group_names);
@@ -435,7 +433,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             DatabaseMapping mapping = databaseMappings.get(index);
             long timeout = mapping.getTimeout();
             List<String> result = future.get(timeout, TimeUnit.MILLISECONDS);
-            System.out.println("timeout is " + timeout + " and mapping is " + mapping.getDatabasePrefix());
+            LOG.info("timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
             combined.addAll(result);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Can't set UGI: {}", e.getMessage());
@@ -445,7 +443,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         return new ArrayList<>(combined);
       }
     };
-
   }
 
   @Override
@@ -456,5 +453,4 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       }
     }
   }
-
 }
