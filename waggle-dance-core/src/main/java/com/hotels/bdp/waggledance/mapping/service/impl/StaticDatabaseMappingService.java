@@ -21,9 +21,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,16 +64,16 @@ import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class StaticDatabaseMappingService implements MappingEventListener {
+
   private static final Logger LOG = LoggerFactory.getLogger(StaticDatabaseMappingService.class);
 
   private static final String PRIMARY_KEY = "";
-
+  private final MetaStoreMappingFactory metaStoreMappingFactory;
+  private final LoadingCache<String, List<String>> primaryDatabasesCache;
+  private final List<Long> timeouts = new ArrayList<>();
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
-  private final MetaStoreMappingFactory metaStoreMappingFactory;
-  private LoadingCache<String, List<String>> primaryDatabasesCache;
-  private final long timeout = 800;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -105,6 +107,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
+    timeouts.add(metaStoreMapping.getTimeout());
+
     if (metaStore.getFederationType() == PRIMARY) {
       validatePrimaryMetastoreDatabases(metaStoreMapping);
       primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
@@ -172,7 +176,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   private List<String> applyWhitelist(List<String> allDatabases, List<String> mappedDatabases) {
-    List<String> matchedDatabases = new ArrayList<String>();
+    List<String> matchedDatabases = new ArrayList<>();
     Whitelist whitelist = new Whitelist(mappedDatabases);
     for (String database : allDatabases) {
       if (whitelist.contains(database)) {
@@ -293,6 +297,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         List<TableMeta> combined = new ArrayList<>();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<TableMeta>>> futures = new ArrayList<>();
+        String errorMessage = "Got exception fetching get_table_meta: {}";
         try {
           for (TableMeta tableMeta : primaryDatabaseMapping
               .getClient()
@@ -300,7 +305,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
             combined.add(primaryDatabaseMapping.transformOutboundTableMeta(tableMeta));
           }
 
-          for (final DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
+          for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
             Callable<List<TableMeta>> callableTask = () -> {
               try {
                 List<TableMeta> tableMetas = mapping.getClient().get_table_meta(db_patterns, tbl_patterns, tbl_types);
@@ -312,20 +317,24 @@ public class StaticDatabaseMappingService implements MappingEventListener {
                 }
                 return mappedTableMetas;
               } catch (TException e) {
-                LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
+                LOG.warn(errorMessage, e.getMessage());
                 return null;
               }
             };
             futures.add(executorService.submit(callableTask));
           }
         } catch (TException e) {
-          LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
+          LOG.warn(errorMessage, e.getMessage());
         }
 
+        Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByMetaStoreName.entrySet().iterator();
         for (Future<List<TableMeta>> future : futures) {
           try {
-            List<TableMeta> mappeTableMetas = future.get(timeout, TimeUnit.MILLISECONDS);
-            combined.addAll(mappeTableMetas);
+            Entry<String, DatabaseMapping> entry = iterator.next();
+            DatabaseMapping mapping = entry.getValue();
+            long timeout = mapping.getTimeout();
+            List<TableMeta> mappedTableMetas = future.get(timeout, TimeUnit.MILLISECONDS);
+            combined.addAll(mappedTableMetas);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
             LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
           }
@@ -339,11 +348,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         List<String> combined = new ArrayList<>();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<String>>> futures = new ArrayList<>();
+        String errorMessage = "Can't fetch databases by pattern: {}";
         try {
           for (String database : primaryDatabaseMapping.getClient().get_databases(pattern)) {
             combined.add(primaryDatabaseMapping.transformOutboundDatabaseName(database));
           }
-          for (final DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
+          for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
             Callable<List<String>> callableTask = () -> {
               try {
                 List<String> databases = mapping.getClient().get_databases(pattern);
@@ -355,28 +365,32 @@ public class StaticDatabaseMappingService implements MappingEventListener {
                 }
                 return mappedDatabases;
               } catch (Exception e) {
-                LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+                LOG.warn(errorMessage, e.getMessage());
                 return null;
               }
             };
             futures.add(executorService.submit(callableTask));
           }
         } catch (TException e) {
-          LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+          LOG.warn(errorMessage, e.getMessage());
         }
 
+        Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByMetaStoreName.entrySet().iterator();
         for (Future<List<String>> future : futures) {
           try {
-            List<String> mappedDatabases = future.get(timeout, TimeUnit.MILLISECONDS);
-            combined.addAll(mappedDatabases);
-          } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+            Entry<String, DatabaseMapping> entry = iterator.next();
+            DatabaseMapping mapping = entry.getValue();
+            long timeout = mapping.getTimeout();
+            List<String> federatedResult = future.get(timeout, TimeUnit.MILLISECONDS);
+            combined.addAll(federatedResult);
+          }catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
+            LOG.warn(errorMessage, e.getMessage());
           }
         }
-        shutdownExecutorService(executorService);
         return combined;
       }
 
+      // TODO: this does not execute in parallel and there is a second or two delay
       @Override
       public List<String> getAllDatabases() {
         List<String> combined = new ArrayList<>();
@@ -399,6 +413,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         Set<String> combined = new HashSet<>();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<String>>> futures = new ArrayList<>();
+        String errorMessage = "Got exception fetching UGI: {}";
         try {
           List<String> result = primaryDatabaseMapping.getClient().set_ugi(user_name, group_names);
           combined.addAll(result);
@@ -408,25 +423,28 @@ public class StaticDatabaseMappingService implements MappingEventListener {
                 List<String> federatedResult = mapping.getClient().set_ugi(user_name, group_names);
                 return federatedResult;
               } catch (Exception e) {
-                LOG.warn("Got exception fetching UGI: {}", e.getMessage());
+                LOG.warn(errorMessage, e.getMessage());
                 return null;
               }
             };
             futures.add(executorService.submit(callableTask));
           }
         } catch (TException e) {
-          LOG.warn("Got exception fetching UGI: {}", e.getMessage());
+          LOG.warn(errorMessage, e.getMessage());
         }
 
+        Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByMetaStoreName.entrySet().iterator();
         for (Future<List<String>> future : futures) {
           try {
+            Entry<String, DatabaseMapping> entry = iterator.next();
+            DatabaseMapping mapping = entry.getValue();
+            long timeout = mapping.getTimeout();
             List<String> federatedResult = future.get(timeout, TimeUnit.MILLISECONDS);
             combined.addAll(federatedResult);
-          } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            LOG.warn("Got exception fetching UGI: {}", e.getMessage());
+          }catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
+            LOG.warn(errorMessage, e.getMessage());
           }
         }
-        shutdownExecutorService(executorService);
         return new ArrayList<>(combined);
       }
     };
@@ -440,5 +458,4 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       }
     }
   }
-
 }

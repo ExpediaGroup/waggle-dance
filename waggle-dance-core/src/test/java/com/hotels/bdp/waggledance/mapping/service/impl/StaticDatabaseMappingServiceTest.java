@@ -82,9 +82,11 @@ public class StaticDatabaseMappingServiceTest {
 
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
+    when(metaStoreMappingPrimary.getTimeout()).thenReturn(800l);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
     metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    when(metaStoreMappingFederated.getTimeout()).thenReturn(800l);
     when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedFederatedDatabases);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
