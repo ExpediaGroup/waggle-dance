@@ -48,7 +48,7 @@ public abstract class AbstractMetaStore {
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
-  private transient long timeout = 800;
+  private long timeout = 800;
 
   public AbstractMetaStore() {}
 
@@ -144,12 +144,10 @@ public abstract class AbstractMetaStore {
     this.writableDatabaseWhitelist = writableDatabaseWhitelist;
   }
 
-  @Transient
   public long getTimeout() {
     return timeout;
   }
 
-  @Transient
   public void setTimeout(long timeout) {
     this.timeout = timeout;
   }
