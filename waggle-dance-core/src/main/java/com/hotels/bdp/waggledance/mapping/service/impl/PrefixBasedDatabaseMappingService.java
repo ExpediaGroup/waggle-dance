@@ -278,8 +278,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
         List<Future<List<TableMeta>>> futures = new ArrayList<>();
+        String errorMessage = "Got exception fetching get_table_meta: ";
 
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
+          LOG.info("getTableMeta: getting result from client");
           Callable<List<TableMeta>> callableTask = () -> {
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
@@ -293,7 +295,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
               }
               return mappedTableMeta;
             } catch (TException e) {
-              LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
+              LOG.warn(errorMessage, e);
               return null;
             }
           };
@@ -306,11 +308,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             Entry<DatabaseMapping, String> entry = iterator.next();
             DatabaseMapping mapping = entry.getKey();
             long timeout = mapping.getTimeout();
-            LOG.info("timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
+            LOG.info("getTableMeta: timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
             List<TableMeta> mappedTableMeta = future.get(timeout, TimeUnit.MILLISECONDS);
             combined.addAll(mappedTableMeta);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
-            LOG.warn("Got exception fetching get_table_meta: {}", e.getMessage());
+            LOG.warn(errorMessage, e);
           }
         }
         shutdownExecutorService(executorService);
@@ -324,8 +326,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
         List<Future<List<String>>> futures = new ArrayList<>();
+        String errorMessage = "Can't fetch databases by pattern: ";
 
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
+          LOG.info("getAllDatabases(pattern): getting result from client");
           Callable<List<String>> callableTask = () -> {
             try {
               DatabaseMapping mapping = mappingWithPattern.getKey();
@@ -339,7 +343,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
               }
               return mappedDatabases;
             } catch (TException e) {
-              LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+              LOG.warn(errorMessage, e);
               return null;
             }
           };
@@ -352,11 +356,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             Entry<DatabaseMapping, String> entry = iterator.next();
             DatabaseMapping mapping = entry.getKey();
             long timeout = mapping.getTimeout();
-            LOG.info("timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
+            LOG.info("getAllDatabases(pattern): timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
             List<String> mappedDatabases = future.get(timeout, TimeUnit.MILLISECONDS);
             combined.addAll(mappedDatabases);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
-            LOG.warn("Can't fetch databases by pattern: {}", e.getMessage());
+            LOG.warn(errorMessage, e);
           }
         }
         shutdownExecutorService(executorService);
@@ -369,8 +373,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<DatabaseMapping> databaseMappings = databaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<Future<List<String>>> futures = new ArrayList<>();
+        String errorMessage = "Can't fetch databases: ";
 
         for (DatabaseMapping mapping : databaseMappings) {
+          LOG.info("getAllDatabases(): getting result from client");
           Callable<List<String>> callableTask = () -> {
             try {
               List<String> databases = mapping.getClient().get_all_databases();
@@ -382,7 +388,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
               }
               return mappedDatabases;
             } catch (TException e) {
-              LOG.warn("Can't fetch databases: {}", e.getMessage());
+              LOG.warn(errorMessage, e);
               return null;
             }
           };
@@ -395,10 +401,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             DatabaseMapping mapping = databaseMappings.get(index);
             long timeout = mapping.getTimeout();
             List<String> mappedDatabases = future.get(timeout, TimeUnit.MILLISECONDS);
-            LOG.info("timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
+            LOG.info("getAllDatabases(): timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
             combined.addAll(mappedDatabases);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
-            LOG.warn("Can't fetch databases: {}", e.getMessage());
+            LOG.warn(errorMessage, e);
           }
         }
         shutdownExecutorService(executorService);
@@ -413,14 +419,16 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<DatabaseMapping> databaseMappings = databaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<Future<List<String>>> futures = new ArrayList<>();
+        String errorMessage = "Can't set UGI: ";
 
         for (DatabaseMapping mapping : databaseMappings) {
+          LOG.info("setUgi: getting result from client");
           Callable<List<String>> callableTask = () -> {
             try {
               List<String> result = mapping.getClient().set_ugi(user_name, group_names);
               return result;
             } catch (TException e) {
-              LOG.warn("Can't set UGI: {}", e.getMessage());
+              LOG.warn(errorMessage, e);
               return null;
             }
           };
@@ -433,10 +441,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
             DatabaseMapping mapping = databaseMappings.get(index);
             long timeout = mapping.getTimeout();
             List<String> result = future.get(timeout, TimeUnit.MILLISECONDS);
-            LOG.info("timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
+            LOG.info("setUgi: timeout is {} and mapping is {}", timeout, mapping.getDatabasePrefix());
             combined.addAll(result);
           } catch (InterruptedException | ExecutionException | TimeoutException | NullPointerException e) {
-            LOG.warn("Can't set UGI: {}", e.getMessage());
+            LOG.warn(errorMessage, e);
           }
         }
         shutdownExecutorService(executorService);
