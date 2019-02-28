@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
@@ -41,7 +40,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
@@ -64,17 +62,15 @@ public class StaticDatabaseMappingServiceTest {
   private static final String FEDERATED_NAME = "name";
   private static final String PRIMARY_NAME = "primary";
   private static final String URI = "uri";
-
+  private final AbstractMetaStore primaryMetastore = newPrimaryInstance(PRIMARY_NAME, URI);
+  private final List<String> mappedFederatedDatabases = Lists.newArrayList("federated_DB");
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
   private @Mock Iface primaryDatabaseClient;
   private @Mock Iface federatedDatabaseClient;
-
   private StaticDatabaseMappingService service;
-  private final AbstractMetaStore primaryMetastore = newPrimaryInstance(PRIMARY_NAME, URI);
   private FederatedMetaStore federatedMetastore = newFederatedInstance(FEDERATED_NAME, URI);
   private MetaStoreMapping metaStoreMappingPrimary;
   private MetaStoreMapping metaStoreMappingFederated;
-  private final List<String> mappedFederatedDatabases = Lists.newArrayList("federated_DB");
 
   @Before
   public void init() throws Exception {
@@ -82,11 +78,11 @@ public class StaticDatabaseMappingServiceTest {
 
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
-    when(metaStoreMappingPrimary.getTimeout()).thenReturn(800l);
+    when(metaStoreMappingPrimary.getTimeout()).thenReturn(800L);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
     metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(800l);
+    when(metaStoreMappingFederated.getTimeout()).thenReturn(800L);
     when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedFederatedDatabases);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
@@ -107,7 +103,7 @@ public class StaticDatabaseMappingServiceTest {
       String uri,
       List<String> mappedDatabases,
       boolean availableMapping)
-    throws MetaException, TException {
+      throws TException {
     FederatedMetaStore newMetastore = newFederatedInstance(name, uri);
     newMetastore.setMappedDatabases(mappedDatabases);
     MetaStoreMapping newMapping = mockNewMapping(availableMapping, newMetastore);
@@ -132,7 +128,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test(expected = WaggleDanceException.class)
-  public void validateFederatedMetaStoreClashThrowsException() throws MetaException, TException {
+  public void validateFederatedMetaStoreClashThrowsException() throws TException {
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("db"));
@@ -145,7 +141,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test(expected = WaggleDanceException.class)
-  public void validatePrimaryMetaStoreClashThrowsException() throws MetaException, TException {
+  public void validatePrimaryMetaStoreClashThrowsException() throws TException {
     federatedMetastore = newFederatedInstanceWithClient(FEDERATED_NAME, URI, Lists.newArrayList("db"), true);
 
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
@@ -164,7 +160,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void onRegister() throws MetaException, TException {
+  public void onRegister() throws TException {
     FederatedMetaStore newMetastore = newFederatedInstanceWithClient("fed1", "abc", Lists.newArrayList("db1"), true);
     service.onRegister(newMetastore);
     DatabaseMapping databaseMapping = service.databaseMapping("db1");
@@ -185,7 +181,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void onUpdate() throws MetaException, TException {
+  public void onUpdate() throws TException {
     FederatedMetaStore newMetastore = newFederatedInstanceWithClient(FEDERATED_NAME, "abc",
         Lists.newArrayList("db1", "federated_DB"), true);
     service.onUpdate(federatedMetastore, newMetastore);
@@ -219,7 +215,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void onUpdateDifferentName() throws MetaException, TException {
+  public void onUpdateDifferentName() throws TException {
     String newName = "new";
     FederatedMetaStore newMetastore = newFederatedInstanceWithClient(newName, "abc", mappedFederatedDatabases, true);
 
@@ -231,15 +227,15 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test(expected = WaggleDanceException.class)
-  public void onInitDuplicatesThrowsException() throws Exception {
+  public void onInitDuplicatesThrowsException() {
     List<AbstractMetaStore> duplicates = Arrays
         .asList(primaryMetastore, federatedMetastore, primaryMetastore, federatedMetastore);
     service = new StaticDatabaseMappingService(metaStoreMappingFactory, duplicates);
   }
 
   @Test
-  public void onInitEmpty() throws Exception {
-    List<AbstractMetaStore> empty = Collections.<AbstractMetaStore>emptyList();
+  public void onInitEmpty() {
+    List<AbstractMetaStore> empty = Collections.emptyList();
     try {
       service = new StaticDatabaseMappingService(metaStoreMappingFactory, empty);
     } catch (Exception e) {
@@ -261,7 +257,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void primaryDatabaseMapping() throws Exception {
+  public void primaryDatabaseMapping() {
     DatabaseMapping mapping = service.primaryDatabaseMapping();
     assertThat(mapping.getClient(), is(primaryDatabaseClient));
   }
@@ -273,7 +269,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() throws Exception {
+  public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() {
     AbstractMetaStore newPrimary = newPrimaryInstance("primary", "abc");
     MetaStoreMapping unavailablePrimaryMapping = mockNewMapping(false, newPrimary);
     when(metaStoreMappingFactory.newInstance(newPrimary)).thenReturn(unavailablePrimaryMapping);
@@ -286,7 +282,7 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
-  public void databaseMappingsIgnoreDisconnected() throws MetaException, TException {
+  public void databaseMappingsIgnoreDisconnected() throws TException {
     FederatedMetaStore newMetastore = newFederatedInstanceWithClient("name2", "abc", Lists.newArrayList("db2"), false);
     service.onRegister(newMetastore);
 
@@ -347,26 +343,37 @@ public class StaticDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.getAllDatabases(pattern);
     assertThat(result.size(), is(1));
-    assertThat(result.contains("primary_db"), is(true));
+    assertThat(result, is(Collections.singletonList("primary_db")));
+  }
+
+  @Test
+  public void panopticOperationsHandlerGetAllDatabasesByPatternDifferentTimeouts() throws Exception {
+    String pattern = "pattern";
+    when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
+    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<String> result = handler.getAllDatabases(pattern);
+    assertThat(result.size(), is(1));
+    assertThat(result, is(Collections.singletonList("primary_db")));
   }
 
   @Test
   public void panopticOperationsHandlerGetTableMeta() throws Exception {
     String pattern = "pattern";
-    List<String> tblTypes = Lists.newArrayList();
-    TableMeta tableMeta1 = mockTableMeta("primary_db");
-    TableMeta tableMeta2 = mockTableMeta("federated_db");
-    TableMeta tableMeta3Ignored = mockTableMeta("non_mapped_db");
+    TableMeta primaryTableMeta = new TableMeta("primary_db", "tbl", null);
+    TableMeta federatedTableMeta = new TableMeta("federated_db", "tbl", null);
+    TableMeta ignoredTableMeta = new TableMeta("non_mapped_db", "tbl", null);
 
-    when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(Lists.newArrayList(tableMeta1));
-
+    when(primaryDatabaseClient.get_table_meta(pattern, pattern, null)).thenReturn(
+        Collections.singletonList(primaryTableMeta));
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_table_meta(pattern, pattern, tblTypes))
-        .thenReturn(Lists.newArrayList(tableMeta2, tableMeta3Ignored));
+    when(federatedDatabaseClient.get_table_meta(pattern, pattern, null))
+        .thenReturn(Arrays.asList(federatedTableMeta, ignoredTableMeta));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<TableMeta> allTableMetas = Lists.newArrayList(tableMeta1, tableMeta2);
-    assertThat(handler.getTableMeta(pattern, pattern, tblTypes), is(allTableMetas));
+    List<TableMeta> expected = Lists.newArrayList(primaryTableMeta, federatedTableMeta);
+    assertThat(handler.getTableMeta(pattern, pattern, null), is(expected));
   }
 
   @Test
@@ -384,15 +391,32 @@ public class StaticDatabaseMappingServiceTest {
   public void panopticOperationsHandlerGetTableMetaWithSlowConnection() throws Exception {
     String pattern = "pattern";
     List<String> tblTypes = Lists.newArrayList();
-    TableMeta tableMeta1 = mockTableMeta("primary_db");
+    TableMeta primaryTableMeta = mockTableMeta("primary_db");
 
-    when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(Lists.newArrayList(tableMeta1));
+    when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(
+        Lists.newArrayList(primaryTableMeta));
     mockSlowConnectionFromFederatedMetastore();
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<TableMeta> result = handler.getTableMeta(pattern, pattern, tblTypes);
     assertThat(result.size(), is(1));
-    assertThat(result.contains(tableMeta1), is(true));
+    assertThat(result, is(Collections.singletonList(primaryTableMeta)));
+  }
+
+  @Test
+  public void panopticOperationsHandlerGetTableMetaDifferentTimeouts() throws Exception {
+    String pattern = "pattern";
+    List<String> tblTypes = Lists.newArrayList();
+    TableMeta primaryTableMeta = mockTableMeta("primary_db");
+
+    when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(
+        Lists.newArrayList(primaryTableMeta));
+    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<TableMeta> result = handler.getTableMeta(pattern, pattern, tblTypes);
+    assertThat(result.size(), is(1));
+    assertThat(result, is(Collections.singletonList(primaryTableMeta)));
   }
 
   @Test
@@ -425,12 +449,25 @@ public class StaticDatabaseMappingServiceTest {
     String user = "user";
     List<String> groups = Lists.newArrayList();
     when(primaryDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi"));
+    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<String> result = handler.setUgi(user, groups);
+    assertThat(result.size(), is(1));
+    assertThat(result, is(Collections.singletonList("ugi")));
+  }
+
+  @Test
+  public void panopticOperationsHandlerSetUgiDifferentTimeouts() throws Exception {
+    String user = "user";
+    List<String> groups = Lists.newArrayList();
+    when(primaryDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi"));
     mockSlowConnectionFromFederatedMetastore();
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.setUgi(user, groups);
     assertThat(result.size(), is(1));
-    assertThat(result.contains("ugi"), is(true));
+    assertThat(result, is(Collections.singletonList("ugi")));
   }
 
   private TableMeta mockTableMeta(String databaseName) {
@@ -440,16 +477,12 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   private void mockSlowConnectionFromFederatedMetastore() {
-    when(metaStoreMappingFederated.getClient()).thenAnswer(new Answer<Iface>() {
-      @Override
-      public Iface answer(InvocationOnMock invocation) {
-        try {
-          Thread.sleep(5000l);
-          fail();
-        } catch (InterruptedException e) {}
-        return federatedDatabaseClient;
-      }
+    when(metaStoreMappingFederated.getClient()).thenAnswer((Answer<Iface>) invocation -> {
+      try {
+        Thread.sleep(5000L);
+        fail();
+      } catch (InterruptedException ignored) {}
+      return federatedDatabaseClient;
     });
   }
-
 }
