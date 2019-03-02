@@ -78,11 +78,11 @@ public class StaticDatabaseMappingServiceTest {
 
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
-    when(metaStoreMappingPrimary.getTimeout()).thenReturn(800L);
+    when(metaStoreMappingPrimary.getTimeout()).thenReturn(2000L);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
     metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(800L);
+    when(metaStoreMappingFederated.getTimeout()).thenReturn(2000L);
     when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedFederatedDatabases);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
@@ -373,7 +373,8 @@ public class StaticDatabaseMappingServiceTest {
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<TableMeta> expected = Lists.newArrayList(primaryTableMeta, federatedTableMeta);
-    assertThat(handler.getTableMeta(pattern, pattern, null), is(expected));
+    List<TableMeta> result = handler.getTableMeta(pattern, pattern, null);
+    assertThat(result, is(expected));
   }
 
   @Test

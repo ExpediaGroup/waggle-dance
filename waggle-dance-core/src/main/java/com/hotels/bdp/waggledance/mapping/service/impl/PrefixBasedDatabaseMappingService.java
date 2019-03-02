@@ -17,6 +17,10 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.PREFIXED_RESOLUTION_TYPE;
+import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.getDatabasesFromFuture;
+import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.getTableMetaFromFuture;
+import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.getUgiFromFuture;
+import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.shutdownExecutorService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -274,7 +278,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
         List<Future<List<?>>> futures = new ArrayList<>();
-        String errorMessage = "Got exception fetching get_table_meta: {}";
 
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
           GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mappingWithPattern.getKey(),
@@ -285,9 +288,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
         Iterator<DatabaseMapping> iterator = databaseMappingsForPattern.keySet().iterator();
         try {
-          DatabaseMappingUtils.getTableMetaFromFuture(futures, iterator, combined, errorMessage, LOG);
+          List<TableMeta> result = getTableMetaFromFuture(futures, iterator,
+              LOG);
+          combined.addAll(result);
         } finally {
-          DatabaseMappingUtils.shutdownExecutorService(executorService);
+          shutdownExecutorService(executorService);
         }
         return combined;
       }
@@ -299,7 +304,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
         List<Future<List<?>>> futures = new ArrayList<>();
-        String errorMessage = "Can't fetch databases by pattern: {}";
 
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
           GetAllDatabasesByPatternRequest databasesByPatternRequest = new GetAllDatabasesByPatternRequest(
@@ -311,9 +315,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
         Iterator<DatabaseMapping> iterator = databaseMappingsForPattern.keySet().iterator();
         try {
-          DatabaseMappingUtils.getDatabasesFromFuture(futures, iterator, combined, errorMessage, LOG);
+          List<String> result = getDatabasesFromFuture(futures, iterator, "Can't fetch databases by pattern: {}", LOG);
+          combined.addAll(result);
         } finally {
-          DatabaseMappingUtils.shutdownExecutorService(executorService);
+          shutdownExecutorService(executorService);
         }
         return combined;
       }
@@ -324,7 +329,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<DatabaseMapping> databaseMappings = databaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<Future<List<?>>> futures = new ArrayList<>();
-        String errorMessage = "Can't fetch databases: {}";
 
         for (DatabaseMapping mapping : databaseMappings) {
           GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, mappedDbByPrefix);
@@ -333,9 +337,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
         Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
         try {
-          DatabaseMappingUtils.getDatabasesFromFuture(futures, iterator, combined, errorMessage, LOG);
+          List<String> result = getDatabasesFromFuture(futures, iterator, "Can't fetch databases: {}", LOG);
+          combined.addAll(result);
         } finally {
-          DatabaseMappingUtils.shutdownExecutorService(executorService);
+          shutdownExecutorService(executorService);
         }
         return combined;
       }
@@ -348,7 +353,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<DatabaseMapping> databaseMappings = databaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<Future<List<?>>> futures = new ArrayList<>();
-        String errorMessage = "Can't set UGI: {}";
 
         for (DatabaseMapping mapping : databaseMappings) {
           SetUgiRequest setUgiRequest = new SetUgiRequest(mapping, user_name, group_names);
@@ -357,9 +361,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
         Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
         try {
-          DatabaseMappingUtils.getUgiFromFuture(futures, iterator, combined, errorMessage, LOG);
+          Set<String> result = getUgiFromFuture(futures, iterator, LOG);
+          combined.addAll(result);
         } finally {
-          DatabaseMappingUtils.shutdownExecutorService(executorService);
+          shutdownExecutorService(executorService);
         }
         return new ArrayList<>(combined);
       }

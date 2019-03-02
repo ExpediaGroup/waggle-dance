@@ -17,6 +17,10 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.MANUAL_RESOLUTION_TYPE;
+import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.getDatabasesFromFuture;
+import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.getTableMetaFromFuture;
+import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.getUgiFromFuture;
+import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.shutdownExecutorService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +59,6 @@ import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
-import com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
@@ -286,21 +289,30 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         List<TableMeta> combined = new ArrayList<>();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<?>>> futures = new ArrayList<>();
-        String errorMessage = "Got exception fetching get_table_meta: {}";
+
+        // add primary first to preserve order
+        GetTableMetaRequest primaryTableMetaRequest = new GetTableMetaRequest(primaryDatabaseMapping,
+            db_patterns, tbl_patterns,
+            tbl_types, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
+            MANUAL_RESOLUTION_TYPE);
+        futures.add(executorService.submit(primaryTableMetaRequest));
 
         for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-          GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mapping,
-              db_patterns, tbl_patterns,
-              tbl_types, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-              MANUAL_RESOLUTION_TYPE);
-          futures.add(executorService.submit(tableMetaRequest));
+          if (!mapping.equals(primaryDatabaseMapping)) {
+            GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mapping,
+                db_patterns, tbl_patterns,
+                tbl_types, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
+                MANUAL_RESOLUTION_TYPE);
+            futures.add(executorService.submit(tableMetaRequest));
+          }
         }
 
         Iterator<DatabaseMapping> iterator = mappingsByMetaStoreName.values().iterator();
         try {
-          DatabaseMappingUtils.getTableMetaFromFuture(futures, iterator, combined, errorMessage, LOG);
+          List<TableMeta> result = getTableMetaFromFuture(futures, iterator, LOG);
+          combined.addAll(result);
         } finally {
-          DatabaseMappingUtils.shutdownExecutorService(executorService);
+          shutdownExecutorService(executorService);
         }
         return combined;
       }
@@ -310,20 +322,28 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         List<String> combined = new ArrayList<>();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<?>>> futures = new ArrayList<>();
-        String errorMessage = "Can't fetch databases by pattern: {}";
+
+        // add primary first to preserve order
+        GetAllDatabasesByPatternRequest primaryRequest = new GetAllDatabasesByPatternRequest(
+            primaryDatabaseMapping, pattern, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
+            MANUAL_RESOLUTION_TYPE);
+        futures.add(executorService.submit(primaryRequest));
 
         for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-          GetAllDatabasesByPatternRequest allDatabasesByPatternRequest = new GetAllDatabasesByPatternRequest(
-              mapping, pattern, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-              MANUAL_RESOLUTION_TYPE);
-          futures.add(executorService.submit(allDatabasesByPatternRequest));
+          if (!mapping.equals(primaryDatabaseMapping)) {
+            GetAllDatabasesByPatternRequest federatedRequest = new GetAllDatabasesByPatternRequest(
+                mapping, pattern, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
+                MANUAL_RESOLUTION_TYPE);
+            futures.add(executorService.submit(federatedRequest));
+          }
         }
 
         Iterator<DatabaseMapping> iterator = mappingsByMetaStoreName.values().iterator();
         try {
-          DatabaseMappingUtils.getDatabasesFromFuture(futures, iterator, combined, errorMessage, LOG);
+          List<String> result = getDatabasesFromFuture(futures, iterator, "Can't fetch databases by pattern: {}", LOG);
+          combined.addAll(result);
         } finally {
-          DatabaseMappingUtils.shutdownExecutorService(executorService);
+          shutdownExecutorService(executorService);
         }
         return combined;
       }
@@ -350,7 +370,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         Set<String> combined = new HashSet<>();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<?>>> futures = new ArrayList<>();
-        String errorMessage = "Got exception fetching UGI: {}";
 
         for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
           SetUgiRequest setUgiRequest = new SetUgiRequest(mapping, user_name, group_names);
@@ -359,9 +378,10 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
         Iterator<DatabaseMapping> iterator = mappingsByMetaStoreName.values().iterator();
         try {
-          DatabaseMappingUtils.getUgiFromFuture(futures, iterator, combined, errorMessage, LOG);
+          Set<String> result = getUgiFromFuture(futures, iterator, LOG);
+          combined.addAll(result);
         } finally {
-          DatabaseMappingUtils.shutdownExecutorService(executorService);
+          shutdownExecutorService(executorService);
         }
         return new ArrayList<>(combined);
       }

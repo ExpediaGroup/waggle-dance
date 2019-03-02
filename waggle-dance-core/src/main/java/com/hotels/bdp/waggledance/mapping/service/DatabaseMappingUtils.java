@@ -17,6 +17,8 @@ package com.hotels.bdp.waggledance.mapping.service;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,9 +38,9 @@ public class DatabaseMappingUtils {
 
   public static final String MANUAL_RESOLUTION_TYPE = "MANUAL";
   public static final String PREFIXED_RESOLUTION_TYPE = "PREFIXED";
-  private static final String INTERRUPTED_MESSAGE = "Interrupted ";
-  private static final String SLOW_METASTORE_MESSAGE = "Metastore was slow to respond so results are omitted";
-  private static final String NULL_POINTER_MESSAGE = "Got nullpointer";
+  private static final String INTERRUPTED_MESSAGE = "Execution was interrupted: ";
+  private static final String SLOW_METASTORE_MESSAGE = "Metastore was slow to respond so results are omitted: {}";
+  private static final String NULL_POINTER_MESSAGE = "Received null pointer exception: ";
 
   public static boolean isWhitelisted(String databasePrefix, String database, Map<String, Whitelist> mappedDbByPrefix) {
     Whitelist whitelist = mappedDbByPrefix.get(databasePrefix);
@@ -75,54 +77,62 @@ public class DatabaseMappingUtils {
       throws InterruptedException, ExecutionException, TimeoutException {
     DatabaseMapping mapping = iterator.next();
     long timeout = mapping.getTimeout();
-    return future.get(timeout, TimeUnit.MILLISECONDS);
+    List<?> result = future.get(timeout, TimeUnit.MILLISECONDS);
+    return result;
   }
 
-  public static void getDatabasesFromFuture(List<Future<List<?>>> futures, Iterator<DatabaseMapping> iterator,
-                                            List<String> combined, String errorMessage, Logger log) {
+  public static List<String> getDatabasesFromFuture(List<Future<List<?>>> futures, Iterator<DatabaseMapping> iterator,
+                                                    String errorMessage, Logger log) {
+    List<String> allDatabases = new LinkedList<>();
     for (Future<List<?>> future : futures) {
       try {
         List<String> result = (List<String>) getResultFromFuture(iterator, future);
-        combined.addAll(result);
+        allDatabases.addAll(result);
       } catch (InterruptedException e) {
-        log.info(INTERRUPTED_MESSAGE);
+        log.warn(INTERRUPTED_MESSAGE, e);
       } catch (ExecutionException e) {
         log.warn(errorMessage, e.getMessage());
       } catch (TimeoutException e) {
         log.warn(SLOW_METASTORE_MESSAGE, e.getMessage());
       }
     }
+    return allDatabases;
   }
 
-  public static void getTableMetaFromFuture(List<Future<List<?>>> futures, Iterator<DatabaseMapping> iterator,
-                                            List<TableMeta> combined, String errorMessage, Logger log) {
+  public static List<TableMeta> getTableMetaFromFuture(List<Future<List<?>>> futures,
+                                                       Iterator<DatabaseMapping> iterator,
+                                                       Logger log) {
+    List<TableMeta> allTableMetas = new ArrayList<>();
     for (Future<List<?>> future : futures) {
       try {
         List<TableMeta> result = (List<TableMeta>) getResultFromFuture(iterator, future);
-        combined.addAll(result);
+        allTableMetas.addAll(result);
       } catch (InterruptedException e) {
-        log.info(INTERRUPTED_MESSAGE);
+        log.warn(INTERRUPTED_MESSAGE, e);
       } catch (ExecutionException e) {
-        log.warn(errorMessage, e.getMessage());
+        log.warn("Got exception fetching get_table_meta: {}", e.getMessage());
       } catch (TimeoutException e) {
         log.warn(SLOW_METASTORE_MESSAGE, e.getMessage());
       }
     }
+    return allTableMetas;
   }
 
-  public static void getUgiFromFuture(List<Future<List<?>>> futures, Iterator<DatabaseMapping> iterator,
-                                      Set<String> combined, String errorMessage, Logger log) {
+  public static Set<String> getUgiFromFuture(List<Future<List<?>>> futures, Iterator<DatabaseMapping> iterator,
+                                             Logger log) {
+    Set<String> allUgis = new LinkedHashSet<>();
     for (Future<List<?>> future : futures) {
       try {
         List<String> result = (List<String>) DatabaseMappingUtils.getResultFromFuture(iterator, future);
-        combined.addAll(result);
+        allUgis.addAll(result);
       } catch (InterruptedException e) {
-        log.info(INTERRUPTED_MESSAGE);
+        log.warn(INTERRUPTED_MESSAGE, e);
       } catch (ExecutionException e) {
-        log.warn(errorMessage, e.getMessage());
+        log.warn("Got exception fetching UGI: {}", e.getMessage());
       } catch (TimeoutException e) {
         log.warn(SLOW_METASTORE_MESSAGE, e.getMessage());
       }
     }
+    return allUgis;
   }
 }
