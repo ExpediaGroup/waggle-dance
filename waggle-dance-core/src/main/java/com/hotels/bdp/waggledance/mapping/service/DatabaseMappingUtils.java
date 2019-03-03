@@ -77,8 +77,7 @@ public class DatabaseMappingUtils {
       throws InterruptedException, ExecutionException, TimeoutException {
     DatabaseMapping mapping = iterator.next();
     long timeout = mapping.getTimeout();
-    List<?> result = future.get(timeout, TimeUnit.MILLISECONDS);
-    return result;
+    return future.get(timeout, TimeUnit.MILLISECONDS);
   }
 
   public static List<String> getDatabasesFromFuture(List<Future<List<?>>> futures, Iterator<DatabaseMapping> iterator,

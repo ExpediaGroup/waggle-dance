@@ -283,31 +283,40 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
+      private List<DatabaseMapping> getOrderedMapping() {
+        List<DatabaseMapping> orderedMapping = new ArrayList<>();
+        orderedMapping.add(primaryDatabaseMapping);
+        for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
+          if (!mapping.equals(primaryDatabaseMapping)) {
+            orderedMapping.add(mapping);
+          }
+        }
+        return orderedMapping;
+      }
 
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         List<TableMeta> combined = new ArrayList<>();
+        List<DatabaseMapping> orderedMapping = getOrderedMapping();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<?>>> futures = new ArrayList<>();
 
-        // add primary first to preserve order
-        GetTableMetaRequest primaryTableMetaRequest = new GetTableMetaRequest(primaryDatabaseMapping,
-            db_patterns, tbl_patterns,
-            tbl_types, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-            MANUAL_RESOLUTION_TYPE);
-        futures.add(executorService.submit(primaryTableMetaRequest));
+//        // add primary first to preserve order
+//        GetTableMetaRequest primaryTableMetaRequest = new GetTableMetaRequest(primaryDatabaseMapping,
+//            db_patterns, tbl_patterns,
+//            tbl_types, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
+//            MANUAL_RESOLUTION_TYPE);
+//        futures.add(executorService.submit(primaryTableMetaRequest));
 
-        for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-          if (!mapping.equals(primaryDatabaseMapping)) {
-            GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mapping,
-                db_patterns, tbl_patterns,
-                tbl_types, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-                MANUAL_RESOLUTION_TYPE);
-            futures.add(executorService.submit(tableMetaRequest));
-          }
+        for (DatabaseMapping mapping : orderedMapping) {
+          GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mapping,
+              db_patterns, tbl_patterns,
+              tbl_types, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
+              MANUAL_RESOLUTION_TYPE);
+          futures.add(executorService.submit(tableMetaRequest));
         }
 
-        Iterator<DatabaseMapping> iterator = mappingsByMetaStoreName.values().iterator();
+        Iterator<DatabaseMapping> iterator = orderedMapping.iterator();
         try {
           List<TableMeta> result = getTableMetaFromFuture(futures, iterator, LOG);
           combined.addAll(result);
@@ -320,25 +329,24 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases(String pattern) {
         List<String> combined = new ArrayList<>();
+        List<DatabaseMapping> orderedMapping = getOrderedMapping();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<?>>> futures = new ArrayList<>();
 
         // add primary first to preserve order
-        GetAllDatabasesByPatternRequest primaryRequest = new GetAllDatabasesByPatternRequest(
-            primaryDatabaseMapping, pattern, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-            MANUAL_RESOLUTION_TYPE);
-        futures.add(executorService.submit(primaryRequest));
+//        GetAllDatabasesByPatternRequest primaryRequest = new GetAllDatabasesByPatternRequest(
+//            primaryDatabaseMapping, pattern, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
+//            MANUAL_RESOLUTION_TYPE);
+//        futures.add(executorService.submit(primaryRequest));
 
-        for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-          if (!mapping.equals(primaryDatabaseMapping)) {
-            GetAllDatabasesByPatternRequest federatedRequest = new GetAllDatabasesByPatternRequest(
-                mapping, pattern, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-                MANUAL_RESOLUTION_TYPE);
-            futures.add(executorService.submit(federatedRequest));
-          }
+        for (DatabaseMapping mapping : orderedMapping) {
+          GetAllDatabasesByPatternRequest federatedRequest = new GetAllDatabasesByPatternRequest(
+              mapping, pattern, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
+              MANUAL_RESOLUTION_TYPE);
+          futures.add(executorService.submit(federatedRequest));
         }
 
-        Iterator<DatabaseMapping> iterator = mappingsByMetaStoreName.values().iterator();
+        Iterator<DatabaseMapping> iterator = orderedMapping.iterator();
         try {
           List<String> result = getDatabasesFromFuture(futures, iterator, "Can't fetch databases by pattern: {}", LOG);
           combined.addAll(result);
