@@ -15,8 +15,8 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.requests;
 
-import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.PREFIXED_RESOLUTION_TYPE;
 import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.isWhitelisted;
+import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.PREFIXED_RESOLUTION_TYPE;
 
 import java.util.ArrayList;
 import java.util.List;

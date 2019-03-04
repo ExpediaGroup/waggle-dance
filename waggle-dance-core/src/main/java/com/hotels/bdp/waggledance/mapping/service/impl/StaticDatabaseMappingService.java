@@ -16,11 +16,11 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
-import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.MANUAL_RESOLUTION_TYPE;
-import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.getDatabasesFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.getTableMetaFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.getUgiFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.shutdownExecutorService;
+import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.MANUAL_RESOLUTION_TYPE;
+import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getDatabasesFromFuture;
+import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getTableMetaFromFuture;
+import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getUgiFromFuture;
+import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.shutdownExecutorService;
 
 import java.io.IOException;
 import java.util.ArrayList;
