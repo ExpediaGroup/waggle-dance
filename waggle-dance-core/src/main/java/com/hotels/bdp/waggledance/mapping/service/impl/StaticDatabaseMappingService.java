@@ -283,6 +283,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
+
       private List<DatabaseMapping> getOrderedMapping() {
         List<DatabaseMapping> orderedMapping = new ArrayList<>();
         orderedMapping.add(primaryDatabaseMapping);
@@ -300,13 +301,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         List<DatabaseMapping> orderedMapping = getOrderedMapping();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<?>>> futures = new ArrayList<>();
-
-//        // add primary first to preserve order
-//        GetTableMetaRequest primaryTableMetaRequest = new GetTableMetaRequest(primaryDatabaseMapping,
-//            db_patterns, tbl_patterns,
-//            tbl_types, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-//            MANUAL_RESOLUTION_TYPE);
-//        futures.add(executorService.submit(primaryTableMetaRequest));
 
         for (DatabaseMapping mapping : orderedMapping) {
           GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mapping,
@@ -332,12 +326,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         List<DatabaseMapping> orderedMapping = getOrderedMapping();
         ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
         List<Future<List<?>>> futures = new ArrayList<>();
-
-        // add primary first to preserve order
-//        GetAllDatabasesByPatternRequest primaryRequest = new GetAllDatabasesByPatternRequest(
-//            primaryDatabaseMapping, pattern, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-//            MANUAL_RESOLUTION_TYPE);
-//        futures.add(executorService.submit(primaryRequest));
 
         for (DatabaseMapping mapping : orderedMapping) {
           GetAllDatabasesByPatternRequest federatedRequest = new GetAllDatabasesByPatternRequest(

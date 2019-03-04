@@ -251,26 +251,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     return mappings;
   }
 
-//  private boolean isWhitelisted(String databasePrefix, String database) {
-//    Whitelist whitelist = mappedDbByPrefix.get(databasePrefix);
-//    if ((whitelist == null) || whitelist.isEmpty()) {
-//      // Accept everything
-//      return true;
-//    }
-//    return whitelist.contains(database);
-//  }
-
   @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
-
-      private void sleepThread() {
-        try {
-          Thread.sleep(2000L);
-        } catch (InterruptedException e) {
-          LOG.info("Execution was cancelled", e.getMessage());
-        }
-      }
 
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {

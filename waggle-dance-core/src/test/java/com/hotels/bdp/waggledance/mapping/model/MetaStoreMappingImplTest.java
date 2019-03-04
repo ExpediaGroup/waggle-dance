@@ -45,6 +45,7 @@ public class MetaStoreMappingImplTest {
 
   private static final String DATABASE_PREFIX = "prefix_";
   private static final String NAME = "name";
+  private static final long LATENCY = 0;
 
   private @Mock CloseableThriftHiveMetastoreIface client;
   private @Mock Database database;
@@ -55,10 +56,9 @@ public class MetaStoreMappingImplTest {
 
   @Before
   public void init() {
-    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT, 800l);
+    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT, LATENCY);
     tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED,
-        800l);
-
+        LATENCY);
   }
 
   @Test

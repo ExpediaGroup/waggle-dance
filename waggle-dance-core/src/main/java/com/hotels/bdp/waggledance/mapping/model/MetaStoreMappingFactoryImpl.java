@@ -66,7 +66,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
             metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping mapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
         createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType(),
-        metaStore.getTimeout());
+        metaStore.getLatency());
     return mapping;
   }
 

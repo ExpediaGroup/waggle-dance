@@ -121,7 +121,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       checkArgument(isNotEmpty(remoteMetaStoreUris));
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
-      federatedMetaStore.setTimeout(8000L);
+      federatedMetaStore.setLatency(8000L);
       federatedMetaStores.add(federatedMetaStore);
       return this;
     }
@@ -137,7 +137,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris, accessControlType);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
       federatedMetaStore.setWritableDatabaseWhiteList(Arrays.asList(writeableDatabaseWhiteList));
-      federatedMetaStore.setTimeout(8000L);
+      federatedMetaStore.setLatency(8000L);
       federatedMetaStores.add(federatedMetaStore);
       return this;
     }
@@ -157,7 +157,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       metastoreTunnel.setPrivateKeys(privateKeys);
       metastoreTunnel.setKnownHosts(knownHosts);
       federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
-      federatedMetaStore.setTimeout(8000L);
+      federatedMetaStore.setLatency(8000L);
       federatedMetaStores.add(federatedMetaStore);
       return this;
     }
@@ -170,7 +170,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       checkArgument(isNotEmpty(name));
       checkArgument(isNotEmpty(remoteMetaStoreUris));
       primaryMetaStore = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, writableDatabaseWhiteList);
-      primaryMetaStore.setTimeout(8000L);
+      primaryMetaStore.setLatency(8000L);
       return this;
     }
 

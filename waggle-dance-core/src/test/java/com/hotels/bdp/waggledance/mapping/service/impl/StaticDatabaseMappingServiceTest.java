@@ -42,8 +42,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
@@ -64,7 +62,7 @@ public class StaticDatabaseMappingServiceTest {
   private static final String FEDERATED_NAME = "name";
   private static final String PRIMARY_NAME = "primary";
   private static final String URI = "uri";
-  private static final Logger LOG = LoggerFactory.getLogger(StaticDatabaseMappingServiceTest.class);
+  private static final long TIMEOUT = 2000;
   private final AbstractMetaStore primaryMetastore = newPrimaryInstance(PRIMARY_NAME, URI);
   private final List<String> mappedFederatedDatabases = Lists.newArrayList("federated_DB");
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
@@ -81,11 +79,11 @@ public class StaticDatabaseMappingServiceTest {
 
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
-    when(metaStoreMappingPrimary.getTimeout()).thenReturn(2000L);
+    when(metaStoreMappingPrimary.getTimeout()).thenReturn(TIMEOUT);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
     metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(2000L);
+    when(metaStoreMappingFederated.getTimeout()).thenReturn(TIMEOUT);
     when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedFederatedDatabases);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);

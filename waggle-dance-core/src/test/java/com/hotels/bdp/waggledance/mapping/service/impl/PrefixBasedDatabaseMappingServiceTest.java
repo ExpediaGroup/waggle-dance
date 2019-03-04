@@ -60,6 +60,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   private static final String DB_PREFIX = "name_";
   private static final String METASTORE_NAME = "name";
   private static final String URI = "uri";
+  private static final long TIMEOUT = 2000;
   private final AbstractMetaStore primaryMetastore = newPrimaryInstance("primary", URI);
   private final FederatedMetaStore federatedMetastore = newFederatedInstance(METASTORE_NAME, URI);
   private final List<String> primaryAndFederatedDbs = Lists.newArrayList("primary_db", "federated_db");
@@ -75,12 +76,12 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void init() {
     metaStoreMappingPrimary = mockNewMapping(true, "");
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
-    when(metaStoreMappingPrimary.getTimeout()).thenReturn(2000L);
+    when(metaStoreMappingPrimary.getTimeout()).thenReturn(TIMEOUT);
     metaStoreMappingFederated = mockNewMapping(true, DB_PREFIX);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(2000L);
+    when(metaStoreMappingFederated.getTimeout()).thenReturn(TIMEOUT);
 
     AbstractMetaStore unavailableMetastore = newFederatedInstance("name2", "thrift:host:port");
     MetaStoreMapping unavailableMapping = mockNewMapping(false, "name2_");
