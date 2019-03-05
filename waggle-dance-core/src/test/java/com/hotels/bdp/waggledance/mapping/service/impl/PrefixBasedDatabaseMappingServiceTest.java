@@ -104,7 +104,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     MetaStoreMapping newMapping = mockNewMapping(true, "newname_");
     when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
     service.onRegister(newMetastore);
-    List<DatabaseMapping> databaseMappings = service.databaseMappings();
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
     assertThat(databaseMappings.size(), is(3));
     assertThat(ImmutableSet
             .of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
@@ -129,7 +129,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     service.onUpdate(federatedMetastore, newMetastore);
 
-    List<DatabaseMapping> databaseMappings = service.databaseMappings();
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
     assertThat(databaseMappings.size(), is(2));
     assertThat(
         ImmutableSet.of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix()),
@@ -148,7 +148,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     service.onUpdate(federatedMetastore, newMetastore);
 
-    List<DatabaseMapping> databaseMappings = service.databaseMappings();
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
     assertThat(databaseMappings.size(), is(2));
     assertThat(
         ImmutableSet.of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix()),
@@ -160,7 +160,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     List<AbstractMetaStore> duplicates = Arrays
         .asList(primaryMetastore, federatedMetastore, primaryMetastore, federatedMetastore);
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, duplicates, queryMapping);
-    assertThat(service.databaseMappings().size(), is(2));
+    assertThat(service.getDatabaseMappings().size(), is(2));
   }
 
   @Test
@@ -177,7 +177,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void onUnregister() {
     when(metaStoreMappingFactory.prefixNameFor(federatedMetastore)).thenReturn(DB_PREFIX);
     service.onUnregister(newFederatedInstance(METASTORE_NAME, URI));
-    List<DatabaseMapping> databaseMappings = service.databaseMappings();
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
     assertThat(databaseMappings.size(), is(1));
     assertThat(databaseMappings.get(0).getDatabasePrefix(), is(""));
   }
@@ -186,7 +186,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void onUnregisterPrimary() {
     when(metaStoreMappingFactory.prefixNameFor(primaryMetastore)).thenReturn("");
     service.onUnregister(primaryMetastore);
-    List<DatabaseMapping> databaseMappings = service.databaseMappings();
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
     assertThat(databaseMappings.size(), is(1));
     assertThat(databaseMappings.get(0).getDatabasePrefix(), is(DB_PREFIX));
   }
@@ -226,7 +226,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Test
   public void databaseMappings() {
-    List<DatabaseMapping> databaseMappings = service.databaseMappings();
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
     assertThat(databaseMappings.size(), is(2));
     assertThat(
         ImmutableSet.of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix()),
@@ -412,7 +412,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(federatedDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi", "ugi2"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.setUgi(user, groups);
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
+    List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result, is(Arrays.asList("ugi", "ugi2")));
   }
 
@@ -424,7 +425,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     mockSlowConnectionToFederatedMetastore();
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.setUgi(user, groups);
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
+    List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result.size(), is(1));
     assertThat(result.contains("ugi"), is(true));
   }
@@ -437,7 +439,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.setUgi(user, groups);
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
+    List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result.size(), is(1));
     assertThat(result.contains("ugi"), is(true));
   }
@@ -539,7 +542,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(federatedDatabaseClient.set_ugi(user, groups)).thenThrow(new TException());
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    assertThat(handler.setUgi(user, groups).size(), is(0));
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
+    assertThat(handler.setUgi(user, groups, databaseMappings).size(), is(0));
   }
 
   private void mockSlowConnectionToFederatedMetastore() {

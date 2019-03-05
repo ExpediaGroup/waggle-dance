@@ -431,7 +431,8 @@ public class StaticDatabaseMappingServiceTest {
     when(federatedDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi", "ugi2"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.setUgi(user, groups);
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
+    List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result, is(Arrays.asList("ugi", "ugi2")));
   }
 
@@ -442,7 +443,8 @@ public class StaticDatabaseMappingServiceTest {
     when(primaryDatabaseClient.set_ugi(user, groups)).thenThrow(new TException());
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.setUgi(user, groups);
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
+    List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result.size(), is(0));
   }
 
@@ -454,7 +456,8 @@ public class StaticDatabaseMappingServiceTest {
     when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.setUgi(user, groups);
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
+    List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result.size(), is(1));
     assertThat(result, is(Collections.singletonList("ugi")));
   }
@@ -467,7 +470,8 @@ public class StaticDatabaseMappingServiceTest {
     mockSlowConnectionFromFederatedMetastore();
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.setUgi(user, groups);
+    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
+    List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result.size(), is(1));
     assertThat(result, is(Collections.singletonList("ugi")));
   }

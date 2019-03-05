@@ -16,16 +16,10 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.MANUAL_RESOLUTION_TYPE;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getDatabasesFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getTableMetaFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getUgiFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.shutdownExecutorService;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -64,7 +58,6 @@ import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
-import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
@@ -281,19 +274,24 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
+  public List<DatabaseMapping> getDatabaseMappings() {
+    return getOrderedMapping();
+  }
+
+  private List<DatabaseMapping> getOrderedMapping() {
+    List<DatabaseMapping> orderedMapping = new ArrayList<>();
+    orderedMapping.add(primaryDatabaseMapping);
+    for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
+      if (!mapping.equals(primaryDatabaseMapping)) {
+        orderedMapping.add(mapping);
+      }
+    }
+    return orderedMapping;
+  }
+
+  @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
-
-      private List<DatabaseMapping> getOrderedMapping() {
-        List<DatabaseMapping> orderedMapping = new ArrayList<>();
-        orderedMapping.add(primaryDatabaseMapping);
-        for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-          if (!mapping.equals(primaryDatabaseMapping)) {
-            orderedMapping.add(mapping);
-          }
-        }
-        return orderedMapping;
-      }
 
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
@@ -357,29 +355,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
           LOG.warn("Can't fetch databases: {}", e.getCause().getMessage());
         }
         return combined;
-      }
-
-      @Override
-      public List<String> setUgi(String user_name, List<String> group_names) {
-        // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
-        // Not sure if anything uses these results. We're assuming the order doesn't matter.
-        Set<String> combined = new HashSet<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
-        List<Future<List<?>>> futures = new ArrayList<>();
-
-        for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-          SetUgiRequest setUgiRequest = new SetUgiRequest(mapping, user_name, group_names);
-          futures.add(executorService.submit(setUgiRequest));
-        }
-
-        Iterator<DatabaseMapping> iterator = mappingsByMetaStoreName.values().iterator();
-        try {
-          Set<String> result = getUgiFromFuture(futures, iterator, LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return new ArrayList<>(combined);
       }
     };
   }

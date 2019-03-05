@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
@@ -55,6 +56,11 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
+  public List<DatabaseMapping> getDatabaseMappings() {
+    return wrapped.getDatabaseMappings();
+  }
+
+  @Override
   public void close() throws IOException {
     wrapped.close();
   }
@@ -73,5 +79,4 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   public void onUpdate(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore) {
     wrapped.onUpdate(oldMetaStore, newMetaStore);
   }
-
 }

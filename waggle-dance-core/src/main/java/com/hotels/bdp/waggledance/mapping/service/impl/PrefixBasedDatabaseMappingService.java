@@ -16,22 +16,15 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.PREFIXED_RESOLUTION_TYPE;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getDatabasesFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getTableMetaFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getUgiFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.shutdownExecutorService;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,7 +38,6 @@ import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 
@@ -66,7 +58,6 @@ import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
-import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
@@ -224,9 +215,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         "Waggle Dance error no database mapping available tried to map database '" + databaseName + "'");
   }
 
-  @VisibleForTesting
-  List<DatabaseMapping> databaseMappings() {
-    Builder<DatabaseMapping> builder = ImmutableList.<DatabaseMapping>builder();
+  @Override
+  public List<DatabaseMapping> getDatabaseMappings() {
+    Builder<DatabaseMapping> builder = ImmutableList.builder();
     for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
       if (includeInResults(databaseMapping)) {
         builder.add(databaseMapping);
@@ -309,7 +300,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases() {
         List<String> combined = new ArrayList<>();
-        List<DatabaseMapping> databaseMappings = databaseMappings();
+        List<DatabaseMapping> databaseMappings = getDatabaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<Future<List<?>>> futures = new ArrayList<>();
 
@@ -326,30 +317,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           shutdownExecutorService(executorService);
         }
         return combined;
-      }
-
-      @Override
-      public List<String> setUgi(String user_name, List<String> group_names) {
-        // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
-        // Not sure if anything uses these results. We're assuming the order doesn't matter.
-        Set<String> combined = new HashSet<>();
-        List<DatabaseMapping> databaseMappings = databaseMappings();
-        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-        List<Future<List<?>>> futures = new ArrayList<>();
-
-        for (DatabaseMapping mapping : databaseMappings) {
-          SetUgiRequest setUgiRequest = new SetUgiRequest(mapping, user_name, group_names);
-          futures.add(executorService.submit(setUgiRequest));
-        }
-
-        Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
-        try {
-          Set<String> result = getUgiFromFuture(futures, iterator, LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return new ArrayList<>(combined);
       }
     };
   }
