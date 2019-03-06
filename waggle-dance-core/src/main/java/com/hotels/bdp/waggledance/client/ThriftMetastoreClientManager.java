@@ -49,20 +49,18 @@ class ThriftMetastoreClientManager implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(ThriftMetastoreClientManager.class);
 
   private static final AtomicInteger CONN_COUNT = new AtomicInteger(0);
-
+  private final HiveConf conf;
+  private final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
+  private final URI[] metastoreUris;
   private ThriftHiveMetastore.Iface client = null;
   private TTransport transport = null;
   private boolean isConnected = false;
-  private URI[] metastoreUris;
   private String tokenStrForm;
-  private final HiveConf conf;
-  private final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
-
   // for thrift connects
   private int retries = 5;
   private long retryDelaySeconds = 0;
 
-  public ThriftMetastoreClientManager(
+  ThriftMetastoreClientManager(
       HiveConf conf,
       HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory) {
     this.conf = conf;
@@ -103,7 +101,7 @@ class ThriftMetastoreClientManager implements Closeable {
     }
   }
 
-  public void open() {
+  void open() {
     if (isConnected) {
       return;
     }
@@ -112,12 +110,13 @@ class ThriftMetastoreClientManager implements Closeable {
     boolean useFramedTransport = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT);
     boolean useCompactProtocol = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL);
     int clientSocketTimeout = (int) conf.getTimeVar(ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, TimeUnit.MILLISECONDS);
+    int connectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L);
 
     for (int attempt = 0; !isConnected && (attempt < retries); ++attempt) {
       for (URI store : metastoreUris) {
         LOG.info("Trying to connect to metastore with URI " + store);
         try {
-          transport = new TSocket(store.getHost(), store.getPort(), clientSocketTimeout);
+          transport = new TSocket(store.getHost(), store.getPort(), clientSocketTimeout, connectionTimeout);
           if (useSasl) {
             // Wrap thrift connection with SASL for secure connection.
             try {
@@ -149,7 +148,7 @@ class ThriftMetastoreClientManager implements Closeable {
           } else if (useFramedTransport) {
             transport = new TFramedTransport(transport);
           }
-          final TProtocol protocol;
+          TProtocol protocol;
           if (useCompactProtocol) {
             protocol = new TCompactProtocol(transport);
           } else {
@@ -197,7 +196,7 @@ class ThriftMetastoreClientManager implements Closeable {
     LOG.info("Connected to metastore.");
   }
 
-  public void reconnect() {
+  void reconnect() {
     close();
     // Swap the first element of the metastoreUris[] with a random element from the rest
     // of the array. Rationale being that this method will generally be called when the default
@@ -228,7 +227,7 @@ class ThriftMetastoreClientManager implements Closeable {
     LOG.info("Closed a connection to metastore, current connections: " + CONN_COUNT.decrementAndGet());
   }
 
-  public boolean isOpen() {
+  boolean isOpen() {
     return (transport != null) && transport.isOpen();
   }
 
@@ -249,5 +248,4 @@ class ThriftMetastoreClientManager implements Closeable {
     metastoreUris[0] = metastoreUris[index];
     metastoreUris[index] = tmp;
   }
-
 }
