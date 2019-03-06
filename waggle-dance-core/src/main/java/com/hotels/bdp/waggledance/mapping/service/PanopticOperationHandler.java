@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
+import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 
@@ -70,20 +71,43 @@ public abstract class PanopticOperationHandler {
    */
   public abstract List<String> getAllDatabases(String databasePattern);
 
+  protected List<String> getAllDatabases(
+      Map<DatabaseMapping, String> databaseMappingsForPattern,
+      BiFunction<String, DatabaseMapping, Boolean> filter) {
+
+    List<String> combined = new ArrayList<>();
+
+    ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
+    List<Future<List<String>>> futures = new ArrayList<>();
+
+    for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
+      GetAllDatabasesByPatternRequest databasesByPatternRequest = new GetAllDatabasesByPatternRequest(
+          mappingWithPattern.getKey(), mappingWithPattern.getValue(), filter);
+      futures.add(executorService.submit(databasesByPatternRequest));
+    }
+
+    try {
+      List<String> result = getDatabasesFromFuture(futures, databaseMappingsForPattern.keySet(),
+          "Can't fetch databases by pattern: {}");
+      combined.addAll(result);
+    } finally {
+      shutdownExecutorService(executorService);
+    }
+    return combined;
+
+  }
+
   /**
    * Implements {@link HMSHandler#get_table_meta(String, String, List)} over multiple metastores
    *
    * @param databasePatterns database patterns to match
-   * @param tablePatterns table patterns to match
-   * @param tableTypes table types to match
-   * @param filter
-   * @param databaseMappingsForPattern
+   * @param tablePatterns    table patterns to match
+   * @param tableTypes       table types to match
    * @return list of table metadata
    */
   abstract public List<TableMeta> getTableMeta(String databasePatterns, String tablePatterns, List<String> tableTypes);
 
   protected List<TableMeta> getTableMeta(
-      String databasePatterns,
       String tablePatterns,
       List<String> tableTypes,
       Map<DatabaseMapping, String> databaseMappingsForPattern,
@@ -110,7 +134,7 @@ public abstract class PanopticOperationHandler {
   /**
    * Implements {@link HMSHandler#set_ugi(String, List)} over multiple metastores
    *
-   * @param user_name user name
+   * @param user_name   user name
    * @param group_names group names
    * @return list
    */

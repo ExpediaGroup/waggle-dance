@@ -27,9 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
@@ -59,7 +56,6 @@ import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
-import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
@@ -299,37 +295,28 @@ public class StaticDatabaseMappingService implements MappingEventListener {
           boolean isPrimary = mapping.equals(primaryDatabaseMapping);
           boolean isMapped = mappingsByDatabaseName.keySet().contains(tableMeta.getDbName());
           return isPrimary || isMapped;
-
         };
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
         for (DatabaseMapping mapping : getDatabaseMappings()) {
           mappingsForPattern.put(mapping, db_patterns);
         }
-        List<TableMeta> result = super.getTableMeta(db_patterns, tbl_patterns, tbl_types, mappingsForPattern, filter);
-        return result;
+        return super.getTableMeta(tbl_patterns, tbl_types, mappingsForPattern, filter);
       }
 
       @Override
       public List<String> getAllDatabases(String pattern) {
-        List<String> combined = new ArrayList<>();
-        List<DatabaseMapping> databaseMappings = getDatabaseMappings();
-        ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
-        List<Future<List<String>>> futures = new ArrayList<>();
+        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> {
+          boolean isPrimaryDatabase = mapping.equals(primaryDatabaseMapping);
+          boolean isMapped = mappingsByDatabaseName.keySet().contains(database);
+          return isPrimaryDatabase || isMapped;
+        };
 
-        for (DatabaseMapping mapping : databaseMappings) {
-          GetAllDatabasesByPatternRequest federatedRequest = new GetAllDatabasesByPatternRequest(mapping, pattern,
-              Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping, MANUAL_RESOLUTION_TYPE);
-          futures.add(executorService.submit(federatedRequest));
+        Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
+        for (DatabaseMapping mapping : getDatabaseMappings()) {
+          mappingsForPattern.put(mapping, pattern);
         }
 
-        try {
-          List<String> result = getDatabasesFromFuture(futures, databaseMappings,
-              "Can't fetch databases by pattern: {}");
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return combined;
+        return super.getAllDatabases(mappingsForPattern, filter);
       }
 
       @Override
@@ -346,7 +333,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         }
         return combined;
       }
-    };
+    }
+
+        ;
   }
 
   @Override

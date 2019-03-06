@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
+import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.isWhitelisted;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,7 +57,6 @@ import com.hotels.bdp.waggledance.mapping.service.GrammarUtils;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
-import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
@@ -179,8 +179,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
         && DatabaseMappingUtils
-            .isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-                metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName), mappedDbByPrefix);
+        .isWhitelisted(metaStoreMapping.getDatabasePrefix(),
+            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName), mappedDbByPrefix);
   }
 
   @Override
@@ -254,39 +254,21 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
-        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> {
-          return DatabaseMappingUtils
-              .isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName(), mappedDbByPrefix);
 
-        };
-        List<TableMeta> result = super.getTableMeta(db_patterns, tbl_patterns, tbl_types, databaseMappingsForPattern,
-            filter);
-        return result;
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> DatabaseMappingUtils
+            .isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName(), mappedDbByPrefix);
+
+        return super.getTableMeta(tbl_patterns, tbl_types, databaseMappingsForPattern, filter);
       }
 
       @Override
       public List<String> getAllDatabases(String databasePattern) {
-        List<String> combined = new ArrayList<>();
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(databasePattern);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-        List<Future<List<String>>> futures = new ArrayList<>();
+        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> isWhitelisted(
+            mapping.getDatabasePrefix(), database, mappedDbByPrefix);
 
-        for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
-          GetAllDatabasesByPatternRequest databasesByPatternRequest = new GetAllDatabasesByPatternRequest(
-              mappingWithPattern.getKey(), mappingWithPattern.getValue(), mappedDbByPrefix, Collections.emptyMap(),
-              null, PREFIXED_RESOLUTION_TYPE);
-          futures.add(executorService.submit(databasesByPatternRequest));
-        }
-
-        try {
-          List<String> result = getDatabasesFromFuture(futures, databaseMappingsForPattern.keySet(),
-              "Can't fetch databases by pattern: {}");
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return combined;
+        return super.getAllDatabases(databaseMappingsForPattern, filter);
       }
 
       @Override
