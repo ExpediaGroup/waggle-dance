@@ -28,7 +28,7 @@ import org.apache.thrift.TException;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
-public class GetAllDatabasesByPatternRequest implements Callable<List<?>> {
+public class GetAllDatabasesByPatternRequest implements Callable<List<String>> {
 
   private final String pattern;
   private final Map<String, Whitelist> mappedDbByPrefix;
@@ -37,10 +37,13 @@ public class GetAllDatabasesByPatternRequest implements Callable<List<?>> {
   private final DatabaseMapping mapping;
   private final DatabaseMapping primaryMapping;
 
-  public GetAllDatabasesByPatternRequest(DatabaseMapping mapping, String pattern,
-                                         Map<String, Whitelist> mappedDbByPrefix,
-                                         Map<String, DatabaseMapping> mappingsByDatabaseName,
-                                         DatabaseMapping primaryMapping, String resolutionType) {
+  public GetAllDatabasesByPatternRequest(
+      DatabaseMapping mapping,
+      String pattern,
+      Map<String, Whitelist> mappedDbByPrefix,
+      Map<String, DatabaseMapping> mappingsByDatabaseName,
+      DatabaseMapping primaryMapping,
+      String resolutionType) {
     this.mapping = mapping;
     this.pattern = pattern;
     this.mappedDbByPrefix = mappedDbByPrefix;
@@ -50,7 +53,7 @@ public class GetAllDatabasesByPatternRequest implements Callable<List<?>> {
   }
 
   @Override
-  public List<?> call() throws TException {
+  public List<String> call() throws TException {
     List<String> databases = mapping.getClient().get_databases(pattern);
     List<String> mappedDatabases = new ArrayList<>();
     for (String database : databases) {

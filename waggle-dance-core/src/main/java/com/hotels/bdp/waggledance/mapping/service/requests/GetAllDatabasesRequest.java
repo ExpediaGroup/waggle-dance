@@ -25,7 +25,7 @@ import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
-public class GetAllDatabasesRequest implements Callable<List<?>> {
+public class GetAllDatabasesRequest implements Callable<List<String>> {
 
   private final DatabaseMapping mapping;
   private final Map<String, Whitelist> mappedDbByPrefix;

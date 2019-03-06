@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
-public class SetUgiRequest implements Callable<List<?>> {
+public class SetUgiRequest implements Callable<List<String>> {
 
   private final DatabaseMapping mapping;
   private final String user_name;
@@ -33,7 +33,7 @@ public class SetUgiRequest implements Callable<List<?>> {
   }
 
   @Override
-  public List<?> call() throws Exception {
+  public List<String> call() throws Exception {
     List<String> result = mapping.getClient().set_ugi(user_name, group_names);
     return result;
   }

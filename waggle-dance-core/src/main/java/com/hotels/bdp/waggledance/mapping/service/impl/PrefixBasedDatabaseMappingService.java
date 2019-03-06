@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.BiFunction;
 
 import javax.validation.constraints.NotNull;
 
@@ -57,7 +58,6 @@ import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesRequest;
-import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
@@ -178,22 +178,25 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
-        && DatabaseMappingUtils.isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName), mappedDbByPrefix);
+        && DatabaseMappingUtils
+            .isWhitelisted(metaStoreMapping.getDatabasePrefix(),
+                metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName), mappedDbByPrefix);
   }
 
   @Override
   public DatabaseMapping databaseMapping(@NotNull String databaseName) {
     // Find a Metastore with a prefix
-    Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
-    while (iterator.hasNext()) {
-      Entry<String, DatabaseMapping> entry = iterator.next();
-      String metastorePrefix = entry.getKey();
-      if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
-        DatabaseMapping databaseMapping = entry.getValue();
-        LOG.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
-        if (includeInResults(databaseMapping, databaseName)) {
-          return databaseMapping;
+    synchronized (mappingsByPrefix) {
+      Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
+      while (iterator.hasNext()) {
+        Entry<String, DatabaseMapping> entry = iterator.next();
+        String metastorePrefix = entry.getKey();
+        if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
+          DatabaseMapping databaseMapping = entry.getValue();
+          LOG.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
+          if (includeInResults(databaseMapping, databaseName)) {
+            return databaseMapping;
+          }
         }
       }
     }
@@ -218,9 +221,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   @Override
   public List<DatabaseMapping> getDatabaseMappings() {
     Builder<DatabaseMapping> builder = ImmutableList.builder();
-    for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
-      if (includeInResults(databaseMapping)) {
-        builder.add(databaseMapping);
+    synchronized (mappingsByPrefix) {
+      for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
+        if (includeInResults(databaseMapping)) {
+          builder.add(databaseMapping);
+        }
       }
     }
     return builder.build();
@@ -248,27 +253,16 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
-        List<TableMeta> combined = new ArrayList<>();
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
-        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-        List<Future<List<?>>> futures = new ArrayList<>();
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> {
+          // TODO PD have a look at utils
+          return DatabaseMappingUtils
+              .isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName(), mappedDbByPrefix);
 
-        for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
-          GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mappingWithPattern.getKey(),
-              mappingWithPattern.getValue(), tbl_patterns,
-              tbl_types, mappedDbByPrefix, Collections.emptyMap(), null, PREFIXED_RESOLUTION_TYPE);
-          futures.add(executorService.submit(tableMetaRequest));
-        }
-
-        Iterator<DatabaseMapping> iterator = databaseMappingsForPattern.keySet().iterator();
-        try {
-          List<TableMeta> result = getTableMetaFromFuture(futures, iterator,
-              LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return combined;
+        };
+        List<TableMeta> result = super.getTableMeta(db_patterns, tbl_patterns, tbl_types, databaseMappingsForPattern,
+            filter);
+        return result;
       }
 
       @Override
@@ -277,19 +271,18 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(databasePattern);
 
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-        List<Future<List<?>>> futures = new ArrayList<>();
+        List<Future<List<String>>> futures = new ArrayList<>();
 
         for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
           GetAllDatabasesByPatternRequest databasesByPatternRequest = new GetAllDatabasesByPatternRequest(
               mappingWithPattern.getKey(), mappingWithPattern.getValue(), mappedDbByPrefix, Collections.emptyMap(),
-              null,
-              PREFIXED_RESOLUTION_TYPE);
+              null, PREFIXED_RESOLUTION_TYPE);
           futures.add(executorService.submit(databasesByPatternRequest));
         }
 
-        Iterator<DatabaseMapping> iterator = databaseMappingsForPattern.keySet().iterator();
         try {
-          List<String> result = getDatabasesFromFuture(futures, iterator, "Can't fetch databases by pattern: {}", LOG);
+          List<String> result = getDatabasesFromFuture(futures, databaseMappingsForPattern.keySet(),
+              "Can't fetch databases by pattern: {}");
           combined.addAll(result);
         } finally {
           shutdownExecutorService(executorService);
@@ -302,16 +295,15 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<String> combined = new ArrayList<>();
         List<DatabaseMapping> databaseMappings = getDatabaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-        List<Future<List<?>>> futures = new ArrayList<>();
+        List<Future<List<String>>> futures = new ArrayList<>();
 
         for (DatabaseMapping mapping : databaseMappings) {
           GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, mappedDbByPrefix);
           futures.add(executorService.submit(allDatabasesRequest));
         }
 
-        Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
         try {
-          List<String> result = getDatabasesFromFuture(futures, iterator, "Can't fetch databases: {}", LOG);
+          List<String> result = getDatabasesFromFuture(futures, databaseMappings, "Can't fetch databases: {}");
           combined.addAll(result);
         } finally {
           shutdownExecutorService(executorService);

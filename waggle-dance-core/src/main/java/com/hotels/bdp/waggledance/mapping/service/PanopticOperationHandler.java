@@ -16,11 +16,13 @@
 package com.hotels.bdp.waggledance.mapping.service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -28,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiFunction;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
@@ -35,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
+import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 
 /**
@@ -70,91 +74,123 @@ public abstract class PanopticOperationHandler {
    * Implements {@link HMSHandler#get_table_meta(String, String, List)} over multiple metastores
    *
    * @param databasePatterns database patterns to match
-   * @param tablePatterns    table patterns to match
-   * @param tableTypes       table types to match
+   * @param tablePatterns table patterns to match
+   * @param tableTypes table types to match
+   * @param filter
+   * @param databaseMappingsForPattern
    * @return list of table metadata
    */
   abstract public List<TableMeta> getTableMeta(String databasePatterns, String tablePatterns, List<String> tableTypes);
 
+  protected List<TableMeta> getTableMeta(
+      String databasePatterns,
+      String tablePatterns,
+      List<String> tableTypes,
+      Map<DatabaseMapping, String> databaseMappingsForPattern,
+      BiFunction<TableMeta, DatabaseMapping, Boolean> filter) {
+    List<TableMeta> combined = new ArrayList<>();
+    ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
+    List<Future<List<TableMeta>>> futures = new ArrayList<>();
+
+    for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
+      GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mappingWithPattern.getKey(),
+          mappingWithPattern.getValue(), tablePatterns, tableTypes, filter);
+      futures.add(executorService.submit(tableMetaRequest));
+    }
+
+    try {
+      List<TableMeta> result = getTableMetaFromFuture(futures, databaseMappingsForPattern.keySet());
+      combined.addAll(result);
+    } finally {
+      shutdownExecutorService(executorService);
+    }
+    return combined;
+  }
+
   /**
    * Implements {@link HMSHandler#set_ugi(String, List)} over multiple metastores
    *
-   * @param user_name   user name
+   * @param user_name user name
    * @param group_names group names
    * @return list
    */
   public List<String> setUgi(String user_name, List<String> group_names, List<DatabaseMapping> databaseMappings) {
     // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
     // Not sure if anything uses these results. We're assuming the order doesn't matter.
-    Set<String> combined = new HashSet<>();
     ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-    List<Future<List<?>>> futures = new ArrayList<>();
+    List<Future<List<String>>> futures = new ArrayList<>();
 
     for (DatabaseMapping mapping : databaseMappings) {
       SetUgiRequest setUgiRequest = new SetUgiRequest(mapping, user_name, group_names);
       futures.add(executorService.submit(setUgiRequest));
     }
 
-    Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
     try {
-      Set<String> result = getUgiFromFuture(futures, iterator, LOG);
-      combined.addAll(result);
+      Set<String> result = getUgiFromFuture(futures, databaseMappings);
+      return new ArrayList<>(result);
     } finally {
       shutdownExecutorService(executorService);
     }
-    return new ArrayList<>(combined);
   }
 
-  protected List<String> getDatabasesFromFuture(List<Future<List<?>>> futures,
-                                                Iterator<DatabaseMapping> iterator,
-                                                String errorMessage, Logger log) {
-    List<String> allDatabases = new LinkedList<>();
-    for (Future<List<?>> future : futures) {
-      List<String> result = (List<String>) getResultFromFuture(iterator, future, GET_DATABASES_TIMEOUT, log,
-          errorMessage);
-      if (result != null) {allDatabases.addAll(result);}
+  protected List<String> getDatabasesFromFuture(
+      List<Future<List<String>>> futures,
+      Collection<DatabaseMapping> databaseMappings,
+      String errorMessage) {
+    List<String> allDatabases = new ArrayList<>();
+    Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
+    for (Future<List<String>> future : futures) {
+      DatabaseMapping databaseMapping = iterator.next();
+      List<String> result = getResultFromFuture(databaseMapping, future, GET_DATABASES_TIMEOUT, errorMessage);
+      allDatabases.addAll(result);
     }
     return allDatabases;
   }
 
-  protected List<TableMeta> getTableMetaFromFuture(List<Future<List<?>>> futures,
-                                                   Iterator<DatabaseMapping> iterator,
-                                                   Logger log) {
+  private List<TableMeta> getTableMetaFromFuture(
+      List<Future<List<TableMeta>>> futures,
+      Collection<DatabaseMapping> databaseMappings) {
     List<TableMeta> allTableMetas = new ArrayList<>();
-    for (Future<List<?>> future : futures) {
-      List<TableMeta> result = (List<TableMeta>) getResultFromFuture(iterator, future, GET_TABLE_META_TIMEOUT, log,
+    Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
+    for (Future<List<TableMeta>> future : futures) {
+      DatabaseMapping databaseMapping = iterator.next();
+      List<TableMeta> result = getResultFromFuture(databaseMapping, future, GET_TABLE_META_TIMEOUT,
           "Got exception fetching get_table_meta: {}");
-      if (result != null) {allTableMetas.addAll(result);}
+      allTableMetas.addAll(result);
     }
     return allTableMetas;
   }
 
-  private Set<String> getUgiFromFuture(List<Future<List<?>>> futures, Iterator<DatabaseMapping> iterator,
-                                       Logger log) {
+  private Set<String> getUgiFromFuture(
+      List<Future<List<String>>> futures,
+      Collection<DatabaseMapping> databaseMappings) {
     Set<String> allUgis = new LinkedHashSet<>();
-    for (Future<List<?>> future : futures) {
-
-      List<String> result = (List<String>) getResultFromFuture(iterator, future, SET_UGI_TIMEOUT, log,
-          "Got exception fetching UGI: {}");
-      if (result != null) {allUgis.addAll(result);}
+    Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
+    for (Future<List<String>> future : futures) {
+      DatabaseMapping databaseMapping = iterator.next();
+      List<String> result = getResultFromFuture(databaseMapping, future, SET_UGI_TIMEOUT,
+          "Got exception setting UGI: {}");
+      allUgis.addAll(result);
     }
     return allUgis;
   }
 
-  private List<?> getResultFromFuture(Iterator<DatabaseMapping> iterator, Future<List<?>> future,
-                                      long methodTimeout, Logger log, String errorMessage) {
-    DatabaseMapping mapping = iterator.next();
+  private <T> List<T> getResultFromFuture(
+      DatabaseMapping mapping,
+      Future<List<T>> future,
+      long methodTimeout,
+      String errorMessage) {
     long timeout = methodTimeout + mapping.getLatency();
     try {
       return future.get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      log.warn(INTERRUPTED_MESSAGE, e);
+      LOG.warn(INTERRUPTED_MESSAGE, e);
     } catch (ExecutionException e) {
-      log.warn(errorMessage, e.getMessage());
+      LOG.warn(errorMessage, e.getCause().getMessage());
     } catch (TimeoutException e) {
-      log.warn(SLOW_METASTORE_MESSAGE, mapping.getMetastoreMappingName());
+      LOG.warn(SLOW_METASTORE_MESSAGE, mapping.getMetastoreMappingName());
     }
-    return null;
+    return Collections.emptyList();
   }
 
   protected void shutdownExecutorService(ExecutorService executorService) {
