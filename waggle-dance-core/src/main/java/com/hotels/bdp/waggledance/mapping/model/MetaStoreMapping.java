@@ -63,5 +63,5 @@ public interface MetaStoreMapping extends Closeable {
   void createDatabase(Database database)
     throws AlreadyExistsException, InvalidObjectException, MetaException, TException;
 
-  long getTimeout();
+  long getLatency();
 }

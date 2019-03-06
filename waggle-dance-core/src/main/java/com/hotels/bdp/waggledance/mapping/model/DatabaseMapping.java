@@ -147,6 +147,6 @@ public interface DatabaseMapping extends MetaStoreMapping {
 
   GetTablesResult transformOutboundGetTablesResult(GetTablesResult result);
 
-  long getTimeout();
-
+  @Override
+  long getLatency();
 }

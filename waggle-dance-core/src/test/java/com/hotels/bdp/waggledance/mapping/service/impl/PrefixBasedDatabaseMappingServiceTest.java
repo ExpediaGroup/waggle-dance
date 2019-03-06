@@ -76,12 +76,12 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void init() {
     metaStoreMappingPrimary = mockNewMapping(true, "");
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
-    when(metaStoreMappingPrimary.getTimeout()).thenReturn(TIMEOUT);
+    when(metaStoreMappingPrimary.getLatency()).thenReturn(TIMEOUT);
     metaStoreMappingFederated = mockNewMapping(true, DB_PREFIX);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(TIMEOUT);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(TIMEOUT);
 
     AbstractMetaStore unavailableMetastore = newFederatedInstance("name2", "thrift:host:port");
     MetaStoreMapping unavailableMapping = mockNewMapping(false, "name2_");
@@ -291,7 +291,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   @Test
   public void panopticOperationsHandlerGetAllDatabasesDifferentTimeouts() throws Exception {
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.getAllDatabases();
@@ -350,7 +350,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void panopticStoreOperationsHandlerGetAllDatabasesDifferentTimeouts() throws Exception {
     String pattern = "*_db";
     when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.getAllDatabases(pattern);
@@ -395,7 +395,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     when(primaryDatabaseClient.get_table_meta("*_db", "*", null)).thenReturn(
         Collections.singletonList(primaryTableMeta));
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<TableMeta> result = handler.getTableMeta("*_db", "*", null);
@@ -436,7 +436,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     String user = "user";
     List<String> groups = Lists.newArrayList();
     when(primaryDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi"));
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();

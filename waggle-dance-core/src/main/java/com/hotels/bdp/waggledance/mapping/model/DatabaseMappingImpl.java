@@ -110,7 +110,6 @@ public class DatabaseMappingImpl implements DatabaseMapping {
       }
     }
     return table;
-
   }
 
   @Override
@@ -440,7 +439,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public void createDatabase(Database database)
-    throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
+      throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
     metaStoreMapping.createDatabase(database);
   }
 
@@ -485,8 +484,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
-  public long getTimeout() {
-    return metaStoreMapping.getTimeout();
+  public long getLatency() {
+    return metaStoreMapping.getLatency();
   }
-
 }

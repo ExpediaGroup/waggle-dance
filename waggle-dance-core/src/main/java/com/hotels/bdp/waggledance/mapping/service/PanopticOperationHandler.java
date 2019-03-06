@@ -45,7 +45,7 @@ public abstract class PanopticOperationHandler {
   public static final String PREFIXED_RESOLUTION_TYPE = "PREFIXED";
   private static final Logger LOG = LoggerFactory.getLogger(PanopticOperationHandler.class);
   private static final String INTERRUPTED_MESSAGE = "Execution was interrupted: ";
-  private static final String SLOW_METASTORE_MESSAGE = "Metastore was slow to respond so results are omitted";
+  private static final String SLOW_METASTORE_MESSAGE = "Metastore {} was slow to respond so results are omitted";
   private static final long SET_UGI_TIMEOUT = 5000;
   private static final long GET_DATABASES_TIMEOUT = 6000;
   private static final long GET_TABLE_META_TIMEOUT = 400;
@@ -110,16 +110,9 @@ public abstract class PanopticOperationHandler {
                                                 String errorMessage, Logger log) {
     List<String> allDatabases = new LinkedList<>();
     for (Future<List<?>> future : futures) {
-      try {
-        List<String> result = (List<String>) getResultFromFuture(iterator, future, GET_DATABASES_TIMEOUT);
-        allDatabases.addAll(result);
-      } catch (InterruptedException e) {
-        log.warn(INTERRUPTED_MESSAGE, e);
-      } catch (ExecutionException e) {
-        log.warn(errorMessage, e.getMessage());
-      } catch (TimeoutException e) {
-        log.warn(SLOW_METASTORE_MESSAGE);
-      }
+      List<String> result = (List<String>) getResultFromFuture(iterator, future, GET_DATABASES_TIMEOUT, log,
+          errorMessage);
+      if (result != null) {allDatabases.addAll(result);}
     }
     return allDatabases;
   }
@@ -129,16 +122,9 @@ public abstract class PanopticOperationHandler {
                                                    Logger log) {
     List<TableMeta> allTableMetas = new ArrayList<>();
     for (Future<List<?>> future : futures) {
-      try {
-        List<TableMeta> result = (List<TableMeta>) getResultFromFuture(iterator, future, GET_TABLE_META_TIMEOUT);
-        allTableMetas.addAll(result);
-      } catch (InterruptedException e) {
-        log.warn(INTERRUPTED_MESSAGE, e);
-      } catch (ExecutionException e) {
-        log.warn("Got exception fetching get_table_meta: {}", e.getMessage());
-      } catch (TimeoutException e) {
-        log.warn(SLOW_METASTORE_MESSAGE);
-      }
+      List<TableMeta> result = (List<TableMeta>) getResultFromFuture(iterator, future, GET_TABLE_META_TIMEOUT, log,
+          "Got exception fetching get_table_meta: {}");
+      if (result != null) {allTableMetas.addAll(result);}
     }
     return allTableMetas;
   }
@@ -147,26 +133,28 @@ public abstract class PanopticOperationHandler {
                                        Logger log) {
     Set<String> allUgis = new LinkedHashSet<>();
     for (Future<List<?>> future : futures) {
-      try {
-        List<String> result = (List<String>) getResultFromFuture(iterator, future, SET_UGI_TIMEOUT);
-        allUgis.addAll(result);
-      } catch (InterruptedException e) {
-        log.warn(INTERRUPTED_MESSAGE, e);
-      } catch (ExecutionException e) {
-        log.warn("Got exception fetching UGI: {}", e.getMessage());
-      } catch (TimeoutException e) {
-        log.warn(SLOW_METASTORE_MESSAGE);
-      }
+
+      List<String> result = (List<String>) getResultFromFuture(iterator, future, SET_UGI_TIMEOUT, log,
+          "Got exception fetching UGI: {}");
+      if (result != null) {allUgis.addAll(result);}
     }
     return allUgis;
   }
 
   private List<?> getResultFromFuture(Iterator<DatabaseMapping> iterator, Future<List<?>> future,
-                                      long methodTimeout)
-      throws InterruptedException, ExecutionException, TimeoutException {
+                                      long methodTimeout, Logger log, String errorMessage) {
     DatabaseMapping mapping = iterator.next();
-    long timeout = methodTimeout + mapping.getTimeout();
-    return future.get(timeout, TimeUnit.MILLISECONDS);
+    long timeout = methodTimeout + mapping.getLatency();
+    try {
+      return future.get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      log.warn(INTERRUPTED_MESSAGE, e);
+    } catch (ExecutionException e) {
+      log.warn(errorMessage, e.getMessage());
+    } catch (TimeoutException e) {
+      log.warn(SLOW_METASTORE_MESSAGE, mapping.getMetastoreMappingName());
+    }
+    return null;
   }
 
   protected void shutdownExecutorService(ExecutorService executorService) {

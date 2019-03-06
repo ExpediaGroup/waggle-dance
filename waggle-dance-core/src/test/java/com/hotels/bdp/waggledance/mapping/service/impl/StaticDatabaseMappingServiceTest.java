@@ -79,11 +79,11 @@ public class StaticDatabaseMappingServiceTest {
 
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
-    when(metaStoreMappingPrimary.getTimeout()).thenReturn(TIMEOUT);
+    when(metaStoreMappingPrimary.getLatency()).thenReturn(TIMEOUT);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
     metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(TIMEOUT);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(TIMEOUT);
     when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedFederatedDatabases);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
@@ -351,7 +351,7 @@ public class StaticDatabaseMappingServiceTest {
   public void panopticOperationsHandlerGetAllDatabasesByPatternDifferentTimeouts() throws Exception {
     String pattern = "pattern";
     when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> result = handler.getAllDatabases(pattern);
@@ -413,7 +413,7 @@ public class StaticDatabaseMappingServiceTest {
 
     when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(
         Lists.newArrayList(primaryTableMeta));
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<TableMeta> result = handler.getTableMeta(pattern, pattern, tblTypes);
@@ -453,7 +453,7 @@ public class StaticDatabaseMappingServiceTest {
     String user = "user";
     List<String> groups = Lists.newArrayList();
     when(primaryDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi"));
-    when(metaStoreMappingFederated.getTimeout()).thenReturn(0L);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();

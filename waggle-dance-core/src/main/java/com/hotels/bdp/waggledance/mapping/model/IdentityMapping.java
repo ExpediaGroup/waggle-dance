@@ -351,8 +351,8 @@ public class IdentityMapping implements DatabaseMapping {
   }
 
   @Override
-  public long getTimeout() {
-    return metaStoreMapping.getTimeout();
+  public long getLatency() {
+    return metaStoreMapping.getLatency();
   }
 
 }
