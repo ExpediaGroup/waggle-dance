@@ -16,28 +16,27 @@
 package com.hotels.bdp.waggledance.mapping.service.requests;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 
 import org.apache.thrift.TException;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
-import com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils;
-import com.hotels.bdp.waggledance.util.Whitelist;
 
 public class GetAllDatabasesRequest implements Callable<List<String>> {
 
   private final DatabaseMapping mapping;
-  private final Map<String, Whitelist> mappedDbByPrefix;
+  private BiFunction<List<String>, DatabaseMapping, List<String>> filter;
 
-  public GetAllDatabasesRequest(DatabaseMapping mapping, Map<String, Whitelist> mappedDbByPrefix) {
+  public GetAllDatabasesRequest(DatabaseMapping mapping,
+      BiFunction<List<String>, DatabaseMapping, List<String>> filter) {
     this.mapping = mapping;
-    this.mappedDbByPrefix = mappedDbByPrefix;
+    this.filter = filter;
   }
 
   @Override
   public List<String> call() throws TException {
     List<String> databases = mapping.getClient().get_all_databases();
-    return DatabaseMappingUtils.getMappedWhitelistedDatabases(databases, mapping, mappedDbByPrefix);
+    return filter.apply(databases, mapping);
   }
 }

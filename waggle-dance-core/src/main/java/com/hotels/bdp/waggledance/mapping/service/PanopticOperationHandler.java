@@ -94,7 +94,6 @@ public abstract class PanopticOperationHandler {
       shutdownExecutorService(executorService);
     }
     return combined;
-
   }
 
   /**
