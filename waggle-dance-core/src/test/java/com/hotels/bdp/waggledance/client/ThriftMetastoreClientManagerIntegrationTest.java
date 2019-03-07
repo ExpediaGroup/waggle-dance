@@ -34,17 +34,18 @@ import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 @RunWith(MockitoJUnitRunner.class)
 public class ThriftMetastoreClientManagerIntegrationTest {
 
-  @Rule
-  public ThriftHiveMetaStoreJUnitRule hive = new ThriftHiveMetaStoreJUnitRule("dbname");
-
   private final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory = new HiveCompatibleThriftHiveMetastoreIfaceFactory();
   private final HiveConf hiveConf = new HiveConf();
+  private final int connectionTimeout = 10;
+
+  public @Rule ThriftHiveMetaStoreJUnitRule hive = new ThriftHiveMetaStoreJUnitRule("dbname");
   private ThriftMetastoreClientManager manager;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     hiveConf.setVar(ConfVars.METASTOREURIS, hive.getThriftConnectionUri());
-    manager = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
+    manager = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory,
+        connectionTimeout);
   }
 
   @Test
@@ -56,7 +57,7 @@ public class ThriftMetastoreClientManagerIntegrationTest {
   }
 
   @Test
-  public void reconnnect() throws Exception {
+  public void reconnect() throws Exception {
     manager.reconnect();
 
     Database database = manager.getClient().get_database("dbname");
@@ -64,9 +65,10 @@ public class ThriftMetastoreClientManagerIntegrationTest {
   }
 
   @Test
-  public void openWithDummyConnectionThrowsRuntimeWithOriginalExceptionInMessage() throws Exception {
+  public void openWithDummyConnectionThrowsRuntimeWithOriginalExceptionInMessage() {
     hiveConf.setVar(ConfVars.METASTOREURIS, "thrift://localhost:123");
-    manager = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
+    manager = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory,
+        connectionTimeout);
 
     try {
       manager.open();
@@ -74,5 +76,4 @@ public class ThriftMetastoreClientManagerIntegrationTest {
       assertThat(e.getMessage(), containsString("java.net.ConnectException: Connection refused"));
     }
   }
-
 }

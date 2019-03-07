@@ -1,4 +1,7 @@
 ## TBD
+### Added
+* Configurable `latency` for each metastore in a Waggle Dance configuration.
+
 ### Fixed
 * Support for regex `mapped-databases` for MANUAL database resolution. See [#147](https://github.com/HotelsDotCom/waggle-dance/issues/147).
 * Avoid NPE when no elements are provided for `mapped-databases` in the configuration. See [#131](https://github.com/HotelsDotCom/waggle-dance/issues/131).

@@ -168,4 +168,9 @@ public class MetaStoreMappingImplTest {
       verify(accessControlHandler, never()).databaseCreatedNotification("db");
     }
   }
+
+  @Test
+  public void getLatency() {
+    assertThat(metaStoreMapping.getLatency(), is(LATENCY));
+  }
 }

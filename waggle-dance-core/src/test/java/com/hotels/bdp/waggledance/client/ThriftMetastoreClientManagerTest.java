@@ -35,16 +35,17 @@ import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveM
 @RunWith(MockitoJUnitRunner.class)
 public class ThriftMetastoreClientManagerTest {
 
+  private final int connectionTimeout = 10;
+  private final HiveConf hiveConf = new HiveConf();
   private @Mock TSocket transport;
   private @Mock HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
-
-  private final HiveConf hiveConf = new HiveConf();
   private ThriftMetastoreClientManager client;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     hiveConf.setVar(ConfVars.METASTOREURIS, "thrift://localhost:123");
-    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory,
+        connectionTimeout);
     ReflectionTestUtils.setField(client, "transport", transport);
     ReflectionTestUtils.setField(client, "isConnected", true);
   }
@@ -52,25 +53,29 @@ public class ThriftMetastoreClientManagerTest {
   @Test(expected = RuntimeException.class)
   public void constructorEmptyURI() {
     hiveConf.setVar(ConfVars.METASTOREURIS, "");
-    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory,
+        connectionTimeout);
   }
 
   @Test(expected = RuntimeException.class)
   public void constructorNullURI() {
     hiveConf.setVar(ConfVars.METASTOREURIS, null);
-    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory,
+        connectionTimeout);
   }
 
   @Test(expected = RuntimeException.class)
   public void constructorNullURISchema() {
     hiveConf.setVar(ConfVars.METASTOREURIS, "123");
-    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory,
+        connectionTimeout);
   }
 
   @Test(expected = RuntimeException.class)
   public void constructorInvalidURI() {
     hiveConf.setVar(ConfVars.METASTOREURIS, "://localhost:123");
-    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory,
+        connectionTimeout);
   }
 
   @Test
@@ -97,4 +102,16 @@ public class ThriftMetastoreClientManagerTest {
     verify(transport, never()).close();
   }
 
+  @Test
+  public void typical() {
+    client.open();
+    client.close();
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void openSlowConnection() {
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory,
+        1);
+    client.open();
+  }
 }

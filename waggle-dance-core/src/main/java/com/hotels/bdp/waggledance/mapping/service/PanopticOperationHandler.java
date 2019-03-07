@@ -51,9 +51,9 @@ public abstract class PanopticOperationHandler {
   private static final Logger LOG = LoggerFactory.getLogger(PanopticOperationHandler.class);
   private static final String INTERRUPTED_MESSAGE = "Execution was interrupted: ";
   private static final String SLOW_METASTORE_MESSAGE = "Metastore {} was slow to respond so results are omitted";
-  private static final long SET_UGI_TIMEOUT = 5000;
-  private static final long GET_DATABASES_TIMEOUT = 6000;
-  private static final long GET_TABLE_META_TIMEOUT = 400;
+  private static final long SET_UGI_TIMEOUT = 400;
+  private static final long GET_DATABASES_TIMEOUT = 8000;
+  private static final long GET_TABLE_META_TIMEOUT = 8000;
   protected final String MANUAL_RESOLUTION_TYPE = "MANUAL";
 
   /**

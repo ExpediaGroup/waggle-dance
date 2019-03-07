@@ -15,8 +15,6 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import static com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory.TSOCKET_CONNECTION_TIMEOUT_PROPERTY;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
@@ -62,11 +60,15 @@ class ThriftMetastoreClientManager implements Closeable {
   private int retries = 5;
   private long retryDelaySeconds = 0;
 
+  private final int connectionTimeout;
+
   ThriftMetastoreClientManager(
       HiveConf conf,
-      HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory) {
+      HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory,
+      int connectionTimeout) {
     this.conf = conf;
     this.hiveCompatibleThriftHiveMetastoreIfaceFactory = hiveCompatibleThriftHiveMetastoreIfaceFactory;
+    this.connectionTimeout = connectionTimeout;
     String msUri = conf.getVar(ConfVars.METASTOREURIS);
 
     if (HiveConfUtil.isEmbeddedMetaStore(msUri)) {
@@ -112,7 +114,6 @@ class ThriftMetastoreClientManager implements Closeable {
     boolean useFramedTransport = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT);
     boolean useCompactProtocol = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL);
     int clientSocketTimeout = (int) conf.getTimeVar(ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, TimeUnit.MILLISECONDS);
-    int connectionTimeout = Integer.valueOf(conf.get(TSOCKET_CONNECTION_TIMEOUT_PROPERTY));
 
     for (int attempt = 0; !isConnected && (attempt < retries); ++attempt) {
       for (URI store : metastoreUris) {

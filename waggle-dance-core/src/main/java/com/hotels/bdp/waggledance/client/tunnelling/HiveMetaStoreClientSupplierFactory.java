@@ -35,7 +35,7 @@ public class HiveMetaStoreClientSupplierFactory {
     this(new DefaultMetaStoreClientFactory());
   }
 
-  HiveMetaStoreClientSupplier newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    return new HiveMetaStoreClientSupplier(factory, hiveConf, name, reconnectionRetries);
+  HiveMetaStoreClientSupplier newInstance(HiveConf hiveConf, String name, int reconnectionRetries, int connectionTimeout) {
+    return new HiveMetaStoreClientSupplier(factory, hiveConf, name, reconnectionRetries, connectionTimeout);
   }
 }

@@ -21,6 +21,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,5 +102,12 @@ public class MonitoredDatabaseMappingServiceTest {
   public void close() throws Exception {
     service.close();
     verify(wrapped).close();
+  }
+
+  @Test
+  public void getDatabaseMappings() {
+    List<DatabaseMapping> databaseMappings = Arrays.asList(primaryMapping, otherMapping);
+    when(wrapped.getDatabaseMappings()).thenReturn(databaseMappings);
+    assertThat(service.getDatabaseMappings(), is(databaseMappings));
   }
 }

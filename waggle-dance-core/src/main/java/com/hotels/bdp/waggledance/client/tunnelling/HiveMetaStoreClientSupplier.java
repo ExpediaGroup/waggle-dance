@@ -26,17 +26,19 @@ class HiveMetaStoreClientSupplier implements TunnelableSupplier<CloseableThriftH
   private final HiveConf hiveConf;
   private final String name;
   private final int reconnectionRetries;
+  private final int connectionTimeout;
 
-  HiveMetaStoreClientSupplier(MetaStoreClientFactory factory, HiveConf hiveConf, String name, int reconnectionRetries) {
+  HiveMetaStoreClientSupplier(MetaStoreClientFactory factory, HiveConf hiveConf, String name, int reconnectionRetries, int connectionTimeout) {
     this.factory = factory;
     this.hiveConf = hiveConf;
     this.name = name;
     this.reconnectionRetries = reconnectionRetries;
+    this.connectionTimeout = connectionTimeout;
   }
 
   @Override
   public CloseableThriftHiveMetastoreIface get() {
-    return factory.newInstance(hiveConf, name, reconnectionRetries);
+    return factory.newInstance(hiveConf, name, reconnectionRetries, connectionTimeout);
   }
 
 }

@@ -36,10 +36,11 @@ public class HiveMetaStoreClientSupplierTest {
   public void getMetaStoreClientFactoryInstance() {
     String name = "test";
     int reconnectionRetries = 10;
+    int connectionTimeout = 10;
     HiveMetaStoreClientSupplier supplier = new HiveMetaStoreClientSupplier(factory, hiveConf, name,
-        reconnectionRetries);
+        reconnectionRetries, connectionTimeout);
     supplier.get();
-    verify(factory).newInstance(hiveConf, name, reconnectionRetries);
+    verify(factory).newInstance(hiveConf, name, reconnectionRetries, connectionTimeout);
   }
 
 }

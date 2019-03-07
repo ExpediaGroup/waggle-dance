@@ -52,18 +52,19 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   }
 
   @Test
-  public void defaultFactory() throws Exception {
+  public void defaultFactory() {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
 
     factory.newInstance(newFederatedInstance("fed1", THRIFT_URI));
-    verify(defaultMetaStoreClientFactory).newInstance(hiveConfCaptor.capture(), eq("waggledance-fed1"), eq(3));
+    verify(defaultMetaStoreClientFactory).newInstance(hiveConfCaptor.capture(), eq(
+        "waggledance-fed1"), eq(3), eq(2000));
     verifyZeroInteractions(tunnelingMetaStoreClientFactory);
     HiveConf hiveConf = hiveConfCaptor.getValue();
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
   }
 
   @Test
-  public void tunnelingFactory() throws Exception {
+  public void tunnelingFactory() {
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
     metastoreTunnel.setLocalhost("local-machine");
     metastoreTunnel.setPort(2222);
@@ -75,8 +76,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
 
     factory.newInstance(federatedMetaStore);
-    verify(tunnelingMetaStoreClientFactory).newInstance(THRIFT_URI, metastoreTunnel, "fed1", 3);
+    verify(tunnelingMetaStoreClientFactory).newInstance(THRIFT_URI, metastoreTunnel, "fed1", 3, 2000);
     verifyZeroInteractions(defaultMetaStoreClientFactory);
   }
-
 }

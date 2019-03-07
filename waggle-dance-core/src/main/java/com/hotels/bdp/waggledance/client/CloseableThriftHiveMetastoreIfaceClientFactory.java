@@ -32,8 +32,6 @@ import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
-  public static final String TSOCKET_CONNECTION_TIMEOUT_PROPERTY = "hive.metastore.client.connect.timeout";
-
   private static final int DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY = 3;
   private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private final DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
@@ -53,13 +51,13 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
     if (metaStore.getConnectionType() == TUNNELED) {
       return tunnelingMetaStoreClientFactory
-          .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY);
+          .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY, connectionTimeout);
     }
     Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
-    properties.put(TSOCKET_CONNECTION_TIMEOUT_PROPERTY, String.valueOf(connectionTimeout));
-    HiveConfFactory confFactory = new HiveConfFactory(Collections.<String>emptyList(), properties);
+    HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     return defaultMetaStoreClientFactory
-        .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY);
+        .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
+            connectionTimeout);
   }
 }

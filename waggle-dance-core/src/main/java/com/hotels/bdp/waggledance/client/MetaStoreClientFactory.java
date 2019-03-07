@@ -19,6 +19,10 @@ import org.apache.hadoop.hive.conf.HiveConf;
 
 public interface MetaStoreClientFactory {
 
-  CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
+  CloseableThriftHiveMetastoreIface newInstance(
+      HiveConf hiveConf,
+      String name,
+      int reconnectionRetries,
+      int connectionTimeout);
 
 }
