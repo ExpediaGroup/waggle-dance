@@ -74,9 +74,7 @@ public abstract class PanopticOperationHandler {
   protected List<String> getAllDatabases(
       Map<DatabaseMapping, String> databaseMappingsForPattern,
       BiFunction<String, DatabaseMapping, Boolean> filter) {
-
     List<String> combined = new ArrayList<>();
-
     ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
     List<Future<List<String>>> futures = new ArrayList<>();
 
@@ -100,8 +98,8 @@ public abstract class PanopticOperationHandler {
    * Implements {@link HMSHandler#get_table_meta(String, String, List)} over multiple metastores
    *
    * @param databasePatterns database patterns to match
-   * @param tablePatterns    table patterns to match
-   * @param tableTypes       table types to match
+   * @param tablePatterns table patterns to match
+   * @param tableTypes table types to match
    * @return list of table metadata
    */
   abstract public List<TableMeta> getTableMeta(String databasePatterns, String tablePatterns, List<String> tableTypes);
@@ -133,7 +131,7 @@ public abstract class PanopticOperationHandler {
   /**
    * Implements {@link HMSHandler#set_ugi(String, List)} over multiple metastores
    *
-   * @param user_name   user name
+   * @param user_name user name
    * @param group_names group names
    * @return list
    */

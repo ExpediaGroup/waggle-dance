@@ -294,8 +294,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<Future<List<String>>> futures = new ArrayList<>();
 
-        BiFunction<List<String>, DatabaseMapping, List<String>> filter = (databases, mapping) -> getMappedWhitelistedDatabases(
-            databases, mapping);
+        BiFunction<List<String>, DatabaseMapping, List<String>> filter = (
+            databases,
+            mapping) -> getMappedWhitelistedDatabases(databases, mapping);
 
         for (DatabaseMapping mapping : databaseMappings) {
           GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, filter);

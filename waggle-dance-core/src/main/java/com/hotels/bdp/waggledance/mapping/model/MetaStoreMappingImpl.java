@@ -120,7 +120,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public void createDatabase(Database database)
-      throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
+    throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
     if (accessControlHandler.hasCreatePermission()) {
       getClient().create_database(database);
       accessControlHandler.databaseCreatedNotification(database.getName());
