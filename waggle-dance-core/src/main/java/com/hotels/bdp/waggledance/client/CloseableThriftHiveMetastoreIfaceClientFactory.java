@@ -47,11 +47,14 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase(Locale.ROOT);
-    int connectionTimeout = defaultConnectionTimeout + (int) metaStore.getLatency();
+
+    // connection timeout should not be 0 or less
+    int connectionTimeout = Math.max(1, defaultConnectionTimeout + (int) metaStore.getLatency());
 
     if (metaStore.getConnectionType() == TUNNELED) {
       return tunnelingMetaStoreClientFactory
-          .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY, connectionTimeout);
+          .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
+              connectionTimeout);
     }
     Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uris);

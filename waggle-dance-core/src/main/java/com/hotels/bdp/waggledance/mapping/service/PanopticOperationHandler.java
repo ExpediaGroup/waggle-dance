@@ -47,14 +47,12 @@ import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
  */
 public abstract class PanopticOperationHandler {
 
-  public static final String PREFIXED_RESOLUTION_TYPE = "PREFIXED";
   private static final Logger LOG = LoggerFactory.getLogger(PanopticOperationHandler.class);
   private static final String INTERRUPTED_MESSAGE = "Execution was interrupted: ";
   private static final String SLOW_METASTORE_MESSAGE = "Metastore {} was slow to respond so results are omitted";
-  private static final long SET_UGI_TIMEOUT = 400;
-  private static final long GET_DATABASES_TIMEOUT = 8000;
-  private static final long GET_TABLE_META_TIMEOUT = 8000;
-  protected final String MANUAL_RESOLUTION_TYPE = "MANUAL";
+  private static final long SET_UGI_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(8000L);
+  private static final long GET_DATABASES_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(8000L);
+  private static final long GET_TABLE_META_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(400L);
 
   /**
    * Implements {@link HMSHandler#get_all_databases()} over multiple metastores
@@ -201,7 +199,7 @@ public abstract class PanopticOperationHandler {
       Future<List<T>> future,
       long methodTimeout,
       String errorMessage) {
-    long timeout = methodTimeout + mapping.getLatency();
+    long timeout = Math.max(1, methodTimeout + mapping.getLatency());
     try {
       return future.get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
