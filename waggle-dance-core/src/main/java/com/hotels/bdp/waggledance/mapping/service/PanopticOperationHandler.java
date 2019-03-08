@@ -146,7 +146,7 @@ public abstract class PanopticOperationHandler {
       maxLatency = Math.max(maxLatency, mapping.getLatency());
     }
 
-    long totalTimeout = Math.max(1, GET_TABLE_META_TIMEOUT + maxLatency);
+    long totalTimeout = Math.max(1, SET_UGI_TIMEOUT + maxLatency);
     Set<String> result = getUgiFromFuture(executorService, allRequests, totalTimeout);
     executorService.shutdownNow();
 
