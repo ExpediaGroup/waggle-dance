@@ -26,9 +26,17 @@ import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederate
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newPrimaryInstance;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
@@ -554,5 +562,62 @@ public class PrefixBasedDatabaseMappingServiceTest {
       } catch (InterruptedException ignored) {}
       return federatedDatabaseClient;
     });
+  }
+
+  @Test
+  public void executorServiceTest() {
+    ExecutorService executorService = Executors.newFixedThreadPool(5);
+    List<Callable<String>> callableList = new ArrayList<>();
+
+    callableList.add(() -> {
+      Thread.sleep(1000L);
+      return "Task 1";
+    });
+    callableList.add(() -> {
+      Thread.sleep(10L);
+      return "Task 2";
+    });
+    callableList.add(() -> {
+      Thread.sleep(1000L);
+      return "Task 3";
+    });
+    callableList.add(() -> {
+      Thread.sleep(100L);
+      return "Task 4";
+    });
+    callableList.add(() -> {
+      Thread.sleep(105L);
+      return "Task 5";
+    });
+
+    List<Future<String>> futures = Collections.emptyList();
+    try {
+      futures = executorService.invokeAll(callableList, 100L, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      System.out.println("Could not call invokeAll");
+    }
+    for (Future<String> future : futures) {
+      String result = null;
+      try {
+        result = future.get();
+      } catch (ExecutionException | InterruptedException | CancellationException e) {
+        System.out.println("Could not get result");
+      }
+      System.out.println("Result is " + result);
+    }
+
+    // prints
+    //    Could not get result
+    //    Result is null
+    //    Result is Task 2
+    //    Could not get result
+    //    Result is null
+    //    Result is Task 4
+    //    Could not get result
+    //    Result is null
+
+    try {
+      executorService.shutdownNow();
+    } catch (Exception ignored) {}
   }
 }
