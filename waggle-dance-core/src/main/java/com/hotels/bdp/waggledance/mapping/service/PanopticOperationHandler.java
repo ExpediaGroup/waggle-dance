@@ -16,7 +16,6 @@
 package com.hotels.bdp.waggledance.mapping.service;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -24,12 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
@@ -39,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
+import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 
@@ -47,11 +47,11 @@ import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
  */
 public abstract class PanopticOperationHandler {
 
+  protected static final long GET_DATABASES_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(8000L);
   private static final Logger LOG = LoggerFactory.getLogger(PanopticOperationHandler.class);
   private static final String INTERRUPTED_MESSAGE = "Execution was interrupted: ";
   private static final String SLOW_METASTORE_MESSAGE = "Metastore {} was slow to respond so results are omitted";
   private static final long SET_UGI_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(8000L);
-  private static final long GET_DATABASES_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(8000L);
   private static final long GET_TABLE_META_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(400L);
 
   /**
@@ -72,24 +72,24 @@ public abstract class PanopticOperationHandler {
   protected List<String> getAllDatabases(
       Map<DatabaseMapping, String> databaseMappingsForPattern,
       BiFunction<String, DatabaseMapping, Boolean> filter) {
-    List<String> combined = new ArrayList<>();
     ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-    List<Future<List<String>>> futures = new ArrayList<>();
+    List<GetAllDatabasesByPatternRequest> allRequests = new ArrayList<>();
+    long maxLatency = (long) Integer.MIN_VALUE;
 
     for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
+      DatabaseMapping mapping = mappingWithPattern.getKey();
       GetAllDatabasesByPatternRequest databasesByPatternRequest = new GetAllDatabasesByPatternRequest(
-          mappingWithPattern.getKey(), mappingWithPattern.getValue(), filter);
-      futures.add(executorService.submit(databasesByPatternRequest));
+          mapping, mappingWithPattern.getValue(), filter);
+      allRequests.add(databasesByPatternRequest);
+      maxLatency = Math.max(maxLatency, mapping.getLatency());
     }
 
-    try {
-      List<String> result = getDatabasesFromFuture(futures, databaseMappingsForPattern.keySet(),
-          "Can't fetch databases by pattern: {}");
-      combined.addAll(result);
-    } finally {
-      shutdownExecutorService(executorService);
-    }
-    return combined;
+    long totalTimeout = Math.max(1, GET_DATABASES_TIMEOUT + maxLatency);
+    List<String> result = getDatabasesByPatternFromFuture(executorService, allRequests, totalTimeout,
+        "Can't fetch databases by pattern: {}");
+    executorService.shutdownNow();
+
+    return result;
   }
 
   /**
@@ -107,23 +107,23 @@ public abstract class PanopticOperationHandler {
       List<String> tableTypes,
       Map<DatabaseMapping, String> databaseMappingsForPattern,
       BiFunction<TableMeta, DatabaseMapping, Boolean> filter) {
-    List<TableMeta> combined = new ArrayList<>();
     ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-    List<Future<List<TableMeta>>> futures = new ArrayList<>();
+    List<GetTableMetaRequest> allRequests = new ArrayList<>();
+    long maxLatency = (long) Integer.MIN_VALUE;
 
     for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
-      GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mappingWithPattern.getKey(),
+      DatabaseMapping mapping = mappingWithPattern.getKey();
+      GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mapping,
           mappingWithPattern.getValue(), tablePatterns, tableTypes, filter);
-      futures.add(executorService.submit(tableMetaRequest));
+      allRequests.add(tableMetaRequest);
+      maxLatency = Math.max(maxLatency, mapping.getLatency());
     }
 
-    try {
-      List<TableMeta> result = getTableMetaFromFuture(futures, databaseMappingsForPattern.keySet());
-      combined.addAll(result);
-    } finally {
-      shutdownExecutorService(executorService);
-    }
-    return combined;
+    long totalTimeout = Math.max(1, GET_TABLE_META_TIMEOUT + maxLatency);
+    List<TableMeta> result = getTableMetaFromFuture(executorService, allRequests, totalTimeout);
+    executorService.shutdownNow();
+
+    return result;
   }
 
   /**
@@ -137,43 +137,83 @@ public abstract class PanopticOperationHandler {
     // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
     // Not sure if anything uses these results. We're assuming the order doesn't matter.
     ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-    List<Future<List<String>>> futures = new ArrayList<>();
+    List<SetUgiRequest> allRequests = new ArrayList<>();
+    long maxLatency = (long) Integer.MIN_VALUE;
 
     for (DatabaseMapping mapping : databaseMappings) {
       SetUgiRequest setUgiRequest = new SetUgiRequest(mapping, user_name, group_names);
-      futures.add(executorService.submit(setUgiRequest));
+      allRequests.add(setUgiRequest);
+      maxLatency = Math.max(maxLatency, mapping.getLatency());
     }
 
-    try {
-      Set<String> result = getUgiFromFuture(futures, databaseMappings);
-      return new ArrayList<>(result);
-    } finally {
-      shutdownExecutorService(executorService);
-    }
+    long totalTimeout = Math.max(1, GET_TABLE_META_TIMEOUT + maxLatency);
+    Set<String> result = getUgiFromFuture(executorService, allRequests, totalTimeout);
+    executorService.shutdownNow();
+
+    return new ArrayList<>(result);
   }
 
-  protected List<String> getDatabasesFromFuture(
-      List<Future<List<String>>> futures,
-      Collection<DatabaseMapping> databaseMappings,
+  protected List<String> getDatabasesFromFuture(ExecutorService executorService,
+      List<GetAllDatabasesRequest> allRequests,
+      long totalTimeout,
       String errorMessage) {
     List<String> allDatabases = new ArrayList<>();
-    Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
+    List<Future<List<String>>> futures = Collections.emptyList();
+    Iterator<GetAllDatabasesRequest> iterator = allRequests.iterator();
+
+    try {
+      futures = executorService.invokeAll(allRequests, totalTimeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      LOG.warn("Execution was interrupted", e);
+    }
+
     for (Future<List<String>> future : futures) {
-      DatabaseMapping databaseMapping = iterator.next();
-      List<String> result = getResultFromFuture(databaseMapping, future, GET_DATABASES_TIMEOUT, errorMessage);
+      DatabaseMapping mapping = iterator.next().getMapping();
+      List<String> result = getResultFromFuture(future, mapping.getMetastoreMappingName(), errorMessage);
+      allDatabases.addAll(result);
+    }
+    return allDatabases;
+  }
+
+  private List<String> getDatabasesByPatternFromFuture(ExecutorService executorService,
+      List<GetAllDatabasesByPatternRequest> allRequests,
+      long totalTimeout,
+      String errorMessage) {
+    List<String> allDatabases = new ArrayList<>();
+    List<Future<List<String>>> futures = Collections.emptyList();
+    Iterator<GetAllDatabasesByPatternRequest> iterator = allRequests.iterator();
+
+    try {
+      futures = executorService.invokeAll(allRequests, totalTimeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      LOG.warn("Execution was interrupted", e);
+    }
+
+    for (Future<List<String>> future : futures) {
+      DatabaseMapping mapping = iterator.next().getMapping();
+      List<String> result = getResultFromFuture(future, mapping.getMetastoreMappingName(), errorMessage);
       allDatabases.addAll(result);
     }
     return allDatabases;
   }
 
   private List<TableMeta> getTableMetaFromFuture(
-      List<Future<List<TableMeta>>> futures,
-      Collection<DatabaseMapping> databaseMappings) {
+      ExecutorService executorService,
+      List<GetTableMetaRequest> allRequests,
+      long totalTimeout) {
     List<TableMeta> allTableMetas = new ArrayList<>();
-    Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
+    List<Future<List<TableMeta>>> futures = Collections.emptyList();
+    Iterator<GetTableMetaRequest> iterator = allRequests.iterator();
+
+    try {
+      futures = executorService.invokeAll(allRequests, totalTimeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      LOG.warn("Execution was interrupted", e);
+    }
+
     for (Future<List<TableMeta>> future : futures) {
-      DatabaseMapping databaseMapping = iterator.next();
-      List<TableMeta> result = getResultFromFuture(databaseMapping, future, GET_TABLE_META_TIMEOUT,
+      DatabaseMapping mapping = iterator.next().getMapping();
+      List<TableMeta> result = getResultFromFuture(future, mapping.getMetastoreMappingName(),
           "Got exception fetching get_table_meta: {}");
       allTableMetas.addAll(result);
     }
@@ -181,13 +221,22 @@ public abstract class PanopticOperationHandler {
   }
 
   private Set<String> getUgiFromFuture(
-      List<Future<List<String>>> futures,
-      Collection<DatabaseMapping> databaseMappings) {
+      ExecutorService executorService,
+      List<SetUgiRequest> allRequests,
+      long totalTimeout) {
     Set<String> allUgis = new LinkedHashSet<>();
-    Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
+    Iterator<SetUgiRequest> iterator = allRequests.iterator();
+    List<Future<List<String>>> futures = Collections.emptyList();
+
+    try {
+      futures = executorService.invokeAll(allRequests, totalTimeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      LOG.warn("Execution was interrupted", e);
+    }
+
     for (Future<List<String>> future : futures) {
-      DatabaseMapping databaseMapping = iterator.next();
-      List<String> result = getResultFromFuture(databaseMapping, future, SET_UGI_TIMEOUT,
+      DatabaseMapping mapping = iterator.next().getMapping();
+      List<String> result = getResultFromFuture(future, mapping.getMetastoreMappingName(),
           "Got exception setting UGI: {}");
       allUgis.addAll(result);
     }
@@ -195,31 +244,18 @@ public abstract class PanopticOperationHandler {
   }
 
   private <T> List<T> getResultFromFuture(
-      DatabaseMapping mapping,
       Future<List<T>> future,
-      long methodTimeout,
+      String metastoreMappingName,
       String errorMessage) {
-    long timeout = Math.max(1, methodTimeout + mapping.getLatency());
     try {
-      return future.get(timeout, TimeUnit.MILLISECONDS);
+      return future.get();
     } catch (InterruptedException e) {
       LOG.warn(INTERRUPTED_MESSAGE, e);
     } catch (ExecutionException e) {
       LOG.warn(errorMessage, e.getCause().getMessage());
-    } catch (TimeoutException e) {
-      LOG.warn(SLOW_METASTORE_MESSAGE, mapping.getMetastoreMappingName());
+    } catch (CancellationException e) {
+      LOG.warn(SLOW_METASTORE_MESSAGE, metastoreMappingName);
     }
     return Collections.emptyList();
-  }
-
-  protected void shutdownExecutorService(ExecutorService executorService) {
-    executorService.shutdown();
-    try {
-      if (!executorService.awaitTermination(200, TimeUnit.MILLISECONDS)) {
-        executorService.shutdownNow();
-      }
-    } catch (InterruptedException e) {
-      executorService.shutdownNow();
-    }
   }
 }

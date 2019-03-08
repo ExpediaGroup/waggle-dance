@@ -62,7 +62,7 @@ public class StaticDatabaseMappingServiceTest {
   private static final String FEDERATED_NAME = "name";
   private static final String PRIMARY_NAME = "primary";
   private static final String URI = "uri";
-  private static final long TIMEOUT = 2000;
+  private static final long LATENCY = 2000;
   private final AbstractMetaStore primaryMetastore = newPrimaryInstance(PRIMARY_NAME, URI);
   private final List<String> mappedFederatedDatabases = Lists.newArrayList("federated_DB");
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
@@ -79,11 +79,11 @@ public class StaticDatabaseMappingServiceTest {
 
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
-    when(metaStoreMappingPrimary.getLatency()).thenReturn(TIMEOUT);
+    when(metaStoreMappingPrimary.getLatency()).thenReturn(LATENCY);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
     metaStoreMappingFederated = mockNewMapping(true, federatedMetastore);
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.getLatency()).thenReturn(TIMEOUT);
+    when(metaStoreMappingFederated.getLatency()).thenReturn(LATENCY);
     when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedFederatedDatabases);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);

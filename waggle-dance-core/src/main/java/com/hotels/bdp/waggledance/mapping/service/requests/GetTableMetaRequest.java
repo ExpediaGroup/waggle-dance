@@ -57,4 +57,8 @@ public class GetTableMetaRequest implements Callable<List<TableMeta>> {
     }
     return mappedTableMeta;
   }
+
+  public DatabaseMapping getMapping() {
+    return mapping;
+  }
 }

@@ -28,7 +28,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 
 import javax.validation.constraints.NotNull;
@@ -289,10 +288,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases() {
-        List<String> combined = new ArrayList<>();
         List<DatabaseMapping> databaseMappings = getDatabaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-        List<Future<List<String>>> futures = new ArrayList<>();
+        List<GetAllDatabasesRequest> allRequests = new ArrayList<>();
+        long maxLatency = (long) Integer.MIN_VALUE;
 
         BiFunction<List<String>, DatabaseMapping, List<String>> filter = (
             databases,
@@ -300,16 +299,16 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
         for (DatabaseMapping mapping : databaseMappings) {
           GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, filter);
-          futures.add(executorService.submit(allDatabasesRequest));
+          allRequests.add(allDatabasesRequest);
+          maxLatency = Math.max(maxLatency, mapping.getLatency());
         }
 
-        try {
-          List<String> result = getDatabasesFromFuture(futures, databaseMappings, "Can't fetch databases: {}");
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return combined;
+        long totalTimeout = Math.max(1, GET_DATABASES_TIMEOUT + maxLatency);
+        List<String> result = getDatabasesFromFuture(executorService, allRequests, totalTimeout,
+            "Can't fetch databases: {}");
+
+        executorService.shutdownNow();
+        return result;
       }
     };
   }

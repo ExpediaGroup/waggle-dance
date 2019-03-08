@@ -37,4 +37,8 @@ public class SetUgiRequest implements Callable<List<String>> {
     List<String> result = mapping.getClient().set_ugi(user_name, group_names);
     return result;
   }
+
+  public DatabaseMapping getMapping() {
+    return mapping;
+  }
 }

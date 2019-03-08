@@ -50,4 +50,8 @@ public class GetAllDatabasesByPatternRequest implements Callable<List<String>> {
     }
     return mappedDatabases;
   }
+
+  public DatabaseMapping getMapping() {
+    return mapping;
+  }
 }

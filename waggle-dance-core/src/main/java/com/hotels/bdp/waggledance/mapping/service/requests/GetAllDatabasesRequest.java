@@ -39,4 +39,8 @@ public class GetAllDatabasesRequest implements Callable<List<String>> {
     List<String> databases = mapping.getClient().get_all_databases();
     return filter.apply(databases, mapping);
   }
+
+  public DatabaseMapping getMapping() {
+    return mapping;
+  }
 }
