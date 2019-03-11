@@ -291,7 +291,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<DatabaseMapping> databaseMappings = getDatabaseMappings();
         ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<GetAllDatabasesRequest> allRequests = new ArrayList<>();
-        long maxLatency = (long) Integer.MIN_VALUE;
 
         BiFunction<List<String>, DatabaseMapping, List<String>> filter = (
             databases,
@@ -300,10 +299,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         for (DatabaseMapping mapping : databaseMappings) {
           GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, filter);
           allRequests.add(allDatabasesRequest);
-          maxLatency = Math.max(maxLatency, mapping.getLatency());
         }
 
-        long totalTimeout = Math.max(1, GET_DATABASES_TIMEOUT + maxLatency);
+        long totalTimeout = super.getTotalTimeout(GET_DATABASES_TIMEOUT, databaseMappings);
         List<String> result = getDatabasesFromFuture(executorService, allRequests, totalTimeout,
             "Can't fetch databases: {}");
 

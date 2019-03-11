@@ -26,7 +26,7 @@ import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 public class GetAllDatabasesRequest implements Callable<List<String>> {
 
   private final DatabaseMapping mapping;
-  private BiFunction<List<String>, DatabaseMapping, List<String>> filter;
+  private final BiFunction<List<String>, DatabaseMapping, List<String>> filter;
 
   public GetAllDatabasesRequest(DatabaseMapping mapping,
       BiFunction<List<String>, DatabaseMapping, List<String>> filter) {

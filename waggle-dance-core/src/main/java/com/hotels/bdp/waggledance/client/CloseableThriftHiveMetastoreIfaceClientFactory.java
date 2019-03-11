@@ -48,7 +48,8 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase(Locale.ROOT);
 
-    // connection timeout should not be 0 or less
+    // Connection timeout should not be less than 1
+    // A timeout of zero is interpreted as an infinite timeout, so this is avoided
     int connectionTimeout = Math.max(1, defaultConnectionTimeout + (int) metaStore.getLatency());
 
     if (metaStore.getConnectionType() == TUNNELED) {

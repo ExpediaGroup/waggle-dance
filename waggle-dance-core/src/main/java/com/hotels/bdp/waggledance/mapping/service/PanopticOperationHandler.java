@@ -74,20 +74,22 @@ public abstract class PanopticOperationHandler {
       BiFunction<String, DatabaseMapping, Boolean> filter) {
     ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
     List<GetAllDatabasesByPatternRequest> allRequests = new ArrayList<>();
-    long maxLatency = (long) Integer.MIN_VALUE;
 
     for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
       DatabaseMapping mapping = mappingWithPattern.getKey();
       GetAllDatabasesByPatternRequest databasesByPatternRequest = new GetAllDatabasesByPatternRequest(
           mapping, mappingWithPattern.getValue(), filter);
       allRequests.add(databasesByPatternRequest);
-      maxLatency = Math.max(maxLatency, mapping.getLatency());
     }
 
-    long totalTimeout = Math.max(1, GET_DATABASES_TIMEOUT + maxLatency);
-    List<String> result = getDatabasesByPatternFromFuture(executorService, allRequests, totalTimeout,
-        "Can't fetch databases by pattern: {}");
-    executorService.shutdownNow();
+    long totalTimeout = getTotalTimeout(GET_DATABASES_TIMEOUT, new ArrayList<>(databaseMappingsForPattern.keySet()));
+    List<String> result = Collections.emptyList();
+    try {
+      result = getDatabasesByPatternFromFuture(executorService, allRequests, totalTimeout,
+          "Can't fetch databases by pattern: {}");
+    } finally {
+      executorService.shutdownNow();
+    }
 
     return result;
   }
@@ -109,19 +111,21 @@ public abstract class PanopticOperationHandler {
       BiFunction<TableMeta, DatabaseMapping, Boolean> filter) {
     ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
     List<GetTableMetaRequest> allRequests = new ArrayList<>();
-    long maxLatency = (long) Integer.MIN_VALUE;
 
     for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
       DatabaseMapping mapping = mappingWithPattern.getKey();
       GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mapping,
           mappingWithPattern.getValue(), tablePatterns, tableTypes, filter);
       allRequests.add(tableMetaRequest);
-      maxLatency = Math.max(maxLatency, mapping.getLatency());
     }
 
-    long totalTimeout = Math.max(1, GET_TABLE_META_TIMEOUT + maxLatency);
-    List<TableMeta> result = getTableMetaFromFuture(executorService, allRequests, totalTimeout);
-    executorService.shutdownNow();
+    long totalTimeout = getTotalTimeout(GET_TABLE_META_TIMEOUT, new ArrayList<>(databaseMappingsForPattern.keySet()));
+    List<TableMeta> result = Collections.emptyList();
+    try {
+      result = getTableMetaFromFuture(executorService, allRequests, totalTimeout);
+    } finally {
+      executorService.shutdownNow();
+    }
 
     return result;
   }
@@ -138,22 +142,25 @@ public abstract class PanopticOperationHandler {
     // Not sure if anything uses these results. We're assuming the order doesn't matter.
     ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
     List<SetUgiRequest> allRequests = new ArrayList<>();
-    long maxLatency = (long) Integer.MIN_VALUE;
 
     for (DatabaseMapping mapping : databaseMappings) {
       SetUgiRequest setUgiRequest = new SetUgiRequest(mapping, user_name, group_names);
       allRequests.add(setUgiRequest);
-      maxLatency = Math.max(maxLatency, mapping.getLatency());
     }
 
-    long totalTimeout = Math.max(1, SET_UGI_TIMEOUT + maxLatency);
-    Set<String> result = getUgiFromFuture(executorService, allRequests, totalTimeout);
-    executorService.shutdownNow();
+    long totalTimeout = getTotalTimeout(SET_UGI_TIMEOUT, databaseMappings);
+    Set<String> result = Collections.emptySet();
+    try {
+      result = getUgiFromFuture(executorService, allRequests, totalTimeout);
+    } finally {
+      executorService.shutdownNow();
+    }
 
     return new ArrayList<>(result);
   }
 
-  protected List<String> getDatabasesFromFuture(ExecutorService executorService,
+  protected List<String> getDatabasesFromFuture(
+      ExecutorService executorService,
       List<GetAllDatabasesRequest> allRequests,
       long totalTimeout,
       String errorMessage) {
@@ -175,7 +182,8 @@ public abstract class PanopticOperationHandler {
     return allDatabases;
   }
 
-  private List<String> getDatabasesByPatternFromFuture(ExecutorService executorService,
+  private List<String> getDatabasesByPatternFromFuture(
+      ExecutorService executorService,
       List<GetAllDatabasesByPatternRequest> allRequests,
       long totalTimeout,
       String errorMessage) {
@@ -257,5 +265,17 @@ public abstract class PanopticOperationHandler {
       LOG.warn(SLOW_METASTORE_MESSAGE, metastoreMappingName);
     }
     return Collections.emptyList();
+  }
+
+  protected long getTotalTimeout(long functionDefaultTimeout, List<DatabaseMapping> mappings) {
+    long maxLatency = (long) Integer.MIN_VALUE;
+    for (DatabaseMapping mapping : mappings) {
+      maxLatency = Math.max(maxLatency, mapping.getLatency());
+    }
+
+    // Connection timeout should not be less than 1
+    // Other implementations interpret a timeout of zero as infinite wait
+    // `Future.get` currently does not do that, but this is safe if implementation changes in the future
+    return Math.max(1, functionDefaultTimeout + maxLatency);
   }
 }
