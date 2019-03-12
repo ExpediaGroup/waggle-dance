@@ -16,11 +16,10 @@
 package com.hotels.bdp.waggledance.mapping.service.requests;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
-public class SetUgiRequest implements Callable<List<String>> {
+public class SetUgiRequest implements RequestCallable<List<String>> {
 
   private final DatabaseMapping mapping;
   private final String user_name;
@@ -38,6 +37,7 @@ public class SetUgiRequest implements Callable<List<String>> {
     return result;
   }
 
+  @Override
   public DatabaseMapping getMapping() {
     return mapping;
   }

@@ -17,7 +17,6 @@ package com.hotels.bdp.waggledance.mapping.service.requests;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
 import org.apache.hadoop.hive.metastore.api.TableMeta;
@@ -25,7 +24,7 @@ import org.apache.thrift.TException;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
-public class GetTableMetaRequest implements Callable<List<TableMeta>> {
+public class GetTableMetaRequest implements RequestCallable<List<TableMeta>> {
 
   private final DatabaseMapping mapping;
   private final String dbPattern;
@@ -58,6 +57,7 @@ public class GetTableMetaRequest implements Callable<List<TableMeta>> {
     return mappedTableMeta;
   }
 
+  @Override
   public DatabaseMapping getMapping() {
     return mapping;
   }

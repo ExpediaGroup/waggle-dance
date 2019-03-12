@@ -16,19 +16,19 @@
 package com.hotels.bdp.waggledance.mapping.service.requests;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
 import org.apache.thrift.TException;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
-public class GetAllDatabasesRequest implements Callable<List<String>> {
+public class GetAllDatabasesRequest implements RequestCallable<List<String>> {
 
   private final DatabaseMapping mapping;
   private final BiFunction<List<String>, DatabaseMapping, List<String>> filter;
 
-  public GetAllDatabasesRequest(DatabaseMapping mapping,
+  public GetAllDatabasesRequest(
+      DatabaseMapping mapping,
       BiFunction<List<String>, DatabaseMapping, List<String>> filter) {
     this.mapping = mapping;
     this.filter = filter;
@@ -40,6 +40,7 @@ public class GetAllDatabasesRequest implements Callable<List<String>> {
     return filter.apply(databases, mapping);
   }
 
+  @Override
   public DatabaseMapping getMapping() {
     return mapping;
   }

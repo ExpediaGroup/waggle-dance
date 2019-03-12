@@ -17,14 +17,13 @@ package com.hotels.bdp.waggledance.mapping.service.requests;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
 import org.apache.thrift.TException;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
-public class GetAllDatabasesByPatternRequest implements Callable<List<String>> {
+public class GetAllDatabasesByPatternRequest implements RequestCallable<List<String>> {
 
   private final String pattern;
   private final DatabaseMapping mapping;
@@ -51,6 +50,7 @@ public class GetAllDatabasesByPatternRequest implements Callable<List<String>> {
     return mappedDatabases;
   }
 
+  @Override
   public DatabaseMapping getMapping() {
     return mapping;
   }

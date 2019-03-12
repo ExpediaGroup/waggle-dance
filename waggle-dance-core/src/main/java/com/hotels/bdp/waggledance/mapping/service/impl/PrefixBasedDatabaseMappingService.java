@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
 
 import javax.validation.constraints.NotNull;
@@ -176,7 +174,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
         && isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
+            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
   }
 
   @Override
@@ -289,7 +287,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases() {
         List<DatabaseMapping> databaseMappings = getDatabaseMappings();
-        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
         List<GetAllDatabasesRequest> allRequests = new ArrayList<>();
 
         BiFunction<List<String>, DatabaseMapping, List<String>> filter = (
@@ -300,12 +297,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, filter);
           allRequests.add(allDatabasesRequest);
         }
-
-        long totalTimeout = super.getTotalTimeout(GET_DATABASES_TIMEOUT, databaseMappings);
-        List<String> result = getDatabasesFromFuture(executorService, allRequests, totalTimeout,
-            "Can't fetch databases: {}");
-
-        executorService.shutdownNow();
+        List<String> result = executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases: {}");
         return result;
       }
     };
