@@ -2,6 +2,8 @@
 ### Fixed
 * Support for regex `mapped-databases` for MANUAL database resolution. See [#147](https://github.com/HotelsDotCom/waggle-dance/issues/147).
 * Avoid NPE when no elements are provided for `mapped-databases` in the configuration. See [#131](https://github.com/HotelsDotCom/waggle-dance/issues/131).
+### Changed
+* Added invocation log messages for `getPartitions` calls.
 
 ## [3.1.2] - 2019-01-11
 ### Changed
