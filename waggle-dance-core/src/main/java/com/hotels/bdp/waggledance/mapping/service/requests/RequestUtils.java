@@ -57,7 +57,7 @@ public class RequestUtils {
                                              long methodTimeout)
       throws InterruptedException, ExecutionException, TimeoutException {
     DatabaseMapping mapping = iterator.next();
-    long timeout = methodTimeout + mapping.getTimeout();
+    long timeout = methodTimeout + mapping.getLatency();
     return future.get(timeout, TimeUnit.MILLISECONDS);
   }
 

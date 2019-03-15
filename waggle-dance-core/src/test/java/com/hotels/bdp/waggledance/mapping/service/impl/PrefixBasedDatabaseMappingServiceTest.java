@@ -555,14 +555,4 @@ public class PrefixBasedDatabaseMappingServiceTest {
       return federatedDatabaseClient;
     });
   }
-
-  private void mockSlowConnectionToFederatedMetastore() {
-    when(metaStoreMappingFederated.getClient()).thenAnswer((Answer<Iface>) invocation -> {
-      try {
-        Thread.sleep(5000L);
-        fail();
-      } catch (InterruptedException ignored) {}
-      return federatedDatabaseClient;
-    });
-  }
 }
