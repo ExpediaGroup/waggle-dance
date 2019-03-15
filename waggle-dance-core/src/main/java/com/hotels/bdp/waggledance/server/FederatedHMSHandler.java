@@ -646,7 +646,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions(String db_name, String tbl_name, short max_parts)
       throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -657,7 +657,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_with_auth(
       String db_name,
       String tbl_name,
@@ -674,7 +674,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<PartitionSpec> get_partitions_pspec(String db_name, String tbl_name, int max_parts)
       throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -693,7 +693,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_ps(String db_name, String tbl_name, List<String> part_vals, short max_parts)
       throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -704,7 +704,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_ps_with_auth(
       String db_name,
       String tbl_name,
@@ -732,7 +732,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_by_filter(String db_name, String tbl_name, String filter, short max_parts)
       throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -743,7 +743,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<PartitionSpec> get_part_specs_by_filter(String db_name, String tbl_name, String filter, int max_parts)
       throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -765,7 +765,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_by_names(String db_name, String tbl_name, List<String> names)
       throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
