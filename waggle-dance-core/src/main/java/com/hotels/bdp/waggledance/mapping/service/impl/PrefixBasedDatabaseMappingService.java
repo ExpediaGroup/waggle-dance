@@ -16,11 +16,6 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.PREFIXED_RESOLUTION_TYPE;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getDatabasesFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getTableMetaFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getUgiFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.shutdownExecutorService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,7 +48,6 @@ import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
 import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
-import com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils;
 import com.hotels.bdp.waggledance.mapping.service.GrammarUtils;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
@@ -179,8 +173,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
-        && DatabaseMappingUtils.isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName), mappedDbByPrefix);
+        && isWhitelisted(metaStoreMapping.getDatabasePrefix(),
+        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
   }
 
   @Override

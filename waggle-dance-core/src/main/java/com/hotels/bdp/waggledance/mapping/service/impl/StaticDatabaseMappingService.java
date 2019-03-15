@@ -16,11 +16,6 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.MANUAL_RESOLUTION_TYPE;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getDatabasesFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getTableMetaFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.getUgiFromFuture;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.shutdownExecutorService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,9 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
@@ -64,9 +56,6 @@ import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
-import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
-import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
-import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
@@ -298,17 +287,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
-
-      private List<DatabaseMapping> getOrderedMapping() {
-        List<DatabaseMapping> orderedMapping = new ArrayList<>();
-        orderedMapping.add(primaryDatabaseMapping);
-        for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-          if (!mapping.equals(primaryDatabaseMapping)) {
-            orderedMapping.add(mapping);
-          }
-        }
-        return orderedMapping;
-      }
 
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
