@@ -79,5 +79,4 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   public void onUpdate(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore) {
     wrapped.onUpdate(oldMetaStore, newMetaStore);
   }
-
 }
