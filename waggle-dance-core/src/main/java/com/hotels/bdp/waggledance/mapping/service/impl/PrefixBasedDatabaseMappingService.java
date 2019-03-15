@@ -25,17 +25,13 @@ import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.s
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.function.BiFunction;
 
 import javax.validation.constraints.NotNull;
 
@@ -45,7 +41,6 @@ import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 
@@ -63,10 +58,7 @@ import com.hotels.bdp.waggledance.mapping.service.GrammarUtils;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
-import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesRequest;
-import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
-import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
 
@@ -194,15 +186,17 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   @Override
   public DatabaseMapping databaseMapping(@NotNull String databaseName) {
     // Find a Metastore with a prefix
-    Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
-    while (iterator.hasNext()) {
-      Entry<String, DatabaseMapping> entry = iterator.next();
-      String metastorePrefix = entry.getKey();
-      if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
-        DatabaseMapping databaseMapping = entry.getValue();
-        LOG.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
-        if (includeInResults(databaseMapping, databaseName)) {
-          return databaseMapping;
+    synchronized (mappingsByPrefix) {
+      Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
+      while (iterator.hasNext()) {
+        Entry<String, DatabaseMapping> entry = iterator.next();
+        String metastorePrefix = entry.getKey();
+        if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
+          DatabaseMapping databaseMapping = entry.getValue();
+          LOG.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
+          if (includeInResults(databaseMapping, databaseName)) {
+            return databaseMapping;
+          }
         }
       }
     }
@@ -224,12 +218,14 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         "Waggle Dance error no database mapping available tried to map database '" + databaseName + "'");
   }
 
-  @VisibleForTesting
-  List<DatabaseMapping> databaseMappings() {
-    Builder<DatabaseMapping> builder = ImmutableList.<DatabaseMapping>builder();
-    for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
-      if (includeInResults(databaseMapping)) {
-        builder.add(databaseMapping);
+  @Override
+  public List<DatabaseMapping> getDatabaseMappings() {
+    Builder<DatabaseMapping> builder = ImmutableList.builder();
+    synchronized (mappingsByPrefix) {
+      for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
+        if (includeInResults(databaseMapping)) {
+          builder.add(databaseMapping);
+        }
       }
     }
     return builder.build();
@@ -251,105 +247,64 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     return mappings;
   }
 
+  private List<String> getMappedWhitelistedDatabases(List<String> databases, DatabaseMapping mapping) {
+    List<String> mappedDatabases = new ArrayList<>();
+    for (String database : databases) {
+      if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
+        mappedDatabases.add(mapping.transformOutboundDatabaseName(database));
+      }
+    }
+    return mappedDatabases;
+  }
+
+  private boolean isWhitelisted(String databasePrefix, String database) {
+    Whitelist whitelist = mappedDbByPrefix.get(databasePrefix);
+    if ((whitelist == null) || whitelist.isEmpty()) {
+      // Accept everything
+      return true;
+    }
+    return whitelist.contains(database);
+  }
+
   @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
 
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
-        List<TableMeta> combined = new ArrayList<>();
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
-        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-        List<Future<List<?>>> futures = new ArrayList<>();
 
-        for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
-          GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mappingWithPattern.getKey(),
-              mappingWithPattern.getValue(), tbl_patterns,
-              tbl_types, mappedDbByPrefix, Collections.emptyMap(), null, PREFIXED_RESOLUTION_TYPE);
-          futures.add(executorService.submit(tableMetaRequest));
-        }
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> isWhitelisted(
+            mapping.getDatabasePrefix(), tableMeta.getDbName());
 
-        Iterator<DatabaseMapping> iterator = databaseMappingsForPattern.keySet().iterator();
-        try {
-          List<TableMeta> result = getTableMetaFromFuture(futures, iterator,
-              LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return combined;
+        return super.getTableMeta(tbl_patterns, tbl_types, databaseMappingsForPattern, filter);
       }
 
       @Override
       public List<String> getAllDatabases(String databasePattern) {
-        List<String> combined = new ArrayList<>();
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(databasePattern);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappingsForPattern.size());
-        List<Future<List<?>>> futures = new ArrayList<>();
+        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> isWhitelisted(
+            mapping.getDatabasePrefix(), database);
 
-        for (Entry<DatabaseMapping, String> mappingWithPattern : databaseMappingsForPattern.entrySet()) {
-          GetAllDatabasesByPatternRequest databasesByPatternRequest = new GetAllDatabasesByPatternRequest(
-              mappingWithPattern.getKey(), mappingWithPattern.getValue(), mappedDbByPrefix, Collections.emptyMap(),
-              null,
-              PREFIXED_RESOLUTION_TYPE);
-          futures.add(executorService.submit(databasesByPatternRequest));
-        }
-
-        Iterator<DatabaseMapping> iterator = databaseMappingsForPattern.keySet().iterator();
-        try {
-          List<String> result = getDatabasesFromFuture(futures, iterator, "Can't fetch databases by pattern: {}", LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return combined;
+        return super.getAllDatabases(databaseMappingsForPattern, filter);
       }
 
       @Override
       public List<String> getAllDatabases() {
-        List<String> combined = new ArrayList<>();
-        List<DatabaseMapping> databaseMappings = databaseMappings();
-        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-        List<Future<List<?>>> futures = new ArrayList<>();
+        List<DatabaseMapping> databaseMappings = getDatabaseMappings();
+        List<GetAllDatabasesRequest> allRequests = new ArrayList<>();
+
+        BiFunction<List<String>, DatabaseMapping, List<String>> filter = (
+            databases,
+            mapping) -> getMappedWhitelistedDatabases(databases, mapping);
 
         for (DatabaseMapping mapping : databaseMappings) {
-          GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, mappedDbByPrefix);
-          futures.add(executorService.submit(allDatabasesRequest));
+          GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, filter);
+          allRequests.add(allDatabasesRequest);
         }
-
-        Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
-        try {
-          List<String> result = getDatabasesFromFuture(futures, iterator, "Can't fetch databases: {}", LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return combined;
-      }
-
-      @Override
-      public List<String> setUgi(String user_name, List<String> group_names) {
-        // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
-        // Not sure if anything uses these results. We're assuming the order doesn't matter.
-        Set<String> combined = new HashSet<>();
-        List<DatabaseMapping> databaseMappings = databaseMappings();
-        ExecutorService executorService = Executors.newFixedThreadPool(databaseMappings.size());
-        List<Future<List<?>>> futures = new ArrayList<>();
-
-        for (DatabaseMapping mapping : databaseMappings) {
-          SetUgiRequest setUgiRequest = new SetUgiRequest(mapping, user_name, group_names);
-          futures.add(executorService.submit(setUgiRequest));
-        }
-
-        Iterator<DatabaseMapping> iterator = databaseMappings.iterator();
-        try {
-          Set<String> result = getUgiFromFuture(futures, iterator, LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return new ArrayList<>(combined);
+        List<String> result = executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases: {}");
+        return result;
       }
     };
   }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia, Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +95,7 @@ public class FederatedHMSHandlerTest {
   public void setUp() {
     handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService);
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
+    when(databaseMappingService.getDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
     when(primaryMapping.getClient()).thenReturn(primaryClient);
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn(DB_P);
     when(databaseMappingService.databaseMapping(DB_P)).thenReturn(primaryMapping);
@@ -775,7 +777,7 @@ public class FederatedHMSHandlerTest {
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
     String user_name = "user";
     List<String> group_names = Lists.newArrayList("group");
-    when(panopticHandler.setUgi(user_name, group_names)).thenReturn(Lists.newArrayList("returned"));
+    when(panopticHandler.setUgi(user_name, group_names, Collections.singletonList(primaryMapping))).thenReturn(Lists.newArrayList("returned"));
     List<String> result = handler.set_ugi(user_name, group_names);
     assertThat(result.size(), is(1));
     assertThat(result, contains("returned"));

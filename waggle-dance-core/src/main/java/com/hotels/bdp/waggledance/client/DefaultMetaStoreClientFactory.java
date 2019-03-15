@@ -119,9 +119,13 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
    * java.lang.String, int)
    */
   @Override
-  public CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries) {
-    return newInstance(name, reconnectionRetries,
-        new ThriftMetastoreClientManager(hiveConf, new HiveCompatibleThriftHiveMetastoreIfaceFactory()));
+  public CloseableThriftHiveMetastoreIface newInstance(
+      HiveConf hiveConf,
+      String name,
+      int reconnectionRetries,
+      int connectionTimeout) {
+    return newInstance(name, reconnectionRetries, new ThriftMetastoreClientManager(hiveConf,
+        new HiveCompatibleThriftHiveMetastoreIfaceFactory(), connectionTimeout));
   }
 
   @VisibleForTesting

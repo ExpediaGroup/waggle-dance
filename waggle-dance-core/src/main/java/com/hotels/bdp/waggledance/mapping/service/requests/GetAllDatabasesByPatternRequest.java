@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,60 +15,43 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.requests;
 
-import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.isWhitelisted;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.PREFIXED_RESOLUTION_TYPE;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 
 import org.apache.thrift.TException;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
-import com.hotels.bdp.waggledance.util.Whitelist;
 
-public class GetAllDatabasesByPatternRequest implements Callable<List<?>> {
+public class GetAllDatabasesByPatternRequest implements RequestCallable<List<String>> {
 
   private final String pattern;
-  private final Map<String, Whitelist> mappedDbByPrefix;
-  private final String resolutionType;
-  private final Map<String, DatabaseMapping> mappingsByDatabaseName;
   private final DatabaseMapping mapping;
-  private final DatabaseMapping primaryMapping;
+  private final BiFunction<String, DatabaseMapping, Boolean> filter;
 
-  public GetAllDatabasesByPatternRequest(DatabaseMapping mapping, String pattern,
-                                         Map<String, Whitelist> mappedDbByPrefix,
-                                         Map<String, DatabaseMapping> mappingsByDatabaseName,
-                                         DatabaseMapping primaryMapping, String resolutionType) {
+  public GetAllDatabasesByPatternRequest(
+      DatabaseMapping mapping,
+      String pattern,
+      BiFunction<String, DatabaseMapping, Boolean> filter) {
     this.mapping = mapping;
     this.pattern = pattern;
-    this.mappedDbByPrefix = mappedDbByPrefix;
-    this.mappingsByDatabaseName = mappingsByDatabaseName;
-    this.resolutionType = resolutionType;
-    this.primaryMapping = primaryMapping;
+    this.filter = filter;
   }
 
   @Override
-  public List<?> call() throws TException {
+  public List<String> call() throws TException {
     List<String> databases = mapping.getClient().get_databases(pattern);
     List<String> mappedDatabases = new ArrayList<>();
     for (String database : databases) {
-      boolean shouldBeAdded = getConditionForResolutionType(database);
-      if (shouldBeAdded) {
+      if (filter.apply(database, mapping)) {
         mappedDatabases.add(mapping.transformOutboundDatabaseName(database));
       }
     }
     return mappedDatabases;
   }
 
-  private boolean getConditionForResolutionType(String database) {
-    if (resolutionType.equals(PREFIXED_RESOLUTION_TYPE)) {
-      return isWhitelisted(mapping.getDatabasePrefix(), database, mappedDbByPrefix);
-    } else {
-      boolean isPrimaryDatabase = mapping.equals(primaryMapping);
-      boolean isMapped = mappingsByDatabaseName.keySet().contains(database);
-      return isPrimaryDatabase || isMapped;
-    }
+  @Override
+  public DatabaseMapping getMapping() {
+    return mapping;
   }
 }

@@ -25,8 +25,7 @@ import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.s
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,6 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 import javax.validation.constraints.NotNull;
 
@@ -49,6 +49,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -102,7 +104,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   private void init(List<AbstractMetaStore> federatedMetaStores) {
-    mappingsByMetaStoreName = new ConcurrentHashMap<>();
+    mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
       add(federatedMetaStore);
@@ -281,6 +283,19 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
+  public List<DatabaseMapping> getDatabaseMappings() {
+    Builder<DatabaseMapping> builder = ImmutableList.builder();
+    synchronized (mappingsByMetaStoreName) {
+      for (DatabaseMapping databaseMapping : mappingsByMetaStoreName.values()) {
+        if (includeInResults(databaseMapping)) {
+          builder.add(databaseMapping);
+        }
+      }
+    }
+    return builder.build();
+  }
+
+  @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
 
@@ -297,51 +312,33 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
-        List<TableMeta> combined = new ArrayList<>();
-        List<DatabaseMapping> orderedMapping = getOrderedMapping();
-        ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
-        List<Future<List<?>>> futures = new ArrayList<>();
 
-        for (DatabaseMapping mapping : orderedMapping) {
-          GetTableMetaRequest tableMetaRequest = new GetTableMetaRequest(mapping,
-              db_patterns, tbl_patterns,
-              tbl_types, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-              MANUAL_RESOLUTION_TYPE);
-          futures.add(executorService.submit(tableMetaRequest));
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> {
+          boolean isPrimary = mapping.equals(primaryDatabaseMapping);
+          boolean isMapped = mappingsByDatabaseName.keySet().contains(tableMeta.getDbName());
+          return isPrimary || isMapped;
+        };
+        Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
+        for (DatabaseMapping mapping : getDatabaseMappings()) {
+          mappingsForPattern.put(mapping, db_patterns);
         }
-
-        Iterator<DatabaseMapping> iterator = orderedMapping.iterator();
-        try {
-          List<TableMeta> result = getTableMetaFromFuture(futures, iterator, LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return combined;
+        return super.getTableMeta(tbl_patterns, tbl_types, mappingsForPattern, filter);
       }
 
       @Override
       public List<String> getAllDatabases(String pattern) {
-        List<String> combined = new ArrayList<>();
-        List<DatabaseMapping> orderedMapping = getOrderedMapping();
-        ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
-        List<Future<List<?>>> futures = new ArrayList<>();
+        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> {
+          boolean isPrimaryDatabase = mapping.equals(primaryDatabaseMapping);
+          boolean isMapped = mappingsByDatabaseName.keySet().contains(database);
+          return isPrimaryDatabase || isMapped;
+        };
 
-        for (DatabaseMapping mapping : orderedMapping) {
-          GetAllDatabasesByPatternRequest federatedRequest = new GetAllDatabasesByPatternRequest(
-              mapping, pattern, Collections.emptyMap(), mappingsByDatabaseName, primaryDatabaseMapping,
-              MANUAL_RESOLUTION_TYPE);
-          futures.add(executorService.submit(federatedRequest));
+        Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
+        for (DatabaseMapping mapping : getDatabaseMappings()) {
+          mappingsForPattern.put(mapping, pattern);
         }
 
-        Iterator<DatabaseMapping> iterator = orderedMapping.iterator();
-        try {
-          List<String> result = getDatabasesFromFuture(futures, iterator, "Can't fetch databases by pattern: {}", LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return combined;
+        return super.getAllDatabases(mappingsForPattern, filter);
       }
 
       @Override
@@ -358,30 +355,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         }
         return combined;
       }
+    }
 
-      @Override
-      public List<String> setUgi(String user_name, List<String> group_names) {
-        // set_ugi returns the user_name that was set (on EMR at least) we just combine them all to avoid duplicates.
-        // Not sure if anything uses these results. We're assuming the order doesn't matter.
-        Set<String> combined = new HashSet<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(mappingsByMetaStoreName.values().size());
-        List<Future<List<?>>> futures = new ArrayList<>();
-
-        for (DatabaseMapping mapping : mappingsByMetaStoreName.values()) {
-          SetUgiRequest setUgiRequest = new SetUgiRequest(mapping, user_name, group_names);
-          futures.add(executorService.submit(setUgiRequest));
-        }
-
-        Iterator<DatabaseMapping> iterator = mappingsByMetaStoreName.values().iterator();
-        try {
-          Set<String> result = getUgiFromFuture(futures, iterator, LOG);
-          combined.addAll(result);
-        } finally {
-          shutdownExecutorService(executorService);
-        }
-        return new ArrayList<>(combined);
-      }
-    };
+        ;
   }
 
   @Override

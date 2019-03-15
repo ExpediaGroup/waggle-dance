@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia, Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ import org.apache.hadoop.hive.conf.HiveConf;
 
 public interface MetaStoreClientFactory {
 
-  CloseableThriftHiveMetastoreIface newInstance(HiveConf hiveConf, String name, int reconnectionRetries);
+  CloseableThriftHiveMetastoreIface newInstance(
+      HiveConf hiveConf,
+      String name,
+      int reconnectionRetries,
+      int connectionTimeout);
 
 }

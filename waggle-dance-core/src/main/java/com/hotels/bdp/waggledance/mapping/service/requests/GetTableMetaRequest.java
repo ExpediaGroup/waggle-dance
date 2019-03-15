@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,71 +15,50 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.requests;
 
-import static com.hotels.bdp.waggledance.mapping.service.DatabaseMappingUtils.isWhitelisted;
-import static com.hotels.bdp.waggledance.mapping.service.requests.RequestUtils.PREFIXED_RESOLUTION_TYPE;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.thrift.TException;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
-import com.hotels.bdp.waggledance.util.Whitelist;
 
-public class GetTableMetaRequest implements Callable<List<?>> {
+public class GetTableMetaRequest implements RequestCallable<List<TableMeta>> {
 
   private final DatabaseMapping mapping;
   private final String dbPattern;
   private final String tablePattern;
   private final List<String> tableTypes;
-  private final Map<String, Whitelist> mappedDbByPrefix;
-  private final Map<String, DatabaseMapping> mappingsByDatabaseName;
-  private final DatabaseMapping primaryMapping;
-  private final String resolutionType;
+  private final BiFunction<TableMeta, DatabaseMapping, Boolean> filter;
 
   public GetTableMetaRequest(
       DatabaseMapping mapping,
       String dbPattern,
       String tablePattern,
       List<String> tableTypes,
-      Map<String, Whitelist> mappedDbByPrefix,
-      Map<String, DatabaseMapping> mappingsByDatabaseName,
-      DatabaseMapping primaryMapping,
-      String resolutionType) {
+      BiFunction<TableMeta, DatabaseMapping, Boolean> filter) {
     this.mapping = mapping;
     this.dbPattern = dbPattern;
     this.tablePattern = tablePattern;
     this.tableTypes = tableTypes;
-    this.mappedDbByPrefix = mappedDbByPrefix;
-    this.mappingsByDatabaseName = mappingsByDatabaseName;
-    this.primaryMapping = primaryMapping;
-    this.resolutionType = resolutionType;
+    this.filter = filter;
   }
 
   @Override
-  public List<?> call() throws TException {
+  public List<TableMeta> call() throws TException {
     List<TableMeta> tables = mapping.getClient().get_table_meta(dbPattern, tablePattern, tableTypes);
     List<TableMeta> mappedTableMeta = new ArrayList<>();
     for (TableMeta tableMeta : tables) {
-      boolean shouldBeAdded = getConditionForResolutionType(tableMeta);
-      if (shouldBeAdded) {
+      if (filter.apply(tableMeta, mapping)) {
         mappedTableMeta.add(mapping.transformOutboundTableMeta(tableMeta));
       }
     }
     return mappedTableMeta;
   }
 
-  private boolean getConditionForResolutionType(TableMeta tableMeta) {
-    if (resolutionType.equals(PREFIXED_RESOLUTION_TYPE)) {
-      return isWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName(),
-          mappedDbByPrefix);
-    } else {
-      boolean isPrimary = mapping.equals(primaryMapping);
-      boolean isMapped = mappingsByDatabaseName.keySet().contains(tableMeta.getDbName());
-      return isPrimary || isMapped;
-    }
+  @Override
+  public DatabaseMapping getMapping() {
+    return mapping;
   }
 }

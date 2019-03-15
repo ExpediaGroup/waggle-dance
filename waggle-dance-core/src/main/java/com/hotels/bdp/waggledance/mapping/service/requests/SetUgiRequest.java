@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@
 package com.hotels.bdp.waggledance.mapping.service.requests;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
-public class SetUgiRequest implements Callable<List<?>> {
+public class SetUgiRequest implements RequestCallable<List<String>> {
 
   private final DatabaseMapping mapping;
   private final String user_name;
@@ -33,8 +32,13 @@ public class SetUgiRequest implements Callable<List<?>> {
   }
 
   @Override
-  public List<?> call() throws Exception {
+  public List<String> call() throws Exception {
     List<String> result = mapping.getClient().set_ugi(user_name, group_names);
     return result;
+  }
+
+  @Override
+  public DatabaseMapping getMapping() {
+    return mapping;
   }
 }

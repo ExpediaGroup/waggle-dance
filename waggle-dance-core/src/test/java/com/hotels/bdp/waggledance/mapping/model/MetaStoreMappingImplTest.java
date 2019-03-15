@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,5 +167,10 @@ public class MetaStoreMappingImplTest {
       verify(client, never()).create_database(database);
       verify(accessControlHandler, never()).databaseCreatedNotification("db");
     }
+  }
+
+  @Test
+  public void getLatency() {
+    assertThat(metaStoreMapping.getLatency(), is(LATENCY));
   }
 }
