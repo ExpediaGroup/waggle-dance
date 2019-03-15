@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,11 @@ public class HiveMetaStoreClientSupplierTest {
   public void getMetaStoreClientFactoryInstance() {
     String name = "test";
     int reconnectionRetries = 10;
+    int connectionTimeout = 10;
     HiveMetaStoreClientSupplier supplier = new HiveMetaStoreClientSupplier(factory, hiveConf, name,
-        reconnectionRetries);
+        reconnectionRetries, connectionTimeout);
     supplier.get();
-    verify(factory).newInstance(hiveConf, name, reconnectionRetries);
+    verify(factory).newInstance(hiveConf, name, reconnectionRetries, connectionTimeout);
   }
 
 }

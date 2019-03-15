@@ -13,29 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.mapping.service;
+package com.hotels.bdp.waggledance.mapping.service.requests;
 
-import java.io.Closeable;
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
+import java.util.concurrent.Callable;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
-public interface DatabaseMappingService extends Closeable {
+public interface RequestCallable<T> extends Callable<T> {
 
-  /**
-   * @return the {@link DatabaseMapping} that maps to the primary metastore
-   */
-  DatabaseMapping primaryDatabaseMapping();
+  DatabaseMapping getMapping();
 
-  /**
-   * @param databaseName given database name
-   * @return the {@link DatabaseMapping} that maps to the given databaseName
-   */
-  DatabaseMapping databaseMapping(@NotNull String databaseName);
-
-  PanopticOperationHandler getPanopticOperationHandler();
-
-  List<DatabaseMapping> getDatabaseMappings();
 }

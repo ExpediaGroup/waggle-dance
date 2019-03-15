@@ -13,29 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.mapping.service;
+package com.hotels.bdp.waggledance.mapping.service.requests;
 
-import java.io.Closeable;
 import java.util.List;
-
-import javax.validation.constraints.NotNull;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
-public interface DatabaseMappingService extends Closeable {
+public class SetUgiRequest implements RequestCallable<List<String>> {
 
-  /**
-   * @return the {@link DatabaseMapping} that maps to the primary metastore
-   */
-  DatabaseMapping primaryDatabaseMapping();
+  private final DatabaseMapping mapping;
+  private final String user_name;
+  private final List<String> group_names;
 
-  /**
-   * @param databaseName given database name
-   * @return the {@link DatabaseMapping} that maps to the given databaseName
-   */
-  DatabaseMapping databaseMapping(@NotNull String databaseName);
+  public SetUgiRequest(DatabaseMapping mapping, String user_name, List<String> group_names) {
+    this.mapping = mapping;
+    this.user_name = user_name;
+    this.group_names = group_names;
+  }
 
-  PanopticOperationHandler getPanopticOperationHandler();
+  @Override
+  public List<String> call() throws Exception {
+    List<String> result = mapping.getClient().set_ugi(user_name, group_names);
+    return result;
+  }
 
-  List<DatabaseMapping> getDatabaseMappings();
+  @Override
+  public DatabaseMapping getMapping() {
+    return mapping;
+  }
 }

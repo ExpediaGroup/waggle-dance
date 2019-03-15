@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,19 @@ class HiveMetaStoreClientSupplier implements TunnelableSupplier<CloseableThriftH
   private final HiveConf hiveConf;
   private final String name;
   private final int reconnectionRetries;
+  private final int connectionTimeout;
 
-  HiveMetaStoreClientSupplier(MetaStoreClientFactory factory, HiveConf hiveConf, String name, int reconnectionRetries) {
+  HiveMetaStoreClientSupplier(MetaStoreClientFactory factory, HiveConf hiveConf, String name, int reconnectionRetries, int connectionTimeout) {
     this.factory = factory;
     this.hiveConf = hiveConf;
     this.name = name;
     this.reconnectionRetries = reconnectionRetries;
+    this.connectionTimeout = connectionTimeout;
   }
 
   @Override
   public CloseableThriftHiveMetastoreIface get() {
-    return factory.newInstance(hiveConf, name, reconnectionRetries);
+    return factory.newInstance(hiveConf, name, reconnectionRetries, connectionTimeout);
   }
 
 }

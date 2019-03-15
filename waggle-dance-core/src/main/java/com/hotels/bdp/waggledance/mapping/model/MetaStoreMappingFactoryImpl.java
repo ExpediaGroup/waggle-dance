@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,8 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
         .info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
             metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping mapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
-        createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType());
+        createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType(),
+        metaStore.getLatency());
     return mapping;
   }
 

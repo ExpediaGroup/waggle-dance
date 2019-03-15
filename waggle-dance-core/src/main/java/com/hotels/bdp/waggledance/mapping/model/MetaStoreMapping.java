@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,4 +63,5 @@ public interface MetaStoreMapping extends Closeable {
   void createDatabase(Database database)
     throws AlreadyExistsException, InvalidObjectException, MetaException, TException;
 
+  long getLatency();
 }

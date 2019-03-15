@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
@@ -34,6 +35,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   private static final int DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY = 3;
   private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private final DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
+  private final int defaultConnectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L);
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(
       TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
@@ -45,14 +47,21 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase(Locale.ROOT);
+
+    // Connection timeout should not be less than 1
+    // A timeout of zero is interpreted as an infinite timeout, so this is avoided
+    int connectionTimeout = Math.max(1, defaultConnectionTimeout + (int) metaStore.getLatency());
+
     if (metaStore.getConnectionType() == TUNNELED) {
       return tunnelingMetaStoreClientFactory
-          .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY);
+          .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
+              connectionTimeout);
     }
     Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
-    HiveConfFactory confFactory = new HiveConfFactory(Collections.<String>emptyList(), properties);
+    HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     return defaultMetaStoreClientFactory
-        .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY);
+        .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
+            connectionTimeout);
   }
 }

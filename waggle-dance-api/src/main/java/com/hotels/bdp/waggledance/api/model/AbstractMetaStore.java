@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ public abstract class AbstractMetaStore {
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
+  private long latency = 0;
 
   public AbstractMetaStore() {}
 
@@ -141,6 +142,14 @@ public abstract class AbstractMetaStore {
 
   public void setWritableDatabaseWhiteList(List<String> writableDatabaseWhitelist) {
     this.writableDatabaseWhitelist = writableDatabaseWhitelist;
+  }
+
+  public long getLatency() {
+    return latency;
+  }
+
+  public void setLatency(long latency) {
+    this.latency = latency;
   }
 
   @Transient

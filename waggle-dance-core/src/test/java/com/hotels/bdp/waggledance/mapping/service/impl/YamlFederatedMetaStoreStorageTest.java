@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class YamlFederatedMetaStoreStorageTest {
   public final @Rule TemporaryFolder tmp = new TemporaryFolder();
   public final @Rule DataFolder dataFolder = new ClassDataFolder();
 
-  public @Mock YamlStorageConfiguration configuration;
+  @Mock private YamlStorageConfiguration configuration;
 
   @Before
   public void init() {
@@ -154,20 +154,22 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.insert(newFederatedInstance);
     storage.saveFederation();
     List<String> lines = Files.readAllLines(f.toPath(), Charset.forName("UTF-8"));
-    assertThat(lines.size(), is(13));
+    assertThat(lines.size(), is(15));
     assertThat(lines.get(0), is("primary-meta-store:"));
     assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
     assertThat(lines.get(2), is("  database-prefix: ''"));
-    assertThat(lines.get(3), is("  name: hcom_1"));
-    assertThat(lines.get(4), is("  remote-meta-store-uris: thrift://localhost:19083"));
-    assertThat(lines.get(5), is("federated-meta-stores:"));
-    assertThat(lines.get(6), is("- access-control-type: READ_ONLY"));
-    assertThat(lines.get(7), is("  database-prefix: hcom_2_"));
-    assertThat(lines.get(8), is("  mapped-databases:"));
-    assertThat(lines.get(9), is("  - db1"));
-    assertThat(lines.get(10), is("  - db2"));
-    assertThat(lines.get(11), is("  name: hcom_2"));
-    assertThat(lines.get(12), is("  remote-meta-store-uris: thrift://localhost:29083"));
+    assertThat(lines.get(3), is("  latency: 0"));
+    assertThat(lines.get(4), is("  name: hcom_1"));
+    assertThat(lines.get(5), is("  remote-meta-store-uris: thrift://localhost:19083"));
+    assertThat(lines.get(6), is("federated-meta-stores:"));
+    assertThat(lines.get(7), is("- access-control-type: READ_ONLY"));
+    assertThat(lines.get(8), is("  database-prefix: hcom_2_"));
+    assertThat(lines.get(9), is("  latency: 0"));
+    assertThat(lines.get(10), is("  mapped-databases:"));
+    assertThat(lines.get(11), is("  - db1"));
+    assertThat(lines.get(12), is("  - db2"));
+    assertThat(lines.get(13), is("  name: hcom_2"));
+    assertThat(lines.get(14), is("  remote-meta-store-uris: thrift://localhost:29083"));
   }
 
   @Test

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ public class MetaStoreMappingImplTest {
 
   private static final String DATABASE_PREFIX = "prefix_";
   private static final String NAME = "name";
+  private static final long LATENCY = 0;
 
   private @Mock CloseableThriftHiveMetastoreIface client;
   private @Mock Database database;
@@ -55,9 +56,9 @@ public class MetaStoreMappingImplTest {
 
   @Before
   public void init() {
-    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT);
-    tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED);
-
+    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT, LATENCY);
+    tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED,
+        LATENCY);
   }
 
   @Test
@@ -166,5 +167,10 @@ public class MetaStoreMappingImplTest {
       verify(client, never()).create_database(database);
       verify(accessControlHandler, never()).databaseCreatedNotification("db");
     }
+  }
+
+  @Test
+  public void getLatency() {
+    assertThat(metaStoreMapping.getLatency(), is(LATENCY));
   }
 }

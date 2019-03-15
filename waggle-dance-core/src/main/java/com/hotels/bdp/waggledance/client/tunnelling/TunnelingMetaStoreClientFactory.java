@@ -64,7 +64,8 @@ public class TunnelingMetaStoreClientFactory {
       String uris,
       MetastoreTunnel metastoreTunnel,
       String name,
-      int reconnectionRetries) {
+      int reconnectionRetries,
+      int connectionTimeout) {
     String uri = uris;
     String[] urisSplit = uri.split(",");
     if (urisSplit.length > 1) {
@@ -87,7 +88,7 @@ public class TunnelingMetaStoreClientFactory {
             localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
 
     HiveMetaStoreClientSupplier supplier = hiveMetaStoreClientSupplierFactory
-        .newInstance(localHiveConf, name, reconnectionRetries);
+        .newInstance(localHiveConf, name, reconnectionRetries, connectionTimeout);
 
     URI metaStoreUri = URI.create(uri);
     String remoteHost = metaStoreUri.getHost();
