@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia Inc.
+ * Copyright (C) 2016-2019 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,7 +174,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
         && isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
+        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
   }
 
   @Override

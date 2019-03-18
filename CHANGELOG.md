@@ -8,7 +8,7 @@
 * Support for running metastore queries in parallel.
 
 ### Changed
-* Updated `hotels-oss-parent` to 4.0.0 (was 2.3.5).
+* Updated `hotels-oss-parent` to 4.0.1 (was 2.3.5).
 * Added invocation log messages for `getPartitions` calls.
 
 ## [3.1.2] - 2019-01-11
