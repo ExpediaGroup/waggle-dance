@@ -1157,10 +1157,14 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public PrincipalPrivilegeSet get_privilege_set(HiveObjectRef hiveObject, String user_name, List<String> group_names)
       throws MetaException, TException {
-    DatabaseMapping mapping = databaseMappingService.databaseMapping(hiveObject.getDbName());
-    return mapping
-        .getClient()
-        .get_privilege_set(mapping.transformInboundHiveObjectRef(hiveObject), user_name, group_names);
+    DatabaseMapping mapping;
+    if (hiveObject.getDbName() == null) {
+      mapping = databaseMappingService.primaryDatabaseMapping();
+    } else {
+      mapping = databaseMappingService.databaseMapping(hiveObject.getDbName());
+    }
+    return mapping.getClient().get_privilege_set(mapping.transformInboundHiveObjectRef(hiveObject), user_name,
+            group_names);
   }
 
   @Override

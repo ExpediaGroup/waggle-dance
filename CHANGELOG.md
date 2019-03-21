@@ -1,3 +1,6 @@
+## Fixed
+* Support request without DbName like BitSetCheckedAuthorizationProvider#authorizeUserPrivcannot. See [#158](https://github.com/HotelsDotCom/waggle-dance/issues/158)
+
 ## TBD
 ### Added
 * Configurable `latency` for each metastore in a Waggle Dance configuration.
