@@ -48,6 +48,7 @@ import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
 import org.apache.hadoop.hive.metastore.api.GetTablesResult;
+import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
@@ -57,6 +58,7 @@ import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
+import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
@@ -777,7 +779,8 @@ public class FederatedHMSHandlerTest {
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
     String user_name = "user";
     List<String> group_names = Lists.newArrayList("group");
-    when(panopticHandler.setUgi(user_name, group_names, Collections.singletonList(primaryMapping))).thenReturn(Lists.newArrayList("returned"));
+    when(panopticHandler.setUgi(user_name, group_names, Collections.singletonList(primaryMapping)))
+        .thenReturn(Lists.newArrayList("returned"));
     List<String> result = handler.set_ugi(user_name, group_names);
     assertThat(result.size(), is(1));
     assertThat(result, contains("returned"));
@@ -863,6 +866,34 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundCompactionRequest(request)).thenReturn(request);
     CompactionResponse result = handler.compact2(request);
     assertThat(result, is(response));
+  }
+
+  @Test
+  public void getPrivilegeSet() throws Exception {
+    String userName = "user";
+    List<String> groupNames = Lists.newArrayList("group");
+    HiveObjectRef hiveObjectRef = new HiveObjectRef();
+    hiveObjectRef.setDbName(DB_P);
+    when(databaseMappingService.databaseMapping(DB_P)).thenReturn(primaryMapping);
+    when(primaryMapping.transformInboundHiveObjectRef(hiveObjectRef)).thenReturn(hiveObjectRef);
+    PrincipalPrivilegeSet principalPrivilegeSet = new PrincipalPrivilegeSet();
+    when(primaryClient.get_privilege_set(hiveObjectRef, userName, groupNames)).thenReturn(principalPrivilegeSet);
+    PrincipalPrivilegeSet result = handler.get_privilege_set(hiveObjectRef, userName, groupNames);
+    assertThat(result, is(principalPrivilegeSet));
+  }
+
+  @Test
+  public void getPrivilegeSetDbNameIsNullShouldUsePrimary() throws Exception {
+    String userName = "user";
+    List<String> groupNames = Lists.newArrayList("group");
+    HiveObjectRef hiveObjectRef = new HiveObjectRef();
+    hiveObjectRef.setDbName(null);
+    when(primaryMapping.transformInboundHiveObjectRef(hiveObjectRef)).thenReturn(hiveObjectRef);
+    PrincipalPrivilegeSet principalPrivilegeSet = new PrincipalPrivilegeSet();
+    when(primaryClient.get_privilege_set(hiveObjectRef, userName, groupNames)).thenReturn(principalPrivilegeSet);
+    PrincipalPrivilegeSet result = handler.get_privilege_set(hiveObjectRef, userName, groupNames);
+    assertThat(result, is(principalPrivilegeSet));
+    verify(databaseMappingService, never()).databaseMapping(DB_P);
   }
 
 }
