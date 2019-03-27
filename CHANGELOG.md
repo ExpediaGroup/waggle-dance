@@ -1,4 +1,4 @@
-## TBD
+## [3.2.0] - 2019-03-27
 ### Added
 * Configurable `latency` for each metastore in a Waggle Dance configuration.
 
@@ -7,7 +7,6 @@
 * Avoid NPE when no elements are provided for `mapped-databases` in the configuration. See [#131](https://github.com/HotelsDotCom/waggle-dance/issues/131).
 * Support for running metastore queries in parallel.
 * Support request without DbName like BitSetCheckedAuthorizationProvider#authorizeUserPrivcannot. See [#158](https://github.com/HotelsDotCom/waggle-dance/issues/158)
-
 
 ### Changed
 * Updated `hotels-oss-parent` to 4.0.1 (was 2.3.5).
