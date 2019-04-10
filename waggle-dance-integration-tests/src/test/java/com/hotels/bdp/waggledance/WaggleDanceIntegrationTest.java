@@ -77,6 +77,7 @@ import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 public class WaggleDanceIntegrationTest {
+
   private static final Logger LOG = LoggerFactory.getLogger(WaggleDanceIntegrationTest.class);
 
   private static final String LOCAL_DATABASE = "local_database";
@@ -157,7 +158,7 @@ public class WaggleDanceIntegrationTest {
     return new HiveMetaStoreClient(conf);
   }
 
-  private void runWaggleDance(final WaggleDanceRunner runner) throws Exception {
+  private void runWaggleDance(WaggleDanceRunner runner) throws Exception {
     executor.submit(new Runnable() {
       @Override
       public void run() {
@@ -223,11 +224,10 @@ public class WaggleDanceIntegrationTest {
     // Remote table
     String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
-
   }
 
   private void assertTypicalRemoteTable(HiveMetaStoreClient proxy, String waggledRemoteDbName)
-    throws MetaException, TException, NoSuchObjectException {
+      throws MetaException, TException, NoSuchObjectException {
     Table remoteTable = remoteServer.client().getTable(REMOTE_DATABASE, REMOTE_TABLE);
     Table waggledRemoteTable = proxy.getTable(waggledRemoteDbName, REMOTE_TABLE);
     assertThat(waggledRemoteTable.getDbName(), is(waggledRemoteDbName));
@@ -349,7 +349,7 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
-    final String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
 
@@ -379,7 +379,7 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
-    final String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
 
@@ -409,7 +409,7 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
-    final String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
 
@@ -717,4 +717,52 @@ public class WaggleDanceIntegrationTest {
     assertThat(allDatabases, is(expected));
   }
 
+  @Test
+  public void federationDiesDuringConnection() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    // Local table
+    Table localTable = localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    assertThat(waggledLocalTable, is(localTable));
+
+    // Remote table
+    String waggledRemoteDbName = REMOTE_DATABASE;
+    assertTypicalRemoteTable(proxy, waggledRemoteDbName);
+
+    LOG.info("CLOSING CONNECTION");
+    remoteServer.client().close();
+    LOG.info("CLOSED CONNECTION");
+
+    try {
+      proxy.getAllDatabases();
+    } catch (Exception e) {
+      LOG.info("Exception during proxy.getAllDatabases()");
+    }
+    LOG.info("CLOSING CONNECTION");
+    remoteServer.client().close();
+    LOG.info("CLOSED CONNECTION");
+    try {
+      proxy.getDatabase(REMOTE_DATABASE);
+    } catch (Exception e) {
+      LOG.info("Exception during proxy.getDatabase(REMOTE_DATABASE)");
+    }
+    LOG.info("CLOSING CONNECTION");
+    remoteServer.client().close();
+    LOG.info("CLOSED CONNECTION");
+    try {
+      proxy.getTable(waggledRemoteDbName, REMOTE_TABLE);
+    } catch (Exception e) {
+      LOG.info("Exception during proxy.getTable");
+    }
+
+    LOG.info("DONE WITH CHECKING DYING FEDERATED METASTORE");
+  }
 }

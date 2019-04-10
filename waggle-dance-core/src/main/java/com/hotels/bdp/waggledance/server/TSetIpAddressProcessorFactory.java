@@ -23,12 +23,15 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.transport.TTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 class TSetIpAddressProcessorFactory extends TProcessorFactory {
 
+  private static final Logger LOG = LoggerFactory.getLogger(TSetIpAddressProcessorFactory.class);
   private final HiveConf hiveConf;
   private final FederatedHMSHandlerFactory federatedHMSHandlerFactory;
   private final TTransportMonitor transportMonitor;
@@ -47,6 +50,21 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
   @Override
   public TProcessor getProcessor(TTransport transport) {
     try {
+      LOG.info("Trying to find caller 0: {}", Thread.currentThread().getStackTrace()[0]);
+      LOG.info("Trying to find caller 1: {}", Thread.currentThread().getStackTrace()[1]);
+      LOG.info("Trying to find caller 2: {}", Thread.currentThread().getStackTrace()[2]);
+      LOG.info("Trying to find caller 3: {}", Thread.currentThread().getStackTrace()[3]);
+      LOG.info("Trying to find caller 4: {}", Thread.currentThread().getStackTrace()[4]);
+      LOG.info("Trying to find caller 5: {}", Thread.currentThread().getStackTrace()[5]);
+      LOG.info("Trying to find caller 6: {}", Thread.currentThread().getStackTrace()[6]);
+      LOG.info("Trying to find caller 7: {}", Thread.currentThread().getStackTrace()[7]);
+      LOG.info("Trying to find caller 8: {}", Thread.currentThread().getStackTrace()[8]);
+      LOG.info("Trying to find caller 9: {}", Thread.currentThread().getStackTrace()[9]);
+      LOG.info("Trying to find caller 10: {}", Thread.currentThread().getStackTrace()[10]);
+    } catch (Exception e) {
+      LOG.info("And error came up: {}", e.getMessage());
+    }
+    try {
       CloseableIHMSHandler baseHandler = federatedHMSHandlerFactory.create();
       IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
           false);
@@ -58,8 +76,7 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
   }
 
   private IHMSHandler newRetryingHMSHandler(IHMSHandler baseHandler, HiveConf hiveConf, boolean local)
-    throws MetaException {
+      throws MetaException {
     return RetryingHMSHandler.getProxy(hiveConf, baseHandler, local);
   }
-
 }

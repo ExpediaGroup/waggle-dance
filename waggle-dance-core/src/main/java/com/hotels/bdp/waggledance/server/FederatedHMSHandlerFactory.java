@@ -53,6 +53,7 @@ public class FederatedHMSHandlerFactory {
   }
 
   public CloseableIHMSHandler create() {
+    // add log here
     MappingEventListener service = createDatabaseMappingService();
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
 
@@ -63,6 +64,7 @@ public class FederatedHMSHandlerFactory {
   }
 
   private MappingEventListener createDatabaseMappingService() {
+    // add log here
     switch (waggleDanceConfiguration.getDatabaseResolution()) {
     case MANUAL:
       final StaticDatabaseMappingService prefixAvoidingService = new StaticDatabaseMappingService(

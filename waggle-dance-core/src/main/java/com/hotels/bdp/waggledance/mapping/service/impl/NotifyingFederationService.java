@@ -40,34 +40,29 @@ import com.hotels.bdp.waggledance.mapping.service.FederatedMetaStoreStorage;
 public class NotifyingFederationService implements FederationService {
 
   private static final Logger LOG = LoggerFactory.getLogger(NotifyingFederationService.class);
-
-  public static interface FederationEventListener {
-    void onRegister(AbstractMetaStore federatedMetaStore);
-
-    void onUnregister(AbstractMetaStore federatedMetaStore);
-
-    void onUpdate(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore);
-  }
-
   private final FederatedMetaStoreStorage federatedMetaStoreStorage;
   private final List<FederationEventListener> listeners;
 
   @Autowired
   public NotifyingFederationService(FederatedMetaStoreStorage federatedMetaStoreStorage) {
     this.federatedMetaStoreStorage = federatedMetaStoreStorage;
-    listeners = Collections.synchronizedList(new ArrayList<FederationEventListener>());
+    listeners = Collections.synchronizedList(new ArrayList<>());
+    LOG.info("Constructed NotifyingFederationService");
   }
 
   @PostConstruct
   public void postConstruct() {
+    LOG.info("calling postConstruct");
     List<? extends AbstractMetaStore> federatedMetaStores = getAll();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
+      LOG.info("calling onRegister for {}", federatedMetaStore.getName());
       onRegister(federatedMetaStore);
     }
   }
 
   @PreDestroy
   public void preDestroy() {
+    LOG.info("calling preDestroy");
     List<? extends AbstractMetaStore> federatedMetaStores = getAll();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
       onUnregister(federatedMetaStore);
@@ -116,7 +111,7 @@ public class NotifyingFederationService implements FederationService {
       federatedMetaStoreStorage.insert(metaStore);
       onRegister(metaStore);
     }
-    LOG.debug("New federation {} has been registered successfully", metaStore);
+    LOG.info("New federation {} has been registered successfully", metaStore);
   }
 
   @Override
@@ -157,6 +152,34 @@ public class NotifyingFederationService implements FederationService {
 
   @Override
   public List<AbstractMetaStore> getAll() {
-    return federatedMetaStoreStorage.getAll();
+    LOG.info("NotifyingFederationService.getAll() was called");
+    try {
+      LOG.info("Trying to find caller 0: {}", Thread.currentThread().getStackTrace()[0]);
+      LOG.info("Trying to find caller 1: {}", Thread.currentThread().getStackTrace()[1]);
+      LOG.info("Trying to find caller 2: {}", Thread.currentThread().getStackTrace()[2]);
+      LOG.info("Trying to find caller 3: {}", Thread.currentThread().getStackTrace()[3]);
+      LOG.info("Trying to find caller 4: {}", Thread.currentThread().getStackTrace()[4]);
+      LOG.info("Trying to find caller 5: {}", Thread.currentThread().getStackTrace()[5]);
+      LOG.info("Trying to find caller 6: {}", Thread.currentThread().getStackTrace()[6]);
+      LOG.info("Trying to find caller 7: {}", Thread.currentThread().getStackTrace()[7]);
+      LOG.info("Trying to find caller 8: {}", Thread.currentThread().getStackTrace()[8]);
+      LOG.info("Trying to find caller 9: {}", Thread.currentThread().getStackTrace()[9]);
+      LOG.info("Trying to find caller 10: {}", Thread.currentThread().getStackTrace()[10]);
+    } catch (Exception e) {
+      LOG.info("And error came up: {}", e.getMessage());
+    }
+    List<AbstractMetaStore> allFederatedMetastores = federatedMetaStoreStorage.getAll();
+    LOG.info("allFederatedMetastores = {} and size = {}", allFederatedMetastores.toString(),
+        allFederatedMetastores.size());
+    return allFederatedMetastores;
+  }
+
+  public static interface FederationEventListener {
+
+    void onRegister(AbstractMetaStore federatedMetaStore);
+
+    void onUnregister(AbstractMetaStore federatedMetaStore);
+
+    void onUpdate(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore);
   }
 }

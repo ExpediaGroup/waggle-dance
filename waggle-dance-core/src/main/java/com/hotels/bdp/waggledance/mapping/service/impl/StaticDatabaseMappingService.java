@@ -78,10 +78,13 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         .newBuilder()
         .expireAfterAccess(1, TimeUnit.MINUTES)
         .maximumSize(1)
+        .removalListener(notification ->
+            LOG.info("{} removed", notification.getKey()))
         .build(new CacheLoader<String, List<String>>() {
 
           @Override
           public List<String> load(String key) throws Exception {
+            LOG.info("loading {}", key);
             if (primaryDatabaseMapping != null) {
               return primaryDatabaseMapping.getClient().get_all_databases();
             } else {
@@ -93,6 +96,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   private void init(List<AbstractMetaStore> federatedMetaStores) {
+    LOG.info("Initialising metastores for StaticDatabaseMapping");
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
@@ -207,6 +211,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   public void onRegister(AbstractMetaStore metaStore) {
     // Synchronizing on the mappingsByMetaStoreName map field so we ensure the implemented FederationEventListener
     // methods are processed sequentially
+    LOG.info("Called onRegister for metastore {}", metaStore.getName());
+
     synchronized (mappingsByMetaStoreName) {
       if (mappingsByMetaStoreName.containsKey(metaStore.getName())) {
         throw new WaggleDanceException(
@@ -223,6 +229,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   public void onUpdate(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore) {
     // Synchronizing on the mappingsByMetaStoreName map field so we ensure the implemented FederationEventListener
     // methods are processed sequentially
+    LOG.info("Called onUpdate for old metastore {} and new metastore {}", oldMetaStore.getName(),
+        newMetaStore.getName());
     synchronized (mappingsByMetaStoreName) {
       remove(oldMetaStore);
       add(newMetaStore);
@@ -233,6 +241,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   public void onUnregister(AbstractMetaStore metaStore) {
     // Synchronizing on the mappingsByMetaStoreName map field so we ensure the implemented FederationEventListener
     // methods are processed sequentially
+    LOG.info("Called onUnregister for metastore {}", metaStore.getName());
     synchronized (mappingsByMetaStoreName) {
       remove(metaStore);
     }
@@ -247,7 +256,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   private boolean includeInResults(MetaStoreMapping metaStoreMapping) {
-    return (metaStoreMapping != null) && metaStoreMapping.isAvailable();
+    boolean isNotNull = (metaStoreMapping != null);
+    boolean isAvailable = metaStoreMapping.isAvailable();
+    LOG.info("{} isNotNull = {}", metaStoreMapping.getMetastoreMappingName(), isNotNull);
+    LOG.info("{} isAvailable = {}", metaStoreMapping.getMetastoreMappingName(), isAvailable);
+    return isNotNull && isAvailable;
   }
 
   @Override
@@ -255,7 +268,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     DatabaseMapping databaseMapping = mappingsByDatabaseName.get(databaseName.toLowerCase(Locale.ROOT));
     if (databaseMapping != null) {
       LOG
-          .debug("Database Name `{}` maps to metastore with name '{}'", databaseName,
+          .info("Database Name `{}` maps to metastore with name '{}'", databaseName,
               databaseMapping.getMetastoreMappingName());
       if (includeInResults(databaseMapping)) {
         return databaseMapping;
@@ -263,10 +276,10 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
     if (primaryDatabaseMapping != null) {
       // If none found we fall back to primary one
-      LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+      LOG.info("Database Name `{}` maps to 'primary' metastore", databaseName);
       return primaryDatabaseMapping;
     }
-    LOG.debug("Database Name `{}` not mapped", databaseName);
+    LOG.info("Database Name `{}` not mapped", databaseName);
     throw new NoPrimaryMetastoreException(
         "Waggle Dance error no database mapping available tried to map database '" + databaseName + "'");
   }
@@ -321,6 +334,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases() {
+        LOG.info("called getAllDatabases");
+        LOG.info("mappingsByMetaStoreName.entrySet(): {}", mappingsByMetaStoreName.entrySet());
+        LOG.info("mappingsByMetaStoreName.keySet(): {}", mappingsByMetaStoreName.keySet());
+        LOG.info("mappingsByDatabaseName entry set: {}", mappingsByDatabaseName.entrySet());
+        LOG.info("mappingsByDatabaseName key set: {}", mappingsByDatabaseName.keySet());
+
         List<String> combined = new ArrayList<>();
         try {
           List<String> databases = primaryDatabasesCache.get(PRIMARY_KEY);

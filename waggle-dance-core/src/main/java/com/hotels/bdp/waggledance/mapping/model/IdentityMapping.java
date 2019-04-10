@@ -58,11 +58,13 @@ import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IdentityMapping implements DatabaseMapping {
 
   static final String EMPTY_PREFIX = "";
-
+  private static final Logger log = LoggerFactory.getLogger(IdentityMapping.class);
   private final MetaStoreMapping metaStoreMapping;
 
   public IdentityMapping(MetaStoreMapping metaStoreMapping) {
@@ -106,16 +108,19 @@ public class IdentityMapping implements DatabaseMapping {
 
   @Override
   public String transformInboundDatabaseName(String databaseName) {
+    log.info("returning database {} from IdentityMapping.transformInboundDatabaseName()", databaseName);
     return databaseName;
   }
 
   @Override
   public ThriftHiveMetastore.Iface getClient() {
+    log.info("returning client from IdentityMapping.getClient()");
     return metaStoreMapping.getClient();
   }
 
   @Override
   public Database transformOutboundDatabase(Database database) {
+    log.info("returning database {} from IdentityMapping.transformOutboundDatabase()", database);
     return database;
   }
 
@@ -316,7 +321,7 @@ public class IdentityMapping implements DatabaseMapping {
 
   @Override
   public void createDatabase(Database database)
-    throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
+      throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
     metaStoreMapping.createDatabase(database);
   }
 
@@ -354,5 +359,4 @@ public class IdentityMapping implements DatabaseMapping {
   public long getLatency() {
     return metaStoreMapping.getLatency();
   }
-
 }

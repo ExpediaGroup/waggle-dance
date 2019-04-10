@@ -77,6 +77,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private void init(List<AbstractMetaStore> federatedMetaStores) {
+    LOG.info("Initialising metastores for PrefixedDatabaseMapping");
     mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<>());
     mappedDbByPrefix = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
@@ -123,6 +124,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   public void onRegister(AbstractMetaStore metaStore) {
     // Synchronizing on the mappingsByPrefix map field so we ensure the implemented FederationEventListener methods are
     // processes sequentially
+
+    LOG.info("Called onRegister for metastore {}", metaStore.getName());
     synchronized (mappingsByPrefix) {
       if (mappingsByPrefix.containsKey(metaStore.getDatabasePrefix())) {
         throw new WaggleDanceException("MetaStore with prefix '"
@@ -144,6 +147,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   public void onUpdate(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore) {
     // Synchronizing on the mappingsByPrefix map field so we ensure the implemented FederationEventListener methods are
     // processes sequentially
+    LOG.info("Called onUpdate for old metastore {} and new metastore {}", oldMetaStore.getName(), newMetaStore.getName());
     synchronized (mappingsByPrefix) {
       remove(oldMetaStore);
       add(newMetaStore);
@@ -154,6 +158,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   public void onUnregister(AbstractMetaStore federatedMetaStore) {
     // Synchronizing on the mappingsByPrefix map field so we ensure the implemented FederationEventListener methods are
     // processes sequentially
+    LOG.info("Called onUnregister for metastore {}", federatedMetaStore.getName());
     synchronized (mappingsByPrefix) {
       remove(federatedMetaStore);
     }
@@ -187,7 +192,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         String metastorePrefix = entry.getKey();
         if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
           DatabaseMapping databaseMapping = entry.getValue();
-          LOG.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
+          LOG.info("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
           if (includeInResults(databaseMapping, databaseName)) {
             return databaseMapping;
           }
@@ -197,17 +202,17 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     // Find a Metastore that has an empty prefix
     DatabaseMapping databaseMapping = mappingsByPrefix.get(EMPTY_PREFIX);
     if (databaseMapping != null) {
-      LOG.debug("Database Name `{}` maps to metastore with EMPTY_PREFIX", databaseName);
+      LOG.info("Database Name `{}` maps to metastore with EMPTY_PREFIX", databaseName);
       if (includeInResults(databaseMapping, databaseName)) {
         return databaseMapping;
       }
     }
     if (primaryDatabaseMapping != null) {
       // If none found we fall back to primary one
-      LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+      LOG.info("Database Name `{}` maps to 'primary' metastore", databaseName);
       return primaryDatabaseMapping;
     }
-    LOG.debug("Database Name `{}` not mapped", databaseName);
+    LOG.info("Database Name `{}` not mapped", databaseName);
     throw new NoPrimaryMetastoreException(
         "Waggle Dance error no database mapping available tried to map database '" + databaseName + "'");
   }
