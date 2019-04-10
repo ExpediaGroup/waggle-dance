@@ -102,6 +102,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
       add(federatedMetaStore);
     }
+    LOG.info("Finished initialising metastores for StaticDatabaseMapping");
+    LOG.info("mappingsByMetaStoreName = \"{}\"", mappingsByMetaStoreName);
+    LOG.info("mappingsByDatabaseName = \"{}\"", mappingsByDatabaseName);
   }
 
   private void add(AbstractMetaStore metaStore) {
@@ -115,13 +118,20 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     } else {
       FederatedMetaStore federatedMetaStore = (FederatedMetaStore) metaStore;
       List<String> mappableDatabases = Collections.emptyList();
+
+      String metastoreMappingName = metaStoreMapping.getMetastoreMappingName();
+      LOG.info("Checking if metastoreMapping \"{}\" is available", metastoreMappingName);
+      // if metaStoreMapping is not available, mappingsByDatabaseName will not contain the mapping
       if (metaStoreMapping.isAvailable()) {
+        LOG.info("MetastoreMapping \"{}\" IS available", metastoreMappingName);
         try {
           List<String> allFederatedDatabases = metaStoreMapping.getClient().get_all_databases();
           mappableDatabases = applyWhitelist(allFederatedDatabases, federatedMetaStore.getMappedDatabases());
         } catch (TException e) {
           LOG.error("Could not get databases for metastore {}", federatedMetaStore.getRemoteMetaStoreUris(), e);
         }
+      } else {
+        LOG.info("MetastoreMapping \"{}\" IS NOT available", metastoreMappingName);
       }
       validateFederatedMetastoreDatabases(mappableDatabases, metaStoreMapping);
       DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
@@ -335,11 +345,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases() {
         LOG.info("called getAllDatabases");
-        LOG.info("mappingsByMetaStoreName.entrySet(): {}", mappingsByMetaStoreName.entrySet());
-        LOG.info("mappingsByMetaStoreName.keySet(): {}", mappingsByMetaStoreName.keySet());
-        LOG.info("mappingsByDatabaseName entry set: {}", mappingsByDatabaseName.entrySet());
-        LOG.info("mappingsByDatabaseName key set: {}", mappingsByDatabaseName.keySet());
-
         List<String> combined = new ArrayList<>();
         try {
           List<String> databases = primaryDatabasesCache.get(PRIMARY_KEY);

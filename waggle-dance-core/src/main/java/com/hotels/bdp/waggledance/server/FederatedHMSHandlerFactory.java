@@ -16,6 +16,8 @@
 package com.hotels.bdp.waggledance.server;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +34,7 @@ import com.hotels.bdp.waggledance.mapping.service.impl.StaticDatabaseMappingServ
 @Component
 public class FederatedHMSHandlerFactory {
 
+  private static final Logger LOG = LoggerFactory.getLogger(FederatedHMSHandlerFactory.class);
   private final HiveConf hiveConf;
   private final NotifyingFederationService notifyingFederationService;
   private final MetaStoreMappingFactory metaStoreMappingFactory;
@@ -53,7 +56,7 @@ public class FederatedHMSHandlerFactory {
   }
 
   public CloseableIHMSHandler create() {
-    // add log here
+    LOG.info("FederatedHMSHandlerFactory.create was called");
     MappingEventListener service = createDatabaseMappingService();
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
 
@@ -64,15 +67,16 @@ public class FederatedHMSHandlerFactory {
   }
 
   private MappingEventListener createDatabaseMappingService() {
-    // add log here
+    LOG.info("FederatedHMSHandlerFactory.createDatabaseMappingService was called");
     switch (waggleDanceConfiguration.getDatabaseResolution()) {
     case MANUAL:
-      final StaticDatabaseMappingService prefixAvoidingService = new StaticDatabaseMappingService(
+
+      StaticDatabaseMappingService prefixAvoidingService = new StaticDatabaseMappingService(
           metaStoreMappingFactory, notifyingFederationService.getAll());
       return prefixAvoidingService;
 
     case PREFIXED:
-      final PrefixBasedDatabaseMappingService prefixBasedService = new PrefixBasedDatabaseMappingService(
+      PrefixBasedDatabaseMappingService prefixBasedService = new PrefixBasedDatabaseMappingService(
           metaStoreMappingFactory, notifyingFederationService.getAll(), queryMapping);
       return prefixBasedService;
 
