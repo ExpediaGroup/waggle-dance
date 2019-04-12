@@ -35,8 +35,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hotels.bdp.waggledance.api.ValidationError;
-import com.hotels.bdp.waggledance.api.federation.service.FederationService;
-import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 
@@ -44,35 +42,33 @@ import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederati
 @RequestMapping("/api/admin/federations")
 public class FederationsAdminController {
 
-  private final FederationService federationService;
+  private final PopulateStatusFederationService populateStatusFederationService;
 
   @Autowired
-  public FederationsAdminController(
-      FederationService federationService,
-      FederationStatusService federationStatusService) {
-    this.federationService = new PopulateStatusFederationService(federationService, federationStatusService);
+  public FederationsAdminController(PopulateStatusFederationService populateStatusFederationService) {
+    this.populateStatusFederationService = populateStatusFederationService;
   }
 
   @RequestMapping(method = RequestMethod.GET)
   @ResponseBody
   public List<AbstractMetaStore> federations() {
-    return federationService.getAll();
+    return populateStatusFederationService.getAll();
   }
 
   @RequestMapping(method = RequestMethod.GET, path = "/{name}")
   @ResponseBody
   public AbstractMetaStore read(@NotNull @PathVariable String name) {
-    return federationService.get(name);
+    return populateStatusFederationService.get(name);
   }
 
   @RequestMapping(method = RequestMethod.POST)
   public void add(@Validated @RequestBody AbstractMetaStore federatedMetaStore) {
-    federationService.register(federatedMetaStore);
+    populateStatusFederationService.register(federatedMetaStore);
   }
 
   @RequestMapping(method = RequestMethod.DELETE, path = "/{name}")
   public void remove(@NotNull @PathVariable String name) {
-    federationService.unregister(name);
+    populateStatusFederationService.unregister(name);
   }
 
   @ExceptionHandler(ValidationException.class)

@@ -22,8 +22,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import com.hotels.bdp.waggledance.api.federation.service.FederationService;
-import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
+import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 
 @Configuration
 @EnableWebMvc
@@ -32,13 +31,8 @@ import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService
 public class TestContext {
 
   @Bean
-  public FederationService federationService() {
-    return Mockito.mock(FederationService.class);
-  }
-
-  @Bean
-  public FederationStatusService federationStatusService() {
-    return Mockito.mock(FederationStatusService.class);
+  public PopulateStatusFederationService populateStatusFederationService() {
+    return Mockito.mock(PopulateStatusFederationService.class);
   }
 
 }

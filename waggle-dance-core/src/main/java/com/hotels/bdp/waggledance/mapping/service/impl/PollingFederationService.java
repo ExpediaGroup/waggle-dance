@@ -21,44 +21,34 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
-import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 
-@Component
 public class PollingFederationService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PollingFederationService.class);
+  private final static Logger log = LoggerFactory.getLogger(PollingFederationService.class);
+
   private final PopulateStatusFederationService populateStatusFederationService;
   private Map<String, MetaStoreStatus> previous = new HashMap<>();
 
-  @Autowired
-  public PollingFederationService(
-      NotifyingFederationService notifyingFederationService,
-      FederationStatusService federationStatusService) {
-    populateStatusFederationService = new PopulateStatusFederationService(notifyingFederationService,
-        federationStatusService);
+  public PollingFederationService(PopulateStatusFederationService populateStatusFederationService) {
+    this.populateStatusFederationService = populateStatusFederationService;
   }
 
-  @Scheduled(fixedDelayString = "${status-polling-delay}")
+  // status-polling-delay, default every 5 minutes
+  @Scheduled(fixedDelayString = "${status-polling-delay:300000}")
   public void poll() {
-    LOG.info("Started PollingFederationService.poll()");
+    log.debug("polling status");
     Map<String, MetaStoreStatus> current = new HashMap<>();
     List<AbstractMetaStore> metastores = populateStatusFederationService.getAll();
     for (AbstractMetaStore metaStore : metastores) {
       current.put(metaStore.getName(), metaStore.getStatus());
       MetaStoreStatus previousMetastoreStatus = previous.get(metaStore.getName());
       if (previousMetastoreStatus != null) {
-        LOG.info("previousMetastoreStatus is not null");
-        LOG.info("previousMetastoreStatus \"{}\" status = {}", metaStore.getName(), previousMetastoreStatus);
-        LOG.info("metaStore {} status = {}", metaStore.getName(), metaStore.getStatus());
         if (previousMetastoreStatus != metaStore.getStatus()) {
-          LOG.info("calling update on \"{}\"", metaStore.getName());
           populateStatusFederationService.update(metaStore, metaStore);
         }
       }
