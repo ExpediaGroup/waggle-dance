@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,7 @@ import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederati
 @Component
 public class PollingFederationService {
 
+  private static final Logger LOG = LoggerFactory.getLogger(PollingFederationService.class);
   private final PopulateStatusFederationService populateStatusFederationService;
   private Map<String, AbstractMetaStore> previous = new HashMap<>();
 
@@ -43,18 +46,22 @@ public class PollingFederationService {
 
   @Scheduled(fixedDelayString = "${status-polling-delay}")
   public void poll() {
+    LOG.info("Started PollingFederationService.poll()");
     Map<String, AbstractMetaStore> current = new HashMap<>();
     List<AbstractMetaStore> metastores = populateStatusFederationService.getAll();
     for (AbstractMetaStore metaStore : metastores) {
       current.put(metaStore.getName(), metaStore);
       AbstractMetaStore previousMetastore = previous.get(metaStore.getName());
       if (previousMetastore != null) {
+        LOG.info("previousMetastore is not null");
+        LOG.info("previousMetastore \"{}\" status = {}", previousMetastore.getName(), previousMetastore.getStatus());
+        LOG.info("metaStore {} status = {}", metaStore.getName(), metaStore.getStatus());
         if (previousMetastore.getStatus() != metaStore.getStatus()) {
+          LOG.info("calling update on \"{}\"", metaStore.getName());
           populateStatusFederationService.update(previousMetastore, metaStore);
         }
       }
     }
     previous = current;
   }
-
 }
