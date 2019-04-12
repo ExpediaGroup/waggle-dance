@@ -45,6 +45,7 @@ public class WaggleDanceConfiguration {
   private int thriftServerStopTimeoutValInSeconds = 60;
   private int thriftServerRequestTimeout = 20;
   private TimeUnit thriftServerRequestTimeoutUnit = TimeUnit.SECONDS;
+  private long statusPollingDelay = TimeUnit.MINUTES.toMillis(5);
 
   public Integer getPort() {
     return port;
@@ -116,6 +117,14 @@ public class WaggleDanceConfiguration {
 
   public void setThriftServerRequestTimeoutUnit(TimeUnit thriftServerRequestTimeoutUnit) {
     this.thriftServerRequestTimeoutUnit = thriftServerRequestTimeoutUnit;
+  }
+
+  public long getStatusPollingDelay() {
+    return statusPollingDelay;
+  }
+
+  public void setStatusPollingDelay(long statusPollingDelay) {
+    this.statusPollingDelay = statusPollingDelay;
   }
 
 }

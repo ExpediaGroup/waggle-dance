@@ -38,7 +38,7 @@ import com.hotels.bdp.waggledance.api.ValidationError;
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.rest.service.DelegatingFederationService;
+import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 
 @RestController
 @RequestMapping("/api/admin/federations")
@@ -50,7 +50,7 @@ public class FederationsAdminController {
   public FederationsAdminController(
       FederationService federationService,
       FederationStatusService federationStatusService) {
-    this.federationService = new DelegatingFederationService(federationService, federationStatusService);
+    this.federationService = new PopulateStatusFederationService(federationService, federationStatusService);
   }
 
   @RequestMapping(method = RequestMethod.GET)

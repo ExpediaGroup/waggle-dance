@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.rest.service;
+package com.hotels.bdp.waggledance.core.federation.service;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -31,16 +31,17 @@ import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
+import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DelegatingFederationServiceTest {
+public class PopulateStatusFederationServiceTest {
 
   private @Mock FederationService federationService;
   private @Mock FederationStatusService federationStatusService;
   private @Mock AbstractMetaStore federatedMetaStore1;
   private @Mock AbstractMetaStore federatedMetaStore2;
 
-  private DelegatingFederationService service;
+  private PopulateStatusFederationService service;
 
   @Before
   public void init() {
@@ -48,7 +49,7 @@ public class DelegatingFederationServiceTest {
     when(federationService.getAll()).thenReturn(Arrays.asList(federatedMetaStore1, federatedMetaStore2));
     when(federationStatusService.checkStatus(federatedMetaStore1)).thenReturn(MetaStoreStatus.AVAILABLE);
     when(federationStatusService.checkStatus(federatedMetaStore2)).thenReturn(MetaStoreStatus.UNAVAILABLE);
-    service = new DelegatingFederationService(federationService, federationStatusService);
+    service = new PopulateStatusFederationService(federationService, federationStatusService);
   }
 
   @Test

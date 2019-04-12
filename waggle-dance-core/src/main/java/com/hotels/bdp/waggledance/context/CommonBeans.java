@@ -20,6 +20,7 @@ import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
@@ -31,6 +32,7 @@ import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
 
 @org.springframework.context.annotation.Configuration
+@EnableScheduling
 public class CommonBeans {
 
   @Bean
