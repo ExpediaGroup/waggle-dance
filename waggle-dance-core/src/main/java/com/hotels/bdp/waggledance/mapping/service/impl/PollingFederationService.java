@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 
 @Component
@@ -34,7 +35,7 @@ public class PollingFederationService {
 
   private static final Logger LOG = LoggerFactory.getLogger(PollingFederationService.class);
   private final PopulateStatusFederationService populateStatusFederationService;
-  private Map<String, AbstractMetaStore> previous = new HashMap<>();
+  private Map<String, MetaStoreStatus> previous = new HashMap<>();
 
   @Autowired
   public PollingFederationService(
@@ -47,18 +48,18 @@ public class PollingFederationService {
   @Scheduled(fixedDelayString = "${status-polling-delay}")
   public void poll() {
     LOG.info("Started PollingFederationService.poll()");
-    Map<String, AbstractMetaStore> current = new HashMap<>();
+    Map<String, MetaStoreStatus> current = new HashMap<>();
     List<AbstractMetaStore> metastores = populateStatusFederationService.getAll();
     for (AbstractMetaStore metaStore : metastores) {
-      current.put(metaStore.getName(), metaStore);
-      AbstractMetaStore previousMetastore = previous.get(metaStore.getName());
-      if (previousMetastore != null) {
-        LOG.info("previousMetastore is not null");
-        LOG.info("previousMetastore \"{}\" status = {}", previousMetastore.getName(), previousMetastore.getStatus());
+      current.put(metaStore.getName(), metaStore.getStatus());
+      MetaStoreStatus previousMetastoreStatus = previous.get(metaStore.getName());
+      if (previousMetastoreStatus != null) {
+        LOG.info("previousMetastoreStatus is not null");
+        LOG.info("previousMetastoreStatus \"{}\" status = {}", metaStore.getName(), previousMetastoreStatus);
         LOG.info("metaStore {} status = {}", metaStore.getName(), metaStore.getStatus());
-        if (previousMetastore.getStatus() != metaStore.getStatus()) {
+        if (previousMetastoreStatus != metaStore.getStatus()) {
           LOG.info("calling update on \"{}\"", metaStore.getName());
-          populateStatusFederationService.update(previousMetastore, metaStore);
+          populateStatusFederationService.update(metaStore, metaStore);
         }
       }
     }
