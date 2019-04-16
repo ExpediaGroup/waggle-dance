@@ -34,7 +34,6 @@ import com.hotels.bdp.waggledance.mapping.service.impl.StaticDatabaseMappingServ
 @Component
 public class FederatedHMSHandlerFactory {
 
-  private static final Logger LOG = LoggerFactory.getLogger(FederatedHMSHandlerFactory.class);
   private final HiveConf hiveConf;
   private final NotifyingFederationService notifyingFederationService;
   private final MetaStoreMappingFactory metaStoreMappingFactory;
@@ -56,7 +55,6 @@ public class FederatedHMSHandlerFactory {
   }
 
   public CloseableIHMSHandler create() {
-    LOG.info("FederatedHMSHandlerFactory.create was called");
     MappingEventListener service = createDatabaseMappingService();
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
 
@@ -67,16 +65,14 @@ public class FederatedHMSHandlerFactory {
   }
 
   private MappingEventListener createDatabaseMappingService() {
-    LOG.info("FederatedHMSHandlerFactory.createDatabaseMappingService was called");
     switch (waggleDanceConfiguration.getDatabaseResolution()) {
     case MANUAL:
-
-      StaticDatabaseMappingService prefixAvoidingService = new StaticDatabaseMappingService(
+      final StaticDatabaseMappingService prefixAvoidingService = new StaticDatabaseMappingService(
           metaStoreMappingFactory, notifyingFederationService.getAll());
       return prefixAvoidingService;
 
     case PREFIXED:
-      PrefixBasedDatabaseMappingService prefixBasedService = new PrefixBasedDatabaseMappingService(
+      final PrefixBasedDatabaseMappingService prefixBasedService = new PrefixBasedDatabaseMappingService(
           metaStoreMappingFactory, notifyingFederationService.getAll(), queryMapping);
       return prefixBasedService;
 

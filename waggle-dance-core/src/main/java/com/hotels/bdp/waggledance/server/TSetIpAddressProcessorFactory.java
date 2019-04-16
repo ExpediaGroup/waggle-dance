@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 @Component
 class TSetIpAddressProcessorFactory extends TProcessorFactory {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TSetIpAddressProcessorFactory.class);
   private final HiveConf hiveConf;
   private final FederatedHMSHandlerFactory federatedHMSHandlerFactory;
   private final TTransportMonitor transportMonitor;
@@ -49,7 +48,6 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
 
   @Override
   public TProcessor getProcessor(TTransport transport) {
-    LOG.info("TSetIpAddressProcessorFactory.getProcessor was called");
     try {
       CloseableIHMSHandler baseHandler = federatedHMSHandlerFactory.create();
       IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
@@ -62,7 +60,8 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
   }
 
   private IHMSHandler newRetryingHMSHandler(IHMSHandler baseHandler, HiveConf hiveConf, boolean local)
-      throws MetaException {
+    throws MetaException {
     return RetryingHMSHandler.getProxy(hiveConf, baseHandler, local);
   }
+
 }

@@ -47,22 +47,18 @@ public class NotifyingFederationService implements FederationService {
   public NotifyingFederationService(FederatedMetaStoreStorage federatedMetaStoreStorage) {
     this.federatedMetaStoreStorage = federatedMetaStoreStorage;
     listeners = Collections.synchronizedList(new ArrayList<>());
-    LOG.info("Constructed NotifyingFederationService");
   }
 
   @PostConstruct
   public void postConstruct() {
-    LOG.info("calling postConstruct");
     List<? extends AbstractMetaStore> federatedMetaStores = getAll();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
-      LOG.info("calling onRegister for {}", federatedMetaStore.getName());
       onRegister(federatedMetaStore);
     }
   }
 
   @PreDestroy
   public void preDestroy() {
-    LOG.info("calling preDestroy");
     List<? extends AbstractMetaStore> federatedMetaStores = getAll();
     for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
       onUnregister(federatedMetaStore);
@@ -111,7 +107,7 @@ public class NotifyingFederationService implements FederationService {
       federatedMetaStoreStorage.insert(metaStore);
       onRegister(metaStore);
     }
-    LOG.info("New federation {} has been registered successfully", metaStore);
+    LOG.debug("New federation {} has been registered successfully", metaStore);
   }
 
   @Override
@@ -152,12 +148,7 @@ public class NotifyingFederationService implements FederationService {
 
   @Override
   public List<AbstractMetaStore> getAll() {
-    LOG.info("NotifyingFederationService.getAll() was called");
-    List<AbstractMetaStore> allFederatedMetastores = federatedMetaStoreStorage.getAll();
-    LOG
-        .info("allFederatedMetastores = {} and size = {}", allFederatedMetastores.toString(),
-            allFederatedMetastores.size());
-    return allFederatedMetastores;
+    return federatedMetaStoreStorage.getAll();
   }
 
   public static interface FederationEventListener {
