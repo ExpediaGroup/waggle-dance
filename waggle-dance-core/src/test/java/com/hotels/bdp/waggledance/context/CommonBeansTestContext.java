@@ -15,10 +15,13 @@
  */
 package com.hotels.bdp.waggledance.context;
 
+import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 
 import com.google.common.collect.ImmutableMap;
 
+import com.hotels.bdp.waggledance.api.federation.service.FederationService;
+import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 
 public class CommonBeansTestContext {
@@ -33,8 +36,18 @@ public class CommonBeansTestContext {
     WaggleDanceConfiguration conf = new WaggleDanceConfiguration();
     conf
         .setConfigurationProperties(
-            ImmutableMap.<String, String> builder().put(PROP_1, VAL_1).put(PROP_2, VAL_2).build());
+            ImmutableMap.<String, String>builder().put(PROP_1, VAL_1).put(PROP_2, VAL_2).build());
     return conf;
+  }
+
+  @Bean
+  public FederationService federationService() {
+    return Mockito.mock(FederationService.class);
+  }
+
+  @Bean
+  public FederationStatusService federationStatusService() {
+    return Mockito.mock(FederationStatusService.class);
   }
 
 }
