@@ -18,18 +18,22 @@ package com.hotels.bdp.waggledance.core.federation.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
+import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
 
+@Service
 public class PopulateStatusFederationService implements FederationService {
 
-  private final FederationService federationService;
+  private final NotifyingFederationService federationService;
   private final FederationStatusService federationStatusService;
 
   public PopulateStatusFederationService(
-      FederationService federationService,
+      NotifyingFederationService federationService,
       FederationStatusService federationStatusService) {
     this.federationService = federationService;
     this.federationStatusService = federationStatusService;

@@ -154,8 +154,9 @@ public class NotifyingFederationService implements FederationService {
   public List<AbstractMetaStore> getAll() {
     LOG.info("NotifyingFederationService.getAll() was called");
     List<AbstractMetaStore> allFederatedMetastores = federatedMetaStoreStorage.getAll();
-    LOG.info("allFederatedMetastores = {} and size = {}", allFederatedMetastores.toString(),
-        allFederatedMetastores.size());
+    LOG
+        .info("allFederatedMetastores = {} and size = {}", allFederatedMetastores.toString(),
+            allFederatedMetastores.size());
     return allFederatedMetastores;
   }
 

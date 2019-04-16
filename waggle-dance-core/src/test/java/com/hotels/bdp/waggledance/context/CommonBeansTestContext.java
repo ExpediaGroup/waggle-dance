@@ -20,9 +20,8 @@ import org.springframework.context.annotation.Bean;
 
 import com.google.common.collect.ImmutableMap;
 
-import com.hotels.bdp.waggledance.api.federation.service.FederationService;
-import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 
 public class CommonBeansTestContext {
 
@@ -41,13 +40,8 @@ public class CommonBeansTestContext {
   }
 
   @Bean
-  public FederationService federationService() {
-    return Mockito.mock(FederationService.class);
-  }
-
-  @Bean
-  public FederationStatusService federationStatusService() {
-    return Mockito.mock(FederationStatusService.class);
+  public PopulateStatusFederationService populateStatusFederationService() {
+    return Mockito.mock(PopulateStatusFederationService.class);
   }
 
 }

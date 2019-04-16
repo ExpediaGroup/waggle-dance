@@ -227,7 +227,7 @@ public class WaggleDanceIntegrationTest {
   }
 
   private void assertTypicalRemoteTable(HiveMetaStoreClient proxy, String waggledRemoteDbName)
-      throws MetaException, TException, NoSuchObjectException {
+    throws MetaException, TException, NoSuchObjectException {
     Table remoteTable = remoteServer.client().getTable(REMOTE_DATABASE, REMOTE_TABLE);
     Table waggledRemoteTable = proxy.getTable(waggledRemoteDbName, REMOTE_TABLE);
     assertThat(waggledRemoteTable.getDbName(), is(waggledRemoteDbName));

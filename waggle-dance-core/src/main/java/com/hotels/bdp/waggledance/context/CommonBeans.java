@@ -22,8 +22,6 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import com.hotels.bdp.waggledance.api.federation.service.FederationService;
-import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
@@ -70,11 +68,9 @@ public class CommonBeans {
   }
 
   @Bean
-  public PollingFederationService populateStatusFederationService(
-      FederationService federationService,
-      FederationStatusService federationStatusService) {
-    return new PollingFederationService(
-        new PopulateStatusFederationService(federationService, federationStatusService));
+  public PollingFederationService pollingFederationService(
+      PopulateStatusFederationService populateStatusFederationService) {
+    return new PollingFederationService(populateStatusFederationService);
   }
 
 }

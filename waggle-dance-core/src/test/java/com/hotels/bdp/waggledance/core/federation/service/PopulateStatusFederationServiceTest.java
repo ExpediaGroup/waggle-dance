@@ -29,15 +29,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
+import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PopulateStatusFederationServiceTest {
 
-  private @Mock FederationService federationService;
+  private @Mock NotifyingFederationService federationService;
   private @Mock FederationStatusService federationStatusService;
   private AbstractMetaStore federatedMetaStore1;
   private AbstractMetaStore federatedMetaStore2;
