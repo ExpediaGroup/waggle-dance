@@ -42,7 +42,6 @@ public class NotifyingFederationService implements FederationService {
   private static final Logger LOG = LoggerFactory.getLogger(NotifyingFederationService.class);
 
   public static interface FederationEventListener {
-
     void onRegister(AbstractMetaStore federatedMetaStore);
 
     void onUnregister(AbstractMetaStore federatedMetaStore);
