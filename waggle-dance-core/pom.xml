@@ -110,7 +110,6 @@
       <version>${project.version}</version>
     </dependency>
 
-
     <!-- Hive -->
     <dependency>
       <groupId>org.apache.hive</groupId>

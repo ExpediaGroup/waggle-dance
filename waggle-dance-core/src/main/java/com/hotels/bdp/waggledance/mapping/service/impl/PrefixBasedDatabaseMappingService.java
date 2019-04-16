@@ -197,7 +197,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     // Find a Metastore that has an empty prefix
     DatabaseMapping databaseMapping = mappingsByPrefix.get(EMPTY_PREFIX);
     if (databaseMapping != null) {
-      LOG.info("Database Name `{}` maps to metastore with EMPTY_PREFIX", databaseName);
+      LOG.debug("Database Name `{}` maps to metastore with EMPTY_PREFIX", databaseName);
       if (includeInResults(databaseMapping, databaseName)) {
         return databaseMapping;
       }

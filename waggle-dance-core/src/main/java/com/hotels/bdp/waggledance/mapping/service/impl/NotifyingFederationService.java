@@ -40,13 +40,23 @@ import com.hotels.bdp.waggledance.mapping.service.FederatedMetaStoreStorage;
 public class NotifyingFederationService implements FederationService {
 
   private static final Logger LOG = LoggerFactory.getLogger(NotifyingFederationService.class);
+
+  public static interface FederationEventListener {
+
+    void onRegister(AbstractMetaStore federatedMetaStore);
+
+    void onUnregister(AbstractMetaStore federatedMetaStore);
+
+    void onUpdate(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore);
+  }
+
   private final FederatedMetaStoreStorage federatedMetaStoreStorage;
   private final List<FederationEventListener> listeners;
 
   @Autowired
   public NotifyingFederationService(FederatedMetaStoreStorage federatedMetaStoreStorage) {
     this.federatedMetaStoreStorage = federatedMetaStoreStorage;
-    listeners = Collections.synchronizedList(new ArrayList<>());
+    listeners = Collections.synchronizedList(new ArrayList<FederationEventListener>());
   }
 
   @PostConstruct
@@ -149,14 +159,5 @@ public class NotifyingFederationService implements FederationService {
   @Override
   public List<AbstractMetaStore> getAll() {
     return federatedMetaStoreStorage.getAll();
-  }
-
-  public static interface FederationEventListener {
-
-    void onRegister(AbstractMetaStore federatedMetaStore);
-
-    void onUnregister(AbstractMetaStore federatedMetaStore);
-
-    void onUpdate(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore);
   }
 }
