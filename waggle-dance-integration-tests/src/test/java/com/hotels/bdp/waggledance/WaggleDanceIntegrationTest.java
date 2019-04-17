@@ -228,10 +228,12 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void usePrimaryPrefix() throws Exception {
+    String primaryPrefix = "primary_";
     runner = WaggleDanceRunner
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.PREFIXED)
-        .primaryWithPrefix("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withPrimaryPrefix(primaryPrefix)
         .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri())
         .build();
 
@@ -239,7 +241,7 @@ public class WaggleDanceIntegrationTest {
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
     // Local table
-    String waggledLocalDbName = "primary_" + LOCAL_DATABASE;
+    String waggledLocalDbName = primaryPrefix + LOCAL_DATABASE;
     assertPrefixedLocalTable(proxy, waggledLocalDbName);
 
     // Remote table
