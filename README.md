@@ -356,7 +356,7 @@ database is encountered that is not prefixed then the primary metastore is used 
       remote-meta-store-uris: thrift://primaryLocalMetastore:9083
     federated-meta-stores:
       - name: federated
-        prefix: waggle_prod_
+        database-prefix: waggle_prod_
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
 
 Note: When choosing a prefix ensure that it does not match the start of _any_ existing database names in any of the configured metastores. To illustrate the problem this would cause, 
@@ -378,7 +378,7 @@ In `PREFIXED` mode any databases that are created while Waggle Dance is running 
       remote-meta-store-uris: thrift://primaryLocalMetastore:9083
     federated-meta-stores:
       - name: federated
-        prefix: waggle_prod_
+        database-prefix: waggle_prod_
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
         mapped-databases:
         - etldata
