@@ -22,6 +22,8 @@ import javax.validation.constraints.NotNull;
 
 public class PrimaryMetaStore extends AbstractMetaStore {
 
+  private static final String EMPTY_PREFIX = "";
+
   public PrimaryMetaStore() {}
 
   public PrimaryMetaStore(
@@ -50,7 +52,7 @@ public class PrimaryMetaStore extends AbstractMetaStore {
   public String getDatabasePrefix() {
     String prefix = super.getDatabasePrefix();
     if (prefix == null) {
-      prefix = "";
+      prefix = EMPTY_PREFIX;
     }
     return prefix;
   }
