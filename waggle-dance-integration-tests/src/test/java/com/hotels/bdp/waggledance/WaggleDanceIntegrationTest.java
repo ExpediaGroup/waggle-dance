@@ -77,7 +77,6 @@ import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 public class WaggleDanceIntegrationTest {
-
   private static final Logger LOG = LoggerFactory.getLogger(WaggleDanceIntegrationTest.class);
 
   private static final String LOCAL_DATABASE = "local_database";
@@ -158,7 +157,7 @@ public class WaggleDanceIntegrationTest {
     return new HiveMetaStoreClient(conf);
   }
 
-  private void runWaggleDance(WaggleDanceRunner runner) throws Exception {
+  private void runWaggleDance(final WaggleDanceRunner runner) throws Exception {
     executor.submit(new Runnable() {
       @Override
       public void run() {
@@ -224,6 +223,7 @@ public class WaggleDanceIntegrationTest {
     // Remote table
     String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
+
   }
 
   private void assertTypicalRemoteTable(HiveMetaStoreClient proxy, String waggledRemoteDbName)
@@ -349,7 +349,7 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
-    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    final String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
 
@@ -379,7 +379,7 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
-    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    final String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
 
@@ -409,7 +409,7 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
-    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    final String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
 
