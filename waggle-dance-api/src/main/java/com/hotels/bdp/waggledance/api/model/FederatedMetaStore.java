@@ -18,9 +18,8 @@ package com.hotels.bdp.waggledance.api.model;
 import java.util.Collections;
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-
-import org.hibernate.validator.constraints.NotBlank;
 
 public class FederatedMetaStore extends AbstractMetaStore {
 

@@ -15,20 +15,12 @@
  */
 package com.hotels.bdp.waggledance.api.model;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import java.util.Arrays;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.validation.constraints.NotNull;
 
 public class PrimaryMetaStore extends AbstractMetaStore {
-
-  private final static Logger LOG = LoggerFactory.getLogger(PrimaryMetaStore.class);
-
-  private static final String EMPTY_PREFIX = "";
 
   public PrimaryMetaStore() {}
 
@@ -53,17 +45,18 @@ public class PrimaryMetaStore extends AbstractMetaStore {
     return FederationType.PRIMARY;
   }
 
-  @Size(min = 0, max = 0)
   @NotNull
   @Override
   public String getDatabasePrefix() {
-    // primary is always empty
-    return EMPTY_PREFIX;
+    String prefix = super.getDatabasePrefix();
+    if (prefix == null) {
+      prefix = "";
+    }
+    return prefix;
   }
 
   @Override
   public void setDatabasePrefix(String databasePrefix) {
-    LOG.warn("Ignoring attempt to set prefix to '{}', the prefix for a primary metastore is always empty",
-        databasePrefix);
+    super.setDatabasePrefix(databasePrefix);
   }
 }
