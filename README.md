@@ -105,7 +105,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `disconnect-connection-delay`     | No         | Idle metastore connection timeout. Default is `5` |
 | `disconnect-time-unit`            | No         | Idle metastore connection timeout units. Default is `MINUTES` |
 | `database-resolution`             | No         | Controls what type of database resolution to use. See the [Database Resolution](#database-resolution) section. Default is `MANUAL`. |
-| `status-polling-delay`            | No         | Millisecons. Controls the delay that checks metastore status and updates long running connections of any status change. Default is `300 000` (every 5 minutes). 
+| `status-polling-delay`            | No         | Milliseconds. Controls the delay that checks metastore status and updates long running connections of any status change. Default is `300 000` (every 5 minutes). 
 
 ### Federation
 
