@@ -57,8 +57,4 @@ public class PrimaryMetaStore extends AbstractMetaStore {
     return prefix;
   }
 
-  @Override
-  public void setDatabasePrefix(String databasePrefix) {
-    super.setDatabasePrefix(databasePrefix);
-  }
 }
