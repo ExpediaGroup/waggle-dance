@@ -77,6 +77,7 @@ import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 public class WaggleDanceIntegrationTest {
+
   private static final Logger LOG = LoggerFactory.getLogger(WaggleDanceIntegrationTest.class);
 
   private static final String LOCAL_DATABASE = "local_database";
@@ -157,7 +158,7 @@ public class WaggleDanceIntegrationTest {
     return new HiveMetaStoreClient(conf);
   }
 
-  private void runWaggleDance(final WaggleDanceRunner runner) throws Exception {
+  private void runWaggleDance(WaggleDanceRunner runner) throws Exception {
     executor.submit(new Runnable() {
       @Override
       public void run() {
@@ -223,11 +224,40 @@ public class WaggleDanceIntegrationTest {
     // Remote table
     String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
-
   }
 
-  private void assertTypicalRemoteTable(HiveMetaStoreClient proxy, String waggledRemoteDbName)
-    throws MetaException, TException, NoSuchObjectException {
+  @Test
+  public void usePrimaryPrefix() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primaryWithPrefix("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri())
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    // Local table
+    String waggledLocalDbName = "primary_" + LOCAL_DATABASE;
+    assertPrefixedLocalTable(proxy, waggledLocalDbName);
+
+    // Remote table
+    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    assertTypicalRemoteTable(proxy, waggledRemoteDbName);
+  }
+
+  private void assertPrefixedLocalTable(HiveMetaStoreClient proxy, String waggledLocalDbName) throws TException {
+    Table localTable = localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    Table waggledLocalTable = proxy.getTable(waggledLocalDbName, LOCAL_TABLE);
+    assertThat(waggledLocalTable.getDbName(), is(waggledLocalDbName));
+    assertThat(waggledLocalTable.getTableName(), is(localTable.getTableName()));
+    assertThat(waggledLocalTable.getSd(), is(localTable.getSd()));
+    assertThat(waggledLocalTable.getParameters(), is(localTable.getParameters()));
+    assertThat(waggledLocalTable.getPartitionKeys(), is(localTable.getPartitionKeys()));
+  }
+
+  private void assertTypicalRemoteTable(HiveMetaStoreClient proxy, String waggledRemoteDbName) throws TException {
     Table remoteTable = remoteServer.client().getTable(REMOTE_DATABASE, REMOTE_TABLE);
     Table waggledRemoteTable = proxy.getTable(waggledRemoteDbName, REMOTE_TABLE);
     assertThat(waggledRemoteTable.getDbName(), is(waggledRemoteDbName));
@@ -349,7 +379,7 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
-    final String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
 
@@ -379,7 +409,7 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
-    final String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
 
@@ -409,7 +439,7 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
-    final String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
 
@@ -716,5 +746,4 @@ public class WaggleDanceIntegrationTest {
     List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, PREFIXED_REMOTE_DATABASE);
     assertThat(allDatabases, is(expected));
   }
-
 }

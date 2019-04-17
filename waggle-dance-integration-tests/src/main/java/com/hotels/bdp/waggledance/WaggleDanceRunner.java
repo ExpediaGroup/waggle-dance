@@ -174,6 +174,19 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       return this;
     }
 
+    public Builder primaryWithPrefix(
+        String name,
+        String remoteMetaStoreUris,
+        AccessControlType accessControlType,
+        String... writableDatabaseWhiteList) {
+      checkArgument(isNotEmpty(name));
+      checkArgument(isNotEmpty(remoteMetaStoreUris));
+      primaryMetaStore = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, writableDatabaseWhiteList);
+      primaryMetaStore.setLatency(8000L);
+      primaryMetaStore.setDatabasePrefix(name + "_");
+      return this;
+    }
+
     public Builder graphite(String graphiteHost, int graphitePort, String graphitePrefix, long pollInterval) {
       graphiteConfiguration.setHost(graphiteHost);
       graphiteConfiguration.setPort(graphitePort);
