@@ -1,3 +1,7 @@
+## TBD
+### Fixed
+* Reconnection to metastores for MANUAL database resolution. With this change, the server configuration can specify a `status-polling-delay`. See the [README](https://github.com/HotelsDotCom/waggle-dance#server) for more information.
+
 ## [3.2.0] - 2019-03-27
 ### Added
 * Configurable `latency` for each metastore in a Waggle Dance configuration.
