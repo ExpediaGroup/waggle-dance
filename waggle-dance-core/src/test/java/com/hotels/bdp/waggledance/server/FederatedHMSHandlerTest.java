@@ -240,7 +240,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void create_table()
-      throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException {
+    throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException {
     Table table = new Table();
     table.setDbName(DB_P);
     Table inboundTable = new Table();
@@ -253,7 +253,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void create_table_with_environment_context()
-      throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException {
+    throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     Table table = new Table();
     table.setDbName(DB_P);
@@ -313,7 +313,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_table_objects_by_name()
-      throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    throws MetaException, InvalidOperationException, UnknownDBException, TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     Table table = new Table();
     Table outbound = new Table();
@@ -327,7 +327,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_table_names_by_filter()
-      throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    throws MetaException, InvalidOperationException, UnknownDBException, TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     List<String> tables = Lists.newArrayList("table1");
     when(primaryClient.get_table_names_by_filter("inbound", "*", (short) 2)).thenReturn(tables);
@@ -376,7 +376,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void add_partition_with_environment_context()
-      throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+    throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     Partition newPartition = new Partition();
     newPartition.setDbName(DB_P);
@@ -457,7 +457,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void append_partition_with_environment_context()
-      throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+    throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     Partition inbound = new Partition();
     Partition outbound = new Partition();
@@ -473,7 +473,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void append_partition_by_name()
-      throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+    throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
     Partition inbound = new Partition();
     Partition outbound = new Partition();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
@@ -486,14 +486,14 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void append_partition_by_name_with_environment_context()
-      throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+    throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     Partition inbound = new Partition();
     Partition outbound = new Partition();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient
         .append_partition_by_name_with_environment_context("inbound", "table1", "partName", environmentContext))
-        .thenReturn(inbound);
+            .thenReturn(inbound);
     when(primaryMapping.transformOutboundPartition(inbound)).thenReturn(outbound);
     Partition result = handler
         .append_partition_by_name_with_environment_context(DB_P, "table1", "partName", environmentContext);
@@ -518,7 +518,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(
         primaryClient.drop_partition_with_environment_context("inbound", "table1", partVals, false, environmentContext))
-        .thenReturn(true);
+            .thenReturn(true);
     boolean result = handler
         .drop_partition_with_environment_context(DB_P, "table1", partVals, false, environmentContext);
     assertThat(result, is(true));
@@ -536,12 +536,12 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void drop_partition_by_name_with_environment_context()
-      throws NoSuchObjectException, MetaException, TException {
+    throws NoSuchObjectException, MetaException, TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient
         .drop_partition_by_name_with_environment_context("inbound", "table1", "partName", false, environmentContext))
-        .thenReturn(true);
+            .thenReturn(true);
     boolean result = handler
         .drop_partition_by_name_with_environment_context(DB_P, "table1", "partName", false, environmentContext);
     assertThat(result, is(true));
@@ -578,7 +578,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void exchange_partition()
-      throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException, TException {
+    throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException, TException {
     Partition partition = new Partition();
     Partition outbound = new Partition();
     Map<String, String> specs = new HashMap<>();
@@ -779,7 +779,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void null_get_all_functions() throws MetaException, TException {
+  public void null_get_all_functions() throws TException {
     GetAllFunctionsResponse response = new GetAllFunctionsResponse();
     when(primaryClient.get_all_functions()).thenReturn(response);
     GetAllFunctionsResponse result = handler.get_all_functions();
@@ -787,7 +787,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void prefixedPrimary_get_all_functions() throws MetaException, TException {
+  public void prefixedPrimary_get_all_functions() throws TException {
     String prefixedDatabase = "primary_" + DB_P;
     Function function = new Function();
     function.setDbName(DB_P);
@@ -845,7 +845,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_table_objects_by_name_req()
-      throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    throws MetaException, InvalidOperationException, UnknownDBException, TException {
     Table table0 = new Table();
     table0.setDbName(DB_P);
     table0.setTableName("table0");
@@ -926,4 +926,5 @@ public class FederatedHMSHandlerTest {
     assertThat(result, is(principalPrivilegeSet));
     verify(databaseMappingService, never()).databaseMapping(DB_P);
   }
+
 }
