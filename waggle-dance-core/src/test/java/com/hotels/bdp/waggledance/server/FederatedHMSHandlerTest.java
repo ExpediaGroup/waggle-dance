@@ -767,18 +767,6 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_all_functions() throws MetaException, TException {
-    Function function = new Function();
-    function.setDbName(DB_P);
-    GetAllFunctionsResponse response = new GetAllFunctionsResponse();
-    response.setFunctions(Collections.singletonList(function));
-    when(primaryClient.get_all_functions()).thenReturn(response);
-
-    GetAllFunctionsResponse result = handler.get_all_functions();
-    assertThat(result, is(response));
-  }
-
-  @Test
   public void null_get_all_functions() throws TException {
     GetAllFunctionsResponse response = new GetAllFunctionsResponse();
     when(primaryClient.get_all_functions()).thenReturn(response);
@@ -787,7 +775,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void prefixedPrimary_get_all_functions() throws TException {
+  public void get_all_functions() throws TException {
     String prefixedDatabase = "primary_" + DB_P;
     Function function = new Function();
     function.setDbName(DB_P);
