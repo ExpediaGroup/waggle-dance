@@ -80,11 +80,11 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
 
   @Test
   public void nonEmptyDatabasePrefix() {
-    metaStore.setDatabasePrefix("abc");
+    String prefix = "abc";
+    metaStore.setDatabasePrefix(prefix);
     Set<ConstraintViolation<PrimaryMetaStore>> violations = validator.validate(metaStore);
-    // Violation is not triggered cause EMPTY STRING is always returned. Warning is logged instead
     assertThat(violations.size(), is(0));
-    assertThat(metaStore.getDatabasePrefix(), is(""));
+    assertThat(metaStore.getDatabasePrefix(), is(prefix));
   }
 
   @Test

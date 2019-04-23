@@ -141,7 +141,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store`                                    | No       | Primary MetaStore config. Can be empty but it is advised to configure it. |
 | `primary-meta-store.remote-meta-store-uris`             | Yes      | Thrift URIs of the federated read-only metastore. |
 | `primary-meta-store.name`                               | Yes      | Database name that uniquely identifies this metastore. Used internally. Cannot be empty. |
-| `primary-meta-store.database-prefix`                    | No       | This will be ignored for the primary metastore and an empty string will always be used instead. |
+| `primary-meta-store.database-prefix`                    | No       | Prefix used to access the primary metastore and differentiate databases in it from databases in another metastore. The default prefix (i.e. if this value isn't explicitly set) is empty string.|
 | `primary-meta-store.access-control-type`                | No       | Sets how the client access controls should be handled. Default is `READ_ONLY` Other options `READ_AND_WRITE_AND_CREATE`, `READ_AND_WRITE_ON_DATABASE_WHITELIST` and `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST` see Access Control section below. |
 | `primary-meta-store.writable-database-white-list`       | No       | White-list of databases used to verify write access used in conjunction with `primary-meta-store.access-control-type`. The list of databases should be listed without any `primary-meta-store.database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
 | `primary-meta-store.metastore-tunnel`                   | No       | See metastore tunnel configuration values below. |
@@ -356,7 +356,7 @@ database is encountered that is not prefixed then the primary metastore is used 
       remote-meta-store-uris: thrift://primaryLocalMetastore:9083
     federated-meta-stores:
       - name: federated
-        prefix: waggle_prod_
+        database-prefix: waggle_prod_
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
 
 Note: When choosing a prefix ensure that it does not match the start of _any_ existing database names in any of the configured metastores. To illustrate the problem this would cause, 
@@ -378,7 +378,7 @@ In `PREFIXED` mode any databases that are created while Waggle Dance is running 
       remote-meta-store-uris: thrift://primaryLocalMetastore:9083
     federated-meta-stores:
       - name: federated
-        prefix: waggle_prod_
+        database-prefix: waggle_prod_
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
         mapped-databases:
         - etldata
