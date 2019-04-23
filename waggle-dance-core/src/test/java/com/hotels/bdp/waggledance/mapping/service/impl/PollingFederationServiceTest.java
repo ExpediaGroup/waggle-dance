@@ -20,7 +20,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
@@ -57,7 +56,7 @@ public class PollingFederationServiceTest {
     List<AbstractMetaStore> metastores = Lists.newArrayList(primary, federate);
     when(populateStatusFederationService.getAll()).thenReturn(metastores);
 
-    // first time
+    // first time, get base values
     service.poll();
     verify(populateStatusFederationService, never()).update(primary, primary);
     verify(populateStatusFederationService, never()).update(federate, federate);
@@ -72,11 +71,32 @@ public class PollingFederationServiceTest {
     service.poll();
     verify(populateStatusFederationService).update(federate, federate);
 
-    // federated and primary flipped status
+    // primary flipped status
     primary.setStatus(MetaStoreStatus.UNAVAILABLE);
-    federate.setStatus(MetaStoreStatus.AVAILABLE);
     service.poll();
     verify(populateStatusFederationService).update(primary, primary);
+  }
+
+  @Test
+  public void pollNotifyOnStateChangeStatusChangedTwice() throws Exception {
+    AbstractMetaStore primary = AbstractMetaStore.newPrimaryInstance("p", "uri");
+    AbstractMetaStore federate = AbstractMetaStore.newFederatedInstance("f", "uri");
+    primary.setStatus(MetaStoreStatus.AVAILABLE);
+    federate.setStatus(MetaStoreStatus.AVAILABLE);
+
+    List<AbstractMetaStore> metastores = Lists.newArrayList(primary, federate);
+    when(populateStatusFederationService.getAll()).thenReturn(metastores);
+
+    // first time, get base values
+    service.poll();
+
+    // federated flipped status
+    federate.setStatus(MetaStoreStatus.UNAVAILABLE);
+    service.poll();
+
+    // federated flipped status
+    federate.setStatus(MetaStoreStatus.AVAILABLE);
+    service.poll();
     verify(populateStatusFederationService, times(2)).update(federate, federate);
   }
 
