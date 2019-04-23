@@ -18,22 +18,22 @@ package com.hotels.bdp.waggledance.core.federation.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
-import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
 
 @Service
 public class PopulateStatusFederationService implements FederationService {
 
-  private final NotifyingFederationService federationService;
+  private final FederationService federationService;
   private final FederationStatusService federationStatusService;
 
   public PopulateStatusFederationService(
-      NotifyingFederationService federationService,
+      @Qualifier("notifyingFederationService") FederationService federationService,
       FederationStatusService federationStatusService) {
     this.federationService = federationService;
     this.federationStatusService = federationStatusService;
@@ -74,5 +74,4 @@ public class PopulateStatusFederationService implements FederationService {
     metaStore.setStatus(status);
     return metaStore;
   }
-
 }
