@@ -20,8 +20,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -36,13 +38,17 @@ import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederati
 @RunWith(MockitoJUnitRunner.class)
 public class PollingFederationServiceTest {
 
-  @Mock
-  private PopulateStatusFederationService populateStatusFederationService;
+  private @Mock PopulateStatusFederationService populateStatusFederationService;
+
+  private PollingFederationService service;
+
+  @Before
+  public void setUp() {
+    service = new PollingFederationService(populateStatusFederationService);
+  }
 
   @Test
   public void pollNotifyOnStateChange() throws Exception {
-    PollingFederationService service = new PollingFederationService(populateStatusFederationService);
-
     AbstractMetaStore primary = AbstractMetaStore.newPrimaryInstance("p", "uri");
     AbstractMetaStore federate = AbstractMetaStore.newFederatedInstance("f", "uri");
     primary.setStatus(MetaStoreStatus.AVAILABLE);
@@ -56,9 +62,15 @@ public class PollingFederationServiceTest {
     verify(populateStatusFederationService, never()).update(primary, primary);
     verify(populateStatusFederationService, never()).update(federate, federate);
 
+    // poll with no status changed
+    service.poll();
+    verify(populateStatusFederationService, never()).update(primary, primary);
+    verify(populateStatusFederationService, never()).update(federate, federate);
+
     // federated flipped status
     federate.setStatus(MetaStoreStatus.UNAVAILABLE);
     service.poll();
+    verify(populateStatusFederationService).update(federate, federate);
 
     // federated and primary flipped status
     primary.setStatus(MetaStoreStatus.UNAVAILABLE);
