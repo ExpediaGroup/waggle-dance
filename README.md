@@ -437,6 +437,13 @@ eg. Healthcheck Endpoint: http://localhost:18000/actuator/health
 ### Hive Views and prefixes
 Support for views utilises Hive's query parsing utilities where in some cases the conversion of the original view query may fail. A Hive Table contains two properties that contain the view query: `viewExpandedText` and `viewOriginalText`. You can see the values of these by running the `desc extended <table>` statement. In order for a prefixed federated view to behave correctly Waggle Dance needs to manipulate the queries in those properties and prefix any databases it finds. It does so by calling the `org.apache.hadoop.hive.ql.parse.ParseUtils` class to parse the query where we discovered (and raised) a Hive issue ([HIVE-19896](https://issues.apache.org/jira/browse/HIVE-19896)). To work around this issue we store the parseable `viewExpandedText` in the `viewOriginalText` property **if** the `viewOriginalText` is not parseable. If the `viewExpandedText` is also not parseable we keep the untransformed original values. This might result in a slight discrepancy when using a view in a federated manner. If you run into this limitation please raise an issue on the [Waggle Dance Mailing List](https://groups.google.com/forum/#!forum/waggle-dance-user).
 
+### Hive UDFs and prefixes
+Hive UDFs are register with a database.
+There are two limitations:
+* Currently if you `show functions` you only see the UDFs that are registred in the primary metastore.
+* Currently UDFs used in a view are not prefixed correctly. Workaround is to register the UDF from the federated metastore in your own (primary) metastore.
+Also due to the distributed nature of Waggle Dance using UDFs is not as simple. If you like a UDF to be used from a federated metastore we'd recommend registering it in a distributed store (For instance store the jar on S3) that is accessible from any client. See creating permanent functions in the [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-Create/Drop/ReloadFunction).
+
 
 ## Building
 
