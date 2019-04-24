@@ -438,12 +438,12 @@ eg. Healthcheck Endpoint: http://localhost:18000/actuator/health
 Support for views utilises Hive's query parsing utilities where in some cases the conversion of the original view query may fail. A Hive Table contains two properties that contain the view query: `viewExpandedText` and `viewOriginalText`. You can see the values of these by running the `desc extended <table>` statement. In order for a prefixed federated view to behave correctly Waggle Dance needs to manipulate the queries in those properties and prefix any databases it finds. It does so by calling the `org.apache.hadoop.hive.ql.parse.ParseUtils` class to parse the query where we discovered (and raised) a Hive issue ([HIVE-19896](https://issues.apache.org/jira/browse/HIVE-19896)). To work around this issue we store the parseable `viewExpandedText` in the `viewOriginalText` property **if** the `viewOriginalText` is not parseable. If the `viewExpandedText` is also not parseable we keep the untransformed original values. This might result in a slight discrepancy when using a view in a federated manner. If you run into this limitation please raise an issue on the [Waggle Dance Mailing List](https://groups.google.com/forum/#!forum/waggle-dance-user).
 
 ### Hive UDFs and prefixes
-Hive UDFs are registered with a database.
-There are two limitations:
-* Currently if you `show functions` you only see the UDFs that are registered in the primary metastore.
-* Currently UDFs used in a view are not prefixed correctly. Workaround is to register the UDF from the federated metastore in your own (primary) metastore.
-Also due to the distributed nature of Waggle Dance using UDFs is not that simple. If you would like a UDF to be used from a federated metastore we'd recommend registering it in a distributed store (for instance store the jar on S3) that is accessible from any client. See creating permanent functions in the [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-Create/Drop/ReloadFunction).
+Hive UDFs are registered with a database. There are currently two limitations in how Waggle Dance deals with them:
 
+* `show functions` only returns UDFs that are registered in the primary metastore.
+* UDFs used in a view are not prefixed with their corresponding metastore. A workaround is to register the UDF from the federated metastore in your own (primary) metastore.
+
+Due to the distributed nature of Waggle Dance using UDFs is not that simple. If you would like a UDF to be used from a federated metastore we'd recommend registering the code implementing it in a distributed file or object store that is accessible from any client (for example you could store the UDF's jar file on S3). See creating permanent functions in the [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-Create/Drop/ReloadFunction).
 
 ## Building
 
