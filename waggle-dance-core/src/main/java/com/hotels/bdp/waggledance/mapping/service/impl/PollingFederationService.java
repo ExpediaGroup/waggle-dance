@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
@@ -38,8 +37,6 @@ public class PollingFederationService {
     this.populateStatusFederationService = populateStatusFederationService;
   }
 
-  // status-polling-delay, default every 5 minutes
-  @Scheduled(fixedDelayString = "${status-polling-delay:300000}")
   public void poll() {
     log.debug("polling status");
     Map<String, MetaStoreStatus> current = new HashMap<>();
