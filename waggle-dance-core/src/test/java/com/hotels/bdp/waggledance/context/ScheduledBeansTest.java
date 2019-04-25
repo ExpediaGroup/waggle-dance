@@ -15,8 +15,10 @@
  */
 package com.hotels.bdp.waggledance.context;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doAnswer;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,11 +55,7 @@ public class ScheduledBeansTest {
         return null;
       }
     }).when(pollingFederationService).poll();
-    if (pollCallCount.get() == 0) {
-      // wait for the poll
-      Thread.sleep(15);
-    }
-    assertThat(pollCallCount.get(), greaterThan(0));
+    await().pollDelay(5, MILLISECONDS).atMost(15, MILLISECONDS).untilAtomic(pollCallCount, greaterThan(0));
   }
 
 }
