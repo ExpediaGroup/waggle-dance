@@ -55,7 +55,7 @@ public class ScheduledBeansTest {
         return null;
       }
     }).when(pollingFederationService).poll();
-    await().pollDelay(5, MILLISECONDS).atMost(30, MILLISECONDS).untilAtomic(pollCallCount, greaterThan(0));
+    await().pollDelay(5, MILLISECONDS).atMost(500, MILLISECONDS).untilAtomic(pollCallCount, greaterThan(0));
   }
 
 }
