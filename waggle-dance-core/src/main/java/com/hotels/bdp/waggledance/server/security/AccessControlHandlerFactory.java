@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.server.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
@@ -31,7 +32,7 @@ public class AccessControlHandlerFactory {
   private final FederationService federationService;
 
   @Autowired
-  public AccessControlHandlerFactory(FederationService federationService) {
+  public AccessControlHandlerFactory(@Qualifier("notifyingFederationService") FederationService federationService) {
     this.federationService = federationService;
   }
 

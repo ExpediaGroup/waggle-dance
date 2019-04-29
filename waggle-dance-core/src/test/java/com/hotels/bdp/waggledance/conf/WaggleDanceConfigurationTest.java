@@ -47,7 +47,7 @@ public class WaggleDanceConfigurationTest {
     waggleDanceConfiguration.setDisconnectConnectionDelay(15);
     waggleDanceConfiguration.setDisconnectTimeUnit(TimeUnit.SECONDS);
     waggleDanceConfiguration
-        .setConfigurationProperties(ImmutableMap.<String, String> builder().put("prop1", "val1").build());
+        .setConfigurationProperties(ImmutableMap.<String, String>builder().put("prop1", "val1").build());
   }
 
   @Test
@@ -107,7 +107,7 @@ public class WaggleDanceConfigurationTest {
 
   @Test
   public void emptyConfigurationProperties() {
-    waggleDanceConfiguration.setConfigurationProperties(ImmutableMap.<String, String> of());
+    waggleDanceConfiguration.setConfigurationProperties(ImmutableMap.<String, String>of());
     Set<ConstraintViolation<WaggleDanceConfiguration>> violations = validator.validate(waggleDanceConfiguration);
     assertThat(violations.size(), is(0));
   }
@@ -144,5 +144,29 @@ public class WaggleDanceConfigurationTest {
     TimeUnit timeUnit = TimeUnit.NANOSECONDS;
     waggleDanceConfiguration.setThriftServerRequestTimeoutUnit(timeUnit);
     assertThat(waggleDanceConfiguration.getThriftServerRequestTimeoutUnit(), is(timeUnit));
+  }
+
+  @Test
+  public void setterGetterStatusPollingDelayDefault() {
+    assertThat(waggleDanceConfiguration.getStatusPollingDelay(), is(5));
+  }
+
+  @Test
+  public void setterGetterStatusPollingDelayTimeUnitDefault() {
+    assertThat(waggleDanceConfiguration.getStatusPollingDelayTimeUnit(), is(TimeUnit.MINUTES));
+  }
+
+  @Test
+  public void setterGetterStatusPollingDelay() {
+    int delay = 10;
+    waggleDanceConfiguration.setStatusPollingDelay(delay);
+    assertThat(waggleDanceConfiguration.getStatusPollingDelay(), is(delay));
+  }
+
+  @Test
+  public void setterGetterStatusPollingDelayTimeUnit() {
+    TimeUnit timeUnit = TimeUnit.NANOSECONDS;
+    waggleDanceConfiguration.setStatusPollingDelayTimeUnit(timeUnit);
+    assertThat(waggleDanceConfiguration.getStatusPollingDelayTimeUnit(), is(timeUnit));
   }
 }

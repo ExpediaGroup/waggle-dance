@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.rest.endpoint;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -41,12 +40,11 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.google.common.collect.Lists;
 
-import com.hotels.bdp.waggledance.api.federation.service.FederationService;
-import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
+import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { TestContext.class })
@@ -54,9 +52,7 @@ import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 public class FederationsAdminControllerTest {
 
   @Autowired
-  private FederationService federationService;
-  @Autowired
-  private FederationStatusService federationStatusService;
+  private PopulateStatusFederationService populateStatusFederationService;
   @Autowired
   private WebApplicationContext webApplicationContext;
 
@@ -69,13 +65,12 @@ public class FederationsAdminControllerTest {
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-    when(federationStatusService.checkStatus(any(AbstractMetaStore.class))).thenReturn(MetaStoreStatus.AVAILABLE);
     metastore.setStatus(MetaStoreStatus.AVAILABLE);
   }
 
   @Test
   public void getAll() throws Exception {
-    when(federationService.getAll()).thenReturn(Lists.newArrayList(metastore));
+    when(populateStatusFederationService.getAll()).thenReturn(Lists.newArrayList(metastore));
 
     String expected = "[{\"databasePrefix\":\"\",\"name\":\"primary\",\"remoteMetaStoreUris\":\"uri\",\"metastoreTunnel\":null,\"accessControlType\":\"READ_AND_WRITE_AND_CREATE\",\"status\":\"AVAILABLE\",\"federationType\":\"PRIMARY\",\"writableDatabaseWhiteList\":[]}]";
 
@@ -88,7 +83,7 @@ public class FederationsAdminControllerTest {
 
   @Test
   public void getOnName() throws Exception {
-    when(federationService.get("primary")).thenReturn(metastore);
+    when(populateStatusFederationService.get("primary")).thenReturn(metastore);
 
     String expected = Jackson2ObjectMapperBuilder.json().build().writeValueAsString(metastore);
     mockMvc
@@ -103,13 +98,13 @@ public class FederationsAdminControllerTest {
     mockMvc
         .perform(post("/api/admin/federations/").contentType(MediaType.APPLICATION_JSON_UTF8).content(content))
         .andExpect(status().isOk());
-    verify(federationService).register(metastore);
+    verify(populateStatusFederationService).register(metastore);
   }
 
   @Test
   public void deleteOnName() throws Exception {
     mockMvc.perform(delete("/api/admin/federations/primary")).andExpect(status().isOk());
-    verify(federationService).unregister("primary");
+    verify(populateStatusFederationService).unregister("primary");
   }
 
 }

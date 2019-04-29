@@ -15,33 +15,29 @@
  */
 package com.hotels.bdp.waggledance.context;
 
+import static org.mockito.Mockito.when;
+
+import java.util.concurrent.TimeUnit;
+
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 
-import com.google.common.collect.ImmutableMap;
-
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
-import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
+import com.hotels.bdp.waggledance.mapping.service.impl.PollingFederationService;
 
-public class CommonBeansTestContext {
-
-  static final String PROP_1 = "prop_1";
-  static final String VAL_1 = "val_1";
-  static final String PROP_2 = "prop_2";
-  static final String VAL_2 = "val_2";
+public class ScheduledBeansTestContext {
 
   @Bean
-  WaggleDanceConfiguration waggleDanceConfiguration() {
-    WaggleDanceConfiguration conf = new WaggleDanceConfiguration();
-    conf
-        .setConfigurationProperties(
-            ImmutableMap.<String, String>builder().put(PROP_1, VAL_1).put(PROP_2, VAL_2).build());
-    return conf;
+  public WaggleDanceConfiguration waggleDanceConfiguration() {
+    WaggleDanceConfiguration mock = Mockito.mock(WaggleDanceConfiguration.class);
+    when(mock.getStatusPollingDelay()).thenReturn(10);
+    when(mock.getStatusPollingDelayTimeUnit()).thenReturn(TimeUnit.MILLISECONDS);
+    return mock;
   }
 
   @Bean
-  public PopulateStatusFederationService populateStatusFederationService() {
-    return Mockito.mock(PopulateStatusFederationService.class);
+  public PollingFederationService pollingFederationService() {
+    return Mockito.mock(PollingFederationService.class);
   }
 
 }

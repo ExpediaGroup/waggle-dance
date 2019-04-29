@@ -13,23 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.rest.service;
+package com.hotels.bdp.waggledance.core.federation.service;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 
-public class DelegatingFederationService implements FederationService {
+@Service
+public class PopulateStatusFederationService implements FederationService {
 
   private final FederationService federationService;
   private final FederationStatusService federationStatusService;
 
-  public DelegatingFederationService(
-      FederationService federationService,
+  public PopulateStatusFederationService(
+      @Qualifier("notifyingFederationService") FederationService federationService,
       FederationStatusService federationStatusService) {
     this.federationService = federationService;
     this.federationStatusService = federationStatusService;
@@ -70,5 +74,4 @@ public class DelegatingFederationService implements FederationService {
     metaStore.setStatus(status);
     return metaStore;
   }
-
 }

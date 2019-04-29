@@ -1,4 +1,7 @@
 ## TBD
+### Fixed
+* Reconnection to metastores for MANUAL database resolution. With this change, the server configuration can specify a `status-polling-delay`. See the [README](https://github.com/HotelsDotCom/waggle-dance#server) for more information.
+
 ### Changed
 * Allow primary metastore to have a prefix. See [#152](https://github.com/HotelsDotCom/waggle-dance/issues/152).
 

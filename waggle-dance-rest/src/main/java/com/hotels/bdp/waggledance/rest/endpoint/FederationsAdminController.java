@@ -22,6 +22,7 @@ import javax.validation.constraints.NotNull;
 import javax.xml.bind.ValidationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -36,9 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hotels.bdp.waggledance.api.ValidationError;
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
-import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.rest.service.DelegatingFederationService;
 
 @RestController
 @RequestMapping("/api/admin/federations")
@@ -47,10 +46,8 @@ public class FederationsAdminController {
   private final FederationService federationService;
 
   @Autowired
-  public FederationsAdminController(
-      FederationService federationService,
-      FederationStatusService federationStatusService) {
-    this.federationService = new DelegatingFederationService(federationService, federationStatusService);
+  public FederationsAdminController(@Qualifier("populateStatusFederationService") FederationService federationService) {
+    this.federationService = federationService;
   }
 
   @RequestMapping(method = RequestMethod.GET)

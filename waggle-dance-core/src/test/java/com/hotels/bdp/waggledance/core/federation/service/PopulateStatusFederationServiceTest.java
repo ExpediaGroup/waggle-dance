@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.rest.service;
+package com.hotels.bdp.waggledance.core.federation.service;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -27,28 +29,30 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
+import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DelegatingFederationServiceTest {
+public class PopulateStatusFederationServiceTest {
 
-  private @Mock FederationService federationService;
+  private @Mock NotifyingFederationService federationService;
   private @Mock FederationStatusService federationStatusService;
-  private @Mock AbstractMetaStore federatedMetaStore1;
-  private @Mock AbstractMetaStore federatedMetaStore2;
+  private AbstractMetaStore federatedMetaStore1;
+  private AbstractMetaStore federatedMetaStore2;
 
-  private DelegatingFederationService service;
+  private PopulateStatusFederationService service;
 
   @Before
   public void init() {
+    federatedMetaStore1 = AbstractMetaStore.newFederatedInstance("name1", "uri");
+    federatedMetaStore2 = AbstractMetaStore.newFederatedInstance("name2", "uri");
     when(federationService.get("federatedMetaStore1")).thenReturn(federatedMetaStore1);
     when(federationService.getAll()).thenReturn(Arrays.asList(federatedMetaStore1, federatedMetaStore2));
     when(federationStatusService.checkStatus(federatedMetaStore1)).thenReturn(MetaStoreStatus.AVAILABLE);
     when(federationStatusService.checkStatus(federatedMetaStore2)).thenReturn(MetaStoreStatus.UNAVAILABLE);
-    service = new DelegatingFederationService(federationService, federationStatusService);
+    service = new PopulateStatusFederationService(federationService, federationStatusService);
   }
 
   @Test
@@ -77,7 +81,7 @@ public class DelegatingFederationServiceTest {
     service.get("federatedMetaStore1");
     verify(federationService).get("federatedMetaStore1");
     verify(federationStatusService).checkStatus(federatedMetaStore1);
-    verify(federatedMetaStore1).setStatus(MetaStoreStatus.AVAILABLE);
+    assertThat(federatedMetaStore1.getStatus(), is(MetaStoreStatus.AVAILABLE));
   }
 
   @Test
@@ -85,9 +89,9 @@ public class DelegatingFederationServiceTest {
     service.getAll();
     verify(federationService).getAll();
     verify(federationStatusService).checkStatus(federatedMetaStore1);
-    verify(federatedMetaStore1).setStatus(MetaStoreStatus.AVAILABLE);
+    assertThat(federatedMetaStore1.getStatus(), is(MetaStoreStatus.AVAILABLE));
     verify(federationStatusService).checkStatus(federatedMetaStore2);
-    verify(federatedMetaStore2).setStatus(MetaStoreStatus.UNAVAILABLE);
+    assertThat(federatedMetaStore2.getStatus(), is(MetaStoreStatus.UNAVAILABLE));
   }
 
 }
