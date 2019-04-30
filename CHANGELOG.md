@@ -1,6 +1,6 @@
-## TBD
+## [3.3.0] - 2019-04-30
 ### Fixed
-* Reconnection to metastores for MANUAL database resolution. With this change, the server configuration can specify a `status-polling-delay`. See the [README](https://github.com/HotelsDotCom/waggle-dance#server) for more information.
+* Reconnection to metastores for MANUAL database resolution. With this change, the server configuration can specify a `status-polling-delay` and `status-polling-delay-time-unit`. See the [README](https://github.com/HotelsDotCom/waggle-dance#server) for more information.
 
 ### Changed
 * Allow primary metastore to have a prefix. See [#152](https://github.com/HotelsDotCom/waggle-dance/issues/152).
@@ -37,7 +37,7 @@
 
 ### Fixed
 * Fixed IllegalArgumentException thrown while doing write operations on federated metastores in MANUAL database resolution. See [141](https://github.com/HotelsDotCom/waggle-dance/issues/141).
-* Compatibility issue with get_foreign_keys() and get_primary_keys() methods.
+* Compatibility issue with `get_foreign_keys()` and `get_primary_keys()` methods.
 
 ## [3.0.0] - 2018-09-20
 ### Changed
