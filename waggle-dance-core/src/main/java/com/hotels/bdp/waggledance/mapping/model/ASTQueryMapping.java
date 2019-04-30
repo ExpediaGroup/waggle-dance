@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.antlr.runtime.CommonToken;
 import org.apache.hadoop.hive.ql.lib.Node;
@@ -37,6 +39,7 @@ public enum ASTQueryMapping implements QueryMapping {
 
   INSTANCE;
 
+  private static final String RE_WORD_BOUNDARY = "\\b";
   private final static Comparator<CommonToken> ON_START_INDEX = new Comparator<CommonToken>() {
 
     @Override
@@ -55,9 +58,14 @@ public enum ASTQueryMapping implements QueryMapping {
       throw new WaggleDanceException("Can't parse query: '" + query + "'", e);
     }
 
-    SortedSet<CommonToken> dbNameTokens = extractDbNameTokens(root);
+    StringBuilder result = transformDatabaseTableTokens(metaStoreMapping, root, query);
+    transformFunctionTokens(metaStoreMapping, root, result);
+    return result.toString();
+  }
 
+  private StringBuilder transformDatabaseTableTokens(MetaStoreMapping metaStoreMapping, ASTNode root, String query) {
     StringBuilder result = new StringBuilder();
+    SortedSet<CommonToken> dbNameTokens = extractDbNameTokens(root);
     int startIndex = 0;
     for (CommonToken dbNameNode : dbNameTokens) {
       final String dbName = dbNameNode.getText();
@@ -71,14 +79,29 @@ public enum ASTQueryMapping implements QueryMapping {
       startIndex = dbNameNode.getStopIndex() + 1;
     }
     result.append(query.substring(startIndex));
-    return result.toString();
+    return result;
+  }
+
+  private void transformFunctionTokens(MetaStoreMapping metaStoreMapping, ASTNode root, StringBuilder result) {
+    // Done differently from the extractDbNameTokens as the Function tokens do not contain a correct start index. We'll
+    // have to fall back to search and replace.
+    List<CommonToken> functionTokens = extractFunctionTokens(root);
+    for (CommonToken functionNode : functionTokens) {
+      final String functionName = functionNode.getText();
+      Pattern pattern = Pattern.compile(RE_WORD_BOUNDARY + functionName + RE_WORD_BOUNDARY);
+      Matcher matcher = pattern.matcher(result);
+      if (matcher.find()) {
+        int index = matcher.start();
+        String prefix = metaStoreMapping.getDatabasePrefix();
+        result.replace(index, index, prefix);
+      }
+    }
   }
 
   private SortedSet<CommonToken> extractDbNameTokens(ASTNode root) {
     SortedSet<CommonToken> dbNameTokens = new TreeSet<>(ON_START_INDEX);
     Stack<ASTNode> stack = new Stack<>();
     stack.push(root);
-
     while (!stack.isEmpty()) {
       ASTNode current = stack.pop();
       for (ASTNode child : getChildren(current)) {
@@ -94,6 +117,27 @@ public enum ASTQueryMapping implements QueryMapping {
       }
     }
     return dbNameTokens;
+  }
+
+  private List<CommonToken> extractFunctionTokens(ASTNode root) {
+    List<CommonToken> tokens = new ArrayList<>();
+    Stack<ASTNode> stack = new Stack<>();
+    stack.push(root);
+
+    while (!stack.isEmpty()) {
+      ASTNode current = stack.pop();
+      for (ASTNode child : getChildren(current)) {
+        stack.push(child);
+      }
+      if (current.getType() == HiveParser.TOK_FUNCTION) {
+        if (current.getChildCount() == 1 && childrenAreIdentifiers(current)) {
+          // TOK_FUNCTION has one child, <dbName.functionName>.
+          CommonToken dbNameDotFunctionNameNode = (CommonToken) ((ASTNode) current.getChild(0)).getToken();
+          tokens.add(dbNameDotFunctionNameNode);
+        }
+      }
+    }
+    return tokens;
   }
 
   private boolean childrenAreIdentifiers(ASTNode current) {
