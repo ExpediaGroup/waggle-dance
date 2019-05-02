@@ -39,7 +39,7 @@ public enum ASTQueryMapping implements QueryMapping {
 
   INSTANCE;
 
-  private static final String RE_WORD_BOUNDARY = "\\b";
+  private final static String RE_WORD_BOUNDARY = "\\b";
   private final static Comparator<CommonToken> ON_START_INDEX = new Comparator<CommonToken>() {
 
     @Override
