@@ -10,7 +10,6 @@
 
   <artifactId>waggle-dance-boot</artifactId>
   <description>Waggle Dance Spring boot module</description>
-  <packaging>jar</packaging>
 
   <properties>
     <spring-boot-maven-plugin.version>1.5.7.RELEASE</spring-boot-maven-plugin.version>
@@ -46,10 +45,6 @@
               <groupId>org.apache.hive</groupId>
               <artifactId>hive-common</artifactId>
             </dependency>
-<!--            <dependency>
-              <groupId>com.hotels</groupId>
-              <artifactId>waggle-dance-core</artifactId>
-            </dependency>-->
           </requiresUnpack>
           <executable>true</executable>
           <classifier>exec</classifier>

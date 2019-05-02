@@ -1,6 +1,6 @@
 ## TBD
 ### Fixed
-* Fixed rest api (http://localhost:18000/api/admin/federations/) which broke in 3.3.0 release.
+* Fixed REST API (http://localhost:18000/api/admin/federations/) which broke in 3.3.0 release.
 
 ## [3.3.0] - 2019-04-30
 ### Fixed
