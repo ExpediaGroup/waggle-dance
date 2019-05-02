@@ -1,0 +1,80 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.hotels</groupId>
+    <artifactId>waggle-dance-parent</artifactId>
+    <version>3.3.1-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>waggle-dance-boot</artifactId>
+  <description>Waggle Dance Spring boot module</description>
+  <packaging>jar</packaging>
+
+  <properties>
+    <spring-boot-maven-plugin.version>1.5.7.RELEASE</spring-boot-maven-plugin.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>waggle-dance-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>waggle-dance-rest</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring-boot-maven-plugin.version}</version>
+        <configuration>
+		  <mainClass>com.hotels.bdp.waggledance.WaggleDance</mainClass>
+          <requiresUnpack>
+            <!-- We are hitting an issue introduced in hive-common-2.1.1 and fixed in https://issues.apache.org/jira/browse/HIVE-17155
+              The HiveConf class tries loading conf (e.g. hive-site.xml) from the uberjar and fails. Unpacking it with this
+              setting fixes that problem.
+            -->
+            <dependency>
+              <groupId>org.apache.hive</groupId>
+              <artifactId>hive-common</artifactId>
+            </dependency>
+<!--            <dependency>
+              <groupId>com.hotels</groupId>
+              <artifactId>waggle-dance-core</artifactId>
+            </dependency>-->
+          </requiresUnpack>
+          <executable>true</executable>
+          <classifier>exec</classifier>
+          <excludeGroupIds>org.mortbay.jetty,org.eclipse.jetty,org.eclipse.jetty.aggregate,org.eclipse.jetty.orbit
+          </excludeGroupIds>
+          <excludes>
+            <exclude>
+              <groupId>org.codehaus.jettison</groupId>
+              <artifactId>jettison</artifactId>
+            </exclude>
+            <exclude>
+              <groupId>javax.servlet</groupId>
+              <artifactId>servlet-api</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
