@@ -1,3 +1,7 @@
+## TBD
+### Fixed
+* Prefixing of UDF's used in a view. See [#165](https://github.com/HotelsDotCom/waggle-dance/issues/165).
+
 ## [3.3.0] - 2019-04-30
 ### Fixed
 * Reconnection to metastores for MANUAL database resolution. With this change, the server configuration can specify a `status-polling-delay` and `status-polling-delay-time-unit`. See the [README](https://github.com/HotelsDotCom/waggle-dance#server) for more information.
