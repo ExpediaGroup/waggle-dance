@@ -21,20 +21,9 @@
   <dependencies>
     <dependency>
       <groupId>com.hotels</groupId>
-      <artifactId>waggle-dance-core</artifactId>
+      <artifactId>waggle-dance-boot</artifactId>
       <version>${project.version}</version>
       <classifier>exec</classifier>
-    </dependency>
-    <dependency>
-      <groupId>com.hotels</groupId>
-      <artifactId>waggle-dance-rest</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.hotels</groupId>
-          <artifactId>waggle-dance-core</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 

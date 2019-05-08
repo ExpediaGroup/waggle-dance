@@ -16,10 +16,10 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>service</outputDirectory>
-      <outputFileNameMapping>${artifact.artifactId}-latest${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
+      <outputFileNameMapping>waggle-dance-core-latest${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
       <useProjectArtifact>false</useProjectArtifact>
       <includes>
-        <include>com.hotels:waggle-dance-core</include>
+        <include>com.hotels:waggle-dance-boot</include>
       </includes>
     </dependencySet>
   </dependencySets>
