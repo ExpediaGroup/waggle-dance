@@ -1,6 +1,7 @@
 ## TBD
 ### Fixed
 * Fixed REST API (http://localhost:18000/api/admin/federations/) which broke in 3.3.0 release.
+* Prefixing of UDF's used in a view. See [#165](https://github.com/HotelsDotCom/waggle-dance/issues/165).
 
 ## [3.3.0] - 2019-04-30
 ### Fixed

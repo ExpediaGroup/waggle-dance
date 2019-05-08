@@ -77,4 +77,38 @@ public class ASTQueryMappingTest {
     String unparsableQuery = "SELCT *";
     queryMapping.transformOutboundDatabaseName(metaStoreMapping, unparsableQuery);
   }
+
+  @Test
+  public void transformOutboundDatabaseNameOnFunctions() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY);
+
+    String query = "SELECT db1.myFunction()";
+
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT " + PREFIX + "db1.myFunction()"));
+  }
+
+  @Test
+  public void transformOutboundDatabaseNameOnMultipleSameFunctions() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY);
+
+    String query = "SELECT bdp.hellobdp() as q union all SELECT bdp.hellobdp() as qq where false";
+
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT " + PREFIX + "bdp.hellobdp() as q union all SELECT " + PREFIX + "bdp.hellobdp() as qq where false"));
+  }
+
+  @Test
+  public void transformOutboundDatabaseNameOnMultipleDifferentFunctions() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY);
+
+    String query = "SELECT bdp.hellobdp1(), bdp.hellobdp2()";
+
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT " + PREFIX + "bdp.hellobdp1(), " + PREFIX + "bdp.hellobdp2()"));
+  }
+
 }
