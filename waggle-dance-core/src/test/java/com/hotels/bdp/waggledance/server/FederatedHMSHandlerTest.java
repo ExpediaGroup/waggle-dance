@@ -769,8 +769,11 @@ public class FederatedHMSHandlerTest {
   public void get_all_functions() throws TException {
     PanopticOperationHandler panopticHandler = Mockito.mock(PanopticOperationHandler.class);
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
+    DatabaseMapping mapping = Mockito.mock(DatabaseMapping.class);
+    List<DatabaseMapping> mappings = Lists.newArrayList(mapping);
+    when(databaseMappingService.getDatabaseMappings()).thenReturn(mappings);
     GetAllFunctionsResponse getAllFunctionsResponse = Mockito.mock(GetAllFunctionsResponse.class);
-    when(panopticHandler.getAllFunctions()).thenReturn(getAllFunctionsResponse);
+    when(panopticHandler.getAllFunctions(mappings)).thenReturn(getAllFunctionsResponse);
     GetAllFunctionsResponse result = handler.get_all_functions();
     assertThat(result, is(getAllFunctionsResponse));
   }

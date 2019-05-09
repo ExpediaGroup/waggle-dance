@@ -209,7 +209,6 @@ public class WaggleDanceIntegrationTest {
     // Remote table
     String waggledRemoteDbName = REMOTE_DATABASE;
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
-
   }
 
   @Test

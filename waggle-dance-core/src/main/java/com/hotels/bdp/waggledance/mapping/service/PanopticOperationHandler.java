@@ -198,9 +198,7 @@ public abstract class PanopticOperationHandler {
    *
    * @return GetAllFunctionsResponse (db's from federated metastores will be prefixed if necessary)
    */
-  public abstract GetAllFunctionsResponse getAllFunctions();
-
-  protected GetAllFunctionsResponse getAllFunctions(List<DatabaseMapping> databaseMappings) {
+  public GetAllFunctionsResponse getAllFunctions(List<DatabaseMapping> databaseMappings) {
     List<GetAllFunctionsRequest> allRequests = new ArrayList<>();
 
     for (DatabaseMapping mapping : databaseMappings) {

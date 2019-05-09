@@ -490,7 +490,7 @@ public class StaticDatabaseMappingServiceTest {
     when(federatedDatabaseClient.get_all_functions()).thenReturn(responseFederated);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    GetAllFunctionsResponse result = handler.getAllFunctions();
+    GetAllFunctionsResponse result = handler.getAllFunctions(service.getDatabaseMappings());
     assertThat(result.getFunctionsSize(), is(2));
     assertThat(result.getFunctions().get(0).getFunctionName(), is("fn1"));
     assertThat(result.getFunctions().get(1).getFunctionName(), is("fn2"));

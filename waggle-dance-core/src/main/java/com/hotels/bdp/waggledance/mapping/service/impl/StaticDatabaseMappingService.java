@@ -33,7 +33,6 @@ import java.util.function.BiFunction;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -334,15 +333,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         }
         return combined;
       }
-
-      @Override
-      public GetAllFunctionsResponse getAllFunctions() {
-        List<DatabaseMapping> databaseMappings = getDatabaseMappings();
-        return super.getAllFunctions(databaseMappings);
-      }
-    }
-
-    ;
+    };
   }
 
   @Override
