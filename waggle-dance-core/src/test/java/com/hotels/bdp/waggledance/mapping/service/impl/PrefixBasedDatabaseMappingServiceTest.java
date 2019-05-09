@@ -41,7 +41,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -279,28 +278,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void panopticOperationsHandlerGetAllDatabasesWithSlowConnection() throws Exception {
-    when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
-    mockSlowConnectionToFederatedMetastore();
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.getAllDatabases();
-    assertThat(result.size(), is(1));
-    assertThat(result.contains("primary_db"), is(true));
-  }
-
-  @Test
-  public void panopticOperationsHandlerGetAllDatabasesDifferentTimeouts() throws Exception {
-    when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
-    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.getAllDatabases();
-    assertThat(result.size(), is(1));
-    assertThat(result.contains("primary_db"), is(true));
-  }
-
-  @Test
   public void panopticStoreOperationsHandlerGetAllDatabasesByPattern() throws Exception {
     String pattern = "*_db";
     when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
@@ -336,30 +313,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void panopticStoreOperationsHandlerGetAllDatabasesWithSlowConnection() throws Exception {
-    String pattern = "*_db";
-    when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
-    mockSlowConnectionToFederatedMetastore();
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.getAllDatabases(pattern);
-    assertThat(result.size(), is(1));
-    assertThat(result.contains("primary_db"), is(true));
-  }
-
-  @Test
-  public void panopticStoreOperationsHandlerGetAllDatabasesDifferentTimeouts() throws Exception {
-    String pattern = "*_db";
-    when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
-    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<String> result = handler.getAllDatabases(pattern);
-    assertThat(result.size(), is(1));
-    assertThat(result.contains("primary_db"), is(true));
-  }
-
-  @Test
   public void panopticOperationsHandlerGetTableMeta() throws Exception {
     TableMeta federatedTableMeta = new TableMeta("federated_db", "tbl", null);
     TableMeta primaryTableMeta = new TableMeta("primary_db", "tbl", null);
@@ -378,32 +331,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void panopticOperationsHandlerGetTableMetaWithSlowConnection() throws TException {
-    TableMeta primaryTableMeta = new TableMeta("primary_db", "tbl", null);
-
-    when(primaryDatabaseClient.get_table_meta("*_db", "*", null))
-        .thenReturn(Collections.singletonList(primaryTableMeta));
-    mockSlowConnectionToFederatedMetastore();
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<TableMeta> result = handler.getTableMeta("*_db", "*", null);
-    assertThat(result, is(Collections.singletonList(primaryTableMeta)));
-  }
-
-  @Test
-  public void panopticOperationsHandlerGetTableMetaDifferentTimeouts() throws TException {
-    TableMeta primaryTableMeta = new TableMeta("primary_db", "tbl", null);
-
-    when(primaryDatabaseClient.get_table_meta("*_db", "*", null))
-        .thenReturn(Collections.singletonList(primaryTableMeta));
-    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<TableMeta> result = handler.getTableMeta("*_db", "*", null);
-    assertThat(result, is(Collections.singletonList(primaryTableMeta)));
-  }
-
-  @Test
   public void panopticOperationsHandlerSetUgi() throws Exception {
     String user = "user";
     List<String> groups = Lists.newArrayList();
@@ -416,34 +343,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
     List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
     List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result, is(Arrays.asList("ugi", "ugi2")));
-  }
-
-  @Test
-  public void panopticOperationsHandlerSetUgiWithSlowConnection() throws Exception {
-    String user = "user";
-    List<String> groups = Lists.newArrayList();
-    when(primaryDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi"));
-    mockSlowConnectionToFederatedMetastore();
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
-    List<String> result = handler.setUgi(user, groups, databaseMappings);
-    assertThat(result.size(), is(1));
-    assertThat(result.contains("ugi"), is(true));
-  }
-
-  @Test
-  public void panopticOperationsHandlerSetUgiDifferentTimeouts() throws Exception {
-    String user = "user";
-    List<String> groups = Lists.newArrayList();
-    when(primaryDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi"));
-    when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
-    List<String> result = handler.setUgi(user, groups, databaseMappings);
-    assertThat(result.size(), is(1));
-    assertThat(result.contains("ugi"), is(true));
   }
 
   @Test
@@ -462,23 +361,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
     assertThat(result.getFunctionsSize(), is(2));
     assertThat(result.getFunctions().get(0).getFunctionName(), is("fn1"));
     assertThat(result.getFunctions().get(1).getFunctionName(), is("fn2"));
-  }
-
-  @Test
-  public void panopticOperationsHandlerGetAllFunctionsWithSlowConnection() throws Exception {
-    GetAllFunctionsResponse responsePrimary = new GetAllFunctionsResponse();
-    responsePrimary.addToFunctions(newFunction("db", "fn1"));
-    when(primaryDatabaseClient.get_all_functions()).thenReturn(responsePrimary);
-
-    mockSlowConnectionToFederatedMetastore();
-    GetAllFunctionsResponse responseFederated = new GetAllFunctionsResponse();
-    responseFederated.addToFunctions(newFunction("db", "fn2"));
-    when(federatedDatabaseClient.get_all_functions()).thenReturn(responseFederated);
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    GetAllFunctionsResponse result = handler.getAllFunctions(service.getDatabaseMappings());
-    assertThat(result.getFunctionsSize(), is(1));
-    assertThat(result.getFunctions().get(0).getFunctionName(), is("fn1"));
   }
 
   @Test(expected = NoPrimaryMetastoreException.class)
@@ -531,64 +413,5 @@ public class PrefixBasedDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<TableMeta> tableMetas = handler.getTableMeta("name_federated_*", "*", tblTypes);
     assertThat(tableMetas.size(), is(0));
-  }
-
-  @Test
-  public void panopticOperationsHandlerGetTableMetaLogsException() throws TException {
-    List<String> tblTypes = Lists.newArrayList();
-
-    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_table_meta("federated_*", "*", tblTypes)).thenThrow(new TException());
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<TableMeta> tableMetas = handler.getTableMeta("name_federated_*", "*", tblTypes);
-    assertThat(tableMetas.size(), is(0));
-  }
-
-  @Test
-  public void panopticStoreOperationsHandlerGetAllDatabasesByPatternLogsException() throws Exception {
-    String pattern = "*_db";
-    when(primaryDatabaseClient.get_databases(pattern)).thenThrow(new TException());
-
-    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_databases(pattern)).thenThrow(new TException());
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    assertThat(handler.getAllDatabases(pattern).size(), is(0));
-  }
-
-  @Test
-  public void panopticStoreOperationsHandlerGetAllDatabasesLogsException() throws Exception {
-    when(primaryDatabaseClient.get_all_databases()).thenThrow(new TException());
-
-    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_all_databases()).thenThrow(new TException());
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    assertThat(handler.getAllDatabases().size(), is(0));
-  }
-
-  @Test
-  public void panopticOperationsHandlerSetUgiLogsException() throws Exception {
-    String user = "user";
-    List<String> groups = Lists.newArrayList();
-    when(primaryDatabaseClient.set_ugi(user, groups)).thenThrow(new TException());
-
-    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.set_ugi(user, groups)).thenThrow(new TException());
-
-    PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
-    assertThat(handler.setUgi(user, groups, databaseMappings).size(), is(0));
-  }
-
-  private void mockSlowConnectionToFederatedMetastore() {
-    when(metaStoreMappingFederated.getClient()).thenAnswer((Answer<Iface>) invocation -> {
-      try {
-        Thread.sleep(5000L);
-        fail();
-      } catch (InterruptedException ignored) {}
-      return federatedDatabaseClient;
-    });
   }
 }

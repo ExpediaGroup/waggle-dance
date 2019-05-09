@@ -51,6 +51,8 @@ import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.GrammarUtils;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
+import com.hotels.bdp.waggledance.mapping.service.PanopticConcurrentOperationExecutor;
+import com.hotels.bdp.waggledance.mapping.service.PanopticOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
@@ -297,8 +299,14 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, filter);
           allRequests.add(allDatabasesRequest);
         }
-        List<String> result = executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases: {}");
+        List<String> result = getPanopticOperationExecutor()
+            .executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases: {}");
         return result;
+      }
+
+      @Override
+      protected PanopticOperationExecutor getPanopticOperationExecutor() {
+        return new PanopticConcurrentOperationExecutor();
       }
     };
   }

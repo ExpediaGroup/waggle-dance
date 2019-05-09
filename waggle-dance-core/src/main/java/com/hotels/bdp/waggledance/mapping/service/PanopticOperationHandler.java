@@ -16,32 +16,22 @@
 package com.hotels.bdp.waggledance.mapping.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllFunctionsRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
-import com.hotels.bdp.waggledance.mapping.service.requests.RequestCallable;
 import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 
 /**
@@ -50,12 +40,11 @@ import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 public abstract class PanopticOperationHandler {
 
   protected static final long GET_DATABASES_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(8000L);
-  private static final Logger LOG = LoggerFactory.getLogger(PanopticOperationHandler.class);
-  private static final String INTERRUPTED_MESSAGE = "Execution was interrupted: ";
-  private static final String SLOW_METASTORE_MESSAGE = "Metastore {} was slow to respond so results are omitted";
   private static final long SET_UGI_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(8000L);
   private static final long GET_TABLE_META_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(400L);
   private static final long GET_ALL_FUNCTIONS_TIMEOUT = TimeUnit.SECONDS.toMillis(1L);
+
+  protected abstract PanopticOperationExecutor getPanopticOperationExecutor();
 
   /**
    * Implements {@link HMSHandler#get_all_databases()} over multiple metastores
@@ -84,7 +73,8 @@ public abstract class PanopticOperationHandler {
       allRequests.add(databasesByPatternRequest);
     }
 
-    List<String> result = executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases by pattern: {}");
+    List<String> result = getPanopticOperationExecutor()
+        .executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases by pattern: {}");
     return result;
   }
 
@@ -112,8 +102,8 @@ public abstract class PanopticOperationHandler {
       allRequests.add(tableMetaRequest);
     }
 
-    List<TableMeta> result = executeRequests(allRequests, GET_TABLE_META_TIMEOUT,
-        "Got exception fetching get_table_meta: {}");
+    List<TableMeta> result = getPanopticOperationExecutor()
+        .executeRequests(allRequests, GET_TABLE_META_TIMEOUT, "Got exception fetching get_table_meta: {}");
     return result;
   }
 
@@ -134,62 +124,10 @@ public abstract class PanopticOperationHandler {
       allRequests.add(setUgiRequest);
     }
 
-    List<String> resultWithDuplicates = executeRequests(allRequests, SET_UGI_TIMEOUT, "Got exception setting UGI: {}");
+    List<String> resultWithDuplicates = getPanopticOperationExecutor()
+        .executeRequests(allRequests, SET_UGI_TIMEOUT, "Got exception setting UGI: {}");
     Set<String> result = new LinkedHashSet<>(resultWithDuplicates);
     return new ArrayList<>(result);
-  }
-
-  protected <T> List<T> executeRequests(
-      List<? extends RequestCallable<List<T>>> allRequests,
-      long requestTimeout,
-      String errorMessage) {
-    ExecutorService executorService = Executors.newFixedThreadPool(allRequests.size());
-    try {
-      List<T> allResults = new ArrayList<>();
-      List<Future<List<T>>> futures = Collections.emptyList();
-      Iterator<? extends RequestCallable<List<T>>> iterator = allRequests.iterator();
-
-      try {
-        long totalTimeout = getTotalTimeout(requestTimeout, allRequests);
-        futures = executorService.invokeAll(allRequests, totalTimeout, TimeUnit.MILLISECONDS);
-      } catch (InterruptedException e) {
-        LOG.warn("Execution was interrupted", e);
-      }
-
-      for (Future<List<T>> future : futures) {
-        DatabaseMapping mapping = iterator.next().getMapping();
-        List<T> result = getResultFromFuture(future, mapping.getMetastoreMappingName(), errorMessage);
-        allResults.addAll(result);
-      }
-      return allResults;
-    } finally {
-      executorService.shutdownNow();
-    }
-  }
-
-  private <T> List<T> getResultFromFuture(Future<List<T>> future, String metastoreMappingName, String errorMessage) {
-    try {
-      return future.get();
-    } catch (InterruptedException e) {
-      LOG.warn(INTERRUPTED_MESSAGE, e);
-    } catch (ExecutionException e) {
-      LOG.warn(errorMessage, e.getCause().getMessage());
-    } catch (CancellationException e) {
-      LOG.warn(SLOW_METASTORE_MESSAGE, metastoreMappingName);
-    }
-    return Collections.emptyList();
-  }
-
-  private <T> long getTotalTimeout(long requestTimeout, List<? extends RequestCallable<List<T>>> allRequests) {
-    long maxLatency = Integer.MIN_VALUE;
-    for (RequestCallable<List<T>> request : allRequests) {
-      maxLatency = Math.max(maxLatency, request.getMapping().getLatency());
-    }
-
-    // Connection timeout should not be less than 1
-    // Other implementations interpret a timeout of zero as infinite wait
-    // `Future.get` currently does not do that, but this is safe if implementation changes in the future
-    return Math.max(1, requestTimeout + maxLatency);
   }
 
   /**
@@ -205,8 +143,8 @@ public abstract class PanopticOperationHandler {
       allRequests.add(getAllFunctionsRequest);
     }
 
-    List<GetAllFunctionsResponse> responses = executeRequests(allRequests, GET_ALL_FUNCTIONS_TIMEOUT,
-        "Got exception fetching get_all_functions: {}");
+    List<GetAllFunctionsResponse> responses = getPanopticOperationExecutor()
+        .executeRequests(allRequests, GET_ALL_FUNCTIONS_TIMEOUT, "Got exception fetching get_all_functions: {}");
     if (responses.isEmpty()) {
       return new GetAllFunctionsResponse();
     }
