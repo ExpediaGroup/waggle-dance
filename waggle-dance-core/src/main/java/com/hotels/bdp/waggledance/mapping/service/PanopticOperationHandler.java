@@ -32,12 +32,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
+import org.apache.hadoop.hive.metastore.api.Function;
+import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
+import com.hotels.bdp.waggledance.mapping.service.requests.GetAllFunctionsRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetTableMetaRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.RequestCallable;
 import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
@@ -53,6 +56,7 @@ public abstract class PanopticOperationHandler {
   private static final String SLOW_METASTORE_MESSAGE = "Metastore {} was slow to respond so results are omitted";
   private static final long SET_UGI_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(8000L);
   private static final long GET_TABLE_META_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(400L);
+  private static final long GET_ALL_FUNCTIONS_TIMEOUT = TimeUnit.SECONDS.toMillis(1L);
 
   /**
    * Implements {@link HMSHandler#get_all_databases()} over multiple metastores
@@ -188,4 +192,38 @@ public abstract class PanopticOperationHandler {
     // `Future.get` currently does not do that, but this is safe if implementation changes in the future
     return Math.max(1, requestTimeout + maxLatency);
   }
+
+  /**
+   * Implements {@link HMSHandler#get_all_functions()} over multiple metastores
+   *
+   * @return GetAllFunctionsResponse (db's from federated metastores will be prefixed if necessary)
+   */
+  public abstract GetAllFunctionsResponse getAllFunctions();
+
+  protected GetAllFunctionsResponse getAllFunctions(List<DatabaseMapping> databaseMappings) {
+    List<GetAllFunctionsRequest> allRequests = new ArrayList<>();
+
+    for (DatabaseMapping mapping : databaseMappings) {
+      GetAllFunctionsRequest getAllFunctionsRequest = new GetAllFunctionsRequest(mapping);
+      allRequests.add(getAllFunctionsRequest);
+    }
+
+    List<GetAllFunctionsResponse> responses = executeRequests(allRequests, GET_ALL_FUNCTIONS_TIMEOUT,
+        "Got exception fetching get_all_functions: {}");
+    if (responses.isEmpty()) {
+      return new GetAllFunctionsResponse();
+    }
+    GetAllFunctionsResponse result = new GetAllFunctionsResponse(responses.get(0));
+    responses.stream().skip(1).forEach(response -> addFunctionsToResult(response, result));
+    return result;
+  }
+
+  private void addFunctionsToResult(GetAllFunctionsResponse response, GetAllFunctionsResponse result) {
+    if (response.getFunctions() != null) {
+      for (Function function : response.getFunctions()) {
+        result.addToFunctions(function);
+      }
+    }
+  }
+
 }

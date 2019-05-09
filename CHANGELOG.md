@@ -1,5 +1,6 @@
 ## TBD
 ### Fixed
+* Show Functions now shows UDF's from all metastores. See [#164](https://github.com/HotelsDotCom/waggle-dance/issues/164).
 * Fixed REST API (http://localhost:18000/api/admin/federations/) which broke in 3.3.0 release.
 * Prefixing of UDF's used in a view. See [#165](https://github.com/HotelsDotCom/waggle-dance/issues/165).
 

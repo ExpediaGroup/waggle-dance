@@ -26,12 +26,14 @@ import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newPrimaryInstance;
+import static com.hotels.bdp.waggledance.stubs.HiveStubs.newFunction;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
@@ -104,7 +106,7 @@ public class StaticDatabaseMappingServiceTest {
       String uri,
       List<String> mappedDatabases,
       boolean availableMapping)
-      throws TException {
+    throws TException {
     FederatedMetaStore newMetastore = newFederatedInstance(name, uri);
     newMetastore.setMappedDatabases(mappedDatabases);
     MetaStoreMapping newMapping = mockNewMapping(availableMapping, newMetastore);
@@ -366,8 +368,8 @@ public class StaticDatabaseMappingServiceTest {
     TableMeta federatedTableMeta = new TableMeta("federated_db", "tbl", null);
     TableMeta ignoredTableMeta = new TableMeta("non_mapped_db", "tbl", null);
 
-    when(primaryDatabaseClient.get_table_meta(pattern, pattern, null)).thenReturn(
-        Collections.singletonList(primaryTableMeta));
+    when(primaryDatabaseClient.get_table_meta(pattern, pattern, null))
+        .thenReturn(Collections.singletonList(primaryTableMeta));
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(federatedDatabaseClient.get_table_meta(pattern, pattern, null))
         .thenReturn(Arrays.asList(federatedTableMeta, ignoredTableMeta));
@@ -395,8 +397,8 @@ public class StaticDatabaseMappingServiceTest {
     List<String> tblTypes = Lists.newArrayList();
     TableMeta primaryTableMeta = mockTableMeta("primary_db");
 
-    when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(
-        Lists.newArrayList(primaryTableMeta));
+    when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes))
+        .thenReturn(Lists.newArrayList(primaryTableMeta));
     mockSlowConnectionFromFederatedMetastore();
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
@@ -411,8 +413,8 @@ public class StaticDatabaseMappingServiceTest {
     List<String> tblTypes = Lists.newArrayList();
     TableMeta primaryTableMeta = new TableMeta("primary_db", "tbl", null);
 
-    when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes)).thenReturn(
-        Lists.newArrayList(primaryTableMeta));
+    when(primaryDatabaseClient.get_table_meta(pattern, pattern, tblTypes))
+        .thenReturn(Lists.newArrayList(primaryTableMeta));
     when(metaStoreMappingFederated.getLatency()).thenReturn(0L);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
@@ -474,6 +476,24 @@ public class StaticDatabaseMappingServiceTest {
     List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result.size(), is(1));
     assertThat(result, is(Collections.singletonList("ugi")));
+  }
+
+  @Test
+  public void panopticOperationsHandlerGetAllFunctions() throws Exception {
+    GetAllFunctionsResponse responsePrimary = new GetAllFunctionsResponse();
+    responsePrimary.addToFunctions(newFunction("db", "fn1"));
+    when(primaryDatabaseClient.get_all_functions()).thenReturn(responsePrimary);
+
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    GetAllFunctionsResponse responseFederated = new GetAllFunctionsResponse();
+    responseFederated.addToFunctions(newFunction("db", "fn2"));
+    when(federatedDatabaseClient.get_all_functions()).thenReturn(responseFederated);
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    GetAllFunctionsResponse result = handler.getAllFunctions();
+    assertThat(result.getFunctionsSize(), is(2));
+    assertThat(result.getFunctions().get(0).getFunctionName(), is("fn1"));
+    assertThat(result.getFunctions().get(1).getFunctionName(), is("fn2"));
   }
 
   private TableMeta mockTableMeta(String databaseName) {

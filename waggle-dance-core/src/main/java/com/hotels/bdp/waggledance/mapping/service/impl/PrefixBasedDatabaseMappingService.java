@@ -31,6 +31,7 @@ import java.util.function.BiFunction;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
@@ -174,7 +175,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
         && isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
+            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
   }
 
   @Override
@@ -299,6 +300,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         }
         List<String> result = executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases: {}");
         return result;
+      }
+
+      @Override
+      public GetAllFunctionsResponse getAllFunctions() {
+        List<DatabaseMapping> databaseMappings = getDatabaseMappings();
+        return super.getAllFunctions(databaseMappings);
       }
     };
   }
