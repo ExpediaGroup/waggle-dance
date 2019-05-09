@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
-import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.slf4j.Logger;
@@ -212,16 +211,13 @@ public abstract class PanopticOperationHandler {
       return new GetAllFunctionsResponse();
     }
     GetAllFunctionsResponse result = new GetAllFunctionsResponse(responses.get(0));
-    responses.stream().skip(1).forEach(response -> addFunctionsToResult(response, result));
+    responses
+        .stream()
+        .skip(1)
+        .filter(response -> response.isSetFunctions())
+        .flatMap(response -> response.getFunctions().stream())
+        .forEach(function -> result.addToFunctions(function));
+
     return result;
   }
-
-  private void addFunctionsToResult(GetAllFunctionsResponse response, GetAllFunctionsResponse result) {
-    if (response.getFunctions() != null) {
-      for (Function function : response.getFunctions()) {
-        result.addToFunctions(function);
-      }
-    }
-  }
-
 }
