@@ -609,7 +609,7 @@ public class WaggleDanceIntegrationTest {
         .contract(new JAXRSContract())
         .encoder(new JacksonEncoder())
         .decoder(new JacksonDecoder())
-        .target(FederationsAdminClient.class, "http://localhost:18000/");
+        .target(FederationsAdminClient.class, "http://localhost:" + runner.getRestApiPort() + "/");
 
     FederatedMetaStore newFederation = new FederatedMetaStore("new_waggle_remote",
         newRemoteServer.getThriftConnectionUri());
@@ -647,7 +647,7 @@ public class WaggleDanceIntegrationTest {
         .contract(new JAXRSContract())
         .encoder(new JacksonEncoder())
         .decoder(new JacksonDecoder())
-        .target(FederationsAdminClient.class, "http://localhost:18000/");
+        .target(FederationsAdminClient.class, "http://localhost:" + runner.getRestApiPort() + "/");
 
     FederatedMetaStore newFederation = new FederatedMetaStore("new_waggle_remote",
         newRemoteServer.getThriftConnectionUri());
@@ -676,10 +676,12 @@ public class WaggleDanceIntegrationTest {
 
     RestTemplate rest = new RestTemplateBuilder().build();
     PrimaryMetaStore primaryMetastore = rest
-        .getForObject("http://localhost:18000/api/admin/federations/primary", PrimaryMetaStore.class);
+        .getForObject("http://localhost:" + runner.getRestApiPort() + "/api/admin/federations/primary",
+            PrimaryMetaStore.class);
     assertThat(primaryMetastore.getStatus(), is(MetaStoreStatus.AVAILABLE));
     FederatedMetaStore federatedMetastore = rest
-        .getForObject("http://localhost:18000/api/admin/federations/" + SECONDARY_METASTORE_NAME,
+        .getForObject(
+            "http://localhost:" + runner.getRestApiPort() + "/api/admin/federations/" + SECONDARY_METASTORE_NAME,
             FederatedMetaStore.class);
     assertThat(federatedMetastore.getStatus(), is(MetaStoreStatus.AVAILABLE));
   }
@@ -700,7 +702,8 @@ public class WaggleDanceIntegrationTest {
     runWaggleDance(runner);
     RestTemplate rest = new RestTemplateBuilder().build();
     FederatedMetaStore federatedMetastore = rest
-        .getForObject("http://localhost:18000/api/admin/federations/" + SECONDARY_METASTORE_NAME,
+        .getForObject(
+            "http://localhost:" + runner.getRestApiPort() + "/api/admin/federations/" + SECONDARY_METASTORE_NAME,
             FederatedMetaStore.class);
 
     MetastoreTunnel metastoreTunnel = federatedMetastore.getMetastoreTunnel();
