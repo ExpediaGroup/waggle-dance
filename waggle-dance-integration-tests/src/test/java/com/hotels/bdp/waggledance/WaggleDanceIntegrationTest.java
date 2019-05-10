@@ -125,6 +125,7 @@ public class WaggleDanceIntegrationTest {
 
   @After
   public void destroy() throws Exception {
+    graphite.after();
     if (runner != null) {
       runner.stop();
     }
