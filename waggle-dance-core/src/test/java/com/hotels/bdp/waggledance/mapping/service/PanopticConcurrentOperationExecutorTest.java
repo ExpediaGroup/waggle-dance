@@ -40,11 +40,13 @@ public class PanopticConcurrentOperationExecutorTest {
 
   private @Mock DatabaseMapping mapping1;
   private @Mock DatabaseMapping mapping2;
+  private @Mock DatabaseMapping mapping3;
 
   @Before
   public void setUp() {
     when(mapping1.getMetastoreMappingName()).thenReturn("mapping1");
     when(mapping2.getMetastoreMappingName()).thenReturn("mapping2");
+    when(mapping3.getMetastoreMappingName()).thenReturn("mapping3");
   }
 
   @Test
@@ -107,10 +109,12 @@ public class PanopticConcurrentOperationExecutorTest {
       };
     };
     List<DummyRequestCallable> allRequests = Lists
-        .newArrayList(new DummyRequestCallable("call1", mapping1), errorRequest);
+        .newArrayList(new DummyRequestCallable("call1", mapping1), errorRequest,
+            new DummyRequestCallable("call3", mapping3));
     List<String> executeRequests = executor.executeRequests(allRequests, REQUEST_TIMEOUT, "error in call: {}");
-    assertThat(executeRequests.size(), is(1));
+    assertThat(executeRequests.size(), is(2));
     assertThat(executeRequests.get(0), is("call1"));
+    assertThat(executeRequests.get(1), is("call3"));
   }
 
   private class DummyRequestCallable implements RequestCallable<List<String>> {
