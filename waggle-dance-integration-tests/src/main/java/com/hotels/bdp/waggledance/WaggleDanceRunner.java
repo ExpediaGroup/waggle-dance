@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,6 +66,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
   private final File federationConfig;
 
   private ApplicationContext applicationContext;
+  private final int restApiPort;
 
   public static class Builder {
     private final File workingDirectory;
@@ -215,14 +217,23 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       HashMap<String, Object> extraConfig = new HashMap<>();
       extraConfig.put("graphite", graphiteConfiguration);
       extraConfig.put("yaml-storage", yamlStorageConfiguration);
+      int restApiPort = getFreePort();
+      extraConfig.put("server.port", restApiPort);
       File serverConfig = marshall(yaml, SERVER_CONFIG + ".yml", waggleDanceConfiguration, extraConfig);
 
       Federations federations = new Federations(primaryMetaStore, federatedMetaStores);
       File federationConfig = marshall(yaml, FEDERATION_CONFIG + ".yml", federations);
 
-      WaggleDanceRunner wgRunner = new WaggleDanceRunner(serverConfig, federationConfig);
+      WaggleDanceRunner runner = new WaggleDanceRunner(serverConfig, federationConfig, restApiPort);
+      return runner;
+    }
 
-      return wgRunner;
+    private int getFreePort() {
+      try (ServerSocket socket = new ServerSocket(0)) {
+        return socket.getLocalPort();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
 
   }
@@ -231,9 +242,10 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
     return new Builder(workingDirectory);
   }
 
-  private WaggleDanceRunner(File serverConfig, File federationConfig) {
+  private WaggleDanceRunner(File serverConfig, File federationConfig, int restApiPort) {
     this.serverConfig = serverConfig;
     this.federationConfig = federationConfig;
+    this.restApiPort = restApiPort;
   }
 
   public File serverConfig() {
@@ -242,6 +254,10 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
   public File federationConfig() {
     return federationConfig;
+  }
+
+  public int getRestApiPort() {
+    return restApiPort;
   }
 
   private Map<String, String> populateProperties() {
