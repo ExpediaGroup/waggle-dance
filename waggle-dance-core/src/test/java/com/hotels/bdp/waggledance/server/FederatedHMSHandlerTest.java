@@ -43,7 +43,6 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
-import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
@@ -767,29 +766,16 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void null_get_all_functions() throws TException {
-    GetAllFunctionsResponse response = new GetAllFunctionsResponse();
-    when(primaryClient.get_all_functions()).thenReturn(response);
-    GetAllFunctionsResponse result = handler.get_all_functions();
-    assertThat(result, is(response));
-  }
-
-  @Test
   public void get_all_functions() throws TException {
-    String prefixedDatabase = "primary_" + DB_P;
-    Function function = new Function();
-    function.setDbName(DB_P);
-
-    GetAllFunctionsResponse response = new GetAllFunctionsResponse();
-    response.setFunctions(Collections.singletonList(function));
-    when(primaryClient.get_all_functions()).thenReturn(response);
-
-    when(primaryMapping.transformOutboundFunction(function)).then(invocation -> {
-      function.setDbName(prefixedDatabase);
-      return function;
-    });
+    PanopticOperationHandler panopticHandler = Mockito.mock(PanopticOperationHandler.class);
+    when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
+    DatabaseMapping mapping = Mockito.mock(DatabaseMapping.class);
+    List<DatabaseMapping> mappings = Lists.newArrayList(mapping);
+    when(databaseMappingService.getDatabaseMappings()).thenReturn(mappings);
+    GetAllFunctionsResponse getAllFunctionsResponse = Mockito.mock(GetAllFunctionsResponse.class);
+    when(panopticHandler.getAllFunctions(mappings)).thenReturn(getAllFunctionsResponse);
     GetAllFunctionsResponse result = handler.get_all_functions();
-    assertThat(result.getFunctions().get(0).getDbName(), is(prefixedDatabase));
+    assertThat(result, is(getAllFunctionsResponse));
   }
 
   @Test

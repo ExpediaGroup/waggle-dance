@@ -40,9 +40,15 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Function;
+import org.apache.hadoop.hive.metastore.api.FunctionType;
+import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.PrincipalType;
+import org.apache.hadoop.hive.metastore.api.ResourceType;
+import org.apache.hadoop.hive.metastore.api.ResourceUri;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.junit.After;
@@ -202,6 +208,35 @@ public class WaggleDanceIntegrationTest {
     // Remote table
     String waggledRemoteDbName = REMOTE_DATABASE;
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
+  }
+
+  @Test
+  public void typicalGetAllFunctions() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    List<ResourceUri> resourceUris = Lists
+        .newArrayList(new ResourceUri(ResourceType.JAR, "hdfs://path/to/my/jar/my.jar"));
+    Function localFunction = new Function("fn1", LOCAL_DATABASE, "com.hotels.hive.FN1", "hadoop", PrincipalType.USER, 0,
+        FunctionType.JAVA, resourceUris);
+    localServer.client().createFunction(localFunction);
+    Function remoteFunction = new Function("fn2", REMOTE_DATABASE, "com.hotels.hive.FN1", "hadoop", PrincipalType.USER,
+        0, FunctionType.JAVA, resourceUris);
+    remoteServer.client().createFunction(remoteFunction);
+
+    GetAllFunctionsResponse allFunctions = proxy.getAllFunctions();
+    List<Function> functions = allFunctions.getFunctions();
+    assertThat(functions.size(), is(2));
+    assertThat(functions.get(0).getFunctionName(), is("fn1"));
+    assertThat(functions.get(0).getDbName(), is(LOCAL_DATABASE));
+    assertThat(functions.get(1).getFunctionName(), is("fn2"));
+    assertThat(functions.get(1).getDbName(), is(PREFIXED_REMOTE_DATABASE));
   }
 
   @Test

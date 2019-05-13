@@ -1510,14 +1510,9 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public GetAllFunctionsResponse get_all_functions() throws TException {
-    DatabaseMapping mapping = databaseMappingService.primaryDatabaseMapping();
-    GetAllFunctionsResponse allFunctions = mapping.getClient().get_all_functions();
-    if(allFunctions.getFunctions() != null) {
-      for (Function function : allFunctions.getFunctions()) {
-        mapping.transformOutboundFunction(function);
-      }
-    }
-    return allFunctions;
+    return databaseMappingService
+        .getPanopticOperationHandler()
+        .getAllFunctions(databaseMappingService.getDatabaseMappings());
   }
 
   @Override

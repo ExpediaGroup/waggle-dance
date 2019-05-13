@@ -55,6 +55,8 @@ import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
+import com.hotels.bdp.waggledance.mapping.service.PanopticConcurrentOperationExecutor;
+import com.hotels.bdp.waggledance.mapping.service.PanopticOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.Whitelist;
@@ -333,9 +335,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         }
         return combined;
       }
-    }
 
-        ;
+      @Override
+      protected PanopticOperationExecutor getPanopticOperationExecutor() {
+        return new PanopticConcurrentOperationExecutor();
+      }
+    };
   }
 
   @Override
