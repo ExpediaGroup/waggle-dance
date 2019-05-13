@@ -53,11 +53,13 @@ public class PanopticConcurrentOperationExecutorTest {
   public void executeRequestsInOrder() throws Exception {
     PanopticConcurrentOperationExecutor executor = new PanopticConcurrentOperationExecutor();
     List<DummyRequestCallable> allRequests = Lists
-        .newArrayList(new DummyRequestCallable("call1", mapping1), new DummyRequestCallable("call2", mapping2));
+        .newArrayList(new DummyRequestCallable("call1", mapping1), new DummyRequestCallable("call2", mapping2),
+            new DummyRequestCallable("call0", mapping3));
     List<String> executeRequests = executor.executeRequests(allRequests, REQUEST_TIMEOUT, "error");
-    assertThat(executeRequests.size(), is(2));
+    assertThat(executeRequests.size(), is(3));
     assertThat(executeRequests.get(0), is("call1"));
     assertThat(executeRequests.get(1), is("call2"));
+    assertThat(executeRequests.get(2), is("call0"));
   }
 
   @Test

@@ -15,7 +15,7 @@
  */
 package com.hotels.bdp.waggledance.stubs;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.FunctionType;
@@ -30,7 +30,7 @@ public final class HiveStubs {
   private HiveStubs() {}
 
   public static Function newFunction(String databaseName, String functionName) {
-    ArrayList<ResourceUri> resourceUris = Lists
+    List<ResourceUri> resourceUris = Lists
         .newArrayList(new ResourceUri(ResourceType.JAR, "hdfs://path/to/my/jar/my.jar"));
     Function function = new Function(functionName, databaseName, "com.hotels.hive.FN", "hadoop", PrincipalType.USER, 0,
         FunctionType.JAVA, resourceUris);

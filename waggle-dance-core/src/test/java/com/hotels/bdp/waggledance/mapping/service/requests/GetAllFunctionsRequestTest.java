@@ -17,11 +17,14 @@ package com.hotels.bdp.waggledance.mapping.service.requests;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.stubs.HiveStubs.newFunction;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.Function;
@@ -55,6 +58,34 @@ public class GetAllFunctionsRequestTest {
     assertThat(responses.size(), is(1));
     assertThat(responses.get(0), is(response));
     verify(mapping).transformOutboundFunction(function);
+  }
+
+  @Test
+  public void callFunctionsNotSet() throws Exception {
+    GetAllFunctionsRequest request = new GetAllFunctionsRequest(mapping);
+    GetAllFunctionsResponse response = new GetAllFunctionsResponse();
+
+    when(mapping.getClient()).thenReturn(client);
+    when(mapping.getClient().get_all_functions()).thenReturn(response);
+    List<GetAllFunctionsResponse> responses = request.call();
+    assertThat(responses.size(), is(1));
+    assertThat(responses.get(0), is(response));
+    verify(mapping, never()).transformOutboundFunction(any(Function.class));
+  }
+
+  @Test
+  public void callFunctionsEmpty() throws Exception {
+    // Not 100% sure if this actually can happen but we cover it anyway.
+    GetAllFunctionsRequest request = new GetAllFunctionsRequest(mapping);
+    GetAllFunctionsResponse response = new GetAllFunctionsResponse();
+    response.setFunctions(Collections.emptyList());
+
+    when(mapping.getClient()).thenReturn(client);
+    when(mapping.getClient().get_all_functions()).thenReturn(response);
+    List<GetAllFunctionsResponse> responses = request.call();
+    assertThat(responses.size(), is(1));
+    assertThat(responses.get(0), is(response));
+    verify(mapping, never()).transformOutboundFunction(any(Function.class));
   }
 
   @Test

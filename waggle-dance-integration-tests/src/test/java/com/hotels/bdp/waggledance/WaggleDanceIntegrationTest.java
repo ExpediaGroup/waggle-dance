@@ -29,7 +29,6 @@ import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -222,7 +221,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
     HiveMetaStoreClient proxy = getWaggleDanceClient();
-    ArrayList<ResourceUri> resourceUris = Lists
+    List<ResourceUri> resourceUris = Lists
         .newArrayList(new ResourceUri(ResourceType.JAR, "hdfs://path/to/my/jar/my.jar"));
     Function localFunction = new Function("fn1", LOCAL_DATABASE, "com.hotels.hive.FN1", "hadoop", PrincipalType.USER, 0,
         FunctionType.JAVA, resourceUris);
