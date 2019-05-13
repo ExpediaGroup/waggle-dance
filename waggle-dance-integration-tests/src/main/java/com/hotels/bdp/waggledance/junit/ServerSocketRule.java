@@ -58,7 +58,7 @@ public class ServerSocketRule extends ExternalResource {
   }
 
   @Override
-  public void after() {
+  protected void after() {
     LOG.info("Socket closing, handled {} requests", requests);
     try {
       serverSocketChannel.close();
