@@ -1,4 +1,4 @@
-## [3.2.1] - 2019-05-20
+## [3.3.1] - 2019-05-20
 ### Fixed
 * `Show Functions` now shows UDFs from all metastores. See [#164](https://github.com/HotelsDotCom/waggle-dance/issues/164).
 * Fixed REST API (http://localhost:18000/api/admin/federations/) which broke in 3.3.0 release.
