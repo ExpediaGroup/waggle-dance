@@ -79,9 +79,9 @@ public class MetaStoreMappingImplTest {
     assertThat(metaStoreMapping.transformInboundDatabaseName("Prefix_My_Database"), is("my_database"));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void transformInboundDatabaseNameFails() {
-    metaStoreMapping.transformInboundDatabaseName("waggle_database");
+  @Test
+  public void transformInboundDatabaseNameWithoutPrefixReturnsDatabase() {
+    assertThat(metaStoreMapping.transformInboundDatabaseName("no_prefix_My_Database"), is("no_prefix_my_database"));
   }
 
   @Test

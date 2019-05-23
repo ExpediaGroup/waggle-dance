@@ -78,11 +78,10 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   @Override
   public String transformInboundDatabaseName(String databaseName) {
     databaseName = databaseName.toLowerCase(Locale.ROOT);
-    if (!databaseName.startsWith(getDatabasePrefix())) {
-      throw new IllegalArgumentException(
-          "Database '" + databaseName + "' does not start with prefix '" + getDatabasePrefix() + "'");
+    if (databaseName.startsWith(getDatabasePrefix())) {
+      return databaseName.substring(getDatabasePrefix().length());
     }
-    return databaseName.substring(getDatabasePrefix().length());
+    return databaseName;
   }
 
   @Override

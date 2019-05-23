@@ -276,22 +276,17 @@ public class WaggleDanceIntegrationTest {
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
     // Local table
-    String waggledLocalDbName = primaryPrefix + LOCAL_DATABASE;
-    assertPrefixedLocalTable(proxy, waggledLocalDbName);
+    String prefixedLocalDbName = primaryPrefix + LOCAL_DATABASE;
+    Table localTable = proxy.getTable(prefixedLocalDbName, LOCAL_TABLE);
+    assertThat(localTable.getDbName(), is(prefixedLocalDbName));
+
+    // fetch without prefix works and result is prefixed
+    Table localTable2 = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    assertThat(localTable2.getDbName(), is(prefixedLocalDbName));
 
     // Remote table
-    String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
-    assertTypicalRemoteTable(proxy, waggledRemoteDbName);
-  }
-
-  private void assertPrefixedLocalTable(HiveMetaStoreClient proxy, String waggledLocalDbName) throws TException {
-    Table localTable = localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE);
-    Table waggledLocalTable = proxy.getTable(waggledLocalDbName, LOCAL_TABLE);
-    assertThat(waggledLocalTable.getDbName(), is(waggledLocalDbName));
-    assertThat(waggledLocalTable.getTableName(), is(localTable.getTableName()));
-    assertThat(waggledLocalTable.getSd(), is(localTable.getSd()));
-    assertThat(waggledLocalTable.getParameters(), is(localTable.getParameters()));
-    assertThat(waggledLocalTable.getPartitionKeys(), is(localTable.getPartitionKeys()));
+    String prefixedRemoteDbName = PREFIXED_REMOTE_DATABASE;
+    assertTypicalRemoteTable(proxy, prefixedRemoteDbName);
   }
 
   private void assertTypicalRemoteTable(HiveMetaStoreClient proxy, String waggledRemoteDbName) throws TException {
