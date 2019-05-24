@@ -2,7 +2,6 @@
 ### Changed
 * Changed a prefixed *primary* metastore to fallback to 'empty prefix' if nothing specified. See [#173](https://github.com/HotelsDotCom/waggle-dance/issues/173).
 
-
 ## [3.3.1] - 2019-05-20
 ### Fixed
 * `Show Functions` now shows UDFs from all metastores. See [#164](https://github.com/HotelsDotCom/waggle-dance/issues/164).
