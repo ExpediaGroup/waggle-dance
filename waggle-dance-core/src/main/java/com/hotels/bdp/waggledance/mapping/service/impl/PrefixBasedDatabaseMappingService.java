@@ -31,6 +31,8 @@ import java.util.function.BiFunction;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.hive.metastore.api.Function;
+import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
@@ -302,6 +304,35 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         List<String> result = getPanopticOperationExecutor()
             .executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases: {}");
         return result;
+      }
+
+      @Override
+      public GetAllFunctionsResponse getAllFunctions(List<DatabaseMapping> databaseMappings) {
+        GetAllFunctionsResponse allFunctions = super.getAllFunctions(databaseMappings);
+        addNonPrefixedPrimaryMetastoreFunctions(allFunctions);
+        return allFunctions;
+      }
+
+      /*
+       * This is done to ensure we can fallback to un-prefixed UDFs (for primary Metastore only).
+       */
+      private void addNonPrefixedPrimaryMetastoreFunctions(GetAllFunctionsResponse allFunctions) {
+        List<Function> newFunctions = new ArrayList<>();
+        String primaryPrefix = primaryDatabaseMapping().getDatabasePrefix();
+        if (!"".equals(primaryPrefix)) {
+          if (allFunctions.isSetFunctions()) {
+            for (Function function : allFunctions.getFunctions()) {
+              newFunctions.add(function);
+              if (function.getDbName().startsWith(primaryPrefix)) {
+                Function unprefixed = new Function(function);
+                // strip off the prefix
+                primaryDatabaseMapping.transformInboundFunction(unprefixed);
+                newFunctions.add(unprefixed);
+              }
+            }
+            allFunctions.setFunctions(newFunctions);
+          }
+        }
       }
 
       @Override

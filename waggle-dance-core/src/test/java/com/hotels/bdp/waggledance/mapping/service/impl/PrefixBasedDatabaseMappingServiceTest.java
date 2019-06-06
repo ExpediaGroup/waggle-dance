@@ -363,6 +363,34 @@ public class PrefixBasedDatabaseMappingServiceTest {
     assertThat(result.getFunctions().get(1).getFunctionName(), is("fn2"));
   }
 
+  @Test
+  public void panopticOperationsHandlerGetAllFunctionsPrimaryMappingHasPrefix() throws Exception {
+    when(metaStoreMappingPrimary.getDatabasePrefix()).thenReturn("prefixed_");
+    when(metaStoreMappingPrimary.transformOutboundDatabaseName("db")).thenReturn("prefixed_db");
+    when(metaStoreMappingPrimary.transformInboundDatabaseName("prefixed_db")).thenReturn("db");
+    GetAllFunctionsResponse responsePrimary = new GetAllFunctionsResponse();
+    responsePrimary.addToFunctions(newFunction("db", "fn1"));
+    when(primaryDatabaseClient.get_all_functions()).thenReturn(responsePrimary);
+
+    when(metaStoreMappingFederated.transformOutboundDatabaseName("db")).thenReturn(DB_PREFIX + "db");
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    GetAllFunctionsResponse responseFederated = new GetAllFunctionsResponse();
+    responseFederated.addToFunctions(newFunction("db", "fn2"));
+    when(federatedDatabaseClient.get_all_functions()).thenReturn(responseFederated);
+
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    GetAllFunctionsResponse result = handler.getAllFunctions(service.getDatabaseMappings());
+    assertThat(result.getFunctionsSize(), is(3));
+    assertThat(result.getFunctions().get(0).getFunctionName(), is("fn1"));
+    assertThat(result.getFunctions().get(0).getDbName(), is("prefixed_db"));
+    assertThat(result.getFunctions().get(1).getFunctionName(), is("fn1"));
+    assertThat(result.getFunctions().get(1).getDbName(), is("db"));
+    assertThat(result.getFunctions().get(2).getFunctionName(), is("fn2"));
+    assertThat(result.getFunctions().get(2).getDbName(), is(DB_PREFIX + "db"));
+  }
+
   @Test(expected = NoPrimaryMetastoreException.class)
   public void noPrimaryMappingThrowsException() {
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);

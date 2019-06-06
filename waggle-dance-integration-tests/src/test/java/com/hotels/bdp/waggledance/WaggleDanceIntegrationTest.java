@@ -216,6 +216,7 @@ public class WaggleDanceIntegrationTest {
         .builder(configLocation)
         .databaseResolution(DatabaseResolution.PREFIXED)
         .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withPrimaryPrefix("primary_")
         .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
         .build();
 
@@ -232,11 +233,13 @@ public class WaggleDanceIntegrationTest {
 
     GetAllFunctionsResponse allFunctions = proxy.getAllFunctions();
     List<Function> functions = allFunctions.getFunctions();
-    assertThat(functions.size(), is(2));
+    assertThat(functions.size(), is(3));
     assertThat(functions.get(0).getFunctionName(), is("fn1"));
-    assertThat(functions.get(0).getDbName(), is(LOCAL_DATABASE));
-    assertThat(functions.get(1).getFunctionName(), is("fn2"));
-    assertThat(functions.get(1).getDbName(), is(PREFIXED_REMOTE_DATABASE));
+    assertThat(functions.get(0).getDbName(), is("primary_" + LOCAL_DATABASE));
+    assertThat(functions.get(1).getFunctionName(), is("fn1"));
+    assertThat(functions.get(1).getDbName(), is(LOCAL_DATABASE));
+    assertThat(functions.get(2).getFunctionName(), is("fn2"));
+    assertThat(functions.get(2).getDbName(), is(PREFIXED_REMOTE_DATABASE));
   }
 
   @Test
