@@ -1,4 +1,4 @@
-## [3.3.2] - TBD
+## [3.3.2] - 2019-06-25
 ### Changed
 * Changed a prefixed *primary* metastore to fallback to 'empty prefix' if nothing specified. See [#173](https://github.com/HotelsDotCom/waggle-dance/issues/173).
 
