@@ -33,6 +33,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
@@ -70,6 +71,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByPrefix;
   private Map<String, Whitelist> mappedDbByPrefix;
+  private AbstractMetaStore primaryMetaStore = null;
 
   public PrefixBasedDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -92,6 +94,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(federatedMetaStore);
 
     if (federatedMetaStore.getFederationType() == PRIMARY) {
+      primaryMetaStore = federatedMetaStore;
       primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
     } else {
@@ -178,11 +181,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
         && isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
+        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
   }
 
   @Override
-  public DatabaseMapping databaseMapping(@NotNull String databaseName) {
+  public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
     // Find a Metastore with a prefix
     synchronized (mappingsByPrefix) {
       Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
@@ -207,9 +210,23 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       }
     }
     if (primaryDatabaseMapping != null) {
-      // If none found we fall back to primary one
-      LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-      return primaryDatabaseMapping;
+      // If none found we fall back to primary one and check if it's in mapped databases
+
+      // if user didn't set mapped databases, anything should match
+      // but if user set mapped databases as [], then nothing should match
+      if (primaryMetaStore.getMappedDatabases().equals(Collections.emptyList())) {
+        LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+        return primaryDatabaseMapping;
+      } else {
+        for (String mappedDatabase : primaryMetaStore.getMappedDatabases()) {
+          if (isWhitelisted(mappedDatabase, databaseName)) {
+            LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+            return primaryDatabaseMapping;
+          }
+        }
+      }
+
+      throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
     }
     LOG.debug("Database Name `{}` not mapped", databaseName);
     throw new NoPrimaryMetastoreException(
