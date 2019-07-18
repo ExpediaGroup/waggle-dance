@@ -24,6 +24,7 @@ import javax.validation.constraints.NotNull;
 public class FederatedMetaStore extends AbstractMetaStore {
 
   private @NotNull List<String> mappedDatabases = Collections.emptyList();
+  private boolean noMappedDatabases = false;
 
   public FederatedMetaStore() {}
 
@@ -60,7 +61,13 @@ public class FederatedMetaStore extends AbstractMetaStore {
 
   @Override
   public void setMappedDatabases(List<String> mappedDatabases) {
+    noMappedDatabases = mappedDatabases.isEmpty();
     this.mappedDatabases = mappedDatabases;
+  }
+
+  @Override
+  public boolean shouldHaveNoMappedDatabases() {
+    return noMappedDatabases;
   }
 
   @NotBlank

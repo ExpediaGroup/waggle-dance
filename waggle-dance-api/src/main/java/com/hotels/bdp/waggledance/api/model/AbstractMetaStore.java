@@ -156,6 +156,8 @@ public abstract class AbstractMetaStore {
 
   public abstract void setMappedDatabases(List<String> mappedDatabases);
 
+  public abstract boolean shouldHaveNoMappedDatabases();
+
   @Transient
   public MetaStoreStatus getStatus() {
     return status;

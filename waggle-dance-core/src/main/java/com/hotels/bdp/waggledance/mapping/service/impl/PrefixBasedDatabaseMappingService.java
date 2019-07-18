@@ -214,7 +214,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
       // if user didn't set mapped databases, anything should match
       // but if user set mapped databases as [], then nothing should match
-      if (primaryMetaStore.getMappedDatabases().equals(Collections.emptyList())) {
+      if (!primaryMetaStore.shouldHaveNoMappedDatabases()) {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
       } else {

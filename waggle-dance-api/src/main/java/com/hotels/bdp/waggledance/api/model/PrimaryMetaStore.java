@@ -25,6 +25,7 @@ public class PrimaryMetaStore extends AbstractMetaStore {
 
   private static final String EMPTY_PREFIX = "";
   private @NotNull List<String> mappedDatabases = Collections.emptyList();
+  private boolean noMappedDatabases = false;
 
   public PrimaryMetaStore() {}
 
@@ -56,7 +57,13 @@ public class PrimaryMetaStore extends AbstractMetaStore {
 
   @Override
   public void setMappedDatabases(List<String> mappedDatabases) {
+    noMappedDatabases = mappedDatabases.isEmpty();
     this.mappedDatabases = mappedDatabases;
+  }
+
+  @Override
+  public boolean shouldHaveNoMappedDatabases() {
+    return noMappedDatabases;
   }
 
   @NotNull
