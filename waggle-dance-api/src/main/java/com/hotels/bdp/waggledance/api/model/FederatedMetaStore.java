@@ -32,7 +32,7 @@ public class FederatedMetaStore extends AbstractMetaStore {
   }
 
   public FederatedMetaStore(String name, String remoteMetaStoreUris, AccessControlType accessControlType) {
-    this(name, remoteMetaStoreUris, accessControlType, Collections.<String>emptyList());
+    this(name, remoteMetaStoreUris, accessControlType, Collections.emptyList());
   }
 
   public FederatedMetaStore(FederatedMetaStore federatedMetaStore) {
@@ -44,13 +44,23 @@ public class FederatedMetaStore extends AbstractMetaStore {
       String name,
       String remoteMetaStoreUris,
       AccessControlType accessControlType,
-      List<String> writeableDatabaseWhiteList) {
-    super(name, remoteMetaStoreUris, accessControlType, writeableDatabaseWhiteList);
+      List<String> writableDatabaseWhiteList) {
+    super(name, remoteMetaStoreUris, accessControlType, writableDatabaseWhiteList);
   }
 
   @Override
   public FederationType getFederationType() {
     return FederationType.FEDERATED;
+  }
+
+  @Override
+  public List<String> getMappedDatabases() {
+    return mappedDatabases;
+  }
+
+  @Override
+  public void setMappedDatabases(List<String> mappedDatabases) {
+    this.mappedDatabases = mappedDatabases;
   }
 
   @NotBlank
@@ -61,13 +71,5 @@ public class FederatedMetaStore extends AbstractMetaStore {
       prefix = getName() + "_";
     }
     return prefix;
-  }
-
-  public List<String> getMappedDatabases() {
-    return mappedDatabases;
-  }
-
-  public void setMappedDatabases(List<String> mappedDatabases) {
-    this.mappedDatabases = mappedDatabases;
   }
 }

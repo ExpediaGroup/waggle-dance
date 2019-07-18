@@ -152,6 +152,10 @@ public abstract class AbstractMetaStore {
     this.latency = latency;
   }
 
+  public abstract List<String> getMappedDatabases();
+
+  public abstract void setMappedDatabases(List<String> mappedDatabases);
+
   @Transient
   public MetaStoreStatus getStatus() {
     return status;

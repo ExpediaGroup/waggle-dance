@@ -154,6 +154,7 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.insert(newFederatedInstance);
     storage.saveFederation();
     List<String> lines = Files.readAllLines(f.toPath(), Charset.forName("UTF-8"));
+    System.out.println("lines are: " + lines.toString());
     assertThat(lines.size(), is(15));
     assertThat(lines.get(0), is("primary-meta-store:"));
     assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
@@ -216,7 +217,7 @@ public class YamlFederatedMetaStoreStorageTest {
 
   private PrimaryMetaStore newPrimaryInstance(String name, String remoteMetaStoreUris) {
     PrimaryMetaStore result = AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUris);
-    result.setWritableDatabaseWhiteList(null);
+//    result.setWritableDatabaseWhiteList(null);
     return result;
   }
 
