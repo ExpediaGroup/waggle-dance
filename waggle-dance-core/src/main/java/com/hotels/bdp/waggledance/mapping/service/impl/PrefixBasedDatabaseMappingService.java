@@ -98,13 +98,20 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
     } else {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
-      Whitelist mappedDbWhitelist = getWhitelistedDatabases(metaStore);
-      mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
     }
+    // because primary has mapped databases, this has to happen for both now
+    Whitelist mappedDbWhitelist = getWhitelistedDatabases(metaStore);
+    mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
   }
 
   private Whitelist getWhitelistedDatabases(AbstractMetaStore metaStore) {
-    return new Whitelist(metaStore.getMappedDatabases());
+    List<String> databasesPatternToMap;
+    if (!metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty()) {
+      databasesPatternToMap = Collections.singletonList(".*");
+    } else {
+      databasesPatternToMap = metaStore.getMappedDatabases();
+    }
+    return new Whitelist(databasesPatternToMap);
   }
 
   private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
@@ -210,7 +217,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
       // if user didn't set mapped databases, anything should match
       // but if user set mapped databases as [], then nothing should match
-      if (!primaryMetaStore.shouldHaveNoMappedDatabases()) {
+      if (!primaryMetaStore.shouldHaveNoMappedDatabases() && primaryMetaStore.getMappedDatabases().isEmpty()) {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
       } else {

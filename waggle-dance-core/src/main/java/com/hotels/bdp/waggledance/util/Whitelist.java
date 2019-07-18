@@ -28,8 +28,8 @@ public class Whitelist {
 
   public Whitelist() {}
 
-  public Whitelist(List<String> writeableDatabaseWhiteList) {
-    for (String databaseName : writeableDatabaseWhiteList) {
+  public Whitelist(List<String> writableDatabaseWhiteList) {
+    for (String databaseName : writableDatabaseWhiteList) {
       add(databaseName);
     }
   }
