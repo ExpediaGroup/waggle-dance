@@ -31,7 +31,9 @@ import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.shims.Utils;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
+import org.apache.hive.service.auth.KerberosSaslHelper;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -123,7 +125,8 @@ class ThriftMetastoreClientManager implements Closeable {
           if (useSasl) {
             // Wrap thrift connection with SASL for secure connection.
             try {
-              HadoopThriftAuthBridge.Client authBridge = ShimLoader.getHadoopThriftAuthBridge().createClient();
+//              HadoopThriftAuthBridge.Client authBridge = ShimLoader.getHadoopThriftAuthBridge().createClient();
+              UserGroupInformation.setConfiguration(conf);
 
               // check if we should use delegation tokens to authenticate
               // the call below gets hold of the tokens if they are set up by hadoop
@@ -135,14 +138,12 @@ class ThriftMetastoreClientManager implements Closeable {
               tokenStrForm = Utils.getTokenStrForm(tokenSig);
               if (tokenStrForm != null) {
                 // authenticate using delegation tokens via the "DIGEST" mechanism
-                transport = authBridge
-                    .createClientTransport(null, store.getHost(), "DIGEST", tokenStrForm, transport,
+                transport = KerberosSaslHelper.getTokenTransport(tokenStrForm, store.getHost(), transport,
                         MetaStoreUtils.getMetaStoreSaslProperties(conf));
               } else {
                 String principalConfig = conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL);
-                transport = authBridge
-                    .createClientTransport(principalConfig, store.getHost(), "KERBEROS", null, transport,
-                        MetaStoreUtils.getMetaStoreSaslProperties(conf));
+                transport = KerberosSaslHelper.getKerberosTransport(principalConfig, store.getHost(), transport,
+                        MetaStoreUtils.getMetaStoreSaslProperties(conf), false);
               }
             } catch (IOException ioe) {
               LOG.error("Couldn't create client transport", ioe);
