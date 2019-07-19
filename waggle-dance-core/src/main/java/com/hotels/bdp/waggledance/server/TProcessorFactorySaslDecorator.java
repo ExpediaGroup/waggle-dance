@@ -26,20 +26,20 @@ import org.apache.thrift.transport.TTransportException;
 
 public class TProcessorFactorySaslDecorator extends TProcessorFactory {
 
-    private static HadoopThriftAuthBridge.Server saslServer;
-    private static TProcessorFactory tProcessorFactory;
+    private  HadoopThriftAuthBridge.Server saslServer;
+    private  TProcessorFactory tProcessorFactory;
 
     public TProcessorFactorySaslDecorator(
             TProcessorFactory tProcessorFactory,
             HiveConf hiveConf) throws TTransportException {
         super(null);
-        TProcessorFactorySaslDecorator.tProcessorFactory = tProcessorFactory;
+        this.tProcessorFactory = tProcessorFactory;
         HadoopThriftAuthBridge hadoopThriftAuthBridge = ShimLoader.getHadoopThriftAuthBridge();
-        TProcessorFactorySaslDecorator.saslServer = hadoopThriftAuthBridge.createServer(hiveConf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_KEYTAB_FILE),
+        this.saslServer = hadoopThriftAuthBridge.createServer(hiveConf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_KEYTAB_FILE),
                 hiveConf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL));
     }
 
-    public static HadoopThriftAuthBridge.Server getSaslServer() {
+    public  HadoopThriftAuthBridge.Server getSaslServer() {
         return saslServer;
     }
 
