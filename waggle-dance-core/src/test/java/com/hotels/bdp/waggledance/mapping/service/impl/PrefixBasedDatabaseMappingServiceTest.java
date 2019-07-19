@@ -236,7 +236,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test (expected = NoSuchObjectException.class)
-  public void databaseMappingDoesNotMatchPrimaryWithMappedDbs() throws NoSuchObjectException {
+  public void databaseMappingDoesNotMatchPrimaryWithOtherMappedDbs() throws NoSuchObjectException {
     AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
     noMappedDbsPrimary.setMappedDatabases(Collections.singletonList("primary_db"));
     service.onUpdate(primaryMetastore, noMappedDbsPrimary);

@@ -33,6 +33,7 @@ import java.util.function.BiFunction;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -71,6 +72,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
+  private AbstractMetaStore primaryMetaStore = null;
+  private Whitelist primaryWhitelist = null;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -94,10 +97,10 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     init(initialMetastores);
   }
 
-  private void init(List<AbstractMetaStore> federatedMetaStores) {
+  private void init(List<AbstractMetaStore> abstractMetaStores) {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = new ConcurrentHashMap<>();
-    for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
+    for (AbstractMetaStore federatedMetaStore : abstractMetaStores) {
       add(federatedMetaStore);
     }
   }
@@ -106,9 +109,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
 
     if (metaStore.getFederationType() == PRIMARY) {
+      primaryMetaStore = metaStore;
       validatePrimaryMetastoreDatabases(metaStoreMapping);
       primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
       primaryDatabasesCache.invalidateAll();
+      primaryWhitelist = getWhitelistedDatabases(primaryMetaStore);
       mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), primaryDatabaseMapping);
     } else {
       FederatedMetaStore federatedMetaStore = (FederatedMetaStore) metaStore;
@@ -116,7 +121,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       if (metaStoreMapping.isAvailable()) {
         try {
           List<String> allFederatedDatabases = metaStoreMapping.getClient().get_all_databases();
-          mappableDatabases = applyWhitelist(allFederatedDatabases, federatedMetaStore.getMappedDatabases());
+          mappableDatabases = applyWhitelist(allFederatedDatabases, getWhitelistedDatabases(federatedMetaStore));
         } catch (TException e) {
           LOG.error("Could not get databases for metastore {}", federatedMetaStore.getRemoteMetaStoreUris(), e);
         }
@@ -171,9 +176,21 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
   }
 
-  private List<String> applyWhitelist(List<String> allDatabases, List<String> mappedDatabases) {
+  private Whitelist getWhitelistedDatabases(AbstractMetaStore metaStore) {
+    List<String> databasesPatternToMap;
+
+    // check if metastore is supposed to have all databases matched or not
+    if (!metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty()) {
+      databasesPatternToMap = Collections.singletonList(".*");
+    } else {
+      databasesPatternToMap = metaStore.getMappedDatabases();
+    }
+    return new Whitelist(databasesPatternToMap);
+  }
+
+  private List<String> applyWhitelist(List<String> allDatabases, Whitelist whitelist) {
     List<String> matchedDatabases = new ArrayList<>();
-    Whitelist whitelist = new Whitelist(mappedDatabases);
+
     for (String database : allDatabases) {
       if (whitelist.contains(database)) {
         matchedDatabases.add(database);
@@ -197,7 +214,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       primaryDatabaseMapping = null;
       primaryDatabasesCache.invalidateAll();
     } else {
-      for (String databaseName : ((FederatedMetaStore) metaStore).getMappedDatabases()) {
+      for (String databaseName : metaStore.getMappedDatabases()) {
         mappingsByDatabaseName.remove(databaseName.trim().toLowerCase(Locale.ROOT));
       }
     }
@@ -253,7 +270,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public DatabaseMapping databaseMapping(@NotNull String databaseName) {
+  public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
     DatabaseMapping databaseMapping = mappingsByDatabaseName.get(databaseName.toLowerCase(Locale.ROOT));
     if (databaseMapping != null) {
       LOG
@@ -265,8 +282,20 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
     if (primaryDatabaseMapping != null) {
       // If none found we fall back to primary one
-      LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-      return primaryDatabaseMapping;
+
+      // if user didn't set mapped databases, anything should match
+      // but if user set mapped databases as [], then nothing should match
+      if (!primaryMetaStore.shouldHaveNoMappedDatabases() && primaryMetaStore.getMappedDatabases().isEmpty()) {
+        LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+        return primaryDatabaseMapping;
+      } else {
+        if (primaryWhitelist.contains(databaseName)) {
+          LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+          return primaryDatabaseMapping;
+        }
+      }
+
+      throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
     }
     LOG.debug("Database Name `{}` not mapped", databaseName);
     throw new NoPrimaryMetastoreException(
@@ -327,7 +356,10 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         try {
           List<String> databases = primaryDatabasesCache.get(PRIMARY_KEY);
           for (String database : databases) {
-            combined.add(primaryDatabaseMapping.transformOutboundDatabaseName(database));
+            String transformedDatabaseName = primaryDatabaseMapping.transformOutboundDatabaseName(database);
+            if (primaryWhitelist.contains(transformedDatabaseName)) {
+              combined.add(transformedDatabaseName);
+            }
           }
           combined.addAll(mappingsByDatabaseName.keySet());
         } catch (ExecutionException e) {
