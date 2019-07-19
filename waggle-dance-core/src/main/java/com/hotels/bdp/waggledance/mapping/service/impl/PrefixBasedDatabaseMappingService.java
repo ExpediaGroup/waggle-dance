@@ -106,6 +106,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private Whitelist getWhitelistedDatabases(AbstractMetaStore metaStore) {
     List<String> databasesPatternToMap;
+
+    // check if metastore is supposed to have all databases matched or not
     if (!metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty()) {
       databasesPatternToMap = Collections.singletonList(".*");
     } else {
@@ -277,7 +279,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private boolean isWhitelisted(String databasePrefix, String database) {
     Whitelist whitelist = mappedDbByPrefix.get(databasePrefix);
-    if ((whitelist == null) || whitelist.isEmpty()) {
+    if (whitelist == null) {
       // Accept everything
       return true;
     }
