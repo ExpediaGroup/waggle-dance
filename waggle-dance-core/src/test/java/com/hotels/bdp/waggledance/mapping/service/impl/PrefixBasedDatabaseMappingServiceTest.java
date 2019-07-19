@@ -49,6 +49,7 @@ import com.google.common.collect.Lists;
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
+import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
@@ -226,6 +227,22 @@ public class PrefixBasedDatabaseMappingServiceTest {
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
   }
 
+  @Test (expected = NoSuchObjectException.class)
+  public void databaseMappingDoesNotMatchPrimary() throws NoSuchObjectException {
+    AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
+    noMappedDbsPrimary.setMappedDatabases(Collections.emptyList());
+    service.onUpdate(primaryMetastore, noMappedDbsPrimary);
+    service.databaseMapping("some_unknown_db");
+  }
+
+  @Test (expected = NoSuchObjectException.class)
+  public void databaseMappingDoesNotMatchPrimaryWithMappedDbs() throws NoSuchObjectException {
+    AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
+    noMappedDbsPrimary.setMappedDatabases(Collections.singletonList("primary_db"));
+    service.onUpdate(primaryMetastore, noMappedDbsPrimary);
+    service.databaseMapping("some_unknown_db");
+  }
+
   @Test
   public void databaseMappings() {
     List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
@@ -322,7 +339,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
-    when(metaStoreMappingPrimary.transformOutboundDatabaseName("primary_db")).thenReturn("primary_db");
     when(primaryDatabaseClient.get_databases(pattern))
         .thenReturn(Lists.newArrayList("primary_db", "primary_db_that_is_not_mapped_and_ends_with_db"));
     when(federatedDatabaseClient.get_databases(pattern))
@@ -344,8 +360,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
     String pattern = "*_db";
 
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
-    when(metaStoreMappingPrimary.transformOutboundDatabaseName("primary_db")).thenReturn("primary_db");
     when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Collections.singletonList("primary_db"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();

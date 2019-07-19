@@ -57,7 +57,9 @@ public class PrimaryMetaStore extends AbstractMetaStore {
 
   @Override
   public void setMappedDatabases(List<String> mappedDatabases) {
-    noMappedDatabases = mappedDatabases.isEmpty();
+    if (mappedDatabases != null) {
+      noMappedDatabases = mappedDatabases.isEmpty();
+    }
     this.mappedDatabases = mappedDatabases;
   }
 
@@ -75,5 +77,4 @@ public class PrimaryMetaStore extends AbstractMetaStore {
     }
     return prefix;
   }
-
 }

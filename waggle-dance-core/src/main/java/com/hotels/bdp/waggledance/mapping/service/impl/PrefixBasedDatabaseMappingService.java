@@ -223,11 +223,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
       } else {
-        for (String mappedDatabase : primaryMetaStore.getMappedDatabases()) {
-          if (isWhitelisted(mappedDatabase, databaseName)) {
-            LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-            return primaryDatabaseMapping;
-          }
+        if (includeInResults(primaryDatabaseMapping, databaseName)) {
+          LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+          return primaryDatabaseMapping;
         }
       }
 
