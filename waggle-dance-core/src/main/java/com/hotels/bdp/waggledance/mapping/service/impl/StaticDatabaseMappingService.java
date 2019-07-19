@@ -49,7 +49,6 @@ import com.google.common.collect.Sets;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
@@ -72,8 +71,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
+  private Map<String, Whitelist> mappedDbByPattern;
   private AbstractMetaStore primaryMetaStore = null;
-  private Whitelist primaryWhitelist = null;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -100,6 +99,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private void init(List<AbstractMetaStore> abstractMetaStores) {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = new ConcurrentHashMap<>();
+    mappedDbByPattern = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : abstractMetaStores) {
       add(federatedMetaStore);
     }
@@ -108,45 +108,58 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
 
+    List<String> mappableDatabases = Collections.emptyList();
+    if (metaStoreMapping.isAvailable()) {
+      try {
+        List<String> allDatabases = metaStoreMapping.getClient().get_all_databases();
+        Whitelist whitelistedDatabases = getWhitelistedDatabases(metaStore);
+        mappedDbByPattern.put(metaStoreMapping.getMetastoreMappingName(), whitelistedDatabases);
+        mappableDatabases = applyWhitelist(allDatabases, whitelistedDatabases);
+      } catch (TException e) {
+        LOG.error("Could not get databases for metastore {}", metaStore.getRemoteMetaStoreUris(), e);
+      }
+    }
+    DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
+
     if (metaStore.getFederationType() == PRIMARY) {
       primaryMetaStore = metaStore;
-      validatePrimaryMetastoreDatabases(metaStoreMapping);
-      primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
+      validatePrimaryMetastoreDatabases(mappableDatabases);
+//      primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
+      primaryDatabaseMapping = databaseMapping;
       primaryDatabasesCache.invalidateAll();
-      primaryWhitelist = getWhitelistedDatabases(primaryMetaStore);
-      mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), primaryDatabaseMapping);
+//      mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), primaryDatabaseMapping);
     } else {
-      FederatedMetaStore federatedMetaStore = (FederatedMetaStore) metaStore;
-      List<String> mappableDatabases = Collections.emptyList();
-      if (metaStoreMapping.isAvailable()) {
-        try {
-          List<String> allFederatedDatabases = metaStoreMapping.getClient().get_all_databases();
-          mappableDatabases = applyWhitelist(allFederatedDatabases, getWhitelistedDatabases(federatedMetaStore));
-        } catch (TException e) {
-          LOG.error("Could not get databases for metastore {}", federatedMetaStore.getRemoteMetaStoreUris(), e);
-        }
-      }
+//      FederatedMetaStore federatedMetaStore = (FederatedMetaStore) metaStore;
+//      List<String> mappableDatabases = Collections.emptyList();
+//      if (metaStoreMapping.isAvailable()) {
+//        try {
+//          List<String> allFederatedDatabases = metaStoreMapping.getClient().get_all_databases();
+//          mappableDatabases = applyWhitelist(allFederatedDatabases, getWhitelistedDatabases(federatedMetaStore));
+//        } catch (TException e) {
+//          LOG.error("Could not get databases for metastore {}", federatedMetaStore.getRemoteMetaStoreUris(), e);
+//        }
+//      }
       validateFederatedMetastoreDatabases(mappableDatabases, metaStoreMapping);
-      DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
-      mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
-      addDatabaseMappings(mappableDatabases, databaseMapping);
+//      DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
+//      mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
+//      addDatabaseMappings(mappableDatabases, databaseMapping);
     }
+
+    // because primary has mapped databases, this has to happen for both now
+    mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
+    addDatabaseMappings(mappableDatabases, databaseMapping);
   }
 
-  private void validatePrimaryMetastoreDatabases(MetaStoreMapping newPrimaryMetaStoreMapping) {
-    try {
-      for (String database : newPrimaryMetaStoreMapping.getClient().get_all_databases()) {
-        if (mappingsByDatabaseName.containsKey(database)) {
-          throw new WaggleDanceException("Database clash, found '"
-              + database
-              + "' in primary that was already mapped to a federated metastore '"
-              + mappingsByDatabaseName.get(database).getMetastoreMappingName()
-              + "', please remove the database from the federated metastore list it can't be"
-              + " accessed via Waggle Dance");
-        }
+  private void validatePrimaryMetastoreDatabases(List<String> databases) {
+    for (String database : databases) {
+      if (mappingsByDatabaseName.containsKey(database)) {
+        throw new WaggleDanceException("Database clash, found '"
+            + database
+            + "' in primary that was already mapped to a federated metastore '"
+            + mappingsByDatabaseName.get(database).getMetastoreMappingName()
+            + "', please remove the database from the federated metastore list it can't be"
+            + " accessed via Waggle Dance");
       }
-    } catch (TException e) {
-      throw new WaggleDanceException("Can't validate database clashes", e);
     }
   }
 
@@ -213,12 +226,14 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = null;
       primaryDatabasesCache.invalidateAll();
-    } else {
-      for (String databaseName : metaStore.getMappedDatabases()) {
-        mappingsByDatabaseName.remove(databaseName.trim().toLowerCase(Locale.ROOT));
-      }
     }
+
+    for (String databaseName : metaStore.getMappedDatabases()) {
+      mappingsByDatabaseName.remove(databaseName.trim().toLowerCase(Locale.ROOT));
+    }
+
     DatabaseMapping removed = mappingsByMetaStoreName.remove(metaStore.getName());
+    mappedDbByPattern.remove(removed);
     IOUtils.closeQuietly(removed);
   }
 
@@ -289,6 +304,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
       } else {
+        Whitelist primaryWhitelist = mappedDbByPattern.get(primaryDatabaseMapping);
         if (primaryWhitelist.contains(databaseName)) {
           LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
           return primaryDatabaseMapping;
@@ -357,7 +373,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
           List<String> databases = primaryDatabasesCache.get(PRIMARY_KEY);
           for (String database : databases) {
             String transformedDatabaseName = primaryDatabaseMapping.transformOutboundDatabaseName(database);
-            if (primaryWhitelist.contains(transformedDatabaseName)) {
+            if (mappedDbByPattern.get(primaryDatabaseMapping).contains(transformedDatabaseName)) {
               combined.add(transformedDatabaseName);
             }
           }
