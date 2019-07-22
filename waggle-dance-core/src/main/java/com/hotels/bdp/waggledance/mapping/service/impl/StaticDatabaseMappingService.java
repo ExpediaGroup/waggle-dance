@@ -72,6 +72,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
   private Map<String, Whitelist> mappedDbByPattern;
+  private List<String> primaryDatabases;
   private AbstractMetaStore primaryMetaStore = null;
 
   public StaticDatabaseMappingService(
@@ -100,6 +101,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = new ConcurrentHashMap<>();
     mappedDbByPattern = new ConcurrentHashMap<>();
+    primaryDatabases = new ArrayList<>();
     for (AbstractMetaStore federatedMetaStore : abstractMetaStores) {
       add(federatedMetaStore);
     }
@@ -124,6 +126,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     if (metaStore.getFederationType() == PRIMARY) {
       primaryMetaStore = metaStore;
       validatePrimaryMetastoreDatabases(mappableDatabases);
+      primaryDatabases = mappableDatabases;
 //      primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
       primaryDatabaseMapping = databaseMapping;
       primaryDatabasesCache.invalidateAll();
@@ -225,6 +228,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private void remove(AbstractMetaStore metaStore) {
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = null;
+      primaryDatabases = null;
       primaryDatabasesCache.invalidateAll();
     }
 
@@ -233,7 +237,17 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
 
     DatabaseMapping removed = mappingsByMetaStoreName.remove(metaStore.getName());
-    mappedDbByPattern.remove(removed);
+
+    if (mappedDbByPattern.containsKey(removed)) {
+      mappedDbByPattern.remove(removed);
+    }
+
+    // remove if mapping matches in the case of empty mapped databases
+    for (Map.Entry<String, DatabaseMapping> entry : mappingsByDatabaseName.entrySet()) {
+      if (entry.getValue().equals(removed)) {
+        mappingsByDatabaseName.remove(entry.getKey());
+      }
+    }
     IOUtils.closeQuietly(removed);
   }
 
@@ -305,7 +319,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         return primaryDatabaseMapping;
       } else {
         Whitelist primaryWhitelist = mappedDbByPattern.get(primaryDatabaseMapping);
-        if (primaryWhitelist.contains(databaseName)) {
+        if (primaryWhitelist != null && primaryWhitelist.contains(databaseName)) {
           LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
           return primaryDatabaseMapping;
         }
@@ -353,9 +367,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases(String pattern) {
         BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> {
-          boolean isPrimaryDatabase = mapping.equals(primaryDatabaseMapping);
-          boolean isMapped = mappingsByDatabaseName.keySet().contains(database);
-          return isPrimaryDatabase || isMapped;
+          return mappingsByDatabaseName.keySet().contains(database);
         };
 
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
@@ -368,20 +380,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases() {
-        List<String> combined = new ArrayList<>();
-        try {
-          List<String> databases = primaryDatabasesCache.get(PRIMARY_KEY);
-          for (String database : databases) {
-            String transformedDatabaseName = primaryDatabaseMapping.transformOutboundDatabaseName(database);
-            if (mappedDbByPattern.get(primaryDatabaseMapping).contains(transformedDatabaseName)) {
-              combined.add(transformedDatabaseName);
-            }
-          }
-          combined.addAll(mappingsByDatabaseName.keySet());
-        } catch (ExecutionException e) {
-          LOG.warn("Can't fetch databases: {}", e.getCause().getMessage());
-        }
-        return combined;
+        // but need to put primary first...
+        return new ArrayList<>(mappingsByDatabaseName.keySet());
       }
 
       @Override

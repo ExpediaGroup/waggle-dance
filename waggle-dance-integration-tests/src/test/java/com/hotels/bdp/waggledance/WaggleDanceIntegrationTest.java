@@ -785,30 +785,30 @@ public class WaggleDanceIntegrationTest {
     assertThat(allDatabases, is(expected));
   }
 
-//  @Test
-//  public void primaryMappedDatabasesManual() throws Exception {
-//
-//    runner = WaggleDanceRunner
-//        .builder(configLocation)
-//        .databaseResolution(DatabaseResolution.MANUAL)
-//        .overwriteConfigOnShutdown(false)
-//        .primary("primary", localServer.getThriftConnectionUri(),
-//            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
-//        .withPrimaryMappedDatabases(new String[] {LOCAL_DATABASE})
-//        .build();
-//
-//    runWaggleDance(runner);
-//
-//
-//    HiveMetaStoreClient proxy = getWaggleDanceClient();
-//
-//    List<String> allDatabases = proxy.getAllDatabases();
-//    for(String database : allDatabases) {
-//      System.out.println(database);
-//    }
-//    assertThat(allDatabases.size(), is(1));
-//    assertThat(allDatabases.get(0), is(LOCAL_DATABASE));
-//  }
+  @Test
+  public void primaryMappedDatabasesManual() throws Exception {
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.MANUAL)
+        .overwriteConfigOnShutdown(false)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .withPrimaryMappedDatabases(new String[] {LOCAL_DATABASE})
+        .build();
+
+    runWaggleDance(runner);
+
+
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> allDatabases = proxy.getAllDatabases();
+    for(String database : allDatabases) {
+      System.out.println(database);
+    }
+    assertThat(allDatabases.size(), is(1));
+    assertThat(allDatabases.get(0), is(LOCAL_DATABASE));
+  }
 
   @Test
   public void primaryMappedDatabasesPrefixed() throws Exception {
