@@ -284,7 +284,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
       }
-
       throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
     }
     LOG.debug("Database Name `{}` not mapped", databaseName);
@@ -339,7 +338,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases() {
-        // but need to put primary first...
         List<String> federatedCombined = new ArrayList<>();
         List<String> primaryCombined = new ArrayList<>();
         for (Map.Entry<String, DatabaseMapping> entry : mappingsByDatabaseName.entrySet()) {
@@ -350,8 +348,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
           }
         }
 
-//        ArrayList<String> strings = new ArrayList<>(mappingsByDatabaseName.keySet());
-//        Collections.sort(strings); // doesn't work: [federated_db, primary_db]
         Collections.sort(primaryCombined);
         Collections.sort(federatedCombined);
         primaryCombined.addAll(federatedCombined);

@@ -216,10 +216,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       }
     }
     if (primaryDatabaseMapping != null) {
-      // If none found we fall back to primary one and check if it's in mapped databases
-
-      // if user didn't set mapped databases, anything should match
-      // but if user set mapped databases as [], then nothing should match
+      // If none found we fall back to primary one if the user didn't specify to not include any from primary
       if (primaryShouldMatchAllDatabases) {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
@@ -229,7 +226,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
           return primaryDatabaseMapping;
         }
       }
-
       throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
     }
     LOG.debug("Database Name `{}` not mapped", databaseName);
