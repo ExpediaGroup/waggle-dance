@@ -49,7 +49,6 @@ import com.google.common.collect.Lists;
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
-import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
@@ -227,7 +226,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
   }
 
-  @Test (expected = NoSuchObjectException.class)
+  @Test(expected = NoSuchObjectException.class)
   public void databaseMappingDoesNotMatchPrimary() throws NoSuchObjectException {
     AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
     noMappedDbsPrimary.setMappedDatabases(Collections.emptyList());
@@ -235,7 +234,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     service.databaseMapping("some_unknown_db");
   }
 
-  @Test (expected = NoSuchObjectException.class)
+  @Test(expected = NoSuchObjectException.class)
   public void databaseMappingDoesNotMatchPrimaryWithOtherMappedDbs() throws NoSuchObjectException {
     AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
     noMappedDbsPrimary.setMappedDatabases(Collections.singletonList("primary_db"));

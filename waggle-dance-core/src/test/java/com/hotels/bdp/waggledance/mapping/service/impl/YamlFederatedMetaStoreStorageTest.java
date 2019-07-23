@@ -244,7 +244,6 @@ public class YamlFederatedMetaStoreStorageTest {
 
   private PrimaryMetaStore newPrimaryInstance(String name, String remoteMetaStoreUris) {
     PrimaryMetaStore result = AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUris);
-//    result.setWritableDatabaseWhiteList(null);
     return result;
   }
 

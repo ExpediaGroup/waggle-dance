@@ -271,7 +271,7 @@ public class StaticDatabaseMappingServiceTest {
     service.primaryDatabaseMapping();
   }
 
-  @Test (expected = NoSuchObjectException.class)
+  @Test(expected = NoSuchObjectException.class)
   public void databaseMappingDoesNotMatchPrimary() throws NoSuchObjectException {
     AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
     noMappedDbsPrimary.setMappedDatabases(Collections.emptyList());
@@ -279,7 +279,7 @@ public class StaticDatabaseMappingServiceTest {
     service.databaseMapping("some_unknown_db");
   }
 
-  @Test (expected = NoSuchObjectException.class)
+  @Test(expected = NoSuchObjectException.class)
   public void databaseMappingDoesNotMatchPrimaryWithMappedDbs() throws NoSuchObjectException {
     AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
     noMappedDbsPrimary.setMappedDatabases(Collections.singletonList("primary_db"));
@@ -292,7 +292,6 @@ public class StaticDatabaseMappingServiceTest {
     AbstractMetaStore newPrimary = newPrimaryInstance("primary", "abc");
     MetaStoreMapping unavailablePrimaryMapping = mockNewMapping(false, newPrimary);
     when(metaStoreMappingFactory.newInstance(newPrimary)).thenReturn(unavailablePrimaryMapping);
-//    when(unavailablePrimaryMapping.getClient()).thenReturn(primaryDatabaseClient);
 
     service.onUpdate(primaryMetastore, newPrimary);
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
@@ -338,11 +337,6 @@ public class StaticDatabaseMappingServiceTest {
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore));
 
-//    when(primaryDatabaseClient.get_all_databases())
-//        .thenReturn(Lists.newArrayList("primary_db", "primary_db_that_is_not_mapped"));
-//    when(federatedDatabaseClient.get_all_databases())
-//        .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
-
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     assertThat(handler.getAllDatabases(), is(Collections.emptyList()));
   }
@@ -355,11 +349,6 @@ public class StaticDatabaseMappingServiceTest {
     federatedMetastore.setMappedDatabases(Collections.singletonList(federatedDb));
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore));
-
-//    when(primaryDatabaseClient.get_all_databases())
-//        .thenReturn(Lists.newArrayList(primaryDb, "primary_db_that_is_not_mapped"));
-//    when(federatedDatabaseClient.get_all_databases())
-//        .thenReturn(Lists.newArrayList(federatedDb, "another_db_that_is_not_mapped"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     assertThat(handler.getAllDatabases().size(), is(2));
