@@ -67,10 +67,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private static final String EMPTY_PREFIX = "";
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
+  private boolean primaryShouldMatchAllDatabases = true;
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByPrefix;
   private Map<String, Whitelist> mappedDbByPrefix;
-  private AbstractMetaStore primaryMetaStore = null;
 
   public PrefixBasedDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -93,9 +93,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
 
     if (metaStore.getFederationType() == PRIMARY) {
-      primaryMetaStore = metaStore;
       primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
+      primaryShouldMatchAllDatabases =
+          !metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty();
     } else {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
     }
@@ -219,7 +220,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
       // if user didn't set mapped databases, anything should match
       // but if user set mapped databases as [], then nothing should match
-      if (!primaryMetaStore.shouldHaveNoMappedDatabases() && primaryMetaStore.getMappedDatabases().isEmpty()) {
+      if (primaryShouldMatchAllDatabases) {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
       } else {

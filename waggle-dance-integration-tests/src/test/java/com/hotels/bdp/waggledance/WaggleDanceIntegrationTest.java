@@ -787,6 +787,8 @@ public class WaggleDanceIntegrationTest {
 
   @Test
   public void primaryMappedDatabasesManual() throws Exception {
+    localServer.createDatabase("random_primary");
+    remoteServer.createDatabase("random_federated");
 
     runner = WaggleDanceRunner
         .builder(configLocation)
@@ -795,23 +797,22 @@ public class WaggleDanceIntegrationTest {
         .primary("primary", localServer.getThriftConnectionUri(),
             AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
         .withPrimaryMappedDatabases(new String[] {LOCAL_DATABASE})
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
         .build();
 
     runWaggleDance(runner);
-
-
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
-    for(String database : allDatabases) {
-      System.out.println(database);
-    }
-    assertThat(allDatabases.size(), is(1));
+    assertThat(allDatabases.size(), is(2));
     assertThat(allDatabases.get(0), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(1), is(REMOTE_DATABASE));
   }
 
   @Test
   public void primaryMappedDatabasesPrefixed() throws Exception {
+    localServer.createDatabase("random_primary");
+    remoteServer.createDatabase("random_federated");
 
     runner = WaggleDanceRunner
         .builder(configLocation)
@@ -820,18 +821,15 @@ public class WaggleDanceIntegrationTest {
         .primary("primary", localServer.getThriftConnectionUri(),
             AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
         .withPrimaryMappedDatabases(new String[] {LOCAL_DATABASE})
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
         .build();
 
     runWaggleDance(runner);
-
-
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
-    for(String database : allDatabases) {
-      System.out.println(database);
-    }
-    assertThat(allDatabases.size(), is(1));
+    assertThat(allDatabases.size(), is(2));
     assertThat(allDatabases.get(0), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(1), is(PREFIXED_REMOTE_DATABASE));
   }
 }

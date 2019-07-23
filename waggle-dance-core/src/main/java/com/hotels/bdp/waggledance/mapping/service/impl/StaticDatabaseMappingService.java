@@ -19,6 +19,7 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -68,12 +69,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private static final String PRIMARY_KEY = "";
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final LoadingCache<String, List<String>> primaryDatabasesCache;
+  private boolean primaryShouldMatchAllDatabases = true;
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
-  private Map<String, Whitelist> mappedDbByPattern;
-  private List<String> primaryDatabases;
-  private AbstractMetaStore primaryMetaStore = null;
+//  private Map<String, Whitelist> mappedDbByPattern;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -100,8 +100,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private void init(List<AbstractMetaStore> abstractMetaStores) {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = new ConcurrentHashMap<>();
-    mappedDbByPattern = new ConcurrentHashMap<>();
-    primaryDatabases = new ArrayList<>();
+//    mappedDbByPattern = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : abstractMetaStores) {
       add(federatedMetaStore);
     }
@@ -115,7 +114,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       try {
         List<String> allDatabases = metaStoreMapping.getClient().get_all_databases();
         Whitelist whitelistedDatabases = getWhitelistedDatabases(metaStore);
-        mappedDbByPattern.put(metaStoreMapping.getMetastoreMappingName(), whitelistedDatabases);
+//        mappedDbByPattern.put(metaStoreMapping.getMetastoreMappingName(), whitelistedDatabases);
         mappableDatabases = applyWhitelist(allDatabases, whitelistedDatabases);
       } catch (TException e) {
         LOG.error("Could not get databases for metastore {}", metaStore.getRemoteMetaStoreUris(), e);
@@ -124,28 +123,13 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
 
     if (metaStore.getFederationType() == PRIMARY) {
-      primaryMetaStore = metaStore;
       validatePrimaryMetastoreDatabases(mappableDatabases);
-      primaryDatabases = mappableDatabases;
-//      primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
+      primaryShouldMatchAllDatabases =
+          !metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty();
       primaryDatabaseMapping = databaseMapping;
       primaryDatabasesCache.invalidateAll();
-//      mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), primaryDatabaseMapping);
     } else {
-//      FederatedMetaStore federatedMetaStore = (FederatedMetaStore) metaStore;
-//      List<String> mappableDatabases = Collections.emptyList();
-//      if (metaStoreMapping.isAvailable()) {
-//        try {
-//          List<String> allFederatedDatabases = metaStoreMapping.getClient().get_all_databases();
-//          mappableDatabases = applyWhitelist(allFederatedDatabases, getWhitelistedDatabases(federatedMetaStore));
-//        } catch (TException e) {
-//          LOG.error("Could not get databases for metastore {}", federatedMetaStore.getRemoteMetaStoreUris(), e);
-//        }
-//      }
       validateFederatedMetastoreDatabases(mappableDatabases, metaStoreMapping);
-//      DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
-//      mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
-//      addDatabaseMappings(mappableDatabases, databaseMapping);
     }
 
     // because primary has mapped databases, this has to happen for both now
@@ -228,19 +212,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private void remove(AbstractMetaStore metaStore) {
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = null;
-      primaryDatabases = null;
       primaryDatabasesCache.invalidateAll();
     }
 
-    for (String databaseName : metaStore.getMappedDatabases()) {
-      mappingsByDatabaseName.remove(databaseName.trim().toLowerCase(Locale.ROOT));
-    }
-
     DatabaseMapping removed = mappingsByMetaStoreName.remove(metaStore.getName());
-
-    if (mappedDbByPattern.containsKey(removed)) {
-      mappedDbByPattern.remove(removed);
-    }
+//    mappedDbByPattern.remove(removed);
 
     // remove if mapping matches in the case of empty mapped databases
     for (Map.Entry<String, DatabaseMapping> entry : mappingsByDatabaseName.entrySet()) {
@@ -314,16 +290,19 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       // if user didn't set mapped databases, anything should match
       // but if user set mapped databases as [], then nothing should match
-      if (!primaryMetaStore.shouldHaveNoMappedDatabases() && primaryMetaStore.getMappedDatabases().isEmpty()) {
+      if (primaryShouldMatchAllDatabases) {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
-      } else {
-        Whitelist primaryWhitelist = mappedDbByPattern.get(primaryDatabaseMapping);
-        if (primaryWhitelist != null && primaryWhitelist.contains(databaseName)) {
-          LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-          return primaryDatabaseMapping;
-        }
       }
+//      else {
+
+        // this can probably be removed because mappingsByDatabaseName would contain all databases that are whitelisted
+//        Whitelist primaryWhitelist = mappedDbByPattern.get(primaryDatabaseMapping);
+//        if (primaryWhitelist != null && primaryWhitelist.contains(databaseName)) {
+//          LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+//          return primaryDatabaseMapping;
+//        }
+//      }
 
       throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
     }
@@ -366,9 +345,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases(String pattern) {
-        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> {
-          return mappingsByDatabaseName.keySet().contains(database);
-        };
+        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) ->
+            mappingsByDatabaseName.keySet().contains(database);
 
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
         for (DatabaseMapping mapping : getDatabaseMappings()) {
@@ -381,7 +359,22 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       @Override
       public List<String> getAllDatabases() {
         // but need to put primary first...
-        return new ArrayList<>(mappingsByDatabaseName.keySet());
+        List<String> federatedCombined = new ArrayList<>();
+        List<String> primaryCombined = new ArrayList<>();
+        for (Map.Entry<String, DatabaseMapping> entry : mappingsByDatabaseName.entrySet()) {
+          if (entry.getValue().equals(primaryDatabaseMapping)) {
+            primaryCombined.add(entry.getKey());
+          } else {
+            federatedCombined.add(entry.getKey());
+          }
+        }
+
+//        ArrayList<String> strings = new ArrayList<>(mappingsByDatabaseName.keySet());
+//        Collections.sort(strings); // doesn't work: [federated_db, primary_db]
+        Collections.sort(primaryCombined);
+        Collections.sort(federatedCombined);
+        primaryCombined.addAll(federatedCombined);
+        return primaryCombined;
       }
 
       @Override
