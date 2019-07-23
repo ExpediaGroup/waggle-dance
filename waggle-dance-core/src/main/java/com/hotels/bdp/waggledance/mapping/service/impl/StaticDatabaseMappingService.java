@@ -73,7 +73,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
-//  private Map<String, Whitelist> mappedDbByPattern;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -100,7 +99,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private void init(List<AbstractMetaStore> abstractMetaStores) {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = new ConcurrentHashMap<>();
-//    mappedDbByPattern = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : abstractMetaStores) {
       add(federatedMetaStore);
     }
@@ -114,7 +112,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       try {
         List<String> allDatabases = metaStoreMapping.getClient().get_all_databases();
         Whitelist whitelistedDatabases = getWhitelistedDatabases(metaStore);
-//        mappedDbByPattern.put(metaStoreMapping.getMetastoreMappingName(), whitelistedDatabases);
         mappableDatabases = applyWhitelist(allDatabases, whitelistedDatabases);
       } catch (TException e) {
         LOG.error("Could not get databases for metastore {}", metaStore.getRemoteMetaStoreUris(), e);
@@ -132,7 +129,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       validateFederatedMetastoreDatabases(mappableDatabases, metaStoreMapping);
     }
 
-    // because primary has mapped databases, this has to happen for both now
     mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
     addDatabaseMappings(mappableDatabases, databaseMapping);
   }
@@ -216,9 +212,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
 
     DatabaseMapping removed = mappingsByMetaStoreName.remove(metaStore.getName());
-//    mappedDbByPattern.remove(removed);
-
-    // remove if mapping matches in the case of empty mapped databases
     for (Map.Entry<String, DatabaseMapping> entry : mappingsByDatabaseName.entrySet()) {
       if (entry.getValue().equals(removed)) {
         mappingsByDatabaseName.remove(entry.getKey());
@@ -286,23 +279,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       }
     }
     if (primaryDatabaseMapping != null) {
-      // If none found we fall back to primary one
-
-      // if user didn't set mapped databases, anything should match
-      // but if user set mapped databases as [], then nothing should match
+      // If none found we fall back to primary one if the user didn't specify to not include any from primary
       if (primaryShouldMatchAllDatabases) {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
       }
-//      else {
-
-        // this can probably be removed because mappingsByDatabaseName would contain all databases that are whitelisted
-//        Whitelist primaryWhitelist = mappedDbByPattern.get(primaryDatabaseMapping);
-//        if (primaryWhitelist != null && primaryWhitelist.contains(databaseName)) {
-//          LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-//          return primaryDatabaseMapping;
-//        }
-//      }
 
       throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
     }

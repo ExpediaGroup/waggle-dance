@@ -100,7 +100,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     } else {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
     }
-    // because primary has mapped databases, this has to happen for both now
+
     Whitelist mappedDbWhitelist = getWhitelistedDatabases(metaStore);
     mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
   }
