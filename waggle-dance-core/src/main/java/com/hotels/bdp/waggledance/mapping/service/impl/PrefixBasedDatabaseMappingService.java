@@ -81,10 +81,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     init(initialMetastores);
   }
 
-  private void init(List<AbstractMetaStore> abstractMetaStores) {
+  private void init(List<AbstractMetaStore> metaStores) {
     mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<>());
     mappedDbByPrefix = new ConcurrentHashMap<>();
-    for (AbstractMetaStore abstractMetaStore : abstractMetaStores) {
+    for (AbstractMetaStore abstractMetaStore : metaStores) {
       add(abstractMetaStore);
     }
   }
@@ -95,8 +95,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
-      primaryShouldMatchAllDatabases =
-          !metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty();
+      primaryShouldMatchAllDatabases = !metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty();
     } else {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
     }

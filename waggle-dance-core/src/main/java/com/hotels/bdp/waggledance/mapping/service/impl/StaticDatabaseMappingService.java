@@ -19,7 +19,6 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -96,10 +95,10 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     init(initialMetastores);
   }
 
-  private void init(List<AbstractMetaStore> abstractMetaStores) {
+  private void init(List<AbstractMetaStore> metaStores) {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = new ConcurrentHashMap<>();
-    for (AbstractMetaStore federatedMetaStore : abstractMetaStores) {
+    for (AbstractMetaStore federatedMetaStore : metaStores) {
       add(federatedMetaStore);
     }
   }
@@ -121,8 +120,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
     if (metaStore.getFederationType() == PRIMARY) {
       validatePrimaryMetastoreDatabases(mappableDatabases);
-      primaryShouldMatchAllDatabases =
-          !metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty();
+      primaryShouldMatchAllDatabases = !metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty();
       primaryDatabaseMapping = databaseMapping;
       primaryDatabasesCache.invalidateAll();
     } else {

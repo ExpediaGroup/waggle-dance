@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -120,13 +121,13 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
     assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
   }
 
-
   @Test
   public void mappedDatabases() {
     List<String> mappedDatabases = new ArrayList<>();
     mappedDatabases.add("database");
     metaStore.setMappedDatabases(mappedDatabases);
     assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
+    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(false));
   }
 
   @Test
@@ -134,6 +135,21 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
     metaStore.setMappedDatabases(null);
     Set<ConstraintViolation<PrimaryMetaStore>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void emptyMappedDatabases() {
+    metaStore.setMappedDatabases(Collections.emptyList());
+    assertThat(metaStore.getMappedDatabases().size(), is(0));
+    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(true));
+  }
+
+  @Test
+  public void flagForNoDatabasesIsReset() {
+    metaStore.setMappedDatabases(Collections.emptyList());
+    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(true));
+    metaStore.setMappedDatabases(Collections.singletonList("db"));
+    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(false));
   }
 
 }

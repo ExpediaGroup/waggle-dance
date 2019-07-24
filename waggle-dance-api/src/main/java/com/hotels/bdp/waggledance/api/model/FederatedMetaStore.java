@@ -19,11 +19,10 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 public class FederatedMetaStore extends AbstractMetaStore {
 
-  private @NotNull List<String> mappedDatabases = Collections.emptyList();
+  private List<String> mappedDatabases = null;
   private boolean noMappedDatabases = false;
 
   public FederatedMetaStore() {}

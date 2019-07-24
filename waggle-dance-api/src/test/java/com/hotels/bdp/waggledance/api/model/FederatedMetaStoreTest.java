@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -94,6 +95,7 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     metaStore.setMappedDatabases(null);
     Set<ConstraintViolation<FederatedMetaStore>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(1));
+    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(false));
   }
 
   @Test
@@ -103,5 +105,20 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     FederatedMetaStore store = new FederatedMetaStore(storeName, storeUri);
     assertThat(store.getName(), is(storeName));
     assertThat(store.getRemoteMetaStoreUris(), is(storeUri));
+  }
+
+  @Test
+  public void emptyMappedDatabases() {
+    metaStore.setMappedDatabases(Collections.emptyList());
+    assertThat(metaStore.getMappedDatabases().size(), is(0));
+    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(true));
+  }
+
+  @Test
+  public void flagForNoDatabasesIsReset() {
+    metaStore.setMappedDatabases(Collections.emptyList());
+    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(true));
+    metaStore.setMappedDatabases(Collections.singletonList("db"));
+    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(false));
   }
 }
