@@ -495,9 +495,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<TableMeta> tableMetas = handler.getTableMeta("name_federated_*", "*", tblTypes);
-    for (TableMeta tableMeta1 : tableMetas) {
-      System.out.println(tableMeta1.getDbName());
-    }
+
     assertThat(tableMetas.size(), is(0));
   }
 }

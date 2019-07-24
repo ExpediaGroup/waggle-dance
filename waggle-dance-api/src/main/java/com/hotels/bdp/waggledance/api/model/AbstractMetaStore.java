@@ -42,7 +42,7 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 public abstract class AbstractMetaStore {
 
   private String databasePrefix;
-  private List<String> writableDatabaseWhitelist = null;
+  private List<String> writableDatabaseWhitelist;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
@@ -134,11 +134,10 @@ public abstract class AbstractMetaStore {
   }
 
   public List<String> getWritableDatabaseWhiteList() {
-//    if (writableDatabaseWhitelist == null) {
-//      return Collections.emptyList();
-//    }
-//    return Collections.unmodifiableList(writableDatabaseWhitelist);
-    return writableDatabaseWhitelist;
+    if (writableDatabaseWhitelist == null) {
+      return Collections.emptyList();
+    }
+    return Collections.unmodifiableList(writableDatabaseWhitelist);
   }
 
   public void setWritableDatabaseWhiteList(List<String> writableDatabaseWhitelist) {
