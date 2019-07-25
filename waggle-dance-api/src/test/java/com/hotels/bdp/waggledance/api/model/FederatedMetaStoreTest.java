@@ -18,9 +18,6 @@ package com.hotels.bdp.waggledance.api.model;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -74,28 +71,12 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
 
   @Test
   public void toJson() throws Exception {
-    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databasePrefix\":\"name_\",\"federationType\":\"FEDERATED\",\"latency\":0,\"mappedDatabases\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":null}";
+    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databasePrefix\":\"name_\",\"federationType\":\"FEDERATED\",\"latency\":0,\"mappedDatabases\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
     ObjectMapper mapper = new ObjectMapper();
     // Sorting to get deterministic test behaviour
     mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
     String json = mapper.writerFor(FederatedMetaStore.class).writeValueAsString(metaStore);
     assertThat(json, is(expected));
-  }
-
-  @Test
-  public void mappedDatabases() {
-    List<String> mappedDatabases = new ArrayList<>();
-    mappedDatabases.add("database");
-    metaStore.setMappedDatabases(mappedDatabases);
-    assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
-  }
-
-  @Test
-  public void nullMappedDatabases() {
-    metaStore.setMappedDatabases(null);
-    Set<ConstraintViolation<FederatedMetaStore>> violations = validator.validate(metaStore);
-    assertThat(violations.size(), is(0));
-    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(false));
   }
 
   @Test
@@ -107,18 +88,4 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     assertThat(store.getRemoteMetaStoreUris(), is(storeUri));
   }
 
-  @Test
-  public void emptyMappedDatabases() {
-    metaStore.setMappedDatabases(Collections.emptyList());
-    assertThat(metaStore.getMappedDatabases().size(), is(0));
-    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(true));
-  }
-
-  @Test
-  public void flagForNoDatabasesIsReset() {
-    metaStore.setMappedDatabases(Collections.emptyList());
-    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(true));
-    metaStore.setMappedDatabases(Collections.singletonList("db"));
-    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(false));
-  }
 }

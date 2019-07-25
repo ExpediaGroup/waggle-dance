@@ -401,6 +401,42 @@ public class WaggleDanceIntegrationTest {
     }
   }
 
+  // feeling cute might delete later
+  @Test
+  public void readWriteCreateAllowedPrefixed() throws Exception {
+    String writableDatabase = "writable_db";
+
+    localServer.createDatabase(writableDatabase);
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), AccessControlType.READ_AND_WRITE_AND_CREATE)
+        .build();
+
+    runWaggleDance(runner);
+
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    // create rights
+    proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
+    Database newDB = proxy.getDatabase("newDB");
+    assertNotNull(newDB);
+
+    // read rights
+    Table localTable = localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    assertThat(waggledLocalTable, is(localTable));
+
+    // write rights
+    proxy.dropTable(LOCAL_DATABASE, LOCAL_TABLE);
+    try {
+      proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+      fail("Should get NoSuchObjectException");
+    } catch (NoSuchObjectException e) {
+      // Local table should be allowed to drop, so it now no longer exists and we get an appropriate exception
+    }
+  }
+
   @Test
   public void federatedWritesSucceedIfReadAndWriteOnDatabaseWhiteListIsConfigured() throws Exception {
     runner = WaggleDanceRunner

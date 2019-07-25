@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
@@ -96,7 +95,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
   private void init(List<AbstractMetaStore> metaStores) {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
-    mappingsByDatabaseName = new ConcurrentHashMap<>();
+    mappingsByDatabaseName = Collections.synchronizedMap(new LinkedHashMap<>());
     for (AbstractMetaStore federatedMetaStore : metaStores) {
       add(federatedMetaStore);
     }
@@ -196,9 +195,15 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
 
     DatabaseMapping removed = mappingsByMetaStoreName.remove(metaStore.getName());
-    for (Map.Entry<String, DatabaseMapping> entry : mappingsByDatabaseName.entrySet()) {
-      if (entry.getValue().equals(removed)) {
-        mappingsByDatabaseName.remove(entry.getKey());
+    List<String> databasesToRemove = new ArrayList<>();
+    synchronized (mappingsByDatabaseName) {
+      for (Map.Entry<String, DatabaseMapping> entry : mappingsByDatabaseName.entrySet()) {
+        if (entry.getValue().equals(removed)) {
+          databasesToRemove.add(entry.getKey());
+        }
+      }
+      for(String database : databasesToRemove) {
+        mappingsByDatabaseName.remove(database);
       }
     }
     IOUtils.closeQuietly(removed);
@@ -323,20 +328,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases() {
-        List<String> federatedCombined = new ArrayList<>();
-        List<String> primaryCombined = new ArrayList<>();
-        for (Map.Entry<String, DatabaseMapping> entry : mappingsByDatabaseName.entrySet()) {
-          if (entry.getValue().equals(primaryDatabaseMapping)) {
-            primaryCombined.add(entry.getKey());
-          } else {
-            federatedCombined.add(entry.getKey());
-          }
-        }
-
-        Collections.sort(primaryCombined);
-        Collections.sort(federatedCombined);
-        primaryCombined.addAll(federatedCombined);
-        return primaryCombined;
+        return new ArrayList<>(mappingsByDatabaseName.keySet());
       }
 
       @Override
@@ -354,4 +346,5 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       }
     }
   }
+
 }

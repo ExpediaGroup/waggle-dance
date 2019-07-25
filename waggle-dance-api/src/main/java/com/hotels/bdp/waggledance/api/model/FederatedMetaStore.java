@@ -22,9 +22,6 @@ import javax.validation.constraints.NotBlank;
 
 public class FederatedMetaStore extends AbstractMetaStore {
 
-  private List<String> mappedDatabases = null;
-  private boolean noMappedDatabases = false;
-
   public FederatedMetaStore() {}
 
   public FederatedMetaStore(String name, String remoteMetaStoreUris) {
@@ -53,24 +50,6 @@ public class FederatedMetaStore extends AbstractMetaStore {
     return FederationType.FEDERATED;
   }
 
-  @Override
-  public List<String> getMappedDatabases() {
-    return mappedDatabases;
-  }
-
-  @Override
-  public void setMappedDatabases(List<String> mappedDatabases) {
-    if (mappedDatabases != null) {
-      noMappedDatabases = mappedDatabases.isEmpty();
-    }
-    this.mappedDatabases = mappedDatabases;
-  }
-
-  @Override
-  public boolean shouldHaveNoMappedDatabases() {
-    return noMappedDatabases;
-  }
-
   @NotBlank
   @Override
   public String getDatabasePrefix() {
@@ -80,4 +59,5 @@ public class FederatedMetaStore extends AbstractMetaStore {
     }
     return prefix;
   }
+
 }

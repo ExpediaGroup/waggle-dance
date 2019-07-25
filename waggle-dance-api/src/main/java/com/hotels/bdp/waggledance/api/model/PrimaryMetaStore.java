@@ -23,8 +23,6 @@ import javax.validation.constraints.NotNull;
 public class PrimaryMetaStore extends AbstractMetaStore {
 
   private static final String EMPTY_PREFIX = "";
-  private List<String> mappedDatabases = null;
-  private boolean noMappedDatabases = false;
 
   public PrimaryMetaStore() {}
 
@@ -49,24 +47,6 @@ public class PrimaryMetaStore extends AbstractMetaStore {
     return FederationType.PRIMARY;
   }
 
-  @Override
-  public List<String> getMappedDatabases() {
-    return mappedDatabases;
-  }
-
-  @Override
-  public void setMappedDatabases(List<String> mappedDatabases) {
-    if (mappedDatabases != null) {
-      noMappedDatabases = mappedDatabases.isEmpty();
-    }
-    this.mappedDatabases = mappedDatabases;
-  }
-
-  @Override
-  public boolean shouldHaveNoMappedDatabases() {
-    return noMappedDatabases;
-  }
-
   @NotNull
   @Override
   public String getDatabasePrefix() {
@@ -76,4 +56,5 @@ public class PrimaryMetaStore extends AbstractMetaStore {
     }
     return prefix;
   }
+
 }

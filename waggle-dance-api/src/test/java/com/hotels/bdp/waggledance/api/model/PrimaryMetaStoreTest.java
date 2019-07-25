@@ -17,11 +17,10 @@ package com.hotels.bdp.waggledance.api.model;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -59,9 +58,8 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
 
   @Test
   public void testDefaultDatabaseWhiteListIsEmpty() {
-//    assertThat(metaStore.getWritableDatabaseWhiteList(), is(notNullValue()));
-//    assertThat(metaStore.getWritableDatabaseWhiteList().size(), is(0));
-    assertThat(metaStore.getWritableDatabaseWhiteList(), is(nullValue()));
+    assertThat(metaStore.getWritableDatabaseWhiteList(), is(notNullValue()));
+    assertThat(metaStore.getWritableDatabaseWhiteList().size(), is(0));
   }
 
   @Test
@@ -92,7 +90,7 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
 
   @Test
   public void toJson() throws Exception {
-    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databasePrefix\":\"\",\"federationType\":\"PRIMARY\",\"latency\":0,\"mappedDatabases\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":null}";
+    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databasePrefix\":\"\",\"federationType\":\"PRIMARY\",\"latency\":0,\"mappedDatabases\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
     ObjectMapper mapper = new ObjectMapper();
     // Sorting to get deterministic test behaviour
     mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
@@ -121,37 +119,6 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
     assertThat(store.getRemoteMetaStoreUris(), is(remoteMetaStoreUris));
     assertThat(store.getAccessControlType(), is(accessControlType));
     assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
-  }
-
-  @Test
-  public void mappedDatabases() {
-    List<String> mappedDatabases = new ArrayList<>();
-    mappedDatabases.add("database");
-    metaStore.setMappedDatabases(mappedDatabases);
-    assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
-    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(false));
-  }
-
-  @Test
-  public void nullMappedDatabases() {
-    metaStore.setMappedDatabases(null);
-    Set<ConstraintViolation<PrimaryMetaStore>> violations = validator.validate(metaStore);
-//    assertThat(violations.size(), is(1));
-  }
-
-  @Test
-  public void emptyMappedDatabases() {
-    metaStore.setMappedDatabases(Collections.emptyList());
-    assertThat(metaStore.getMappedDatabases().size(), is(0));
-    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(true));
-  }
-
-  @Test
-  public void flagForNoDatabasesIsReset() {
-    metaStore.setMappedDatabases(Collections.emptyList());
-    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(true));
-    metaStore.setMappedDatabases(Collections.singletonList("db"));
-    assertThat(metaStore.shouldHaveNoMappedDatabases(), is(false));
   }
 
 }

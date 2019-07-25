@@ -28,11 +28,11 @@ import com.hotels.bdp.waggledance.util.Whitelist;
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
   private final FederationService federationService;
-  private AbstractMetaStore metaStore;
   private final boolean hasCreatePermission;
   private final Whitelist writeableDatabaseWhiteList;
+  private AbstractMetaStore metaStore;
 
-  public DatabaseWhitelistAccessControlHandler(
+  DatabaseWhitelistAccessControlHandler(
       AbstractMetaStore metaStore,
       FederationService federationService,
       boolean hasCreatePermission) {
@@ -68,6 +68,10 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     if (metaStore instanceof PrimaryMetaStore) {
       newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
           metaStore.getAccessControlType(), newWritableDatabaseWhiteList);
+
+      // like writable whitelist if it's not null
+      List<String> mappedDatabases = new ArrayList<>(metaStore.getMappedDatabases());
+      newMetaStore.setMappedDatabases(mappedDatabases);
     } else {
       throw new WaggleDanceException(
           String.format("metastore type %s does not support Database creation", metaStore.getClass().getName()));
@@ -77,5 +81,4 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     metaStore = newMetaStore;
     writeableDatabaseWhiteList.add(nameLowerCase);
   }
-
 }

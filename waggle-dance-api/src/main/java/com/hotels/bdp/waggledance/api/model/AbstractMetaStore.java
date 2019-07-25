@@ -42,7 +42,8 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 public abstract class AbstractMetaStore {
 
   private String databasePrefix;
-  private List<String> writableDatabaseWhitelist = null;
+  private List<String> writableDatabaseWhitelist;
+  private List<String> mappedDatabases = null;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
@@ -134,11 +135,10 @@ public abstract class AbstractMetaStore {
   }
 
   public List<String> getWritableDatabaseWhiteList() {
-//    if (writableDatabaseWhitelist == null) {
-//      return Collections.emptyList();
-//    }
-//    return Collections.unmodifiableList(writableDatabaseWhitelist);
-    return writableDatabaseWhitelist;
+    if (writableDatabaseWhitelist == null) {
+      return Collections.emptyList();
+    }
+    return Collections.unmodifiableList(writableDatabaseWhitelist);
   }
 
   public void setWritableDatabaseWhiteList(List<String> writableDatabaseWhitelist) {
@@ -153,11 +153,13 @@ public abstract class AbstractMetaStore {
     this.latency = latency;
   }
 
-  public abstract List<String> getMappedDatabases();
+  public List<String> getMappedDatabases() {
+    return mappedDatabases;
+  }
 
-  public abstract void setMappedDatabases(List<String> mappedDatabases);
-
-  public abstract boolean shouldHaveNoMappedDatabases();
+  public void setMappedDatabases(List<String> mappedDatabases) {
+    this.mappedDatabases = mappedDatabases;
+  }
 
   @Transient
   public MetaStoreStatus getStatus() {
@@ -182,7 +184,7 @@ public abstract class AbstractMetaStore {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final AbstractMetaStore other = (AbstractMetaStore) obj;
+    AbstractMetaStore other = (AbstractMetaStore) obj;
     return Objects.equal(name, other.name);
   }
 
@@ -200,4 +202,5 @@ public abstract class AbstractMetaStore {
         .add("status", status)
         .toString();
   }
+
 }
