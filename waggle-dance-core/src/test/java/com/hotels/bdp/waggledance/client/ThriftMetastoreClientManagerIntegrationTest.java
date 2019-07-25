@@ -36,7 +36,7 @@ public class ThriftMetastoreClientManagerIntegrationTest {
 
   private final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory = new HiveCompatibleThriftHiveMetastoreIfaceFactory();
   private final HiveConf hiveConf = new HiveConf();
-  private final int connectionTimeout = 10;
+  private final int connectionTimeout = 600;
 
   public @Rule ThriftHiveMetaStoreJUnitRule hive = new ThriftHiveMetaStoreJUnitRule("dbname");
   private ThriftMetastoreClientManager manager;
@@ -73,7 +73,7 @@ public class ThriftMetastoreClientManagerIntegrationTest {
     try {
       manager.open();
     } catch (RuntimeException e) {
-      assertThat(e.getMessage(), containsString("java.net.ConnectException: Connection refused"));
+      assertThat(e.getMessage(), containsString("Connection refused"));
     }
   }
 }
