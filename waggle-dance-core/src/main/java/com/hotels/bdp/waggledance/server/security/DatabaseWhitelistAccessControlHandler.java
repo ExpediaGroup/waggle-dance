@@ -29,17 +29,17 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
 
   private final FederationService federationService;
   private final boolean hasCreatePermission;
-  private final Whitelist writeableDatabaseWhiteList;
+  private final Whitelist writableDatabaseWhiteList;
   private AbstractMetaStore metaStore;
 
-  public DatabaseWhitelistAccessControlHandler(
+  DatabaseWhitelistAccessControlHandler(
       AbstractMetaStore metaStore,
       FederationService federationService,
       boolean hasCreatePermission) {
     this.metaStore = metaStore;
     this.federationService = federationService;
     this.hasCreatePermission = hasCreatePermission;
-    writeableDatabaseWhiteList = new Whitelist(metaStore.getWritableDatabaseWhiteList());
+    writableDatabaseWhiteList = new Whitelist(metaStore.getWritableDatabaseWhiteList());
   }
 
   private String trimToLowerCase(String string) {
@@ -48,7 +48,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
 
   @Override
   public boolean hasWritePermission(String databaseName) {
-    return writeableDatabaseWhiteList.contains(databaseName);
+    return writableDatabaseWhiteList.contains(databaseName);
   }
 
   @Override
@@ -66,7 +66,9 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     }
     if (metaStore.getMappedDatabases() != null) {
       mappedDatabases = new ArrayList<>(metaStore.getMappedDatabases());
-      mappedDatabases.add(name);
+      if (!mappedDatabases.contains(name)) {
+        mappedDatabases.add(name);
+      }
     }
 
     AbstractMetaStore newMetaStore = null;
@@ -81,6 +83,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
 
     federationService.update(metaStore, newMetaStore);
     metaStore = newMetaStore;
-    writeableDatabaseWhiteList.add(nameLowerCase);
+    writableDatabaseWhiteList.add(nameLowerCase);
   }
+
 }
