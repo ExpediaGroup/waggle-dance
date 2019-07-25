@@ -184,7 +184,7 @@ public abstract class AbstractMetaStore {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    AbstractMetaStore other = (AbstractMetaStore) obj;
+    final AbstractMetaStore other = (AbstractMetaStore) obj;
     return Objects.equal(name, other.name);
   }
 

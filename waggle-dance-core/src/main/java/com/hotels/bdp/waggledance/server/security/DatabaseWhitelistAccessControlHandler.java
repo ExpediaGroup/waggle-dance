@@ -32,7 +32,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
   private final Whitelist writeableDatabaseWhiteList;
   private AbstractMetaStore metaStore;
 
-  DatabaseWhitelistAccessControlHandler(
+  public DatabaseWhitelistAccessControlHandler(
       AbstractMetaStore metaStore,
       FederationService federationService,
       boolean hasCreatePermission) {
@@ -59,18 +59,20 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
   @Override
   public void databaseCreatedNotification(String name) {
     List<String> newWritableDatabaseWhiteList = new ArrayList<>(metaStore.getWritableDatabaseWhiteList());
+    List<String> mappedDatabases = null;
     String nameLowerCase = trimToLowerCase(name);
     if (!newWritableDatabaseWhiteList.contains(nameLowerCase)) {
       newWritableDatabaseWhiteList.add(nameLowerCase);
+    }
+    if (metaStore.getMappedDatabases() != null) {
+      mappedDatabases = new ArrayList<>(metaStore.getMappedDatabases());
+      mappedDatabases.add(name);
     }
 
     AbstractMetaStore newMetaStore = null;
     if (metaStore instanceof PrimaryMetaStore) {
       newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
           metaStore.getAccessControlType(), newWritableDatabaseWhiteList);
-
-      // like writable whitelist if it's not null
-      List<String> mappedDatabases = new ArrayList<>(metaStore.getMappedDatabases());
       newMetaStore.setMappedDatabases(mappedDatabases);
     } else {
       throw new WaggleDanceException(
