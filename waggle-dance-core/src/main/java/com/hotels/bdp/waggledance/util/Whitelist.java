@@ -26,11 +26,15 @@ public class Whitelist {
 
   private final Set<Pattern> whiteList = new HashSet<>();
 
-  public Whitelist() {}
+  Whitelist() {}
 
   public Whitelist(List<String> writableDatabaseWhiteList) {
-    for (String databaseName : writableDatabaseWhiteList) {
-      add(databaseName);
+    if (writableDatabaseWhiteList == null) {
+      add(".*");
+    } else {
+      for (String databaseName : writableDatabaseWhiteList) {
+        add(databaseName);
+      }
     }
   }
 
@@ -42,7 +46,7 @@ public class Whitelist {
     return whiteList.size();
   }
 
-  public boolean isEmpty() {
+  boolean isEmpty() {
     return whiteList.isEmpty();
   }
 

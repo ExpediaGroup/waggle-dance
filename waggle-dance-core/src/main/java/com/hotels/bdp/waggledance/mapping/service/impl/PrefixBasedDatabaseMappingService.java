@@ -67,7 +67,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private static final String EMPTY_PREFIX = "";
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
-  private boolean primaryShouldMatchAllDatabases = true;
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByPrefix;
   private Map<String, Whitelist> mappedDbByPrefix;
@@ -95,25 +94,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
-      primaryShouldMatchAllDatabases = !metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty();
     } else {
       mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
     }
 
-    Whitelist mappedDbWhitelist = getWhitelistedDatabases(metaStore);
+    Whitelist mappedDbWhitelist = new Whitelist(metaStore.getMappedDatabases());
     mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
-  }
-
-  private Whitelist getWhitelistedDatabases(AbstractMetaStore metaStore) {
-    List<String> databasesPatternToMap;
-
-    // check if metastore is supposed to have all databases matched or not
-    if (!metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty()) {
-      databasesPatternToMap = Collections.singletonList(".*");
-    } else {
-      databasesPatternToMap = metaStore.getMappedDatabases();
-    }
-    return new Whitelist(databasesPatternToMap);
   }
 
   private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
@@ -216,15 +202,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     }
     if (primaryDatabaseMapping != null) {
       // If none found we fall back to primary one if the user didn't specify to not include any from primary
-      if (primaryShouldMatchAllDatabases) {
+
+      if (includeInResults(primaryDatabaseMapping, databaseName)) {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;
-      } else {
-        if (includeInResults(primaryDatabaseMapping, databaseName)) {
-          LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-          return primaryDatabaseMapping;
-        }
       }
+
       throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
     }
     LOG.debug("Database Name `{}` not mapped", databaseName);

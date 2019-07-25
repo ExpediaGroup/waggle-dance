@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -660,7 +661,7 @@ public class WaggleDanceIntegrationTest {
 
     FederatedMetaStore newRemoteMetastore = federatedMetastores.get(1);
     assertThat(newRemoteMetastore.getName(), is("new_waggle_remote"));
-    assertThat(newRemoteMetastore.getMappedDatabases().size(), is(0));
+    assertThat(newRemoteMetastore.getMappedDatabases(), is(nullValue()));
   }
 
   @Test

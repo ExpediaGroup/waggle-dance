@@ -16,7 +16,6 @@
 package com.hotels.bdp.waggledance.api.model;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.validation.constraints.NotNull;
@@ -24,7 +23,7 @@ import javax.validation.constraints.NotNull;
 public class PrimaryMetaStore extends AbstractMetaStore {
 
   private static final String EMPTY_PREFIX = "";
-  private @NotNull List<String> mappedDatabases = Collections.emptyList();
+  private List<String> mappedDatabases = null;
   private boolean noMappedDatabases = false;
 
   public PrimaryMetaStore() {}

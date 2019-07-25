@@ -217,7 +217,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
   }
 
-  @Test
+  @Test (expected = NoSuchObjectException.class)
   public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() throws NoSuchObjectException {
     Mockito.reset(metaStoreMappingPrimary);
     when(metaStoreMappingPrimary.isAvailable()).thenReturn(false);

@@ -68,7 +68,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private static final String PRIMARY_KEY = "";
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final LoadingCache<String, List<String>> primaryDatabasesCache;
-  private boolean primaryShouldMatchAllDatabases = true;
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
@@ -110,7 +109,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     if (metaStoreMapping.isAvailable()) {
       try {
         List<String> allDatabases = metaStoreMapping.getClient().get_all_databases();
-        Whitelist whitelistedDatabases = getWhitelistedDatabases(metaStore);
+        Whitelist whitelistedDatabases = new Whitelist(metaStore.getMappedDatabases());
         mappableDatabases = applyWhitelist(allDatabases, whitelistedDatabases);
       } catch (TException e) {
         LOG.error("Could not get databases for metastore {}", metaStore.getRemoteMetaStoreUris(), e);
@@ -120,7 +119,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
     if (metaStore.getFederationType() == PRIMARY) {
       validatePrimaryMetastoreDatabases(mappableDatabases);
-      primaryShouldMatchAllDatabases = !metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty();
       primaryDatabaseMapping = databaseMapping;
       primaryDatabasesCache.invalidateAll();
     } else {
@@ -168,18 +166,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     } catch (ExecutionException e) {
       throw new WaggleDanceException("Can't validate database clashes", e.getCause());
     }
-  }
-
-  private Whitelist getWhitelistedDatabases(AbstractMetaStore metaStore) {
-    List<String> databasesPatternToMap;
-
-    // check if metastore is supposed to have all databases matched or not
-    if (!metaStore.shouldHaveNoMappedDatabases() && metaStore.getMappedDatabases().isEmpty()) {
-      databasesPatternToMap = Collections.singletonList(".*");
-    } else {
-      databasesPatternToMap = metaStore.getMappedDatabases();
-    }
-    return new Whitelist(databasesPatternToMap);
   }
 
   private List<String> applyWhitelist(List<String> allDatabases, Whitelist whitelist) {
@@ -276,17 +262,18 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         return databaseMapping;
       }
     }
-    if (primaryDatabaseMapping != null) {
-      // If none found we fall back to primary one if the user didn't specify to not include any from primary
-      if (primaryShouldMatchAllDatabases) {
-        LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-        return primaryDatabaseMapping;
-      }
-      throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
-    }
+    // mappingsByDatabaseName should contain everything from primary too, so if it doesn't match, there is no database
+//    if (primaryDatabaseMapping != null) {
+    // If none found we fall back to primary one if the user didn't specify to not include any from primary
+//      if (primaryShouldMatchAllDatabases) {
+//        LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+//        return primaryDatabaseMapping;
+//      }
+//    }
     LOG.debug("Database Name `{}` not mapped", databaseName);
-    throw new NoPrimaryMetastoreException(
-        "Waggle Dance error no database mapping available tried to map database '" + databaseName + "'");
+    throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
+//    throw new NoPrimaryMetastoreException(
+//        "Waggle Dance error no database mapping available tried to map database '" + databaseName + "'");
   }
 
   @Override
