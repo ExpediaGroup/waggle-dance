@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
@@ -70,6 +71,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
+  private Map<DatabaseMapping, List<String>> databaseMappingToDatabaseList;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -96,6 +98,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private void init(List<AbstractMetaStore> metaStores) {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = Collections.synchronizedMap(new LinkedHashMap<>());
+    databaseMappingToDatabaseList = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : metaStores) {
       add(federatedMetaStore);
     }
@@ -126,6 +129,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
     mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
     addDatabaseMappings(mappableDatabases, databaseMapping);
+
+    databaseMappingToDatabaseList.put(databaseMapping, mappableDatabases);
   }
 
   private void validatePrimaryMetastoreDatabases(List<String> databases) {
@@ -195,17 +200,13 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
 
     DatabaseMapping removed = mappingsByMetaStoreName.remove(metaStore.getName());
-    List<String> databasesToRemove = new ArrayList<>();
-    synchronized (mappingsByDatabaseName) {
-      for (Map.Entry<String, DatabaseMapping> entry : mappingsByDatabaseName.entrySet()) {
-        if (entry.getValue().equals(removed)) {
-          databasesToRemove.add(entry.getKey());
-        }
-      }
-      for(String database : databasesToRemove) {
-        mappingsByDatabaseName.remove(database);
-      }
+    List<String> databasesToRemove = databaseMappingToDatabaseList.get(removed);
+
+    databaseMappingToDatabaseList.remove(removed);
+    for (String database : databasesToRemove) {
+      mappingsByDatabaseName.remove(database);
     }
+
     IOUtils.closeQuietly(removed);
   }
 
