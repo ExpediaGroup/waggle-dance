@@ -36,14 +36,6 @@ public class WhitelistTest {
   }
 
   @Test
-  public void isEmpty() {
-    Whitelist whitelist = new Whitelist();
-    assertTrue(whitelist.isEmpty());
-    whitelist.add("db");
-    assertFalse(whitelist.isEmpty());
-  }
-
-  @Test
   public void containsTrue() {
     Whitelist whitelist = new Whitelist(ImmutableList.of("db_.*", "user"));
     assertTrue(whitelist.contains("db_test"));

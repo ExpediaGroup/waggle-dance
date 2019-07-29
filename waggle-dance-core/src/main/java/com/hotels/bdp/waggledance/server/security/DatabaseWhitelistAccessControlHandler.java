@@ -78,7 +78,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
       newMetaStore.setMappedDatabases(mappedDatabases);
     } else {
       throw new WaggleDanceException(
-          String.format("metastore type %s does not support Database creation", metaStore.getClass().getName()));
+          String.format("Metastore type %s does not support database creation", metaStore.getClass().getName()));
     }
 
     federationService.update(metaStore, newMetaStore);

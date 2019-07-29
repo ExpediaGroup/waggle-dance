@@ -201,8 +201,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       }
     }
     if (primaryDatabaseMapping != null) {
-      // If none found we fall back to primary one if the user didn't specify to not include any from primary
-
+      // If none found we fall back to primary one
       if (includeInResults(primaryDatabaseMapping, databaseName)) {
         LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
         return primaryDatabaseMapping;

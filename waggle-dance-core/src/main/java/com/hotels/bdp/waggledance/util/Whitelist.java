@@ -47,10 +47,6 @@ public class Whitelist {
     return whiteList.size();
   }
 
-  boolean isEmpty() {
-    return whiteList.isEmpty();
-  }
-
   private String trimToLowerCase(String string) {
     return string.trim().toLowerCase(Locale.ROOT);
   }

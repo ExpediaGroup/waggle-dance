@@ -66,7 +66,6 @@ public class ReadWriteCreateAccessControlHandlerTest {
 
   @Test
   public void databaseCreatedNotificationPrimaryNoMapped() {
-    // ~nothing should happen~ metastore should have mapped databases updated
     handler.databaseCreatedNotification(database);
 
     verify(federationService).update(eq(primaryMetaStore), captor.capture());
@@ -77,7 +76,6 @@ public class ReadWriteCreateAccessControlHandlerTest {
 
   @Test
   public void databaseCreatedNotificationPrimaryHasEmptyMapped() {
-    // ~nothing should happen~ metastore should have mapped databases updated
     when(primaryMetaStore.getMappedDatabases()).thenReturn(Collections.emptyList());
     handler.databaseCreatedNotification(database);
 
@@ -89,7 +87,6 @@ public class ReadWriteCreateAccessControlHandlerTest {
 
   @Test
   public void databaseCreatedNotificationPrimaryHasNonEmptyMapped() {
-    // ~nothing should happen~ metastore should have mapped databases updated
     List<String> mappedDatabases = Arrays.asList("db1", "db2", "db3");
     when(primaryMetaStore.getMappedDatabases()).thenReturn(mappedDatabases);
     handler.databaseCreatedNotification(database);

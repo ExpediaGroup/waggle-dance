@@ -129,7 +129,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
     mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
     addDatabaseMappings(mappableDatabases, databaseMapping);
-
     databaseMappingToDatabaseList.put(databaseMapping, mappableDatabases);
   }
 
@@ -201,7 +200,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
     DatabaseMapping removed = mappingsByMetaStoreName.remove(metaStore.getName());
     List<String> databasesToRemove = databaseMappingToDatabaseList.get(removed);
-
     databaseMappingToDatabaseList.remove(removed);
     for (String database : databasesToRemove) {
       mappingsByDatabaseName.remove(database);
@@ -268,18 +266,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         return databaseMapping;
       }
     }
-    // mappingsByDatabaseName should contain everything from primary too, so if it doesn't match, there is no database
-//    if (primaryDatabaseMapping != null) {
-    // If none found we fall back to primary one if the user didn't specify to not include any from primary
-//      if (primaryShouldMatchAllDatabases) {
-//        LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-//        return primaryDatabaseMapping;
-//      }
-//    }
     LOG.debug("Database Name `{}` not mapped", databaseName);
     throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
-//    throw new NoPrimaryMetastoreException(
-//        "Waggle Dance error no database mapping available tried to map database '" + databaseName + "'");
   }
 
   @Override

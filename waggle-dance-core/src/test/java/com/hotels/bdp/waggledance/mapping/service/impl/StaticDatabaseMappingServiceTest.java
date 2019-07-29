@@ -128,9 +128,6 @@ public class StaticDatabaseMappingServiceTest {
   @Test (expected = NoSuchObjectException.class)
   public void databaseMappingPrimaryNotMatching() throws NoSuchObjectException {
     service.databaseMapping("some_unknown_non_federated_db");
-//    DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_non_federated_db");
-//    assertThat(databaseMapping.getMetastoreMappingName(), is(PRIMARY_NAME));
-//    assertTrue(databaseMapping instanceof IdentityMapping);
   }
 
   @Test
@@ -261,8 +258,6 @@ public class StaticDatabaseMappingServiceTest {
   public void onUnregister() throws NoSuchObjectException {
     service.onUnregister(federatedMetastore);
     service.databaseMapping(FEDERATED_DB);
-//    DatabaseMapping databaseMapping = service.databaseMapping("federated_DB");
-//    assertThat(databaseMapping.getMetastoreMappingName(), is(PRIMARY_NAME));
   }
 
   @Test(expected = NoSuchObjectException.class)
@@ -307,20 +302,13 @@ public class StaticDatabaseMappingServiceTest {
 
     service.onUpdate(primaryMetastore, newPrimary);
     service.databaseMapping("some_unknown_prefix_db");
-//    DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
-//    assertThat(databaseMapping.getMetastoreMappingName(), is(PRIMARY_NAME));
-//    assertThat(databaseMapping.isAvailable(), is(false));
   }
 
   @Test (expected = NoSuchObjectException.class)
   public void databaseMappingsIgnoreDisconnected() throws TException {
     FederatedMetaStore newMetastore = newFederatedInstanceWithClient("name2", "abc", Lists.newArrayList("db2"), false);
     service.onRegister(newMetastore);
-
     service.databaseMapping("db2");
-//    DatabaseMapping databaseMapping = service.databaseMapping("db2");
-    // Mapping for db2 unavailable so fall back to primary
-//    assertThat(databaseMapping.getMetastoreMappingName(), is(PRIMARY_NAME));
   }
 
   @Test

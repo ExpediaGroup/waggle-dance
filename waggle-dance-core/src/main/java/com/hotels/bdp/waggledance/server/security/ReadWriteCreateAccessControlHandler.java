@@ -46,8 +46,7 @@ public class ReadWriteCreateAccessControlHandler implements AccessControlHandler
 
   @Override
   public void databaseCreatedNotification(String name) {
-    // notify to update mapped databases
-    System.out.println("ReadWriteCreateAccessControlHandler.databaseCreatedNotification was called");
+    // Notify to update mapped databases
     List<String> mappedDatabases = null;
     if (metaStore.getMappedDatabases() != null) {
       mappedDatabases = new ArrayList<>(metaStore.getMappedDatabases());
@@ -63,7 +62,7 @@ public class ReadWriteCreateAccessControlHandler implements AccessControlHandler
       newMetaStore.setMappedDatabases(mappedDatabases);
     } else {
       throw new WaggleDanceException(
-          String.format("metastore type %s does not support Database creation", metaStore.getClass().getName()));
+          String.format("Metastore type %s does not support database creation", metaStore.getClass().getName()));
     }
 
     federationService.update(metaStore, newMetaStore);

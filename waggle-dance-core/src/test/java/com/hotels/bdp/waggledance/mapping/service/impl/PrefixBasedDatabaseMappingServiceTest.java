@@ -483,7 +483,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void panopticOperationsHandlerGetTableMetaWithNonWhitelistedDb() throws TException {
     List<String> tblTypes = Lists.newArrayList();
     TableMeta tableMeta = new TableMeta("federated_db", "tbl", null);
-
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(federatedDatabaseClient.get_table_meta("federated_*", "*", tblTypes))
         .thenReturn(Lists.newArrayList(tableMeta));
