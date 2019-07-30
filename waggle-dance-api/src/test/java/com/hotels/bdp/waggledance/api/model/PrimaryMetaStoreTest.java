@@ -110,7 +110,7 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
   }
 
   @Test
-  public void constructorWithArrayListForWhtelist() {
+  public void constructorWithArrayListForWhitelist() {
     whitelist.add("databaseOne");
     whitelist.add("databaseTwo");
     PrimaryMetaStore store = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, whitelist);

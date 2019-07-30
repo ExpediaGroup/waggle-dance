@@ -43,7 +43,7 @@ public abstract class AbstractMetaStore {
 
   private String databasePrefix;
   private List<String> writableDatabaseWhitelist;
-  private List<String> mappedDatabases = null;
+  private List<String> mappedDatabases;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
