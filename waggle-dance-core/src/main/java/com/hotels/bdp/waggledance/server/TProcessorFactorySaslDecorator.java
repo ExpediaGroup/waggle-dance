@@ -23,35 +23,34 @@ import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
-
 public class TProcessorFactorySaslDecorator extends TProcessorFactory {
 
-    private  HadoopThriftAuthBridge.Server saslServer;
-    private  TProcessorFactory tProcessorFactory;
+  private final HadoopThriftAuthBridge.Server saslServer;
+  private final TProcessorFactory tProcessorFactory;
 
-    public TProcessorFactorySaslDecorator(
-            TProcessorFactory tProcessorFactory,
-            HiveConf hiveConf) throws TTransportException {
-        super(null);
-        this.tProcessorFactory = tProcessorFactory;
-        HadoopThriftAuthBridge hadoopThriftAuthBridge = ShimLoader.getHadoopThriftAuthBridge();
-        this.saslServer = hadoopThriftAuthBridge.createServer(hiveConf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_KEYTAB_FILE),
-                hiveConf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL));
+  TProcessorFactorySaslDecorator(
+      TProcessorFactory tProcessorFactory,
+      HiveConf hiveConf) throws TTransportException {
+    super(null);
+    this.tProcessorFactory = tProcessorFactory;
+    HadoopThriftAuthBridge hadoopThriftAuthBridge = ShimLoader.getHadoopThriftAuthBridge();
+    saslServer = hadoopThriftAuthBridge.createServer(
+        hiveConf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_KEYTAB_FILE),
+        hiveConf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL));
+  }
+
+  public HadoopThriftAuthBridge.Server getSaslServer() {
+    return saslServer;
+  }
+
+  @Override
+  public TProcessor getProcessor(TTransport transport) {
+    try {
+      TProcessor tProcessor = tProcessorFactory.getProcessor(transport);
+      return saslServer.wrapProcessor(tProcessor);
+    } catch (RuntimeException e) {
+      throw new RuntimeException("Error creating SASL wrapped TProcessor", e);
     }
-
-    public  HadoopThriftAuthBridge.Server getSaslServer() {
-        return saslServer;
-    }
-
-    @Override
-    public TProcessor getProcessor(TTransport transport) {
-        try {
-            TProcessor tProcessor = tProcessorFactory.getProcessor(transport);
-            return saslServer.wrapProcessor(tProcessor);
-
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Error creating SASL wrapped TProcessor", e);
-        }
-    }
+  }
 
 }
