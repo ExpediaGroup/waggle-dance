@@ -122,7 +122,7 @@ class ThriftMetastoreClientManager implements Closeable {
           if (useSasl) {
             // Wrap thrift connection with SASL for secure connection.
             try {
-//              HadoopThriftAuthBridge.Client authBridge = ShimLoader.getHadoopThriftAuthBridge().createClient();
+              // HadoopThriftAuthBridge.Client authBridge = ShimLoader.getHadoopThriftAuthBridge().createClient();
               UserGroupInformation.setConfiguration(conf);
 
               // check if we should use delegation tokens to authenticate
@@ -135,12 +135,14 @@ class ThriftMetastoreClientManager implements Closeable {
               tokenStrForm = Utils.getTokenStrForm(tokenSig);
               if (tokenStrForm != null) {
                 // authenticate using delegation tokens via the "DIGEST" mechanism
-                transport = KerberosSaslHelper.getTokenTransport(tokenStrForm, store.getHost(), transport,
-                    MetaStoreUtils.getMetaStoreSaslProperties(conf));
+                transport = KerberosSaslHelper
+                    .getTokenTransport(tokenStrForm, store.getHost(), transport,
+                        MetaStoreUtils.getMetaStoreSaslProperties(conf));
               } else {
                 String principalConfig = conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL);
-                transport = KerberosSaslHelper.getKerberosTransport(principalConfig, store.getHost(), transport,
-                    MetaStoreUtils.getMetaStoreSaslProperties(conf), false);
+                transport = KerberosSaslHelper
+                    .getKerberosTransport(principalConfig, store.getHost(), transport,
+                        MetaStoreUtils.getMetaStoreSaslProperties(conf), false);
               }
             } catch (IOException ioe) {
               LOG.error("Couldn't create client transport", ioe);

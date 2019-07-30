@@ -147,10 +147,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
    * @param startedServing
    * @throws Throwable
    */
-  private void startWaggleDance(
-      Lock startLock,
-      Condition startCondition,
-      AtomicBoolean startedServing)
+  private void startWaggleDance(Lock startLock, Condition startCondition, AtomicBoolean startedServing)
     throws Throwable {
     try {
       // Server will create new threads up to max as necessary. After an idle
@@ -169,7 +166,9 @@ public class MetaStoreProxyServer implements ApplicationRunner {
         serverSocket = new TServerSocketKeepAlive(serverSocket);
       }
 
-      TTransportFactory transFactory = getTTransportFactory(useFramedTransport, useSASL);// useFramedTransport ? new TFramedTransport.Factory() : new TTransportFactory();
+      TTransportFactory transFactory = getTTransportFactory(useFramedTransport, useSASL);// useFramedTransport ? new
+                                                                                         // TFramedTransport.Factory() :
+                                                                                         // new TTransportFactory();
       TProcessorFactory tProcessorFactory = getTProcessorFactory(useSASL);
       LOG.info("Starting WaggleDance Server");
 
@@ -209,7 +208,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
   }
 
   private TTransportFactory getTTransportFactory(boolean useFramedTransport, boolean useSASL)
-          throws TTransportException, LoginException {
+    throws TTransportException, LoginException {
     TTransportFactory transFactory;
     if (useFramedTransport) {
       transFactory = new TFramedTransport.Factory();
