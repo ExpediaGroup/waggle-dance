@@ -90,14 +90,13 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
+    DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
 
     if (metaStore.getFederationType() == PRIMARY) {
-      primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
-      mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
-    } else {
-      mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
+      primaryDatabaseMapping = databaseMapping;
     }
 
+    mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), databaseMapping);
     Whitelist mappedDbWhitelist = new Whitelist(metaStore.getMappedDatabases());
     mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
   }
@@ -348,4 +347,5 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       }
     }
   }
+
 }
