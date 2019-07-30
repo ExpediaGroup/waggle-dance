@@ -28,9 +28,7 @@ import org.apache.hadoop.hive.conf.HiveConfUtil;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
-import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.shims.Utils;
-import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hive.service.auth.KerberosSaslHelper;
@@ -54,6 +52,7 @@ class ThriftMetastoreClientManager implements Closeable {
   private final HiveConf conf;
   private final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
   private final URI[] metastoreUris;
+  private final int connectionTimeout;
   private ThriftHiveMetastore.Iface client = null;
   private TTransport transport = null;
   private boolean isConnected = false;
@@ -61,8 +60,6 @@ class ThriftMetastoreClientManager implements Closeable {
   // for thrift connects
   private int retries = 5;
   private long retryDelaySeconds = 0;
-
-  private final int connectionTimeout;
 
   ThriftMetastoreClientManager(
       HiveConf conf,
@@ -139,11 +136,11 @@ class ThriftMetastoreClientManager implements Closeable {
               if (tokenStrForm != null) {
                 // authenticate using delegation tokens via the "DIGEST" mechanism
                 transport = KerberosSaslHelper.getTokenTransport(tokenStrForm, store.getHost(), transport,
-                        MetaStoreUtils.getMetaStoreSaslProperties(conf));
+                    MetaStoreUtils.getMetaStoreSaslProperties(conf));
               } else {
                 String principalConfig = conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL);
                 transport = KerberosSaslHelper.getKerberosTransport(principalConfig, store.getHost(), transport,
-                        MetaStoreUtils.getMetaStoreSaslProperties(conf), false);
+                    MetaStoreUtils.getMetaStoreSaslProperties(conf), false);
               }
             } catch (IOException ioe) {
               LOG.error("Couldn't create client transport", ioe);
@@ -252,4 +249,5 @@ class ThriftMetastoreClientManager implements Closeable {
     metastoreUris[0] = metastoreUris[index];
     metastoreUris[index] = tmp;
   }
+
 }
