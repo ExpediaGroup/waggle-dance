@@ -71,7 +71,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private DatabaseMapping primaryDatabaseMapping;
   private Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
-  private Map<DatabaseMapping, List<String>> databaseMappingToDatabaseList;
+  private Map<String, List<String>> databaseMappingToDatabaseList;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -129,7 +129,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
     mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
     addDatabaseMappings(mappableDatabases, databaseMapping);
-    databaseMappingToDatabaseList.put(databaseMapping, mappableDatabases);
+    databaseMappingToDatabaseList.put(databaseMapping.getMetastoreMappingName(), mappableDatabases);
   }
 
   private void validatePrimaryMetastoreDatabases(List<String> databases) {
@@ -199,8 +199,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
 
     DatabaseMapping removed = mappingsByMetaStoreName.remove(metaStore.getName());
-    List<String> databasesToRemove = databaseMappingToDatabaseList.get(removed);
-    databaseMappingToDatabaseList.remove(removed);
+    String mappingName = removed.getMetastoreMappingName();
+    List<String> databasesToRemove = databaseMappingToDatabaseList.get(mappingName);
+    databaseMappingToDatabaseList.remove(mappingName);
     for (String database : databasesToRemove) {
       mappingsByDatabaseName.remove(database);
     }

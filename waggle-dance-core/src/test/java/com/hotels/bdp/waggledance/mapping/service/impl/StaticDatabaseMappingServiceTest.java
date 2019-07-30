@@ -125,7 +125,7 @@ public class StaticDatabaseMappingServiceTest {
     assertTrue(databaseMapping instanceof IdentityMapping);
   }
 
-  @Test (expected = NoSuchObjectException.class)
+  @Test(expected = NoSuchObjectException.class)
   public void databaseMappingPrimaryNotMatching() throws NoSuchObjectException {
     service.databaseMapping("some_unknown_non_federated_db");
   }
@@ -149,6 +149,21 @@ public class StaticDatabaseMappingServiceTest {
 
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore));
+  }
+
+  @Test(expected = WaggleDanceException.class)
+  public void validateFederatedMetaStoreClashThrowsExceptionFromFederatedClash() throws TException {
+    metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
+    when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
+    when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
+    when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
+
+    federatedMetastore = newFederatedInstanceWithClient(FEDERATED_NAME, URI, Lists.newArrayList("db"), true);
+    AbstractMetaStore secondFederatedMetastore = newFederatedInstanceWithClient("second", URI, Lists.newArrayList("db"),
+        true);
+
+    service = new StaticDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore, secondFederatedMetastore));
   }
 
   @Test(expected = WaggleDanceException.class)
@@ -254,7 +269,7 @@ public class StaticDatabaseMappingServiceTest {
     }
   }
 
-  @Test (expected = NoSuchObjectException.class)
+  @Test(expected = NoSuchObjectException.class)
   public void onUnregister() throws NoSuchObjectException {
     service.onUnregister(federatedMetastore);
     service.databaseMapping(FEDERATED_DB);
@@ -294,7 +309,7 @@ public class StaticDatabaseMappingServiceTest {
     service.databaseMapping("some_unknown_db");
   }
 
-  @Test (expected = NoSuchObjectException.class)
+  @Test(expected = NoSuchObjectException.class)
   public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() throws NoSuchObjectException {
     AbstractMetaStore newPrimary = newPrimaryInstance("primary", "abc");
     MetaStoreMapping unavailablePrimaryMapping = mockNewMapping(false, newPrimary);
@@ -304,7 +319,7 @@ public class StaticDatabaseMappingServiceTest {
     service.databaseMapping("some_unknown_prefix_db");
   }
 
-  @Test (expected = NoSuchObjectException.class)
+  @Test(expected = NoSuchObjectException.class)
   public void databaseMappingsIgnoreDisconnected() throws TException {
     FederatedMetaStore newMetastore = newFederatedInstanceWithClient("name2", "abc", Lists.newArrayList("db2"), false);
     service.onRegister(newMetastore);
@@ -456,4 +471,5 @@ public class StaticDatabaseMappingServiceTest {
     assertThat(result.getFunctions().get(0).getFunctionName(), is("fn1"));
     assertThat(result.getFunctions().get(1).getFunctionName(), is("fn2"));
   }
+
 }
