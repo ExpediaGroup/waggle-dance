@@ -1,4 +1,4 @@
-## TBD
+## [3.4.0] - TBD
 ### Added
 * Support for `mapped-databases` configuration for primary metastore. See [#175](https://github.com/HotelsDotCom/waggle-dance/issues/175).
 
