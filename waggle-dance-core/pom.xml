@@ -284,7 +284,7 @@
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-service</artifactId>
-      <version>3.1.1</version>
+      <version>${hive.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.eclipse.jetty</groupId>

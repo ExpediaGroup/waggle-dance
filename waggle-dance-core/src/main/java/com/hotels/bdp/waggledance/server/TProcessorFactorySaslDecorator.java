@@ -37,10 +37,6 @@ public class TProcessorFactorySaslDecorator extends TProcessorFactory {
             hiveConf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL));
   }
 
-  public HadoopThriftAuthBridge.Server getSaslServer() {
-    return saslServer;
-  }
-
   @Override
   public TProcessor getProcessor(TTransport transport) {
     try {

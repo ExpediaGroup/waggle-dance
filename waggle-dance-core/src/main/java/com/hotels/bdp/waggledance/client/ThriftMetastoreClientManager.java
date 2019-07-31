@@ -28,7 +28,9 @@ import org.apache.hadoop.hive.conf.HiveConfUtil;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
+import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.shims.Utils;
+import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hive.service.auth.KerberosSaslHelper;
@@ -122,7 +124,6 @@ class ThriftMetastoreClientManager implements Closeable {
           if (useSasl) {
             // Wrap thrift connection with SASL for secure connection.
             try {
-              // HadoopThriftAuthBridge.Client authBridge = ShimLoader.getHadoopThriftAuthBridge().createClient();
               UserGroupInformation.setConfiguration(conf);
 
               // check if we should use delegation tokens to authenticate
@@ -134,7 +135,6 @@ class ThriftMetastoreClientManager implements Closeable {
               // tokenSig could be null
               tokenStrForm = Utils.getTokenStrForm(tokenSig);
               if (tokenStrForm != null) {
-                // authenticate using delegation tokens via the "DIGEST" mechanism
                 transport = KerberosSaslHelper
                     .getTokenTransport(tokenStrForm, store.getHost(), transport,
                         MetaStoreUtils.getMetaStoreSaslProperties(conf));
@@ -251,5 +251,4 @@ class ThriftMetastoreClientManager implements Closeable {
     metastoreUris[0] = metastoreUris[index];
     metastoreUris[index] = tmp;
   }
-
 }
