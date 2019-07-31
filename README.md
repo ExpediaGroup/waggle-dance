@@ -148,13 +148,14 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store.writable-database-white-list`       | No       | White-list of databases used to verify write access used in conjunction with `primary-meta-store.access-control-type`. The list of databases should be listed without any `primary-meta-store.database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
 | `primary-meta-store.metastore-tunnel`                   | No       | See metastore tunnel configuration values below. |
 | `primary-meta-store.latency`                            | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
+| `primary-meta-store.mapped-databases`                   | No       | List of databases to federate from the primary metastore; all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
 | `federated-meta-stores`                                 | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`       | Yes      | Thrift URIs of the federated read-only metastore. |
 | `federated-meta-stores[n].name`                         | Yes      | Name that uniquely identifies this metastore. Used internally. Cannot be empty. |
 | `federated-meta-stores[n].database-prefix`              | No       | Prefix used to access this particular metastore and differentiate databases in it from databases in another metastore. Typically used if databases have the same name across metastores but federated access to them is still needed. The default prefix (i.e. if this value isn't explicitly set) is {federated-meta-stores[n].name} lowercased and postfixed with an underscore. For example if the metastore name was configured as "waggle" and no database prefix was provided but `PREFIXED` database resolution was used then the value of `database-prefix` would be "waggle_". |
 | `federated-meta-stores[n].metastore-tunnel`             | No       | See metastore tunnel configuration values below. |
 | `federated-meta-stores[n].latency`                      | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
-| `federated-meta-stores[n].mapped-databases`             | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html). |
+| `federated-meta-stores[n].mapped-databases`             | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
 | `federated-meta-stores[n].writable-database-white-list` | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
 
 The table below describes the metastore tunnel configuration values:
@@ -315,7 +316,7 @@ Waggle Dance presents a view over multiple (federated) Hive metastores and there
 
 ##### Database resolution: `MANUAL`
 
-Waggle Dance can be configured to use a static list of databases in the configuration `waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases`. It is up to the user to make sure there are no conflicting database names in the primary-metastore or other federated metastores. If Waggle Dance encounters a duplicate database it will throw an error and won't start. Example configuration:
+Waggle Dance can be configured to use a static list of databases in the configuration `waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases` and `primary-meta-store.mapped-databases`. It is up to the user to make sure there are no conflicting database names in the primary-metastore or other federated metastores. If Waggle Dance encounters a duplicate database it will throw an error and won't start. Example configuration:
 
 `waggle-dance-server.yml`:
 
@@ -367,7 +368,7 @@ and any requests for a database starting with `my_` will be routed to the `feder
 
 In `PREFIXED` mode any databases that are created while Waggle Dance is running will be automatically visible and will need to adhere to the naming rules described above 
 (e.g. not clash with the prefix). Alternatively, Waggle Dance can be configured to use a static list of unprefixed databases in the configuration 
-`waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases`. Example configuration:
+`waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases` and `primary-meta-store.mapped-databases`. Example configuration:
 
 `waggle-dance-server.yml`:
 

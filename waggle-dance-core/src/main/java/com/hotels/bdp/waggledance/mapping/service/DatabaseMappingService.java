@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
 public interface DatabaseMappingService extends Closeable {
@@ -33,7 +35,7 @@ public interface DatabaseMappingService extends Closeable {
    * @param databaseName given database name
    * @return the {@link DatabaseMapping} that maps to the given databaseName
    */
-  DatabaseMapping databaseMapping(@NotNull String databaseName);
+  DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException;
 
   PanopticOperationHandler getPanopticOperationHandler();
 

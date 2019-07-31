@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -401,6 +402,41 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
+  public void readWriteCreateAllowedPrefixed() throws Exception {
+    String writableDatabase = "writable_db";
+
+    localServer.createDatabase(writableDatabase);
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), AccessControlType.READ_AND_WRITE_AND_CREATE)
+        .build();
+
+    runWaggleDance(runner);
+
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    // create rights
+    proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
+    Database newDB = proxy.getDatabase("newDB");
+    assertNotNull(newDB);
+
+    // read rights
+    Table localTable = localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    assertThat(waggledLocalTable, is(localTable));
+
+    // write rights
+    proxy.dropTable(LOCAL_DATABASE, LOCAL_TABLE);
+    try {
+      proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+      fail("Should get NoSuchObjectException");
+    } catch (NoSuchObjectException e) {
+      // Local table should be allowed to drop, so it now no longer exists and we get an appropriate exception
+    }
+  }
+
+  @Test
   public void federatedWritesSucceedIfReadAndWriteOnDatabaseWhiteListIsConfigured() throws Exception {
     runner = WaggleDanceRunner
         .builder(configLocation)
@@ -541,6 +577,8 @@ public class WaggleDanceIntegrationTest {
     PrimaryMetaStore metaStore = federations.getPrimaryMetaStore();
     assertThat(metaStore.getWritableDatabaseWhiteList().size(), is(1));
     assertThat(metaStore.getWritableDatabaseWhiteList().get(0), is("newdb"));
+    // Mapped databases should still map everything
+    assertThat(metaStore.getMappedDatabases(), is(nullValue()));
   }
 
   @Test
@@ -566,6 +604,8 @@ public class WaggleDanceIntegrationTest {
     PrimaryMetaStore metaStore = federations.getPrimaryMetaStore();
     assertThat(metaStore.getWritableDatabaseWhiteList().size(), is(1));
     assertThat(metaStore.getWritableDatabaseWhiteList().get(0), is("newdb"));
+    // Mapped databases should still map everything
+    assertThat(metaStore.getMappedDatabases(), is(nullValue()));
   }
 
   @Test
@@ -660,7 +700,7 @@ public class WaggleDanceIntegrationTest {
 
     FederatedMetaStore newRemoteMetastore = federatedMetastores.get(1);
     assertThat(newRemoteMetastore.getName(), is("new_waggle_remote"));
-    assertThat(newRemoteMetastore.getMappedDatabases().size(), is(0));
+    assertThat(newRemoteMetastore.getMappedDatabases(), is(nullValue()));
   }
 
   @Test
@@ -784,4 +824,63 @@ public class WaggleDanceIntegrationTest {
     List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, PREFIXED_REMOTE_DATABASE);
     assertThat(allDatabases, is(expected));
   }
+
+  @Test
+  public void primaryMappedDatabasesManual() throws Exception {
+    localServer.createDatabase("random_primary");
+    remoteServer.createDatabase("random_federated");
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.MANUAL)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .withPrimaryMappedDatabases(new String[] { LOCAL_DATABASE })
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> allDatabases = proxy.getAllDatabases();
+    assertThat(allDatabases.size(), is(2));
+    assertThat(allDatabases.get(0), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(1), is(REMOTE_DATABASE));
+
+    // Ensure that the database is added to mapped-databases
+    proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
+    Federations federations = stopServerAndGetConfiguration();
+    PrimaryMetaStore primaryMetaStore = federations.getPrimaryMetaStore();
+    assertThat(primaryMetaStore.getMappedDatabases().contains("newDB"), is(true));
+  }
+
+  @Test
+  public void primaryMappedDatabasesPrefixed() throws Exception {
+    localServer.createDatabase("random_primary");
+    remoteServer.createDatabase("random_federated");
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .withPrimaryMappedDatabases(new String[] { LOCAL_DATABASE })
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> allDatabases = proxy.getAllDatabases();
+    assertThat(allDatabases.size(), is(2));
+    assertThat(allDatabases.get(0), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(1), is(PREFIXED_REMOTE_DATABASE));
+
+    // Ensure that the database is added to mapped-databases
+    proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
+    Federations federations = stopServerAndGetConfiguration();
+    PrimaryMetaStore primaryMetaStore = federations.getPrimaryMetaStore();
+    assertThat(primaryMetaStore.getMappedDatabases().contains("newDB"), is(true));
+  }
+
 }

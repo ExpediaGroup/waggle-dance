@@ -214,9 +214,36 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.insert(metaStoreWithSamePrefix);
   }
 
+  @Test
+  public void savePrimaryWriteFederations() throws Exception {
+    File f = tmp.newFile("federations.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    PrimaryMetaStore primaryMetaStore = newPrimaryInstance("hcom_1", "thrift://localhost:19083");
+    primaryMetaStore.setMappedDatabases(Lists.newArrayList("db1", "db2"));
+    storage.insert(primaryMetaStore);
+    storage.insert(newFederatedInstance("hcom_2", "thrift://localhost:29083"));
+    storage.saveFederation();
+    List<String> lines = Files.readAllLines(f.toPath(), Charset.forName("UTF-8"));
+    assertThat(lines.size(), is(15));
+    assertThat(lines.get(0), is("primary-meta-store:"));
+    assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
+    assertThat(lines.get(2), is("  database-prefix: ''"));
+    assertThat(lines.get(3), is("  latency: 0"));
+    assertThat(lines.get(4), is("  mapped-databases:"));
+    assertThat(lines.get(5), is("  - db1"));
+    assertThat(lines.get(6), is("  - db2"));
+    assertThat(lines.get(7), is("  name: hcom_1"));
+    assertThat(lines.get(8), is("  remote-meta-store-uris: thrift://localhost:19083"));
+    assertThat(lines.get(9), is("federated-meta-stores:"));
+    assertThat(lines.get(10), is("- access-control-type: READ_ONLY"));
+    assertThat(lines.get(11), is("  database-prefix: hcom_2_"));
+    assertThat(lines.get(12), is("  latency: 0"));
+    assertThat(lines.get(13), is("  name: hcom_2"));
+    assertThat(lines.get(14), is("  remote-meta-store-uris: thrift://localhost:29083"));
+  }
+
   private PrimaryMetaStore newPrimaryInstance(String name, String remoteMetaStoreUris) {
     PrimaryMetaStore result = AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUris);
-    result.setWritableDatabaseWhiteList(null);
     return result;
   }
 
