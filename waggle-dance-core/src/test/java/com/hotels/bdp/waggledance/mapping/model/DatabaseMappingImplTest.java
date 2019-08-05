@@ -647,13 +647,13 @@ public class DatabaseMappingImplTest {
     GrantRevokePrivilegeRequest result = databaseMapping
         .transformInboundGrantRevokePrivilegesRequest(grantRevokePrivilegeRequest);
     assertThat(result, is(sameInstance(grantRevokePrivilegeRequest)));
-    PrivilegeBag resultPriviligeBag = result.getPrivileges();
-    assertThat(resultPriviligeBag, is(sameInstance(privilegeBag)));
-    assertHiveObjectPrivileges(resultPriviligeBag.getPrivileges(), IN_DB_NAME);
+    PrivilegeBag resultPrivilegeBag = result.getPrivileges();
+    assertThat(resultPrivilegeBag, is(sameInstance(privilegeBag)));
+    assertHiveObjectPrivileges(resultPrivilegeBag.getPrivileges(), IN_DB_NAME);
   }
 
   @Test
-  public void transformInboundGrantRevokePrivilegesRequestPriviligeBagNotSet() throws Exception {
+  public void transformInboundGrantRevokePrivilegesRequestPrivilegeBagNotSet() throws Exception {
     GrantRevokePrivilegeRequest grantRevokePrivilegeRequest = new GrantRevokePrivilegeRequest();
     GrantRevokePrivilegeRequest result = databaseMapping
         .transformInboundGrantRevokePrivilegesRequest(grantRevokePrivilegeRequest);

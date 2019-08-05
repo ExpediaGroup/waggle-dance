@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,7 +50,7 @@ public class NotifyingFederationServiceTest {
   private NotifyingFederationService service;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     AbstractMetaStore federatedMetaStore = newFederatedInstance(METASTORE_NAME, URI);
     when(federatedMetaStoreStorage.getAll()).thenReturn(Collections.singletonList(federatedMetaStore));
     when(federatedMetaStoreStorage.delete(METASTORE_NAME)).thenReturn(federatedMetaStore);

@@ -40,7 +40,7 @@ public enum ASTQueryMapping implements QueryMapping {
   INSTANCE;
 
   private final static String RE_WORD_BOUNDARY = "\\b";
-  private final static Comparator<CommonToken> ON_START_INDEX = (o1, o2) -> Integer.compare(o1.getStartIndex(), o2.getStartIndex());
+  private final static Comparator<CommonToken> ON_START_INDEX = Comparator.comparingInt(CommonToken::getStartIndex);
 
   @Override
   public String transformOutboundDatabaseName(MetaStoreMapping metaStoreMapping, String query) {

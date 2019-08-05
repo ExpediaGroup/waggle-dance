@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,7 @@ public class ScheduledBeansTest {
   private PollingFederationService pollingFederationService;
 
   @Test
-  public void polling() throws Exception {
+  public void polling() {
     final AtomicInteger pollCallCount = new AtomicInteger(0);
     doAnswer((Answer<Void>) invocation -> {
       pollCallCount.incrementAndGet();

@@ -21,7 +21,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
@@ -224,7 +223,7 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.insert(primaryMetaStore);
     storage.insert(newFederatedInstance("hcom_2", "thrift://localhost:29083"));
     storage.saveFederation();
-    List<String> lines = Files.readAllLines(f.toPath(), Charset.forName("UTF-8"));
+    List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
     assertThat(lines.size(), is(15));
     assertThat(lines.get(0), is("primary-meta-store:"));
     assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
@@ -252,4 +251,5 @@ public class YamlFederatedMetaStoreStorageTest {
     FederatedMetaStore result = AbstractMetaStore.newFederatedInstance(name, remoteMetaStoreUris);
     return result;
   }
+
 }

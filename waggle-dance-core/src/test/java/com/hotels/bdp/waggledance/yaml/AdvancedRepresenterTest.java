@@ -124,7 +124,7 @@ public class AdvancedRepresenterTest {
 
   @Test
   public void notNullCollectionProperty() {
-    bean.setCollectionProperty(ImmutableList.<String> builder().add("1").add("2").build());
+    bean.setCollectionProperty(ImmutableList.<String>builder().add("1").add("2").build());
     Property property = new MethodProperty(getPropertyDescriptor("collectionProperty"));
     NodeTuple nodeTuple = representer.representJavaBeanProperty(bean, property, bean.getCollectionProperty(), null);
     assertThat(nodeTuple, is(notNullValue()));
@@ -155,7 +155,7 @@ public class AdvancedRepresenterTest {
 
   @Test
   public void notNullMapProperty() {
-    bean.setMapProperty(ImmutableMap.<String, Long> builder().put("first", 1L).put("second", 2L).build());
+    bean.setMapProperty(ImmutableMap.<String, Long>builder().put("first", 1L).put("second", 2L).build());
     Property property = new MethodProperty(getPropertyDescriptor("mapProperty"));
     NodeTuple nodeTuple = representer.representJavaBeanProperty(bean, property, bean.getMapProperty(), null);
     assertThat(nodeTuple, is(notNullValue()));

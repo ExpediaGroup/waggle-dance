@@ -33,7 +33,7 @@ public class GrammarUtilsTest {
   @Test
   public void emptySubPattern() {
     String[] patternParts = GrammarUtils.splitPattern(PREFIX, "");
-    assertThat(patternParts, IsArrayWithSize.<String>emptyArray());
+    assertThat(patternParts, IsArrayWithSize.emptyArray());
   }
 
   @Test
@@ -148,7 +148,7 @@ public class GrammarUtilsTest {
   }
 
   @Test
-  public void multipleMatchesPatternWithMutipleWildcard() {
+  public void multipleMatchesPatternWithMultipleWildcard() {
     Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "baggle_"), "*aggle*");
     assertThat(splits.size(), is(2));
     assertThat(splits.get(PREFIX), is("*"));

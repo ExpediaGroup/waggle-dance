@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -42,8 +41,6 @@ import org.apache.commons.vfs2.VFS;
 import org.springframework.context.ApplicationContext;
 import org.yaml.snakeyaml.Yaml;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 
 import com.hotels.bdp.waggledance.api.model.AccessControlType;

@@ -24,7 +24,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
-import com.hotels.bdp.waggledance.client.tunnelling.HiveMetaStoreClientSupplier;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HiveMetaStoreClientSupplierTest {

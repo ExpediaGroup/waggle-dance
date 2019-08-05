@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;

@@ -34,7 +34,6 @@ import org.springframework.validation.ObjectError;
 public class ValidationErrorTest {
 
   private @Mock Errors errors;
-  private @Mock ValidationError validationError;
 
   @Test
   public void builderTypical() {

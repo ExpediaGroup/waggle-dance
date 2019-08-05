@@ -174,9 +174,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
     // Find a Metastore with a prefix
     synchronized (mappingsByPrefix) {
-      Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
-      while (iterator.hasNext()) {
-        Entry<String, DatabaseMapping> entry = iterator.next();
+      for (Entry<String, DatabaseMapping> entry : mappingsByPrefix.entrySet()) {
         String metastorePrefix = entry.getKey();
         if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
           DatabaseMapping databaseMapping = entry.getValue();
