@@ -901,4 +901,28 @@ public class FederatedHMSHandlerTest {
     verify(databaseMappingService, never()).databaseMapping(DB_P);
   }
 
+  @Test
+  public void alter_partition() throws TException {
+    Partition newPartition = new Partition();
+    newPartition.setDbName(DB_P);
+    Partition inbound = new Partition();
+    when(primaryMapping.transformInboundPartition(newPartition)).thenReturn(inbound);
+    handler.alter_partition(DB_P, "table", newPartition);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).alter_partition(DB_P, "table", inbound);
+  }
+
+  @Test
+  public void alter_partitions() throws TException {
+    Partition newPartition1 = new Partition();
+    newPartition1.setDbName(DB_P);
+    Partition newPartition2 = new Partition();
+    newPartition2.setDbName(DB_P);
+    List<Partition> inbound = Lists.newArrayList(new Partition());
+    List<Partition> partitions = Lists.newArrayList(newPartition1, newPartition2);
+    when(primaryMapping.transformInboundPartitions(partitions)).thenReturn(inbound);
+    handler.alter_partitions(DB_P, "table", partitions);
+    verify(primaryMapping, times(3)).checkWritePermissions(DB_P);
+    verify(primaryClient).alter_partitions(DB_P, "table", inbound);
+  }
 }
