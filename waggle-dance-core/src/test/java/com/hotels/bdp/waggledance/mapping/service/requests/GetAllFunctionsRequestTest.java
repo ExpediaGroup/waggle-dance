@@ -15,7 +15,7 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.requests;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;

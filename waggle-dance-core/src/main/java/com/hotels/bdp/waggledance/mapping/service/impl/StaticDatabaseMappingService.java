@@ -68,10 +68,10 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private static final String PRIMARY_KEY = "";
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final LoadingCache<String, List<String>> primaryDatabasesCache;
-  private DatabaseMapping primaryDatabaseMapping;
   private final Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private final Map<String, DatabaseMapping> mappingsByDatabaseName;
   private final Map<String, List<String>> databaseMappingToDatabaseList;
+  private DatabaseMapping primaryDatabaseMapping;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -100,7 +100,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       add(federatedMetaStore);
     }
   }
-
 
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);

@@ -20,7 +20,6 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,9 +66,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private static final String EMPTY_PREFIX = "";
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
-  private DatabaseMapping primaryDatabaseMapping;
   private final Map<String, DatabaseMapping> mappingsByPrefix;
   private final Map<String, Whitelist> mappedDbByPrefix;
+  private DatabaseMapping primaryDatabaseMapping;
 
   public PrefixBasedDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
