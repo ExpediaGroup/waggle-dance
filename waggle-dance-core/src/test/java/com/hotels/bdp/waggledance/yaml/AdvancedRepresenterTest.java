@@ -147,7 +147,7 @@ public class AdvancedRepresenterTest {
 
   @Test
   public void emptyCollectionProperty() {
-    bean.setCollectionProperty(ImmutableList.<String> of());
+    bean.setCollectionProperty(ImmutableList.of());
     Property property = new MethodProperty(getPropertyDescriptor("collectionProperty"));
     NodeTuple nodeTuple = representer.representJavaBeanProperty(bean, property, bean.getCollectionProperty(), null);
     assertThat(nodeTuple, is(nullValue()));
@@ -183,7 +183,7 @@ public class AdvancedRepresenterTest {
 
   @Test
   public void emptyMapProperty() {
-    bean.setMapProperty(ImmutableMap.<String, Long> of());
+    bean.setMapProperty(ImmutableMap.of());
     Property property = new MethodProperty(getPropertyDescriptor("mapProperty"));
     NodeTuple nodeTuple = representer.representJavaBeanProperty(bean, property, bean.getMapProperty(), null);
     assertThat(nodeTuple, is(nullValue()));

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -85,8 +86,8 @@ public class YamlFederatedMetaStoreStorageTest {
     PrimaryMetaStore expected = newPrimaryInstance("name", "thrift://localhost:9083");
     expected.setAccessControlType(AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST);
     expected.setWritableDatabaseWhiteList(Lists.newArrayList("db1", "db2"));
-    assertThat(storage.getAll().get(0), is((AbstractMetaStore) expected));
-    assertThat(storage.get("name"), is((AbstractMetaStore) expected));
+    assertThat(storage.getAll().get(0), is(expected));
+    assertThat(storage.get("name"), is(expected));
   }
 
   @Test
@@ -129,12 +130,12 @@ public class YamlFederatedMetaStoreStorageTest {
     assertThat(storage.getAll(), is(notNullValue()));
     assertThat(storage.getAll().size(), is(3));
     assertThat(storage.getAll().get(0),
-        is((AbstractMetaStore) newPrimaryInstance("hcom_3", "thrift://localhost:39083")));
+        is(newPrimaryInstance("hcom_3", "thrift://localhost:39083")));
     assertThat(storage.getAll().get(1),
-        is((AbstractMetaStore) newFederatedInstance("hcom_1", "thrift://localhost:19083")));
+        is(newFederatedInstance("hcom_1", "thrift://localhost:19083")));
     FederatedMetaStore metaStore = newFederatedInstance("hcom_2", "thrift://localhost:29083");
     metaStore.setDatabasePrefix("hcom_2_prefix_");
-    assertThat(storage.getAll().get(2), is((AbstractMetaStore) metaStore));
+    assertThat(storage.getAll().get(2), is(metaStore));
   }
 
   @Test(expected = ConstraintViolationException.class)
@@ -153,7 +154,7 @@ public class YamlFederatedMetaStoreStorageTest {
     newFederatedInstance.setMappedDatabases(Lists.newArrayList("db1", "db2"));
     storage.insert(newFederatedInstance);
     storage.saveFederation();
-    List<String> lines = Files.readAllLines(f.toPath(), Charset.forName("UTF-8"));
+    List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
     assertThat(lines.size(), is(15));
     assertThat(lines.get(0), is("primary-meta-store:"));
     assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
@@ -182,7 +183,7 @@ public class YamlFederatedMetaStoreStorageTest {
     newFederatedInstance.setMappedDatabases(Lists.newArrayList("db1", "db2"));
     storage.insert(newFederatedInstance);
     storage.saveFederation();
-    List<String> lines = Files.readAllLines(f.toPath(), Charset.forName("UTF-8"));
+    List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
     assertThat(lines.size(), is(0));
   }
 

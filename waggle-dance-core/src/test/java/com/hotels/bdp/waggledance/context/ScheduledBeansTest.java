@@ -47,13 +47,10 @@ public class ScheduledBeansTest {
   @Test
   public void polling() throws Exception {
     final AtomicInteger pollCallCount = new AtomicInteger(0);
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        pollCallCount.incrementAndGet();
-        log.info("test poll called");
-        return null;
-      }
+    doAnswer((Answer<Void>) invocation -> {
+      pollCallCount.incrementAndGet();
+      log.info("test poll called");
+      return null;
     }).when(pollingFederationService).poll();
     await().pollDelay(5, MILLISECONDS).atMost(500, MILLISECONDS).untilAtomic(pollCallCount, greaterThan(0));
   }

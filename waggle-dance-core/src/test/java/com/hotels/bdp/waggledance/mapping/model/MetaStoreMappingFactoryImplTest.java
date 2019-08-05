@@ -61,12 +61,7 @@ public class MetaStoreMappingFactoryImplTest {
 
   @Before
   public void init() {
-    when(prefixNamingStrategy.apply(any(AbstractMetaStore.class))).thenAnswer(new Answer<String>() {
-      @Override
-      public String answer(InvocationOnMock invocation) throws Throwable {
-        return ((AbstractMetaStore) invocation.getArgument(0)).getDatabasePrefix();
-      }
-    });
+    when(prefixNamingStrategy.apply(any(AbstractMetaStore.class))).thenAnswer((Answer<String>) invocation -> ((AbstractMetaStore) invocation.getArgument(0)).getDatabasePrefix());
     factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClientFactory,
         accessControlHandlerFactory);
   }

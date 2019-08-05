@@ -26,6 +26,7 @@ package com.hotels.bdp.waggledance.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -115,16 +116,13 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       }
 
       // Add shutdown hook.
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        @Override
-        public void run() {
-          String shutdownMsg = "Shutting down WaggleDance.";
-          LOG.info(shutdownMsg);
-          if (isCliVerbose) {
-            System.err.println(shutdownMsg);
-          }
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        String shutdownMsg = "Shutting down WaggleDance.";
+        LOG.info(shutdownMsg);
+        if (isCliVerbose) {
+          System.err.println(shutdownMsg);
         }
-      });
+      }));
 
       AtomicBoolean startedServing = new AtomicBoolean();
       startWaggleDance(ShimLoader.getHadoopThriftAuthBridge(), startLock, startCondition, startedServing);
@@ -199,10 +197,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
   private TServerSocket createServerSocket(boolean useSSL, int port) throws IOException, TTransportException {
     TServerSocket serverSocket = null;
     // enable SSL support for HMS
-    List<String> sslVersionBlacklist = new ArrayList<>();
-    for (String sslVersion : hiveConf.getVar(ConfVars.HIVE_SSL_PROTOCOL_BLACKLIST).split(",")) {
-      sslVersionBlacklist.add(sslVersion);
-    }
+    List<String> sslVersionBlacklist = new ArrayList<>(Arrays.asList(hiveConf.getVar(ConfVars.HIVE_SSL_PROTOCOL_BLACKLIST).split(",")));
     if (!useSSL) {
       serverSocket = HiveAuthUtils.getServerSocket(null, port);
     } else {
@@ -226,25 +221,22 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       final AtomicBoolean startedServing) {
     // A simple thread to wait until the server has started and then signal the other threads to
     // begin
-    Thread t = new Thread() {
-      @Override
-      public void run() {
-        do {
-          try {
-            Thread.sleep(1000);
-          } catch (InterruptedException e) {
-            LOG.warn("Signalling thread was interuppted: " + e.getMessage());
-          }
-        } while (!server.isServing());
-        startLock.lock();
+    Thread t = new Thread(() -> {
+      do {
         try {
-          startedServing.set(true);
-          startCondition.signalAll();
-        } finally {
-          startLock.unlock();
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          LOG.warn("Signalling thread was interuppted: " + e.getMessage());
         }
+      } while (!server.isServing());
+      startLock.lock();
+      try {
+        startedServing.set(true);
+        startCondition.signalAll();
+      } finally {
+        startLock.unlock();
       }
-    };
+    });
     t.start();
   }
 

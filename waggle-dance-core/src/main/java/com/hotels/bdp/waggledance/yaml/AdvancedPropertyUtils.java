@@ -35,7 +35,7 @@ public class AdvancedPropertyUtils extends PropertyUtils {
   private boolean allowReadOnlyProperties = false;
 
   @Override
-  public Property getProperty(Class<? extends Object> type, String name) {
+  public Property getProperty(Class<?> type, String name) {
     if (name.indexOf('-') > -1) {
       name = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, name);
     }
@@ -43,7 +43,7 @@ public class AdvancedPropertyUtils extends PropertyUtils {
   }
 
   @Override
-  protected Set<Property> createPropertySet(Class<? extends Object> type, BeanAccess beanAccess) {
+  protected Set<Property> createPropertySet(Class<?> type, BeanAccess beanAccess) {
     Set<Property> properties = new TreeSet<>();
     Collection<Property> props = getPropertiesMap(type, beanAccess).values();
     for (Property property : props) {
@@ -61,9 +61,7 @@ public class AdvancedPropertyUtils extends PropertyUtils {
     }
     if (MethodProperty.class.isAssignableFrom(property.getClass())) {
       PropertyDescriptor propertyDescriptor = getPropertyDescriptor((MethodProperty) property);
-      if (propertyDescriptor != null && isTransient(propertyDescriptor)) {
-        return false;
-      }
+      return propertyDescriptor == null || !isTransient(propertyDescriptor);
     }
     return true;
   }

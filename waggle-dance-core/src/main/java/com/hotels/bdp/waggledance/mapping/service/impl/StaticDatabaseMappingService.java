@@ -69,7 +69,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final LoadingCache<String, List<String>> primaryDatabasesCache;
   private DatabaseMapping primaryDatabaseMapping;
-  private Map<String, DatabaseMapping> mappingsByMetaStoreName;
+  private final Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private Map<String, DatabaseMapping> mappingsByDatabaseName;
 
   public StaticDatabaseMappingService(
@@ -91,16 +91,14 @@ public class StaticDatabaseMappingService implements MappingEventListener {
             }
           }
         });
-    init(initialMetastores);
-  }
 
-  private void init(List<AbstractMetaStore> federatedMetaStores) {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = new ConcurrentHashMap<>();
-    for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
+    for (AbstractMetaStore federatedMetaStore : initialMetastores) {
       add(federatedMetaStore);
     }
   }
+
 
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
@@ -309,7 +307,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       public List<String> getAllDatabases(String pattern) {
         BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> {
           boolean isPrimaryDatabase = mapping.equals(primaryDatabaseMapping);
-          boolean isMapped = mappingsByDatabaseName.keySet().contains(database);
+          boolean isMapped = mappingsByDatabaseName.containsKey(database);
           return isPrimaryDatabase || isMapped;
         };
 

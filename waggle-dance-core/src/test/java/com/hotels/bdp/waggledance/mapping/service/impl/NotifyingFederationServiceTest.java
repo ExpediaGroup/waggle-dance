@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.validation.ValidationException;
@@ -52,7 +53,7 @@ public class NotifyingFederationServiceTest {
   @Before
   public void init() throws Exception {
     AbstractMetaStore federatedMetaStore = newFederatedInstance(METASTORE_NAME, URI);
-    when(federatedMetaStoreStorage.getAll()).thenReturn(Arrays.asList(federatedMetaStore));
+    when(federatedMetaStoreStorage.getAll()).thenReturn(Collections.singletonList(federatedMetaStore));
     when(federatedMetaStoreStorage.delete(METASTORE_NAME)).thenReturn(federatedMetaStore);
     when(federatedMetaStoreStorage.get(METASTORE_NAME)).thenReturn(federatedMetaStore);
 

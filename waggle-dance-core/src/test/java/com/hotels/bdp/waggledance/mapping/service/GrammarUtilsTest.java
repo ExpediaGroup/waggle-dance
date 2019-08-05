@@ -46,7 +46,7 @@ public class GrammarUtilsTest {
   @Test
   public void basicSubPatternNotMatchingPrefix() {
     String[] patternParts = GrammarUtils.splitPattern("prefix", "waggle_");
-    assertThat(patternParts, IsArrayWithSize.<String>emptyArray());
+    assertThat(patternParts, IsArrayWithSize.emptyArray());
   }
 
   @Test

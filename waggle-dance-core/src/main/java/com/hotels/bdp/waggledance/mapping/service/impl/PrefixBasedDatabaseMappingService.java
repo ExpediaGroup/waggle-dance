@@ -68,8 +68,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
   private DatabaseMapping primaryDatabaseMapping;
-  private Map<String, DatabaseMapping> mappingsByPrefix;
-  private Map<String, Whitelist> mappedDbByPrefix;
+  private final Map<String, DatabaseMapping> mappingsByPrefix;
+  private final Map<String, Whitelist> mappedDbByPrefix;
 
   public PrefixBasedDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -77,13 +77,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       QueryMapping queryMapping) {
     this.metaStoreMappingFactory = metaStoreMappingFactory;
     this.queryMapping = queryMapping;
-    init(initialMetastores);
-  }
-
-  private void init(List<AbstractMetaStore> federatedMetaStores) {
     mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<>());
     mappedDbByPrefix = new ConcurrentHashMap<>();
-    for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
+    for (AbstractMetaStore federatedMetaStore : initialMetastores) {
       add(federatedMetaStore);
     }
   }
@@ -185,9 +181,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   public DatabaseMapping databaseMapping(@NotNull String databaseName) {
     // Find a Metastore with a prefix
     synchronized (mappingsByPrefix) {
-      Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
-      while (iterator.hasNext()) {
-        Entry<String, DatabaseMapping> entry = iterator.next();
+      for (Entry<String, DatabaseMapping> entry : mappingsByPrefix.entrySet()) {
         String metastorePrefix = entry.getKey();
         if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
           DatabaseMapping databaseMapping = entry.getValue();

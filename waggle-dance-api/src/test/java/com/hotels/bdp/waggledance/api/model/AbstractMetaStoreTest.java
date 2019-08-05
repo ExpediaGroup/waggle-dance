@@ -118,7 +118,7 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   @Test
   public void equalsDifferentClass() {
-    assertFalse(metaStore.equals("string"));
+    assertNotEquals("string", metaStore);
   }
 
   @Test

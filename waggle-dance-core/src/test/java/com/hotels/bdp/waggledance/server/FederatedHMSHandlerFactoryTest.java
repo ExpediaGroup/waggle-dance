@@ -50,7 +50,7 @@ public class FederatedHMSHandlerFactoryTest {
   @Before
   public void init() {
     when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.MANUAL);
-    when(notifyingFederationService.getAll()).thenReturn(new ArrayList<AbstractMetaStore>());
+    when(notifyingFederationService.getAll()).thenReturn(new ArrayList<>());
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
         waggleDanceConfiguration, queryMapping);
   }

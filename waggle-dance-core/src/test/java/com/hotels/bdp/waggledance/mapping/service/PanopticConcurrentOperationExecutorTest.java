@@ -71,7 +71,7 @@ public class PanopticConcurrentOperationExecutorTest {
         // Too slow should never be executed
         Thread.sleep(REQUEST_TIMEOUT * 10);
         return super.call();
-      };
+      }
     };
     List<DummyRequestCallable> allRequests = Lists
         .newArrayList(new DummyRequestCallable("call1", mapping1), slowRequest);
@@ -91,7 +91,7 @@ public class PanopticConcurrentOperationExecutorTest {
         // Slow but within timeout+latency, should be called
         Thread.sleep(REQUEST_TIMEOUT + 100);
         return super.call();
-      };
+      }
     };
     List<DummyRequestCallable> allRequests = Lists
         .newArrayList(new DummyRequestCallable("call1", mapping1), slowRequest);
@@ -108,7 +108,7 @@ public class PanopticConcurrentOperationExecutorTest {
       @Override
       public List<String> call() throws Exception {
         throw new RuntimeException("who you gonna call...");
-      };
+      }
     };
     List<DummyRequestCallable> allRequests = Lists
         .newArrayList(new DummyRequestCallable("call1", mapping1), errorRequest,
