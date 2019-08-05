@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
@@ -63,21 +64,16 @@ public class FederatedHMSHandlerFactory {
   }
 
   private MappingEventListener createDatabaseMappingService() {
-    switch (waggleDanceConfiguration.getDatabaseResolution()) {
-    case MANUAL:
-      final StaticDatabaseMappingService prefixAvoidingService = new StaticDatabaseMappingService(
-          metaStoreMappingFactory, notifyingFederationService.getAll());
-      return prefixAvoidingService;
-
-    case PREFIXED:
-      final PrefixBasedDatabaseMappingService prefixBasedService = new PrefixBasedDatabaseMappingService(
-          metaStoreMappingFactory, notifyingFederationService.getAll(), queryMapping);
-      return prefixBasedService;
-
-    default:
+    if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.MANUAL) {
+      return new StaticDatabaseMappingService(metaStoreMappingFactory, notifyingFederationService.getAll());
+    } else if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.PREFIXED) {
+      return new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, notifyingFederationService.getAll(),
+          queryMapping);
+    } else {
       throw new WaggleDanceException("Cannot instantiate databaseMappingService for prefixType '"
           + waggleDanceConfiguration.getDatabaseResolution()
           + "'");
     }
   }
+
 }
