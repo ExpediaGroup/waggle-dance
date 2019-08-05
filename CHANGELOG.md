@@ -1,4 +1,7 @@
-## TBD
+## [3.4.0] - TBD
+### Added
+* Support for `mapped-databases` configuration for primary metastore. See [#175](https://github.com/HotelsDotCom/waggle-dance/issues/175).
+
 ### Changed
 * Removed com.hotels.bdp.waggledance.spring.CommonVFSResource, looks like dead code. See [#178](https://github.com/HotelsDotCom/waggle-dance/issues/178).
 

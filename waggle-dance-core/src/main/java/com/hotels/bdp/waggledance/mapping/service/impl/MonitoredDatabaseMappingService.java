@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
@@ -42,7 +44,7 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public DatabaseMapping databaseMapping(@NotNull String databaseName) {
+  public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
     DatabaseMapping databaseMapping = wrapped.databaseMapping(databaseName);
     CurrentMonitoredMetaStoreHolder.monitorMetastore(databaseMapping.getMetastoreMappingName());
     return databaseMapping;

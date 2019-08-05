@@ -26,12 +26,15 @@ import static org.mockito.Mockito.when;
 
 import static com.google.common.collect.Lists.newArrayList;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -41,12 +44,11 @@ import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 @RunWith(MockitoJUnitRunner.class)
 public class DatabaseWhitelistAccessControlHandlerTest {
 
-  @Mock
-  private PrimaryMetaStore primaryMetaStore;
-  @Mock
-  private FederationService federationService;
-  private DatabaseWhitelistAccessControlHandler handler;
   private final List<String> whitelist = newArrayList("writabledb", "userdb.*");
+  private @Mock PrimaryMetaStore primaryMetaStore;
+  private @Mock FederationService federationService;
+  private @Captor ArgumentCaptor<PrimaryMetaStore> captor;
+  private DatabaseWhitelistAccessControlHandler handler;
 
   @Before
   public void setUp() {
@@ -78,7 +80,6 @@ public class DatabaseWhitelistAccessControlHandlerTest {
   @Test
   public void databaseCreatedNotification() throws Exception {
     handler.databaseCreatedNotification("newDB");
-    ArgumentCaptor<PrimaryMetaStore> captor = ArgumentCaptor.forClass(PrimaryMetaStore.class);
     verify(federationService).update(eq(primaryMetaStore), captor.capture());
     PrimaryMetaStore updatedMetastore = captor.getValue();
     assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(3));
@@ -88,11 +89,46 @@ public class DatabaseWhitelistAccessControlHandlerTest {
   @Test
   public void databaseCreatedNotificationNoDuplicates() throws Exception {
     handler.databaseCreatedNotification("writabledb");
-    ArgumentCaptor<PrimaryMetaStore> captor = ArgumentCaptor.forClass(PrimaryMetaStore.class);
     verify(federationService).update(eq(primaryMetaStore), captor.capture());
     PrimaryMetaStore updatedMetastore = captor.getValue();
     assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(2));
     assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "userdb.*"));
+  }
+
+  @Test
+  public void databaseCreatedNotificationPrimaryNoMapped() {
+    String database = "database";
+    handler.databaseCreatedNotification(database);
+
+    verify(federationService).update(eq(primaryMetaStore), captor.capture());
+    PrimaryMetaStore newPrimaryMetaStore = captor.getValue();
+    assertThat(newPrimaryMetaStore.getMappedDatabases().size(), is(1));
+    assertThat(newPrimaryMetaStore.getMappedDatabases().get(0), is(database));
+  }
+
+  @Test
+  public void databaseCreatedNotificationPrimaryHasEmptyMapped() {
+    String database = "database";
+    when(primaryMetaStore.getMappedDatabases()).thenReturn(Collections.emptyList());
+    handler.databaseCreatedNotification(database);
+
+    verify(federationService).update(eq(primaryMetaStore), captor.capture());
+    PrimaryMetaStore newPrimaryMetaStore = captor.getValue();
+    assertThat(newPrimaryMetaStore.getMappedDatabases().size(), is(1));
+    assertThat(newPrimaryMetaStore.getMappedDatabases().get(0), is(database));
+  }
+
+  @Test
+  public void databaseCreatedNotificationPrimaryHasNonEmptyMapped() {
+    String database = "database";
+    List<String> mappedDatabases = Arrays.asList("db1", "db2", "db3");
+    when(primaryMetaStore.getMappedDatabases()).thenReturn(mappedDatabases);
+    handler.databaseCreatedNotification(database);
+
+    verify(federationService).update(eq(primaryMetaStore), captor.capture());
+    PrimaryMetaStore newPrimaryMetaStore = captor.getValue();
+    assertThat(newPrimaryMetaStore.getMappedDatabases().size(), is(mappedDatabases.size() + 1));
+    assertThat(newPrimaryMetaStore.getMappedDatabases().get(mappedDatabases.size()), is(database));
   }
 
 }

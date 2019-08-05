@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
@@ -108,8 +109,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
     assertThat(databaseMappings.size(), is(3));
     assertThat(ImmutableSet
-        .of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
-            databaseMappings.get(2).getDatabasePrefix()),
+            .of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
+                databaseMappings.get(2).getDatabasePrefix()),
         is(ImmutableSet.of("", DB_PREFIX, "newname_")));
   }
 
@@ -120,7 +121,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void onUpdate() {
+  public void onUpdate() throws NoSuchObjectException {
     AbstractMetaStore newMetastore = newFederatedInstance(METASTORE_NAME, "abc");
     MetaStoreMapping newMapping = mockNewMapping(true, DB_PREFIX);
     Iface newClient = Mockito.mock(Iface.class);
@@ -199,30 +200,46 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void databaseMapping() {
+  public void databaseMapping() throws NoSuchObjectException {
     DatabaseMapping databaseMapping = service.databaseMapping(DB_PREFIX + "suffix");
     assertThat(databaseMapping.getDatabasePrefix(), is(DB_PREFIX));
   }
 
   @Test
-  public void databaseMappingMapsToEmptyPrefix() {
+  public void databaseMappingMapsToEmptyPrefix() throws NoSuchObjectException {
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
   }
 
   @Test
-  public void databaseMappingDefaultsToPrimaryWhenNothingMatches() {
+  public void databaseMappingDefaultsToPrimaryWhenNothingMatches() throws NoSuchObjectException {
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
   }
 
-  @Test
-  public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() {
+  @Test (expected = NoSuchObjectException.class)
+  public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() throws NoSuchObjectException {
     Mockito.reset(metaStoreMappingPrimary);
     when(metaStoreMappingPrimary.isAvailable()).thenReturn(false);
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
 
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
+  }
+
+  @Test(expected = NoSuchObjectException.class)
+  public void databaseMappingDoesNotMatchPrimary() throws NoSuchObjectException {
+    AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
+    noMappedDbsPrimary.setMappedDatabases(Collections.emptyList());
+    service.onUpdate(primaryMetastore, noMappedDbsPrimary);
+    service.databaseMapping("some_unknown_db");
+  }
+
+  @Test(expected = NoSuchObjectException.class)
+  public void databaseMappingDoesNotMatchPrimaryWithOtherMappedDbs() throws NoSuchObjectException {
+    AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
+    noMappedDbsPrimary.setMappedDatabases(Collections.singletonList("primary_db"));
+    service.onUpdate(primaryMetastore, noMappedDbsPrimary);
+    service.databaseMapping("some_unknown_db");
   }
 
   @Test
@@ -263,18 +280,36 @@ public class PrefixBasedDatabaseMappingServiceTest {
   @Test
   public void panopticOperationsHandlerGetAllDatabasesWithMappedDatabases() throws Exception {
     federatedMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
+    primaryMetastore.setMappedDatabases(Lists.newArrayList("primary_db"));
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
 
-    when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
-
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
+    when(primaryDatabaseClient.get_all_databases()).thenReturn(
+        Lists.newArrayList("primary_db", "another_db_that_is_not_mapped"));
     when(federatedDatabaseClient.get_all_databases())
         .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     assertThat(handler.getAllDatabases(), is(primaryAndFederatedDbs));
+  }
+
+  @Test
+  public void panopticOperationsHandlerGetAllDatabasesWithEmptyMappedDatabases() throws Exception {
+    federatedMetastore.setMappedDatabases(Collections.emptyList());
+    primaryMetastore.setMappedDatabases(Collections.emptyList());
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    when(primaryDatabaseClient.get_all_databases())
+        .thenReturn(Lists.newArrayList("primary_db", "primary_db_that_is_not_mapped"));
+    when(federatedDatabaseClient.get_all_databases())
+        .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    assertThat(handler.getAllDatabases(), is(Collections.emptyList()));
   }
 
   @Test
@@ -295,14 +330,16 @@ public class PrefixBasedDatabaseMappingServiceTest {
   @Test
   public void panopticStoreOperationsHandlerGetAllDatabasesByPatternWithMappedDatabases() throws Exception {
     federatedMetastore.setMappedDatabases(Lists.newArrayList("federated_DB"));
+    primaryMetastore.setMappedDatabases(Lists.newArrayList("primary_db"));
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
 
     String pattern = "*_db";
-    when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
 
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
+    when(primaryDatabaseClient.get_databases(pattern))
+        .thenReturn(Lists.newArrayList("primary_db", "primary_db_that_is_not_mapped_and_ends_with_db"));
     when(federatedDatabaseClient.get_databases(pattern))
         .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped_and_ends_with_db"));
 
@@ -310,6 +347,24 @@ public class PrefixBasedDatabaseMappingServiceTest {
     List<String> allDatabases = handler.getAllDatabases(pattern);
     assertThat(allDatabases.size(), is(2));
     assertThat(allDatabases, is(primaryAndFederatedDbs));
+  }
+
+  @Test
+  public void panopticStoreOperationsHandlerGetAllDatabasesByPatternWithEmptyMappedDatabases() throws Exception {
+    federatedMetastore.setMappedDatabases(Collections.emptyList());
+    primaryMetastore.setMappedDatabases(Collections.emptyList());
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+
+    String pattern = "*_db";
+
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Collections.singletonList("primary_db"));
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    List<String> allDatabases = handler.getAllDatabases(pattern);
+    assertThat(allDatabases.size(), is(0));
+    assertThat(allDatabases, is(Collections.emptyList()));
   }
 
   @Test
@@ -400,7 +455,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test(expected = NoPrimaryMetastoreException.class)
-  public void noPrimaryThrowsExceptionForUnmappedDatabase() {
+  public void noPrimaryThrowsExceptionForUnmappedDatabase() throws NoSuchObjectException {
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
         Collections.singletonList(federatedMetastore), queryMapping);
@@ -408,7 +463,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void databaseBelongingToFederatedMetastoreMapsToItWithEmptyPrefix() {
+  public void databaseBelongingToFederatedMetastoreMapsToItWithEmptyPrefix() throws NoSuchObjectException {
     String testDatabase = "testDatabase";
 
     // set metastore whitelist to be nonempty
@@ -428,7 +483,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
   public void panopticOperationsHandlerGetTableMetaWithNonWhitelistedDb() throws TException {
     List<String> tblTypes = Lists.newArrayList();
     TableMeta tableMeta = new TableMeta("federated_db", "tbl", null);
-
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(federatedDatabaseClient.get_table_meta("federated_*", "*", tblTypes))
         .thenReturn(Lists.newArrayList(tableMeta));
@@ -440,6 +494,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<TableMeta> tableMetas = handler.getTableMeta("name_federated_*", "*", tblTypes);
+
     assertThat(tableMetas.size(), is(0));
   }
 }

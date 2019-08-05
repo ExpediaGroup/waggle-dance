@@ -18,8 +18,6 @@ package com.hotels.bdp.waggledance.api.model;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -73,27 +71,12 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
 
   @Test
   public void toJson() throws Exception {
-    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databasePrefix\":\"name_\",\"federationType\":\"FEDERATED\",\"latency\":0,\"mappedDatabases\":[],\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
+    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databasePrefix\":\"name_\",\"federationType\":\"FEDERATED\",\"latency\":0,\"mappedDatabases\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
     ObjectMapper mapper = new ObjectMapper();
     // Sorting to get deterministic test behaviour
     mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
     String json = mapper.writerFor(FederatedMetaStore.class).writeValueAsString(metaStore);
     assertThat(json, is(expected));
-  }
-
-  @Test
-  public void mappedDatabases() {
-    List<String> mappedDatabases = new ArrayList<>();
-    mappedDatabases.add("database");
-    metaStore.setMappedDatabases(mappedDatabases);
-    assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
-  }
-
-  @Test
-  public void nullMappedDatabases() {
-    metaStore.setMappedDatabases(null);
-    Set<ConstraintViolation<FederatedMetaStore>> violations = validator.validate(metaStore);
-    assertThat(violations.size(), is(1));
   }
 
   @Test
@@ -104,4 +87,5 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
     assertThat(store.getName(), is(storeName));
     assertThat(store.getRemoteMetaStoreUris(), is(storeUri));
   }
+
 }

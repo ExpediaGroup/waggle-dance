@@ -94,7 +94,7 @@ public class FederatedHMSHandlerTest {
   private FederatedHMSHandler handler;
 
   @Before
-  public void setUp() {
+  public void setUp() throws NoSuchObjectException {
     handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService);
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
     when(databaseMappingService.getDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));

@@ -43,6 +43,7 @@ public abstract class AbstractMetaStore {
 
   private String databasePrefix;
   private List<String> writableDatabaseWhitelist;
+  private List<String> mappedDatabases;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
@@ -152,6 +153,14 @@ public abstract class AbstractMetaStore {
     this.latency = latency;
   }
 
+  public List<String> getMappedDatabases() {
+    return mappedDatabases;
+  }
+
+  public void setMappedDatabases(List<String> mappedDatabases) {
+    this.mappedDatabases = mappedDatabases;
+  }
+
   @Transient
   public MetaStoreStatus getStatus() {
     return status;
@@ -193,4 +202,5 @@ public abstract class AbstractMetaStore {
         .add("status", status)
         .toString();
   }
+
 }

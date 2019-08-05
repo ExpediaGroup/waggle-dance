@@ -24,13 +24,18 @@ import java.util.regex.Pattern;
 
 public class Whitelist {
 
+  private final static String MATCH_ALL = ".*";
   private final Set<Pattern> whiteList = new HashSet<>();
 
   public Whitelist() {}
 
-  public Whitelist(List<String> writeableDatabaseWhiteList) {
-    for (String databaseName : writeableDatabaseWhiteList) {
-      add(databaseName);
+  public Whitelist(List<String> writableDatabaseWhiteList) {
+    if (writableDatabaseWhiteList == null) {
+      add(MATCH_ALL);
+    } else {
+      for (String databaseName : writableDatabaseWhiteList) {
+        add(databaseName);
+      }
     }
   }
 
@@ -38,12 +43,8 @@ public class Whitelist {
     whiteList.add(Pattern.compile(trimToLowerCase(databaseName)));
   }
 
-  public int size() {
+  int size() {
     return whiteList.size();
-  }
-
-  public boolean isEmpty() {
-    return whiteList.isEmpty();
   }
 
   private String trimToLowerCase(String string) {
@@ -63,4 +64,5 @@ public class Whitelist {
     }
     return false;
   }
+
 }
