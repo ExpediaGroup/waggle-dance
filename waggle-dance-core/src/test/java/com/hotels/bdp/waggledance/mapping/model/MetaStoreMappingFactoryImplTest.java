@@ -33,7 +33,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
@@ -61,7 +60,8 @@ public class MetaStoreMappingFactoryImplTest {
 
   @Before
   public void init() {
-    when(prefixNamingStrategy.apply(any(AbstractMetaStore.class))).thenAnswer((Answer<String>) invocation -> ((AbstractMetaStore) invocation.getArgument(0)).getDatabasePrefix());
+    when(prefixNamingStrategy.apply(any(AbstractMetaStore.class)))
+            .thenAnswer((Answer<String>) invocation -> ((AbstractMetaStore) invocation.getArgument(0)).getDatabasePrefix());
     factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClientFactory,
         accessControlHandlerFactory);
   }

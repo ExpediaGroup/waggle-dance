@@ -77,13 +77,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       QueryMapping queryMapping) {
     this.metaStoreMappingFactory = metaStoreMappingFactory;
     this.queryMapping = queryMapping;
-    init(initialMetastores);
-  }
-
-  private void init(List<AbstractMetaStore> metaStores) {
     mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<>());
     mappedDbByPrefix = new ConcurrentHashMap<>();
-    for (AbstractMetaStore abstractMetaStore : metaStores) {
+    for (AbstractMetaStore abstractMetaStore : initialMetastores) {
       add(abstractMetaStore);
     }
   }

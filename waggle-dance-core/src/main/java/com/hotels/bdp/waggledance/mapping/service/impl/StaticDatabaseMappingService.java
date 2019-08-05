@@ -69,9 +69,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final LoadingCache<String, List<String>> primaryDatabasesCache;
   private DatabaseMapping primaryDatabaseMapping;
-  private Map<String, DatabaseMapping> mappingsByMetaStoreName;
-  private Map<String, DatabaseMapping> mappingsByDatabaseName;
-  private Map<String, List<String>> databaseMappingToDatabaseList;
+  private final Map<String, DatabaseMapping> mappingsByMetaStoreName;
+  private final Map<String, DatabaseMapping> mappingsByDatabaseName;
+  private final Map<String, List<String>> databaseMappingToDatabaseList;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -92,17 +92,15 @@ public class StaticDatabaseMappingService implements MappingEventListener {
             }
           }
         });
-    init(initialMetastores);
-  }
 
-  private void init(List<AbstractMetaStore> metaStores) {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = Collections.synchronizedMap(new LinkedHashMap<>());
     databaseMappingToDatabaseList = new ConcurrentHashMap<>();
-    for (AbstractMetaStore federatedMetaStore : metaStores) {
+    for (AbstractMetaStore federatedMetaStore : initialMetastores) {
       add(federatedMetaStore);
     }
   }
+
 
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
