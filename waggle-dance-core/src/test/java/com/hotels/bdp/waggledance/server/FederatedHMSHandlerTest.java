@@ -53,7 +53,11 @@ import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
 import org.apache.hadoop.hive.metastore.api.GetTablesResult;
+import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
+import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeResponse;
 import org.apache.hadoop.hive.metastore.api.GrantRevokeRoleRequest;
+import org.apache.hadoop.hive.metastore.api.GrantRevokeType;
+import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
@@ -66,6 +70,7 @@ import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsResult;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
+import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
@@ -1293,4 +1298,51 @@ public class FederatedHMSHandlerTest {
     verify(primaryClient).list_privileges("name", principalType, inboundHiveObjectRef);
   }
 
+  @Test
+  public void grant_privileges() throws TException {
+    HiveObjectRef hiveObjectRef = new HiveObjectRef();
+    hiveObjectRef.setDbName(DB_P);
+    HiveObjectPrivilege hiveObjectPrivilege = new HiveObjectPrivilege();
+    hiveObjectPrivilege.setHiveObject(hiveObjectRef);
+    PrivilegeBag privileges = new PrivilegeBag(Collections.singletonList((hiveObjectPrivilege)));
+    PrivilegeBag inboundPrivileges = new PrivilegeBag();
+    when(primaryMapping.transformInboundPrivilegeBag(privileges)).thenReturn(inboundPrivileges);
+    handler.grant_privileges(privileges);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).grant_privileges(inboundPrivileges);
+  }
+
+  @Test
+  public void revoke_privileges() throws TException {
+    HiveObjectRef hiveObjectRef = new HiveObjectRef();
+    hiveObjectRef.setDbName(DB_P);
+    HiveObjectPrivilege hiveObjectPrivilege = new HiveObjectPrivilege();
+    hiveObjectPrivilege.setHiveObject(hiveObjectRef);
+    PrivilegeBag privileges = new PrivilegeBag(Collections.singletonList((hiveObjectPrivilege)));
+    PrivilegeBag inboundPrivileges = new PrivilegeBag();
+    when(primaryMapping.transformInboundPrivilegeBag(privileges)).thenReturn(inboundPrivileges);
+    handler.revoke_privileges(privileges);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).revoke_privileges(inboundPrivileges);
+  }
+
+  @Test
+  public void grant_revoke_privileges() throws TException {
+    HiveObjectRef hiveObjectRef = new HiveObjectRef();
+    hiveObjectRef.setDbName(DB_P);
+    HiveObjectPrivilege hiveObjectPrivilege = new HiveObjectPrivilege();
+    hiveObjectPrivilege.setHiveObject(hiveObjectRef);
+    PrivilegeBag privileges = new PrivilegeBag(Collections.singletonList((hiveObjectPrivilege)));
+
+    GrantRevokeType grantRevokeType = GrantRevokeType.GRANT;
+
+    GrantRevokePrivilegeRequest request = new GrantRevokePrivilegeRequest(grantRevokeType, privileges);
+    GrantRevokePrivilegeRequest inboundRequest = new GrantRevokePrivilegeRequest();
+    GrantRevokePrivilegeResponse expected = new GrantRevokePrivilegeResponse();
+    when(primaryMapping.transformInboundGrantRevokePrivilegesRequest(request)).thenReturn(inboundRequest);
+    when(primaryClient.grant_revoke_privileges(inboundRequest)).thenReturn(expected);
+    GrantRevokePrivilegeResponse response = handler.grant_revoke_privileges(request);
+    assertThat(response, is(expected));
+    verify(primaryMapping).checkWritePermissions(DB_P);
+  }
 }
