@@ -33,6 +33,8 @@ import java.util.Map;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
+import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
+import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
 import org.apache.hadoop.hive.metastore.api.CompactionResponse;
 import org.apache.hadoop.hive.metastore.api.CompactionType;
@@ -55,9 +57,13 @@ import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
+import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
+import org.apache.hadoop.hive.metastore.api.PartitionsStatsResult;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
+import org.apache.hadoop.hive.metastore.api.TableStatsResult;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.thrift.TException;
@@ -1011,6 +1017,110 @@ public class FederatedHMSHandlerTest {
     handler.alter_index(DB_P, "table", "index", newIndex);
     verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
     verify(primaryClient).alter_index(DB_P, "table", "index", inboundIndex);
+  }
+
+  @Test
+  public void drop_index_by_name() throws TException {
+    when(primaryClient.drop_index_by_name(DB_P, "table", "index", true)).thenReturn(true);
+    boolean result = handler.drop_index_by_name(DB_P, "table", "index", true);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    assertThat(result, is(true));
+  }
+
+  @Test
+  public void get_index_by_name() throws TException {
+    Index index = new Index();
+    Index outboundIndex = new Index();
+    when(primaryClient.get_index_by_name(DB_P, "table", "index")).thenReturn(index);
+    when(primaryMapping.transformOutboundIndex(index)).thenReturn(outboundIndex);
+    Index result = handler.get_index_by_name(DB_P, "table", "index");
+    assertThat(result, is(outboundIndex));
+  }
+
+  @Test
+  public void get_indexes() throws TException {
+    List<Index> indexList = Collections.singletonList(new Index());
+    List<Index> outboundIndexList = Collections.singletonList(new Index());
+    when(primaryMapping.transformOutboundIndexes(indexList)).thenReturn(outboundIndexList);
+    when(primaryClient.get_indexes(DB_P, "table", (short) 2)).thenReturn(indexList);
+
+    List<Index> result = handler.get_indexes(DB_P, "table", (short) 2);
+    assertThat(result, is(outboundIndexList));
+  }
+
+  @Test
+  public void get_index_names() throws TException {
+    List<String> indexNames = Arrays.asList("name1", "name2");
+    when(primaryClient.get_index_names(DB_P, "table", (short) 2)).thenReturn(indexNames);
+    List<String> result = handler.get_index_names(DB_P, "table", (short) 2);
+    assertThat(result, is(indexNames));
+  }
+
+  @Test
+  public void update_table_column_statistics() throws TException {
+    ColumnStatisticsDesc columnStatisticsDesc = new ColumnStatisticsDesc(true, DB_P, "table");
+    ColumnStatistics columnStatistics = new ColumnStatistics(columnStatisticsDesc, Collections.emptyList());
+    ColumnStatistics inboundColumnStatistics = new ColumnStatistics();
+    when(primaryMapping.transformInboundColumnStatistics(columnStatistics)).thenReturn(inboundColumnStatistics);
+    when(primaryClient.update_table_column_statistics(inboundColumnStatistics)).thenReturn(true);
+    boolean result = handler.update_table_column_statistics(columnStatistics);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    assertThat(result, is(true));
+  }
+
+  @Test
+  public void update_partition_column_statistics() throws TException {
+    ColumnStatisticsDesc columnStatisticsDesc = new ColumnStatisticsDesc(true, DB_P, "table");
+    ColumnStatistics columnStatistics = new ColumnStatistics(columnStatisticsDesc, Collections.emptyList());
+    ColumnStatistics inboundColumnStatistics = new ColumnStatistics();
+    when(primaryMapping.transformInboundColumnStatistics(columnStatistics)).thenReturn(inboundColumnStatistics);
+    when(primaryClient.update_partition_column_statistics(inboundColumnStatistics)).thenReturn(true);
+    boolean result = handler.update_partition_column_statistics(columnStatistics);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    assertThat(result, is(true));
+  }
+
+  @Test
+  public void get_table_column_statistics() throws TException {
+    ColumnStatistics columnStatistics = new ColumnStatistics();
+    ColumnStatistics outboundColumnStatistics = new ColumnStatistics();
+    when(primaryClient.get_table_column_statistics(DB_P, "table", "columnName")).thenReturn(columnStatistics);
+    when(primaryMapping.transformOutboundColumnStatistics(columnStatistics)).thenReturn(outboundColumnStatistics);
+    ColumnStatistics result = handler.get_table_column_statistics(DB_P, "table", "columnName");
+    assertThat(result, is(outboundColumnStatistics));
+  }
+
+  @Test
+  public void get_partition_column_statistics() throws TException {
+    ColumnStatistics columnStatistics = new ColumnStatistics();
+    ColumnStatistics outboundColumnStatistics = new ColumnStatistics();
+    when(primaryClient.get_partition_column_statistics(DB_P, "table", "partitionName", "columnName"))
+        .thenReturn(columnStatistics);
+    when(primaryMapping.transformOutboundColumnStatistics(columnStatistics)).thenReturn(outboundColumnStatistics);
+    ColumnStatistics result = handler.get_partition_column_statistics(DB_P, "table", "partitionName", "columnName");
+    assertThat(result, is(outboundColumnStatistics));
+  }
+
+  @Test
+  public void get_table_statistics_req() throws TException {
+    TableStatsRequest tableStatsRequest = new TableStatsRequest(DB_P, "table", Collections.emptyList());
+    TableStatsRequest inboundTableStatsRequest = new TableStatsRequest();
+    TableStatsResult expected = new TableStatsResult();
+    when(primaryMapping.transformInboundTableStatsRequest(tableStatsRequest)).thenReturn(inboundTableStatsRequest);
+    when(primaryClient.get_table_statistics_req(inboundTableStatsRequest)).thenReturn(expected);
+    TableStatsResult result = handler.get_table_statistics_req(tableStatsRequest);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_partitions_statistics_req() throws TException {
+    PartitionsStatsRequest request = new PartitionsStatsRequest(DB_P, "table", Collections.emptyList(), Collections.emptyList());
+    PartitionsStatsRequest inboundRequest = new PartitionsStatsRequest();
+    PartitionsStatsResult expected = new PartitionsStatsResult();
+    when(primaryMapping.transformInboundPartitionsStatsRequest(request)).thenReturn(inboundRequest);
+    when(primaryClient.get_partitions_statistics_req(inboundRequest)).thenReturn(expected);
+    PartitionsStatsResult result = handler.get_partitions_statistics_req(request);
+    assertThat(result, is(expected));
   }
 
 }
