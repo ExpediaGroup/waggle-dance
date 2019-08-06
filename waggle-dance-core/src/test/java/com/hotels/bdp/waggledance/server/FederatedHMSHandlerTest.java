@@ -18,6 +18,8 @@ package com.hotels.bdp.waggledance.server;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -908,7 +910,7 @@ public class FederatedHMSHandlerTest {
     Partition inbound = new Partition();
     when(primaryMapping.transformInboundPartition(newPartition)).thenReturn(inbound);
     handler.alter_partition(DB_P, "table", newPartition);
-    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
     verify(primaryClient).alter_partition(DB_P, "table", inbound);
   }
 
@@ -924,5 +926,58 @@ public class FederatedHMSHandlerTest {
     handler.alter_partitions(DB_P, "table", partitions);
     verify(primaryMapping, times(3)).checkWritePermissions(DB_P);
     verify(primaryClient).alter_partitions(DB_P, "table", inbound);
+  }
+
+  @Test
+  public void alter_partition_with_environment_context() throws TException {
+    EnvironmentContext environmentContext = new EnvironmentContext();
+    Partition newPartition = new Partition();
+    newPartition.setDbName(DB_P);
+    Partition inbound = new Partition();
+    when(primaryMapping.transformInboundPartition(newPartition)).thenReturn(inbound);
+    handler.alter_partition_with_environment_context(DB_P, "table", newPartition, environmentContext);
+    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
+    verify(primaryClient).alter_partition_with_environment_context(DB_P, "table", inbound, environmentContext);
+  }
+
+  @Test
+  public void rename_partition() throws TException {
+    Partition newPartition = new Partition();
+    newPartition.setDbName(DB_P);
+    handler.rename_partition(DB_P, "table", Collections.emptyList(), newPartition);
+    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
+    verify(primaryClient).rename_partition(DB_P, "table", Collections.emptyList(), newPartition);
+  }
+
+  @Test
+  public void partition_name_has_valid_characters() throws TException {
+    List<String> partitionValues = Collections.singletonList("name");
+    when(primaryClient.partition_name_has_valid_characters(partitionValues, true)).thenReturn(true);
+    boolean result = handler.partition_name_has_valid_characters(partitionValues, true);
+    assertThat(result, is(true));
+  }
+
+  @Test
+  public void get_config_value() throws TException {
+    String expected = "anotherValue";
+    when(primaryClient.get_config_value("name", "defaultValue")).thenReturn(expected);
+    String result = handler.get_config_value("name", "defaultValue");
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void partition_name_to_vals() throws TException {
+    List<String> expected = Arrays.asList("name1", "name2");
+    when(primaryClient.partition_name_to_vals("name")).thenReturn(expected);
+    List<String> result = handler.partition_name_to_vals("name");
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void partition_name_to_spec() throws TException {
+    Map<String, String> expected = new HashMap<>();
+    when(primaryClient.partition_name_to_spec("name")).thenReturn(expected);
+    Map<String, String> result = handler.partition_name_to_spec("name");
+    assertThat(result, is(expected));
   }
 }
