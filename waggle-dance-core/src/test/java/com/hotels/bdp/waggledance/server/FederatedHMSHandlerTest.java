@@ -18,8 +18,6 @@ package com.hotels.bdp.waggledance.server;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,7 +33,6 @@ import java.util.Map;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
-import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
 import org.apache.hadoop.hive.metastore.api.CompactionResponse;
 import org.apache.hadoop.hive.metastore.api.CompactionType;
@@ -51,12 +48,10 @@ import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
 import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
-import org.apache.hadoop.hive.metastore.api.InvalidInputException;
-import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
-import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
-import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
@@ -65,8 +60,6 @@ import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.hadoop.hive.metastore.api.Type;
-import org.apache.hadoop.hive.metastore.api.UnknownDBException;
-import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
@@ -158,7 +151,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void drop_database() throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+  public void drop_database() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     handler.drop_database(DB_P, false, false);
     verify(primaryMapping).checkWritePermissions(DB_P);
@@ -166,7 +159,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_databases() throws MetaException, TException {
+  public void get_databases() throws TException {
     PanopticOperationHandler panopticHandler = Mockito.mock(PanopticOperationHandler.class);
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
     String pattern = "*";
@@ -177,7 +170,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_all_databases() throws MetaException, TException {
+  public void get_all_databases() throws TException {
     PanopticOperationHandler panopticHandler = Mockito.mock(PanopticOperationHandler.class);
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
     when(panopticHandler.getAllDatabases()).thenReturn(Lists.newArrayList(DB_P, DB_S));
@@ -187,7 +180,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void alter_database() throws MetaException, NoSuchObjectException, TException {
+  public void alter_database() throws TException {
     Database database = new Database();
     database.setName(DB_P);
     Database inboundDB = new Database();
@@ -201,47 +194,46 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_type() throws MetaException, NoSuchObjectException, TException {
+  public void get_type() throws TException {
     handler.get_type("name");
     verify(primaryClient).get_type("name");
   }
 
   @Test
-  public void create_type() throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
+  public void create_type() throws TException {
     Type type = new Type();
     handler.create_type(type);
     verify(primaryClient).create_type(type);
   }
 
   @Test
-  public void drop_type() throws MetaException, NoSuchObjectException, TException {
+  public void drop_type() throws TException {
     handler.drop_type("name");
     verify(primaryClient).drop_type("name");
   }
 
   @Test
-  public void get_type_all() throws MetaException, TException {
+  public void get_type_all() throws TException {
     handler.get_type_all("name");
     verify(primaryClient).get_type_all("name");
   }
 
   @Test
-  public void get_fields() throws MetaException, UnknownTableException, UnknownDBException, TException {
+  public void get_fields() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     handler.get_fields(DB_P, "table");
     verify(primaryClient).get_fields("inbound", "table");
   }
 
   @Test
-  public void get_schema() throws MetaException, UnknownTableException, UnknownDBException, TException {
+  public void get_schema() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     handler.get_schema(DB_P, "table");
     verify(primaryClient).get_schema("inbound", "table");
   }
 
   @Test
-  public void create_table()
-    throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException {
+  public void create_table() throws TException {
     Table table = new Table();
     table.setDbName(DB_P);
     Table inboundTable = new Table();
@@ -253,8 +245,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void create_table_with_environment_context()
-    throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException {
+  public void create_table_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     Table table = new Table();
     table.setDbName(DB_P);
@@ -267,7 +258,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void drop_table() throws NoSuchObjectException, MetaException, TException {
+  public void drop_table() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     handler.drop_table(DB_P, "table", false);
     verify(primaryMapping).checkWritePermissions(DB_P);
@@ -275,7 +266,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void drop_table_with_environment_context() throws NoSuchObjectException, MetaException, TException {
+  public void drop_table_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     handler.drop_table_with_environment_context(DB_P, "table", false, environmentContext);
@@ -284,7 +275,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_tables() throws MetaException, TException {
+  public void get_tables() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     List<String> tables = Lists.newArrayList("table1");
     when(primaryClient.get_tables("inbound", "*")).thenReturn(tables);
@@ -293,7 +284,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_all_tables() throws MetaException, TException {
+  public void get_all_tables() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     List<String> tables = Lists.newArrayList("table1");
     when(primaryClient.get_all_tables("inbound")).thenReturn(tables);
@@ -302,7 +293,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_table() throws MetaException, NoSuchObjectException, TException {
+  public void get_table() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     Table table = new Table();
     Table outbound = new Table();
@@ -313,8 +304,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_table_objects_by_name()
-    throws MetaException, InvalidOperationException, UnknownDBException, TException {
+  public void get_table_objects_by_name() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     Table table = new Table();
     Table outbound = new Table();
@@ -327,8 +317,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_table_names_by_filter()
-    throws MetaException, InvalidOperationException, UnknownDBException, TException {
+  public void get_table_names_by_filter() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     List<String> tables = Lists.newArrayList("table1");
     when(primaryClient.get_table_names_by_filter("inbound", "*", (short) 2)).thenReturn(tables);
@@ -337,7 +326,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void alter_table() throws InvalidOperationException, MetaException, TException {
+  public void alter_table() throws TException {
     Table table = new Table();
     table.setDbName(DB_P);
     Table inbound = new Table();
@@ -349,7 +338,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void alter_table_with_environment_context() throws InvalidOperationException, MetaException, TException {
+  public void alter_table_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     Table table = new Table();
     table.setDbName(DB_P);
@@ -362,7 +351,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void add_partition() throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+  public void add_partition() throws TException {
     Partition newPartition = new Partition();
     newPartition.setDbName(DB_P);
     Partition inbound = new Partition();
@@ -376,8 +365,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void add_partition_with_environment_context()
-    throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+  public void add_partition_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     Partition newPartition = new Partition();
     newPartition.setDbName(DB_P);
@@ -392,7 +380,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void add_partitions() throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+  public void add_partitions() throws TException {
     Partition newPartition1 = new Partition();
     newPartition1.setDbName(DB_P);
     Partition newPartition2 = new Partition();
@@ -407,7 +395,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void add_partitions_pspec() throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+  public void add_partitions_pspec() throws TException {
     PartitionSpec newPartitionPSpec1 = new PartitionSpec();
     newPartitionPSpec1.setDbName(DB_P);
     PartitionSpec newPartitionPspec2 = new PartitionSpec();
@@ -422,7 +410,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void append_partition() throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+  public void append_partition() throws TException {
     Partition inbound = new Partition();
     Partition outbound = new Partition();
     List<String> partVals = Lists.newArrayList();
@@ -435,7 +423,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void add_partitions_req() throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+  public void add_partitions_req() throws TException {
     Partition newPartition1 = new Partition();
     newPartition1.setDbName(DB_P);
     Partition newPartition2 = new Partition();
@@ -457,8 +445,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void append_partition_with_environment_context()
-    throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+  public void append_partition_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     Partition inbound = new Partition();
     Partition outbound = new Partition();
@@ -473,8 +460,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void append_partition_by_name()
-    throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+  public void append_partition_by_name() throws TException {
     Partition inbound = new Partition();
     Partition outbound = new Partition();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
@@ -486,15 +472,14 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void append_partition_by_name_with_environment_context()
-    throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+  public void append_partition_by_name_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     Partition inbound = new Partition();
     Partition outbound = new Partition();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient
         .append_partition_by_name_with_environment_context("inbound", "table1", "partName", environmentContext))
-            .thenReturn(inbound);
+        .thenReturn(inbound);
     when(primaryMapping.transformOutboundPartition(inbound)).thenReturn(outbound);
     Partition result = handler
         .append_partition_by_name_with_environment_context(DB_P, "table1", "partName", environmentContext);
@@ -503,7 +488,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void drop_partition() throws NoSuchObjectException, MetaException, TException {
+  public void drop_partition() throws TException {
     List<String> partVals = Lists.newArrayList();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient.drop_partition("inbound", "table1", partVals, false)).thenReturn(true);
@@ -513,13 +498,13 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void drop_partition_with_environment_context() throws NoSuchObjectException, MetaException, TException {
+  public void drop_partition_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     List<String> partVals = Lists.newArrayList();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(
         primaryClient.drop_partition_with_environment_context("inbound", "table1", partVals, false, environmentContext))
-            .thenReturn(true);
+        .thenReturn(true);
     boolean result = handler
         .drop_partition_with_environment_context(DB_P, "table1", partVals, false, environmentContext);
     assertThat(result, is(true));
@@ -527,7 +512,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void drop_partition_by_name() throws NoSuchObjectException, MetaException, TException {
+  public void drop_partition_by_name() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient.drop_partition_by_name("inbound", "table1", "partName", false)).thenReturn(true);
     boolean result = handler.drop_partition_by_name(DB_P, "table1", "partName", false);
@@ -536,13 +521,12 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void drop_partition_by_name_with_environment_context()
-    throws NoSuchObjectException, MetaException, TException {
+  public void drop_partition_by_name_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient
         .drop_partition_by_name_with_environment_context("inbound", "table1", "partName", false, environmentContext))
-            .thenReturn(true);
+        .thenReturn(true);
     boolean result = handler
         .drop_partition_by_name_with_environment_context(DB_P, "table1", "partName", false, environmentContext);
     assertThat(result, is(true));
@@ -550,7 +534,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void drop_partitions_req() throws NoSuchObjectException, MetaException, TException {
+  public void drop_partitions_req() throws TException {
     DropPartitionsRequest req = new DropPartitionsRequest();
     req.setDbName(DB_P);
     DropPartitionsRequest inbound = new DropPartitionsRequest();
@@ -565,7 +549,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partition() throws MetaException, NoSuchObjectException, TException {
+  public void get_partition() throws TException {
     List<String> partVals = Lists.newArrayList();
     Partition partition = new Partition();
     Partition outbound = new Partition();
@@ -578,8 +562,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void exchange_partition()
-    throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException, TException {
+  public void exchange_partition() throws TException {
     Partition partition = new Partition();
     Partition outbound = new Partition();
     Map<String, String> specs = new HashMap<>();
@@ -593,7 +576,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partition_with_auth() throws MetaException, NoSuchObjectException, TException {
+  public void get_partition_with_auth() throws TException {
     List<String> partVals = Lists.newArrayList();
     Partition partition = new Partition();
     Partition outbound = new Partition();
@@ -608,7 +591,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partition_by_name() throws MetaException, NoSuchObjectException, TException {
+  public void get_partition_by_name() throws TException {
     Partition partition = new Partition();
     Partition outbound = new Partition();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
@@ -620,7 +603,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partitions() throws NoSuchObjectException, MetaException, TException {
+  public void get_partitions() throws TException {
     List<Partition> partitions = Lists.newArrayList();
     List<Partition> outbound = Lists.newArrayList();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
@@ -632,7 +615,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partitions_with_auth() throws NoSuchObjectException, MetaException, TException {
+  public void get_partitions_with_auth() throws TException {
     List<Partition> partitions = Lists.newArrayList();
     List<Partition> outbound = Lists.newArrayList();
     List<String> groupNames = new ArrayList<>();
@@ -646,7 +629,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partitions_pspec() throws NoSuchObjectException, MetaException, TException {
+  public void get_partitions_pspec() throws TException {
     List<PartitionSpec> partitionSpecs = Lists.newArrayList();
     List<PartitionSpec> outbound = Lists.newArrayList();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
@@ -658,7 +641,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partition_names() throws MetaException, TException {
+  public void get_partition_names() throws TException {
     List<String> partitions = Lists.newArrayList();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient.get_partition_names("inbound", "table", (short) 10)).thenReturn(partitions);
@@ -668,7 +651,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partitions_ps() throws NoSuchObjectException, MetaException, TException {
+  public void get_partitions_ps() throws TException {
     List<Partition> partitions = Lists.newArrayList();
     List<Partition> outbound = Lists.newArrayList();
     List<String> partVals = Lists.newArrayList();
@@ -681,7 +664,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partitions_ps_with_auth() throws NoSuchObjectException, MetaException, TException {
+  public void get_partitions_ps_with_auth() throws TException {
     List<Partition> partitions = Lists.newArrayList();
     List<Partition> outbound = Lists.newArrayList();
     List<String> partVals = Lists.newArrayList();
@@ -698,7 +681,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partition_names_ps() throws NoSuchObjectException, MetaException, TException {
+  public void get_partition_names_ps() throws TException {
     List<String> partitions = Lists.newArrayList();
     List<String> outbound = Lists.newArrayList();
     List<String> partVals = Lists.newArrayList();
@@ -710,7 +693,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partitions_by_filter() throws MetaException, NoSuchObjectException, TException {
+  public void get_partitions_by_filter() throws TException {
     List<Partition> partitions = Lists.newArrayList();
     List<Partition> outbound = Lists.newArrayList();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
@@ -722,7 +705,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_part_specs_by_filter() throws MetaException, NoSuchObjectException, TException {
+  public void get_part_specs_by_filter() throws TException {
     List<PartitionSpec> partitionSpecs = Lists.newArrayList();
     List<PartitionSpec> outbound = Lists.newArrayList();
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
@@ -734,7 +717,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partitions_by_expr() throws MetaException, NoSuchObjectException, TException {
+  public void get_partitions_by_expr() throws TException {
     PartitionsByExprRequest req = new PartitionsByExprRequest();
     req.setDbName(DB_P);
     PartitionsByExprRequest inbound = new PartitionsByExprRequest();
@@ -749,7 +732,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_partitions_by_names() throws MetaException, NoSuchObjectException, TException {
+  public void get_partitions_by_names() throws TException {
     List<Partition> partitions = Lists.newArrayList();
     List<Partition> outbound = Lists.newArrayList();
     List<String> names = Lists.newArrayList();
@@ -781,7 +764,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void set_ugi() throws MetaException, TException {
+  public void set_ugi() throws TException {
     PanopticOperationHandler panopticHandler = Mockito.mock(PanopticOperationHandler.class);
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
     String user_name = "user";
@@ -795,7 +778,7 @@ public class FederatedHMSHandlerTest {
 
   // Hive 2.3.0 methods
   @Test
-  public void get_tables_by_type() throws MetaException, TException {
+  public void get_tables_by_type() throws TException {
     when(primaryClient.get_tables_by_type(DB_P, "tbl*", "EXTERNAL_TABLE")).thenReturn(Arrays.asList("tbl0", "tbl1"));
     List<String> tables = handler.get_tables_by_type(DB_P, "tbl*", TableType.EXTERNAL_TABLE.name());
     verify(primaryClient).get_tables_by_type(DB_P, "tbl*", "EXTERNAL_TABLE");
@@ -805,7 +788,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_table_req() throws MetaException, NoSuchObjectException, TException {
+  public void get_table_req() throws TException {
     Table table = new Table();
     table.setDbName(DB_P);
     table.setTableName("table");
@@ -820,8 +803,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_table_objects_by_name_req()
-    throws MetaException, InvalidOperationException, UnknownDBException, TException {
+  public void get_table_objects_by_name_req() throws TException {
     Table table0 = new Table();
     table0.setDbName(DB_P);
     table0.setTableName("table0");
@@ -843,7 +825,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_foreign_keys() throws MetaException, InvalidOperationException, UnknownDBException, TException {
+  public void get_foreign_keys() throws TException {
     ForeignKeysRequest request = new ForeignKeysRequest();
     request.setParent_db_name(null);
     request.setParent_tbl_name(null);
@@ -852,7 +834,7 @@ public class FederatedHMSHandlerTest {
     SQLForeignKey key = new SQLForeignKey();
     key.setFktable_db(DB_S);
     key.setFktable_name("table");
-    ForeignKeysResponse response = new ForeignKeysResponse(Arrays.asList(key));
+    ForeignKeysResponse response = new ForeignKeysResponse(Collections.singletonList(key));
 
     when(databaseMappingService.databaseMapping(request.getForeign_db_name())).thenReturn(primaryMapping);
     when(primaryMapping.transformInboundForeignKeysRequest(request)).thenReturn(request);
@@ -876,7 +858,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void getPrivilegeSet() throws Exception {
+  public void getPrivilegeSet() throws TException {
     String userName = "user";
     List<String> groupNames = Lists.newArrayList("group");
     HiveObjectRef hiveObjectRef = new HiveObjectRef();
@@ -890,7 +872,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void getPrivilegeSetDbNameIsNullShouldUsePrimary() throws Exception {
+  public void getPrivilegeSetDbNameIsNullShouldUsePrimary() throws TException {
     String userName = "user";
     List<String> groupNames = Lists.newArrayList("group");
     HiveObjectRef hiveObjectRef = new HiveObjectRef();
@@ -980,4 +962,55 @@ public class FederatedHMSHandlerTest {
     Map<String, String> result = handler.partition_name_to_spec("name");
     assertThat(result, is(expected));
   }
+
+  @Test
+  public void markPartitionForEvent() throws TException {
+    Map<String, String> partitionValues = new HashMap<>();
+    PartitionEventType partitionEventType = PartitionEventType.findByValue(1);
+    handler.markPartitionForEvent(DB_P, "table", partitionValues, partitionEventType);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).markPartitionForEvent(DB_P, "table", partitionValues, partitionEventType);
+  }
+
+  @Test
+  public void isPartitionMarkedForEvent() throws TException {
+    Map<String, String> partitionValues = new HashMap<>();
+    PartitionEventType partitionEventType = PartitionEventType.findByValue(1);
+    when(primaryClient.isPartitionMarkedForEvent(DB_P, "table", partitionValues, partitionEventType)).thenReturn(true);
+    boolean result = handler.isPartitionMarkedForEvent(DB_P, "table", partitionValues, partitionEventType);
+    assertThat(result, is(true));
+  }
+
+  @Test
+  public void add_index() throws TException {
+    Index newIndex = new Index();
+    newIndex.setDbName(DB_P);
+    Index inboundIndex = new Index();
+    Index outboundIndex = new Index();
+    Table newTable = new Table();
+    newTable.setDbName(DB_P);
+    Table inboundTable = new Table();
+
+    when(primaryMapping.transformInboundIndex(newIndex)).thenReturn(inboundIndex);
+    when(primaryMapping.transformInboundTable(newTable)).thenReturn(inboundTable);
+    when(primaryMapping.transformOutboundIndex(outboundIndex)).thenReturn(newIndex);
+    when(primaryClient.add_index(inboundIndex, inboundTable)).thenReturn(outboundIndex);
+
+    Index result = handler.add_index(newIndex, newTable);
+    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
+    assertThat(result, is(newIndex));
+  }
+
+  @Test
+  public void alter_index() throws TException {
+    Index newIndex = new Index();
+    newIndex.setDbName(DB_P);
+    Index inboundIndex = new Index();
+    when(primaryMapping.transformInboundIndex(newIndex)).thenReturn(inboundIndex);
+
+    handler.alter_index(DB_P, "table", "index", newIndex);
+    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
+    verify(primaryClient).alter_index(DB_P, "table", "index", inboundIndex);
+  }
+
 }
