@@ -33,6 +33,7 @@ import java.util.Map;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
+import org.apache.hadoop.hive.metastore.api.AggrStats;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
@@ -44,11 +45,15 @@ import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
+import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.GetPrincipalsInRoleRequest;
+import org.apache.hadoop.hive.metastore.api.GetRoleGrantsForPrincipalRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
 import org.apache.hadoop.hive.metastore.api.GetTablesResult;
+import org.apache.hadoop.hive.metastore.api.GrantRevokeRoleRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
@@ -60,7 +65,10 @@ import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsResult;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
+import org.apache.hadoop.hive.metastore.api.PrincipalType;
+import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
+import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.TableStatsResult;
@@ -1114,13 +1122,175 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_partitions_statistics_req() throws TException {
-    PartitionsStatsRequest request = new PartitionsStatsRequest(DB_P, "table", Collections.emptyList(), Collections.emptyList());
+    PartitionsStatsRequest request = new PartitionsStatsRequest(DB_P, "table", Collections.emptyList(),
+        Collections.emptyList());
     PartitionsStatsRequest inboundRequest = new PartitionsStatsRequest();
     PartitionsStatsResult expected = new PartitionsStatsResult();
     when(primaryMapping.transformInboundPartitionsStatsRequest(request)).thenReturn(inboundRequest);
     when(primaryClient.get_partitions_statistics_req(inboundRequest)).thenReturn(expected);
     PartitionsStatsResult result = handler.get_partitions_statistics_req(request);
     assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_aggr_stats_for() throws TException {
+    PartitionsStatsRequest request = new PartitionsStatsRequest(DB_P, "table", Collections.emptyList(),
+        Collections.emptyList());
+    PartitionsStatsRequest inboundRequest = new PartitionsStatsRequest();
+    AggrStats expected = new AggrStats();
+    when(primaryMapping.transformInboundPartitionsStatsRequest(request)).thenReturn(inboundRequest);
+    when(primaryClient.get_aggr_stats_for(inboundRequest)).thenReturn(expected);
+    AggrStats result = handler.get_aggr_stats_for(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void set_aggr_stats_for() throws TException {
+    ColumnStatisticsDesc statsDesc = new ColumnStatisticsDesc(true, DB_P, "table");
+    ColumnStatistics colStatistics = new ColumnStatistics(statsDesc, Collections.emptyList());
+    List<ColumnStatistics> colStats = Collections.singletonList(colStatistics);
+    SetPartitionsStatsRequest request = new SetPartitionsStatsRequest(colStats);
+    SetPartitionsStatsRequest inboundRequest = new SetPartitionsStatsRequest();
+    when(primaryMapping.transformInboundSetPartitionStatsRequest(request)).thenReturn(inboundRequest);
+    when(primaryClient.set_aggr_stats_for(inboundRequest)).thenReturn(true);
+    boolean result = handler.set_aggr_stats_for(request);
+    assertThat(result, is(true));
+  }
+
+  @Test
+  public void delete_partition_column_statistics() throws TException {
+    when(primaryClient.delete_partition_column_statistics(DB_P, "table", "partition", "column")).thenReturn(true);
+    boolean result = handler.delete_partition_column_statistics(DB_P, "table", "partition", "column");
+    assertThat(result, is(true));
+    verify(primaryMapping).checkWritePermissions(DB_P);
+  }
+
+  @Test
+  public void delete_table_column_statistics() throws TException {
+    when(primaryClient.delete_table_column_statistics(DB_P, "table", "column")).thenReturn(true);
+    boolean result = handler.delete_table_column_statistics(DB_P, "table", "column");
+    assertThat(result, is(true));
+    verify(primaryMapping).checkWritePermissions(DB_P);
+  }
+
+  @Test
+  public void create_function() throws TException {
+    Function function = new Function();
+    function.setDbName(DB_P);
+    Function inboundFunction = new Function();
+    when(primaryMapping.transformInboundFunction(function)).thenReturn(inboundFunction);
+    handler.create_function(function);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).create_function(inboundFunction);
+  }
+
+  @Test
+  public void drop_function() throws TException {
+    handler.drop_function(DB_P, "function");
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).drop_function(DB_P, "function");
+  }
+
+  @Test
+  public void alter_function() throws TException {
+    Function newFunc = new Function();
+    newFunc.setDbName(DB_P);
+    Function inboundFunction = new Function();
+    when(primaryMapping.transformInboundFunction(newFunc)).thenReturn(inboundFunction);
+    handler.alter_function(DB_P, "function", newFunc);
+    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
+    verify(primaryClient).alter_function(DB_P, "function", inboundFunction);
+  }
+
+  @Test
+  public void get_functions() throws TException {
+    List<String> expected = Arrays.asList("func1", "func2");
+    when(primaryClient.get_functions(DB_P, "pattern")).thenReturn(expected);
+    List<String> result = handler.get_functions(DB_P, "pattern");
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_function() throws TException {
+    Function fromClient = new Function();
+    Function expected = new Function();
+    when(primaryClient.get_function(DB_P, "funcName")).thenReturn(fromClient);
+    when(primaryMapping.transformOutboundFunction(fromClient)).thenReturn(expected);
+    Function result = handler.get_function(DB_P, "funcName");
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void create_role() throws TException {
+    Role role = new Role();
+    handler.create_role(role);
+    verify(primaryClient).create_role(role);
+  }
+
+  @Test
+  public void drop_role() throws TException {
+    handler.drop_role("role");
+    verify(primaryClient).drop_role("role");
+  }
+
+  @Test
+  public void get_role_names() throws TException {
+    List<String> roleNames = Arrays.asList("role1", "role2");
+    when(primaryClient.get_role_names()).thenReturn(roleNames);
+    assertThat(handler.get_role_names(), is(roleNames));
+  }
+
+  @Test
+  public void grant_role() throws TException {
+    PrincipalType principalType = PrincipalType.findByValue(3);
+    handler.grant_role("role", "principal", principalType, "grantor", principalType, true);
+    verify(primaryClient).grant_role("role", "principal", principalType, "grantor", principalType, true);
+  }
+
+  @Test
+  public void revoke_role() throws TException {
+    PrincipalType principalType = PrincipalType.findByValue(3);
+    handler.revoke_role("role", "principal", principalType);
+    verify(primaryClient).revoke_role("role", "principal", principalType);
+  }
+
+  @Test
+  public void list_roles() throws TException {
+    PrincipalType principalType = PrincipalType.findByValue(3);
+    handler.list_roles("role", principalType);
+    verify(primaryClient).list_roles("role", principalType);
+  }
+
+  @Test
+  public void grant_revoke_role() throws TException {
+    GrantRevokeRoleRequest request = new GrantRevokeRoleRequest();
+    handler.grant_revoke_role(request);
+    verify(primaryClient).grant_revoke_role(request);
+  }
+
+  @Test
+  public void get_principals_in_role() throws TException{
+    GetPrincipalsInRoleRequest request = new GetPrincipalsInRoleRequest();
+    handler.get_principals_in_role(request);
+    verify(primaryClient).get_principals_in_role(request);
+  }
+
+  @Test
+  public void get_role_grants_for_principal() throws TException {
+    GetRoleGrantsForPrincipalRequest request = new GetRoleGrantsForPrincipalRequest();
+    handler.get_role_grants_for_principal(request);
+    verify(primaryClient).get_role_grants_for_principal(request);
+  }
+
+  @Test
+  public void list_privileges() throws TException {
+    PrincipalType principalType = PrincipalType.findByValue(3);
+    HiveObjectRef hiveObjectRef = new HiveObjectRef();
+    hiveObjectRef.setDbName(DB_P);
+    HiveObjectRef inboundHiveObjectRef = new HiveObjectRef();
+    when(primaryMapping.transformInboundHiveObjectRef(hiveObjectRef)).thenReturn(inboundHiveObjectRef);
+    handler.list_privileges("name", principalType, hiveObjectRef);
+    verify(primaryClient).list_privileges("name", principalType, inboundHiveObjectRef);
   }
 
 }
