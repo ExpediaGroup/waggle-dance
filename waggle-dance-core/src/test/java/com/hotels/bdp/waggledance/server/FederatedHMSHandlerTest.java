@@ -30,12 +30,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.AbortTxnRequest;
+import org.apache.hadoop.hive.metastore.api.AbortTxnsRequest;
+import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
+import org.apache.hadoop.hive.metastore.api.AddForeignKeyRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
+import org.apache.hadoop.hive.metastore.api.AddPrimaryKeyRequest;
 import org.apache.hadoop.hive.metastore.api.AggrStats;
+import org.apache.hadoop.hive.metastore.api.CacheFileMetadataRequest;
+import org.apache.hadoop.hive.metastore.api.CacheFileMetadataResult;
 import org.apache.hadoop.hive.metastore.api.CheckLockRequest;
+import org.apache.hadoop.hive.metastore.api.ClearFileMetadataRequest;
+import org.apache.hadoop.hive.metastore.api.ClearFileMetadataResult;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.CommitTxnRequest;
@@ -43,9 +52,12 @@ import org.apache.hadoop.hive.metastore.api.CompactionRequest;
 import org.apache.hadoop.hive.metastore.api.CompactionResponse;
 import org.apache.hadoop.hive.metastore.api.CompactionType;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.DropConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
+import org.apache.hadoop.hive.metastore.api.FireEventRequest;
+import org.apache.hadoop.hive.metastore.api.FireEventResponse;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Function;
@@ -63,6 +75,8 @@ import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeResponse;
 import org.apache.hadoop.hive.metastore.api.GrantRevokeRoleRequest;
 import org.apache.hadoop.hive.metastore.api.GrantRevokeType;
 import org.apache.hadoop.hive.metastore.api.HeartbeatRequest;
+import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeRequest;
+import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeResponse;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -86,7 +100,10 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
+import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
+import org.apache.hadoop.hive.metastore.api.ShowCompactRequest;
+import org.apache.hadoop.hive.metastore.api.ShowCompactResponse;
 import org.apache.hadoop.hive.metastore.api.ShowLocksRequest;
 import org.apache.hadoop.hive.metastore.api.ShowLocksResponse;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -103,6 +120,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.facebook.fb303.fb_status;
 import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
@@ -1467,4 +1485,197 @@ public class FederatedHMSHandlerTest {
     handler.heartbeat(request);
     verify(primaryClient).heartbeat(request);
   }
+
+  @Test
+  public void heartbeat_txn_range() throws TException {
+    HeartbeatTxnRangeRequest request = new HeartbeatTxnRangeRequest();
+    HeartbeatTxnRangeResponse expected = new HeartbeatTxnRangeResponse();
+    when(primaryClient.heartbeat_txn_range(request)).thenReturn(expected);
+    HeartbeatTxnRangeResponse result = handler.heartbeat_txn_range(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void compact() throws TException {
+    CompactionRequest request = new CompactionRequest(DB_P, "table", CompactionType.MAJOR);
+    CompactionRequest inboundRequest = new CompactionRequest();
+    when(primaryMapping.transformInboundCompactionRequest(request)).thenReturn(inboundRequest);
+    handler.compact(request);
+    verify(primaryClient).compact(inboundRequest);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+  }
+
+  @Test
+  public void show_compact() throws TException {
+    ShowCompactRequest request = new ShowCompactRequest();
+    ShowCompactResponse expected = new ShowCompactResponse();
+    when(primaryClient.show_compact(request)).thenReturn(expected);
+    ShowCompactResponse result = handler.show_compact(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void getCpuProfile() throws TException {
+    String expected = "expected";
+    when(primaryClient.getCpuProfile(10)).thenReturn(expected);
+    String result = handler.getCpuProfile(10);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void getVersion() throws TException {
+    String expected = "version";
+    when(primaryClient.getVersion()).thenReturn(expected);
+    String result = handler.getVersion();
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void getStatus() throws TException {
+    fb_status expected = fb_status.ALIVE;
+    when(primaryClient.getStatus()).thenReturn(expected);
+    fb_status result = handler.getStatus();
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void getConf() {
+    Configuration expected = new Configuration();
+    handler.setConf(expected);
+    Configuration result = handler.getConf();
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void abort_txns() throws TException {
+    AbortTxnsRequest request = new AbortTxnsRequest();
+    handler.abort_txns(request);
+    verify(primaryClient).abort_txns(request);
+  }
+
+  @Test
+  public void add_dynamic_partitions() throws TException {
+    AddDynamicPartitions request = new AddDynamicPartitions(1, DB_P, "table", Collections.emptyList());
+    AddDynamicPartitions inboundRequest = new AddDynamicPartitions();
+    when(primaryMapping.transformInboundAddDynamicPartitions(request)).thenReturn(inboundRequest);
+    handler.add_dynamic_partitions(request);
+    verify(primaryClient).add_dynamic_partitions(inboundRequest);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+  }
+
+  @Test
+  public void add_foreign_key() throws TException {
+    AddForeignKeyRequest request = new AddForeignKeyRequest();
+    handler.add_foreign_key(request);
+    verify(primaryClient).add_foreign_key(request);
+  }
+
+  @Test
+  public void add_master_key() throws TException {
+    int expected = 10;
+    when(primaryClient.add_master_key("key")).thenReturn(expected);
+    int result = handler.add_master_key("key");
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void add_primary_key() throws TException {
+    AddPrimaryKeyRequest request = new AddPrimaryKeyRequest();
+    handler.add_primary_key(request);
+    verify(primaryClient).add_primary_key(request);
+  }
+
+  @Test
+  public void add_token() throws TException {
+    when(primaryClient.add_token("identifier", "delegation")).thenReturn(true);
+    boolean result = handler.add_token("identifier", "delegation");
+    assertThat(result, is(true));
+  }
+
+  @Test
+  public void alter_partitions_with_environment_context() throws TException {
+    EnvironmentContext environmentContext = new EnvironmentContext();
+    handler.alter_partitions_with_environment_context(DB_P, "table", Collections.emptyList(), environmentContext);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).alter_partitions_with_environment_context(DB_P, "table", Collections.emptyList(),
+        environmentContext);
+  }
+
+  @Test
+  public void alter_table_with_cascade() throws TException {
+    Table table = new Table();
+    handler.alter_table_with_cascade(DB_P, "table", table, true);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).alter_table_with_cascade(DB_P, "table", table, true);
+  }
+
+  @Test
+  public void cache_file_metadata() throws TException {
+    CacheFileMetadataRequest request = new CacheFileMetadataRequest(DB_P, "table");
+    CacheFileMetadataRequest inboundRequest = new CacheFileMetadataRequest();
+    CacheFileMetadataResult expected = new CacheFileMetadataResult();
+    when(primaryMapping.transformInboundCacheFileMetadataRequest(request)).thenReturn(inboundRequest);
+    when(primaryClient.cache_file_metadata(inboundRequest)).thenReturn(expected);
+    CacheFileMetadataResult result = handler.cache_file_metadata(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void clear_file_metadata() throws TException {
+    ClearFileMetadataRequest request = new ClearFileMetadataRequest();
+    ClearFileMetadataResult expected = new ClearFileMetadataResult();
+    when(primaryClient.clear_file_metadata(request)).thenReturn(expected);
+    ClearFileMetadataResult result = handler.clear_file_metadata(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void create_table_with_constraints() throws TException {
+    Table table = new Table();
+    table.setDbName(DB_P);
+    Table inboundTable = new Table();
+    List<SQLPrimaryKey> primaryKeys = Collections.emptyList();
+    List<SQLForeignKey> foreignKeys = Collections.emptyList();
+    when(primaryMapping.transformInboundTable(table)).thenReturn(inboundTable);
+    handler.create_table_with_constraints(table, primaryKeys, foreignKeys);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).create_table_with_constraints(inboundTable, primaryKeys, foreignKeys);
+  }
+
+  @Test
+  public void drop_constraint() throws TException {
+    DropConstraintRequest request = new DropConstraintRequest(DB_P, "table", "constraint");
+    DropConstraintRequest inboundRequest = new DropConstraintRequest();
+    when(primaryMapping.transformInboundDropConstraintRequest(request)).thenReturn(inboundRequest);
+    handler.drop_constraint(request);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient).drop_constraint(inboundRequest);
+  }
+
+  @Test
+  public void exchange_partitions() throws TException {
+    Map<String, String> partitionSpecs = new HashMap<>();
+    List<Partition> partitions = Collections.emptyList();
+    List<Partition> expected = Collections.emptyList();
+    when(primaryMapping.transformInboundDatabaseName("dest_db")).thenReturn("dest_db");
+    when(primaryMapping.transformOutboundPartitions(partitions)).thenReturn(expected);
+    when(primaryClient.exchange_partitions(partitionSpecs, DB_P, "source","dest_db", "dest_table")).thenReturn(partitions);
+    List<Partition> result = handler.exchange_partitions(partitionSpecs, DB_P, "source", "dest_db", "dest_table");
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryMapping).checkWritePermissions("dest_db");
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void fire_listener_event() throws TException {
+    FireEventRequest request = new FireEventRequest();
+    request.setDbName(DB_P);
+    FireEventRequest inboundRequest = new FireEventRequest();
+    FireEventResponse expected = new FireEventResponse();
+    when(primaryMapping.transformInboundFireEventRequest(request)).thenReturn(inboundRequest);
+    when(primaryClient.fire_listener_event(inboundRequest)).thenReturn(expected);
+    FireEventResponse result = handler.fire_listener_event(request);
+    assertThat(result, is(expected));
+  }
+
 }
