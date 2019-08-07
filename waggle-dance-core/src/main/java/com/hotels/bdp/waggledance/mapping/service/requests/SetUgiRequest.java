@@ -33,8 +33,7 @@ public class SetUgiRequest implements RequestCallable<List<String>> {
 
   @Override
   public List<String> call() throws Exception {
-    List<String> result = mapping.getClient().set_ugi(user_name, group_names);
-    return result;
+    return mapping.getClient().set_ugi(user_name, group_names);
   }
 
   @Override

@@ -54,7 +54,7 @@ final class TestUtils {
     StorageDescriptor sd = new StorageDescriptor();
     sd.setCols(DATA_COLUMNS);
     sd.setLocation(location.toURI().toString());
-    sd.setParameters(new HashMap<String, String>());
+    sd.setParameters(new HashMap<>());
     sd.setSerdeInfo(new SerDeInfo());
 
     hiveTable.setSd(sd);
@@ -78,7 +78,7 @@ final class TestUtils {
     StorageDescriptor sd = new StorageDescriptor();
     sd.setCols(DATA_COLUMNS);
     sd.setLocation(location.toURI().toString());
-    sd.setParameters(new HashMap<String, String>());
+    sd.setParameters(new HashMap<>());
     sd.setSerdeInfo(new SerDeInfo());
 
     hiveTable.setSd(sd);

@@ -20,7 +20,6 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,9 +66,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private static final String EMPTY_PREFIX = "";
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
+  private final Map<String, DatabaseMapping> mappingsByPrefix;
+  private final Map<String, Whitelist> mappedDbByPrefix;
   private DatabaseMapping primaryDatabaseMapping;
-  private Map<String, DatabaseMapping> mappingsByPrefix;
-  private Map<String, Whitelist> mappedDbByPrefix;
 
   public PrefixBasedDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -77,13 +76,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       QueryMapping queryMapping) {
     this.metaStoreMappingFactory = metaStoreMappingFactory;
     this.queryMapping = queryMapping;
-    init(initialMetastores);
-  }
-
-  private void init(List<AbstractMetaStore> metaStores) {
     mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<>());
     mappedDbByPrefix = new ConcurrentHashMap<>();
-    for (AbstractMetaStore abstractMetaStore : metaStores) {
+    for (AbstractMetaStore abstractMetaStore : initialMetastores) {
       add(abstractMetaStore);
     }
   }
@@ -178,9 +173,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
     // Find a Metastore with a prefix
     synchronized (mappingsByPrefix) {
-      Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
-      while (iterator.hasNext()) {
-        Entry<String, DatabaseMapping> entry = iterator.next();
+      for (Entry<String, DatabaseMapping> entry : mappingsByPrefix.entrySet()) {
         String metastorePrefix = entry.getKey();
         if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
           DatabaseMapping databaseMapping = entry.getValue();

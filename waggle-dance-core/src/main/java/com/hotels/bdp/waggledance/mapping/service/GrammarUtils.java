@@ -90,12 +90,8 @@ public final class GrammarUtils {
         if (subPatternParts.length == 0) {
           continue;
         }
-        List<String> prefixPatternList = prefixPatterns.get(prefix);
-        if (prefixPatternList == null) {
-          prefixPatternList = new ArrayList<>();
-          prefixPatterns.put(prefix, prefixPatternList);
-        }
-        prefixPatternList.add(subPatternParts[1]);
+          List<String> prefixPatternList = prefixPatterns.computeIfAbsent(prefix, k -> new ArrayList<>());
+          prefixPatternList.add(subPatternParts[1]);
       }
     }
 

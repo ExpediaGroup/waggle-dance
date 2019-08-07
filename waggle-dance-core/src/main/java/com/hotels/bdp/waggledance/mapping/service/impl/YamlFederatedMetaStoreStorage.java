@@ -75,7 +75,7 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
 
     public Federations unmarshall(String federationConfigLocation) {
       try (FileObject source = fsManager.resolveFile(federationConfigLocation)) {
-        Federations federations = (Federations) yaml.load(source.getContent().getInputStream());
+        Federations federations = yaml.load(source.getContent().getInputStream());
         if (federations == null) {
           return null;
         }

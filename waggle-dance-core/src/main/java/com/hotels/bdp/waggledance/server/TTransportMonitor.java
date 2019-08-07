@@ -60,28 +60,25 @@ public class TTransportMonitor {
   @VisibleForTesting
   TTransportMonitor(WaggleDanceConfiguration waggleDanceConfiguration, ScheduledExecutorService scheduler) {
     this.scheduler = scheduler;
-    Runnable monitor = new Runnable() {
-      @Override
-      public void run() {
-        LOG.debug("Releasing disconnected sessions");
-        Iterator<ActionContainer> iterator = transports.iterator();
-        while (iterator.hasNext()) {
-          ActionContainer actionContainer = iterator.next();
-          if (actionContainer.transport.peek()) {
-            continue;
-          }
-          try {
-            actionContainer.action.close();
-          } catch (Exception e) {
-            LOG.warn("Error closing action", e);
-          }
-          try {
-            actionContainer.transport.close();
-          } catch (Exception e) {
-            LOG.warn("Error closing transport", e);
-          }
-          iterator.remove();
+    Runnable monitor = () -> {
+      LOG.debug("Releasing disconnected sessions");
+      Iterator<ActionContainer> iterator = transports.iterator();
+      while (iterator.hasNext()) {
+        ActionContainer actionContainer = iterator.next();
+        if (actionContainer.transport.peek()) {
+          continue;
         }
+        try {
+          actionContainer.action.close();
+        } catch (Exception e) {
+          LOG.warn("Error closing action", e);
+        }
+        try {
+          actionContainer.transport.close();
+        } catch (Exception e) {
+          LOG.warn("Error closing transport", e);
+        }
+        iterator.remove();
       }
     };
     this.scheduler

@@ -55,7 +55,6 @@ class ThriftMetastoreClientManager implements Closeable {
   private ThriftHiveMetastore.Iface client = null;
   private TTransport transport = null;
   private boolean isConnected = false;
-  private String tokenStrForm;
   // for thrift connects
   private int retries = 5;
   private long retryDelaySeconds = 0;
@@ -132,7 +131,7 @@ class ThriftMetastoreClientManager implements Closeable {
               // submission.
               String tokenSig = conf.getVar(ConfVars.METASTORE_TOKEN_SIGNATURE);
               // tokenSig could be null
-              tokenStrForm = Utils.getTokenStrForm(tokenSig);
+              String tokenStrForm = Utils.getTokenStrForm(tokenSig);
               if (tokenStrForm != null) {
                 // authenticate using delegation tokens via the "DIGEST" mechanism
                 transport = authBridge

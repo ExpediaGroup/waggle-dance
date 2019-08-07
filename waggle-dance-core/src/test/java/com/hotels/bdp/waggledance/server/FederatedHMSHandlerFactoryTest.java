@@ -16,7 +16,7 @@
 package com.hotels.bdp.waggledance.server;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
@@ -50,7 +49,7 @@ public class FederatedHMSHandlerFactoryTest {
   @Before
   public void init() {
     when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.MANUAL);
-    when(notifyingFederationService.getAll()).thenReturn(new ArrayList<AbstractMetaStore>());
+    when(notifyingFederationService.getAll()).thenReturn(new ArrayList<>());
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
         waggleDanceConfiguration, queryMapping);
   }

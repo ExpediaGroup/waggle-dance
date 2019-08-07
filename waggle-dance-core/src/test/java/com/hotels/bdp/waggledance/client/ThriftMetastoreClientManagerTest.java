@@ -110,8 +110,8 @@ public class ThriftMetastoreClientManagerTest {
 
   @Test(expected = RuntimeException.class)
   public void openSlowConnection() {
-    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory,
-        1);
+    client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory, 1);
     client.open();
   }
+
 }

@@ -17,7 +17,7 @@ package com.hotels.bdp.waggledance.api.model;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
@@ -117,12 +117,12 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   @Test
   public void equalsNull() {
-    assertFalse(metaStore.equals(null));
+    assertNotEquals(metaStore, null);
   }
 
   @Test
   public void equalsDifferentClass() {
-    assertFalse(metaStore.equals("string"));
+    assertNotEquals("string", metaStore);
   }
 
   @Test

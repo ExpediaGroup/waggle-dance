@@ -71,7 +71,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
       }
     }
 
-    AbstractMetaStore newMetaStore = null;
+    AbstractMetaStore newMetaStore;
     if (metaStore instanceof PrimaryMetaStore) {
       newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
           metaStore.getAccessControlType(), newWritableDatabaseWhiteList);

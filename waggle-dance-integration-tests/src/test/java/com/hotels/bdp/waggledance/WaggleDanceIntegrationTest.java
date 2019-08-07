@@ -166,16 +166,13 @@ public class WaggleDanceIntegrationTest {
   }
 
   private void runWaggleDance(WaggleDanceRunner runner) throws Exception {
-    executor.submit(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          runner.run();
-        } catch (RuntimeException e) {
-          throw e;
-        } catch (Exception e) {
-          throw new RuntimeException("Error during execution", e);
-        }
+    executor.submit(() -> {
+      try {
+        runner.run();
+      } catch (RuntimeException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new RuntimeException("Error during execution", e);
       }
     });
     runner.waitForService();

@@ -15,9 +15,9 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
@@ -420,7 +421,7 @@ public class DatabaseMappingImplTest {
     SQLForeignKey foreignKey = new SQLForeignKey();
     foreignKey.setPktable_db(DB_NAME);
     foreignKey.setFktable_db(DB_NAME);
-    ForeignKeysResponse foreignKeysResponse = new ForeignKeysResponse(Arrays.asList(foreignKey));
+    ForeignKeysResponse foreignKeysResponse = new ForeignKeysResponse(Collections.singletonList(foreignKey));
     ForeignKeysResponse result = databaseMapping.transformOutboundForeignKeysResponse(foreignKeysResponse);
     assertThat(result, is(sameInstance(foreignKeysResponse)));
     assertThat(result.getForeignKeys().size(), is(1));
@@ -442,7 +443,7 @@ public class DatabaseMappingImplTest {
   public void transformOutboundPrimaryKeysResponse() throws Exception {
     SQLPrimaryKey primaryKey = new SQLPrimaryKey();
     primaryKey.setTable_db(DB_NAME);
-    PrimaryKeysResponse primaryKeysResponse = new PrimaryKeysResponse(Arrays.asList(primaryKey));
+    PrimaryKeysResponse primaryKeysResponse = new PrimaryKeysResponse(Collections.singletonList(primaryKey));
     PrimaryKeysResponse result = databaseMapping.transformOutboundPrimaryKeysResponse(primaryKeysResponse);
     assertThat(result, is(sameInstance(primaryKeysResponse)));
     assertThat(result.getPrimaryKeys().size(), is(1));
@@ -646,13 +647,13 @@ public class DatabaseMappingImplTest {
     GrantRevokePrivilegeRequest result = databaseMapping
         .transformInboundGrantRevokePrivilegesRequest(grantRevokePrivilegeRequest);
     assertThat(result, is(sameInstance(grantRevokePrivilegeRequest)));
-    PrivilegeBag resultPriviligeBag = result.getPrivileges();
-    assertThat(resultPriviligeBag, is(sameInstance(privilegeBag)));
-    assertHiveObjectPrivileges(resultPriviligeBag.getPrivileges(), IN_DB_NAME);
+    PrivilegeBag resultPrivilegeBag = result.getPrivileges();
+    assertThat(resultPrivilegeBag, is(sameInstance(privilegeBag)));
+    assertHiveObjectPrivileges(resultPrivilegeBag.getPrivileges(), IN_DB_NAME);
   }
 
   @Test
-  public void transformInboundGrantRevokePrivilegesRequestPriviligeBagNotSet() throws Exception {
+  public void transformInboundGrantRevokePrivilegesRequestPrivilegeBagNotSet() throws Exception {
     GrantRevokePrivilegeRequest grantRevokePrivilegeRequest = new GrantRevokePrivilegeRequest();
     GrantRevokePrivilegeRequest result = databaseMapping
         .transformInboundGrantRevokePrivilegesRequest(grantRevokePrivilegeRequest);
@@ -764,11 +765,11 @@ public class DatabaseMappingImplTest {
   public void transformInboundGetTablesRequest() throws Exception {
     GetTablesRequest request = new GetTablesRequest();
     request.setDbName(DB_NAME);
-    request.setTblNames(Arrays.asList(TABLE_NAME));
+    request.setTblNames(Collections.singletonList(TABLE_NAME));
     GetTablesRequest transformedRequest = databaseMapping.transformInboundGetTablesRequest(request);
     assertThat(transformedRequest, is(sameInstance(request)));
     assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
-    assertThat(transformedRequest.getTblNames(), is(Arrays.asList(TABLE_NAME)));
+    assertThat(transformedRequest.getTblNames(), is(Collections.singletonList(TABLE_NAME)));
   }
 
   @Test

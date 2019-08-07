@@ -65,14 +65,11 @@ public class FederatedHMSHandlerFactory {
   private MappingEventListener createDatabaseMappingService() {
     switch (waggleDanceConfiguration.getDatabaseResolution()) {
     case MANUAL:
-      final StaticDatabaseMappingService prefixAvoidingService = new StaticDatabaseMappingService(
-          metaStoreMappingFactory, notifyingFederationService.getAll());
-      return prefixAvoidingService;
+      return new StaticDatabaseMappingService(metaStoreMappingFactory, notifyingFederationService.getAll());
 
     case PREFIXED:
-      final PrefixBasedDatabaseMappingService prefixBasedService = new PrefixBasedDatabaseMappingService(
-          metaStoreMappingFactory, notifyingFederationService.getAll(), queryMapping);
-      return prefixBasedService;
+      return new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, notifyingFederationService.getAll(),
+          queryMapping);
 
     default:
       throw new WaggleDanceException("Cannot instantiate databaseMappingService for prefixType '"
@@ -80,4 +77,5 @@ public class FederatedHMSHandlerFactory {
           + "'");
     }
   }
+
 }
