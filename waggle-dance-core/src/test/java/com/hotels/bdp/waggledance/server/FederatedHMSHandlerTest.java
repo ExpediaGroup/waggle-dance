@@ -31,11 +31,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.TableType;
+import org.apache.hadoop.hive.metastore.api.AbortTxnRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.AggrStats;
+import org.apache.hadoop.hive.metastore.api.CheckLockRequest;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
+import org.apache.hadoop.hive.metastore.api.CommitTxnRequest;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
 import org.apache.hadoop.hive.metastore.api.CompactionResponse;
 import org.apache.hadoop.hive.metastore.api.CompactionType;
@@ -47,6 +50,8 @@ import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.GetOpenTxnsInfoResponse;
+import org.apache.hadoop.hive.metastore.api.GetOpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.GetPrincipalsInRoleRequest;
 import org.apache.hadoop.hive.metastore.api.GetRoleGrantsForPrincipalRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
@@ -57,10 +62,18 @@ import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeResponse;
 import org.apache.hadoop.hive.metastore.api.GrantRevokeRoleRequest;
 import org.apache.hadoop.hive.metastore.api.GrantRevokeType;
+import org.apache.hadoop.hive.metastore.api.HeartbeatRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
+import org.apache.hadoop.hive.metastore.api.LockComponent;
+import org.apache.hadoop.hive.metastore.api.LockLevel;
+import org.apache.hadoop.hive.metastore.api.LockRequest;
+import org.apache.hadoop.hive.metastore.api.LockResponse;
+import org.apache.hadoop.hive.metastore.api.LockType;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.OpenTxnRequest;
+import org.apache.hadoop.hive.metastore.api.OpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
@@ -74,11 +87,14 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
+import org.apache.hadoop.hive.metastore.api.ShowLocksRequest;
+import org.apache.hadoop.hive.metastore.api.ShowLocksResponse;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.TableStatsResult;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.hadoop.hive.metastore.api.Type;
+import org.apache.hadoop.hive.metastore.api.UnlockRequest;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
@@ -1274,7 +1290,7 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_principals_in_role() throws TException{
+  public void get_principals_in_role() throws TException {
     GetPrincipalsInRoleRequest request = new GetPrincipalsInRoleRequest();
     handler.get_principals_in_role(request);
     verify(primaryClient).get_principals_in_role(request);
@@ -1344,5 +1360,111 @@ public class FederatedHMSHandlerTest {
     GrantRevokePrivilegeResponse response = handler.grant_revoke_privileges(request);
     assertThat(response, is(expected));
     verify(primaryMapping).checkWritePermissions(DB_P);
+  }
+
+  @Test
+  public void get_delegation_token() throws TException {
+    String expected = "expected";
+    when(primaryClient.get_delegation_token("owner", "kerberos_principal")).thenReturn(expected);
+    String result = handler.get_delegation_token("owner", "kerberos_principal");
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void renew_delegation_token() throws TException {
+    long expected = 10L;
+    when(primaryClient.renew_delegation_token("token")).thenReturn(expected);
+    long result = handler.renew_delegation_token("token");
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void cancel_delegation_token() throws TException {
+    handler.cancel_delegation_token("token");
+    verify(primaryClient).cancel_delegation_token("token");
+  }
+
+  @Test
+  public void get_open_txns() throws TException {
+    GetOpenTxnsResponse expected = new GetOpenTxnsResponse();
+    when(primaryClient.get_open_txns()).thenReturn(expected);
+    GetOpenTxnsResponse result = handler.get_open_txns();
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_open_txns_info() throws TException {
+    GetOpenTxnsInfoResponse expected = new GetOpenTxnsInfoResponse();
+    when(primaryClient.get_open_txns_info()).thenReturn(expected);
+    GetOpenTxnsInfoResponse result = handler.get_open_txns_info();
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void open_txns() throws TException {
+    OpenTxnRequest request = new OpenTxnRequest();
+    OpenTxnsResponse expected = new OpenTxnsResponse();
+    when(primaryClient.open_txns(request)).thenReturn(expected);
+    OpenTxnsResponse result = handler.open_txns(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void abort_txn() throws TException {
+    AbortTxnRequest request = new AbortTxnRequest();
+    handler.abort_txn(request);
+    verify(primaryClient).abort_txn(request);
+  }
+
+  @Test
+  public void commit_txn() throws TException {
+    CommitTxnRequest request = new CommitTxnRequest();
+    handler.commit_txn(request);
+    verify(primaryClient).commit_txn(request);
+  }
+
+  @Test
+  public void lock() throws TException {
+    LockComponent lockComponent = new LockComponent(LockType.EXCLUSIVE, LockLevel.DB, DB_P);
+    LockRequest lockRequest = new LockRequest(Collections.singletonList(lockComponent), "user", "host");
+    LockRequest inboundRequest = new LockRequest();
+    LockResponse expected = new LockResponse();
+    when(primaryMapping.transformInboundLockRequest(lockRequest)).thenReturn(inboundRequest);
+    when(primaryClient.lock(inboundRequest)).thenReturn(expected);
+    LockResponse result = handler.lock(lockRequest);
+    assertThat(result, is(expected));
+    verify(primaryMapping).checkWritePermissions(DB_P);
+  }
+
+  @Test
+  public void check_lock() throws TException {
+    CheckLockRequest request = new CheckLockRequest();
+    LockResponse expected = new LockResponse();
+    when(primaryClient.check_lock(request)).thenReturn(expected);
+    LockResponse result = handler.check_lock(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void unlock() throws TException {
+    UnlockRequest request = new UnlockRequest();
+    handler.unlock(request);
+    verify(primaryClient).unlock(request);
+  }
+
+  @Test
+  public void show_locks() throws TException {
+    ShowLocksRequest request = new ShowLocksRequest();
+    ShowLocksResponse expected = new ShowLocksResponse();
+    when(primaryClient.show_locks(request)).thenReturn(expected);
+    ShowLocksResponse result = handler.show_locks(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void heartbeat() throws TException {
+    HeartbeatRequest request = new HeartbeatRequest();
+    handler.heartbeat(request);
+    verify(primaryClient).heartbeat(request);
   }
 }
