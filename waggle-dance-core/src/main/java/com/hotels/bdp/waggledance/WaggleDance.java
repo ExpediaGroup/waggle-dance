@@ -49,14 +49,14 @@ import com.hotels.bdp.waggledance.manifest.ManifestAttributes;
 public class WaggleDance {
   private static final Logger LOG = LoggerFactory.getLogger(WaggleDance.class);
 
-  public static interface ContextListener {
+  public interface ContextListener {
     void onStart(ApplicationContext context);
 
     void onStop(ApplicationContext context);
   }
 
   private static final List<ContextListener> CONTEXT_LISTENERS = Collections
-      .synchronizedList(new ArrayList<ContextListener>());
+      .synchronizedList(new ArrayList<>());
 
   public static void main(String[] args) throws Exception {
     // below is output *before* logging is configured so will appear on console
@@ -88,23 +88,17 @@ public class WaggleDance {
   private static SpringApplication registerListeners(SpringApplication application) {
     // Ref:
     // http://docs.spring.io/spring/docs/4.3.x/spring-framework-reference/html/beans.html#context-functionality-events
-    application.addListeners(new ApplicationListener<ContextRefreshedEvent>() {
-      @Override
-      public void onApplicationEvent(ContextRefreshedEvent event) {
-        synchronized (CONTEXT_LISTENERS) {
-          for (ContextListener contextListener : CONTEXT_LISTENERS) {
-            contextListener.onStart(event.getApplicationContext());
-          }
+    application.addListeners((ApplicationListener<ContextRefreshedEvent>) event -> {
+      synchronized (CONTEXT_LISTENERS) {
+        for (ContextListener contextListener : CONTEXT_LISTENERS) {
+          contextListener.onStart(event.getApplicationContext());
         }
       }
     });
-    application.addListeners(new ApplicationListener<ContextClosedEvent>() {
-      @Override
-      public void onApplicationEvent(ContextClosedEvent event) {
-        synchronized (CONTEXT_LISTENERS) {
-          for (ContextListener contextListener : CONTEXT_LISTENERS) {
-            contextListener.onStop(event.getApplicationContext());
-          }
+    application.addListeners((ApplicationListener<ContextClosedEvent>) event -> {
+      synchronized (CONTEXT_LISTENERS) {
+        for (ContextListener contextListener : CONTEXT_LISTENERS) {
+          contextListener.onStop(event.getApplicationContext());
         }
       }
     });

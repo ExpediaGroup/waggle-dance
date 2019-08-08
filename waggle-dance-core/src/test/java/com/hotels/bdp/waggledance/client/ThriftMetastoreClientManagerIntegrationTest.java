@@ -15,7 +15,7 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -37,8 +37,9 @@ public class ThriftMetastoreClientManagerIntegrationTest {
   private final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory = new HiveCompatibleThriftHiveMetastoreIfaceFactory();
   private final HiveConf hiveConf = new HiveConf();
   private final int connectionTimeout = 10;
+  private final String databaseName = "dbname";
 
-  public @Rule ThriftHiveMetaStoreJUnitRule hive = new ThriftHiveMetaStoreJUnitRule("dbname");
+  public @Rule ThriftHiveMetaStoreJUnitRule hive = new ThriftHiveMetaStoreJUnitRule(databaseName);
   private ThriftMetastoreClientManager manager;
 
   @Before
@@ -51,16 +52,14 @@ public class ThriftMetastoreClientManagerIntegrationTest {
   @Test
   public void open() throws Exception {
     manager.open();
-
-    Database database = manager.getClient().get_database("dbname");
+    Database database = manager.getClient().get_database(databaseName);
     assertNotNull(database);
   }
 
   @Test
   public void reconnect() throws Exception {
     manager.reconnect();
-
-    Database database = manager.getClient().get_database("dbname");
+    Database database = manager.getClient().get_database(databaseName);
     assertNotNull(database);
   }
 

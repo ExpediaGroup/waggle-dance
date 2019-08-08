@@ -15,10 +15,9 @@
  */
 package com.hotels.bdp.waggledance.server;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
-import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
@@ -41,12 +39,11 @@ import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationServic
 @RunWith(MockitoJUnitRunner.class)
 public class FederatedHMSHandlerFactoryTest {
 
+  private final HiveConf hiveConf = new HiveConf();
   private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
   private @Mock NotifyingFederationService notifyingFederationService;
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
   private @Mock QueryMapping queryMapping;
-
-  private final HiveConf hiveConf = new HiveConf();
   private FederatedHMSHandlerFactory factory;
 
   @Before
@@ -72,7 +69,7 @@ public class FederatedHMSHandlerFactoryTest {
     assertThat(handler, is(instanceOf(FederatedHMSHandler.class)));
   }
 
-  @Test (expected = WaggleDanceException.class)
+  @Test(expected = WaggleDanceException.class)
   public void noMode() {
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
         waggleDanceConfiguration, queryMapping);

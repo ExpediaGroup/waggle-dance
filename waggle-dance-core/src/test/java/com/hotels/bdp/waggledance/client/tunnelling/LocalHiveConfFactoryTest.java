@@ -22,8 +22,6 @@ import static org.junit.Assert.assertThat;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 
 public class LocalHiveConfFactoryTest {
 

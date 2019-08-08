@@ -56,12 +56,17 @@ import org.apache.hadoop.hive.metastore.api.DropConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.FireEventResponse;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.GetFileMetadataByExprRequest;
+import org.apache.hadoop.hive.metastore.api.GetFileMetadataByExprResult;
+import org.apache.hadoop.hive.metastore.api.GetFileMetadataRequest;
+import org.apache.hadoop.hive.metastore.api.GetFileMetadataResult;
 import org.apache.hadoop.hive.metastore.api.GetOpenTxnsInfoResponse;
 import org.apache.hadoop.hive.metastore.api.GetOpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.GetPrincipalsInRoleRequest;
@@ -86,6 +91,8 @@ import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.LockResponse;
 import org.apache.hadoop.hive.metastore.api.LockType;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.NotificationEventRequest;
+import org.apache.hadoop.hive.metastore.api.NotificationEventResponse;
 import org.apache.hadoop.hive.metastore.api.OpenTxnRequest;
 import org.apache.hadoop.hive.metastore.api.OpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.Partition;
@@ -95,6 +102,8 @@ import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsResult;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
+import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
@@ -113,6 +122,7 @@ import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnlockRequest;
 import org.apache.thrift.TException;
+import org.iq80.leveldb.DB;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1659,7 +1669,8 @@ public class FederatedHMSHandlerTest {
     List<Partition> expected = Collections.emptyList();
     when(primaryMapping.transformInboundDatabaseName("dest_db")).thenReturn("dest_db");
     when(primaryMapping.transformOutboundPartitions(partitions)).thenReturn(expected);
-    when(primaryClient.exchange_partitions(partitionSpecs, DB_P, "source","dest_db", "dest_table")).thenReturn(partitions);
+    when(primaryClient.exchange_partitions(partitionSpecs, DB_P, "source", "dest_db", "dest_table")).thenReturn(
+        partitions);
     List<Partition> result = handler.exchange_partitions(partitionSpecs, DB_P, "source", "dest_db", "dest_table");
     verify(primaryMapping).checkWritePermissions(DB_P);
     verify(primaryMapping).checkWritePermissions("dest_db");
@@ -1675,6 +1686,86 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundFireEventRequest(request)).thenReturn(inboundRequest);
     when(primaryClient.fire_listener_event(inboundRequest)).thenReturn(expected);
     FireEventResponse result = handler.fire_listener_event(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_all_token_identifiers() throws TException {
+    List<String> expected = Arrays.asList("token1", "token2");
+    when(primaryClient.get_all_token_identifiers()).thenReturn(expected);
+    List<String> result = handler.get_all_token_identifiers();
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_current_notificationEventId() throws TException {
+    handler.get_current_notificationEventId();
+    verify(primaryClient).get_current_notificationEventId();
+  }
+
+  @Test
+  public void get_fields_with_environment_context() throws TException {
+    EnvironmentContext context = new EnvironmentContext();
+    List<FieldSchema> expected = Arrays.asList(new FieldSchema("name1", "type1", ""),
+        new FieldSchema("name2", "type2", ""));
+    when(primaryClient.get_fields_with_environment_context(DB_P, "table", context)).thenReturn(expected);
+    List<FieldSchema> result = handler.get_fields_with_environment_context(DB_P, "table", context);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_file_metadata() throws TException {
+    GetFileMetadataRequest request = new GetFileMetadataRequest();
+    GetFileMetadataResult expected = new GetFileMetadataResult();
+    when(primaryClient.get_file_metadata(request)).thenReturn(expected);
+    GetFileMetadataResult result = handler.get_file_metadata(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_file_metadata_by_expr() throws TException {
+    GetFileMetadataByExprRequest request = new GetFileMetadataByExprRequest();
+    GetFileMetadataByExprResult expected = new GetFileMetadataByExprResult();
+    when(primaryClient.get_file_metadata_by_expr(request)).thenReturn(expected);
+    GetFileMetadataByExprResult result = handler.get_file_metadata_by_expr(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_master_keys() throws TException {
+    List<String> expected = Arrays.asList("key1", "key2");
+    when(primaryClient.get_master_keys()).thenReturn(expected);
+    List<String> result = handler.get_master_keys();
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_next_notification() throws TException {
+    NotificationEventRequest request = new NotificationEventRequest();
+    NotificationEventResponse expected = new NotificationEventResponse();
+    when(primaryClient.get_next_notification(request)).thenReturn(expected);
+    NotificationEventResponse result = handler.get_next_notification(request);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_num_partitions_by_filter() throws TException {
+    int expected = 10;
+    when(primaryClient.get_num_partitions_by_filter(DB_P, "table", "filter")).thenReturn(expected);
+    int result = handler.get_num_partitions_by_filter(DB_P, "table", "filter");
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_primary_keys() throws TException {
+    PrimaryKeysRequest request = new PrimaryKeysRequest(DB_P, "table");
+    PrimaryKeysRequest inboundRequest = new PrimaryKeysRequest();
+    PrimaryKeysResponse response = new PrimaryKeysResponse();
+    PrimaryKeysResponse expected = new PrimaryKeysResponse();
+    when(primaryMapping.transformInboundPrimaryKeysRequest(request)).thenReturn(inboundRequest);
+    when(primaryMapping.transformOutboundPrimaryKeysResponse(response)).thenReturn(expected);
+    when(primaryClient.get_primary_keys(inboundRequest)).thenReturn(response);
+    PrimaryKeysResponse result = handler.get_primary_keys(request);
     assertThat(result, is(expected));
   }
 

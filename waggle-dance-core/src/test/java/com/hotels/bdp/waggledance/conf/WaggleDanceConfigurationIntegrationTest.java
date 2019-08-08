@@ -45,7 +45,7 @@ public class WaggleDanceConfigurationIntegrationTest {
     assertThat(waggleDanceConfiguration.getDisconnectConnectionDelay(), is(15));
     assertThat(waggleDanceConfiguration.getDisconnectTimeUnit(), is(TimeUnit.SECONDS));
 
-    Map<String, String> props = ImmutableMap.<String, String> builder().put("prop1", "val1").build();
+    Map<String, String> props = ImmutableMap.<String, String>builder().put("prop1", "val1").build();
     assertThat(waggleDanceConfiguration.getConfigurationProperties(), is(props));
   }
 

@@ -35,8 +35,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
-import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 
 @RunWith(MockitoJUnitRunner.class)

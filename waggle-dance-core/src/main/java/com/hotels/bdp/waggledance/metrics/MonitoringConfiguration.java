@@ -58,7 +58,7 @@ public class MonitoringConfiguration {
     if (!graphiteConfiguration.isEnabled()) {
       return new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM) {
         @Override
-        public void close() {};
+        public void close() {}
       };
     }
 

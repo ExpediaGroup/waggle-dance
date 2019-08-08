@@ -48,13 +48,13 @@ public class TunnelableFactorySupplierTest {
   }
 
   @Test
-  public void get() throws Exception {
+  public void get() {
     TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = supplier.get(metastoreTunnel);
     assertNotNull(tunnelableFactory);
   }
 
   @Test
-  public void buildSshSettings() throws Exception {
+  public void buildSshSettings() {
     SshSettings sshSettings = supplier.buildSshSettings(metastoreTunnel);
     assertThat(sshSettings.getRoute(), is(TUNNEL_ROUTE));
     assertThat(sshSettings.getPrivateKeys(), is(Lists.newArrayList(TUNNEL_PRIVATE_KEY)));

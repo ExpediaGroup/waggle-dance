@@ -16,7 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.never;

@@ -41,7 +41,7 @@ public class NotifyingFederationService implements FederationService {
 
   private static final Logger LOG = LoggerFactory.getLogger(NotifyingFederationService.class);
 
-  public static interface FederationEventListener {
+  public interface FederationEventListener {
     void onRegister(AbstractMetaStore federatedMetaStore);
 
     void onUnregister(AbstractMetaStore federatedMetaStore);
@@ -55,7 +55,7 @@ public class NotifyingFederationService implements FederationService {
   @Autowired
   public NotifyingFederationService(FederatedMetaStoreStorage federatedMetaStoreStorage) {
     this.federatedMetaStoreStorage = federatedMetaStoreStorage;
-    listeners = Collections.synchronizedList(new ArrayList<FederationEventListener>());
+    listeners = Collections.synchronizedList(new ArrayList<>());
   }
 
   @PostConstruct

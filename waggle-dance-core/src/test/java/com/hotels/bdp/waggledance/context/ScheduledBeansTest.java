@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,15 +44,12 @@ public class ScheduledBeansTest {
   private PollingFederationService pollingFederationService;
 
   @Test
-  public void polling() throws Exception {
+  public void polling() {
     final AtomicInteger pollCallCount = new AtomicInteger(0);
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        pollCallCount.incrementAndGet();
-        log.info("test poll called");
-        return null;
-      }
+    doAnswer((Answer<Void>) invocation -> {
+      pollCallCount.incrementAndGet();
+      log.info("test poll called");
+      return null;
     }).when(pollingFederationService).poll();
     await().pollDelay(5, MILLISECONDS).atMost(500, MILLISECONDS).untilAtomic(pollCallCount, greaterThan(0));
   }
