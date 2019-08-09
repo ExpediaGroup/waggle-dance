@@ -65,7 +65,8 @@ public class TunnelingMetaStoreClientFactory {
       MetastoreTunnel metastoreTunnel,
       String name,
       int reconnectionRetries,
-      int connectionTimeout) {
+      int connectionTimeout,
+      Map<String, String> configurationProperties) {
     String uri = uris;
     String[] urisSplit = uri.split(",");
     if (urisSplit.length > 1) {
@@ -77,7 +78,8 @@ public class TunnelingMetaStoreClientFactory {
 
     Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uri);
-    HiveConfFactory confFactory = new HiveConfFactory(Collections.<String>emptyList(), properties);
+    properties.putAll(configurationProperties);
+    HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     HiveConf localHiveConf = localHiveConfFactory.newInstance(localHost, localPort, confFactory.newInstance());
 
     TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactorySupplier

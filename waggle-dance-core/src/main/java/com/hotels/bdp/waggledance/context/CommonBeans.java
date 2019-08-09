@@ -21,6 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.context.annotation.Bean;
 
+import com.hotels.bdp.waggledance.WaggleDance;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
@@ -55,9 +56,9 @@ public class CommonBeans {
   }
 
   @Bean
-  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory() {
+  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory(WaggleDanceConfiguration waggleDanceConfiguration) {
     return new CloseableThriftHiveMetastoreIfaceClientFactory(new TunnelingMetaStoreClientFactory(),
-        new DefaultMetaStoreClientFactory());
+        new DefaultMetaStoreClientFactory(), waggleDanceConfiguration);
   }
 
   @Bean
