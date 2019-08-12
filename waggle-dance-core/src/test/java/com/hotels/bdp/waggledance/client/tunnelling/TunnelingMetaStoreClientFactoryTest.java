@@ -23,6 +23,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.junit.Before;
@@ -61,6 +65,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   private @Captor ArgumentCaptor<TunnelableSupplier<CloseableThriftHiveMetastoreIface>> tunnelableSupplierCaptor;
   private MetastoreTunnel metastoreTunnel;
   private TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
+  private Map<String, String> waggleDanceConfigurationProperties = new HashMap<>();
 
   @Before
   public void init() {
@@ -69,6 +74,12 @@ public class TunnelingMetaStoreClientFactoryTest {
     metastoreTunnel.setPrivateKeys(TUNNEL_PRIVATE_KEY);
     metastoreTunnel.setKnownHosts(TUNNEL_KNOWN_HOSTS);
     metastoreTunnel.setLocalhost(TUNNEL_LOCALHOST);
+
+    waggleDanceConfigurationProperties.put(ConfVars.METASTORETHRIFTCONNECTIONRETRIES.varname, "5");
+    waggleDanceConfigurationProperties.put(ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT.varname, "6");
+    waggleDanceConfigurationProperties.put(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY.varname, "5");
+    waggleDanceConfigurationProperties.put(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT.varname, "true");
+    waggleDanceConfigurationProperties.put(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL.varname, "false");
 
     when(localHiveConfFactory.newInstance(any(String.class), any(Integer.class), any(HiveConf.class)))
         .thenReturn(localHiveConf);
@@ -84,7 +95,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   @Test
   public void newInstance() {
     tunnelingMetaStoreClientFactory.newInstance(METASTORE_URI, metastoreTunnel, NAME, RECONNECTION_RETRIES,
-        CONNECTION_TIMEOUT);
+        CONNECTION_TIMEOUT, waggleDanceConfigurationProperties);
     verify(tunnelableFactory)
         .wrap(tunnelableSupplierCaptor.capture(), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER),
             eq(metastoreTunnel.getLocalhost()), anyInt(), eq(METASTORE_HOST), eq(METASTORE_PORT));
@@ -96,7 +107,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   public void newInstanceMultipleUris() {
     String metastoreUris = METASTORE_URI + ",thrift://metastore-host2:43";
     tunnelingMetaStoreClientFactory.newInstance(metastoreUris, metastoreTunnel, NAME, RECONNECTION_RETRIES,
-        CONNECTION_TIMEOUT);
+        CONNECTION_TIMEOUT, waggleDanceConfigurationProperties);
     verify(tunnelableFactory)
         .wrap(tunnelableSupplierCaptor.capture(), eq(tunnelingMetaStoreClientFactory.METHOD_CHECKER),
             eq(metastoreTunnel.getLocalhost()), anyInt(), eq(METASTORE_HOST), eq(METASTORE_PORT));
@@ -107,7 +118,7 @@ public class TunnelingMetaStoreClientFactoryTest {
   @Test
   public void localHiveConfigUsesCorrectParameters() {
     tunnelingMetaStoreClientFactory.newInstance(METASTORE_URI, metastoreTunnel, NAME, RECONNECTION_RETRIES,
-        CONNECTION_TIMEOUT);
+        CONNECTION_TIMEOUT, waggleDanceConfigurationProperties);
     ArgumentCaptor<String> localHostCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
     // we get random assigned free port for local port
@@ -115,5 +126,10 @@ public class TunnelingMetaStoreClientFactoryTest {
     assertThat(localHostCaptor.getValue(), is(TUNNEL_LOCALHOST));
     HiveConf hiveConf = hiveConfCaptor.getValue();
     assertThat(hiveConf.get(ConfVars.METASTOREURIS.varname), is(METASTORE_URI));
+    assertThat(hiveConf.getIntVar(ConfVars.METASTORETHRIFTCONNECTIONRETRIES), is(5));
+    assertThat(hiveConf.getTimeVar(ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, TimeUnit.MILLISECONDS), is(6000L));
+    assertThat(hiveConf.getTimeVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY, TimeUnit.SECONDS), is(5L));
+    assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT), is(true));
+    assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL), is(false));
   }
 }
