@@ -1164,7 +1164,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       mapping = databaseMappingService.databaseMapping(hiveObject.getDbName());
     }
     return mapping.getClient().get_privilege_set(mapping.transformInboundHiveObjectRef(hiveObject), user_name,
-        group_names);
+            group_names);
   }
 
   @Override
