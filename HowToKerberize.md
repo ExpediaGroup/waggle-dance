@@ -40,9 +40,6 @@ Besides Waggle Dance needs a keytab file to communicate with the Metastore so fo
 </property>
 ```
 
-String useBeeline
-
-
 If you are intending to use a beeline client, following properties may be valuable:
 ```
 <property>

@@ -40,16 +40,6 @@ public class WaggleDanceConfiguration {
   private Map<String, String> configurationProperties;
   private @NotNull DatabaseResolution databaseResolution = DatabaseResolution.MANUAL;
 
-//  //Kerberos environment properties
-//  private String securityAuthentication = "SIMPLE";
-    //configuration-properties.hive.metastore.sasl.enabled=true
-//  private boolean enableSASL = false;
-   // configuration-properties.hadoop.security.authentication=KERBEROS
-//  private  String kerberosPrincipal;
-//  private String keytabFile;
-//  private boolean useBeeline = false;
-//  private String metastoreTockenSignature;
-
   // Defaults taken from org.apache.thrift.server.TThreadPoolServer
   // Cannot set the unit but it is in seconds.
   private int thriftServerStopTimeoutValInSeconds = 60;
@@ -57,54 +47,6 @@ public class WaggleDanceConfiguration {
   private TimeUnit thriftServerRequestTimeoutUnit = TimeUnit.SECONDS;
   private int statusPollingDelay = 5;
   private TimeUnit statusPollingDelayTimeUnit = TimeUnit.MINUTES;
-
-//  public boolean isEnableSASL() {
-//    return enableSASL;
-//  }
-//
-//  public void setEnableSASL(boolean enableSASL) {
-//    this.enableSASL = enableSASL;
-//  }
-//
-//  public String getSecurityAuthentication() {
-//    return securityAuthentication;
-//  }
-//
-//  public void setSecurityAuthentication(String securityAuthentication) {
-//    this.securityAuthentication = securityAuthentication;
-//  }
-//
-//  public String getKerberosPrincipal() {
-//    return kerberosPrincipal;
-//  }
-//
-//  public void setKerberosPrincipal(String kerberosPrincipal) {
-//    this.kerberosPrincipal = kerberosPrincipal;
-//  }
-//
-//  public String getKeytabFile() {
-//    return keytabFile;
-//  }
-//
-//  public void setKeytabFile(String keytabFile) {
-//    this.keytabFile = keytabFile;
-//  }
-//
-//  public boolean isUseBeeline() {
-//    return useBeeline;
-//  }
-//
-//  public void setUseBeeline(boolean useBeeline) {
-//    this.useBeeline = useBeeline;
-//  }
-//
-//  public String getMetastoreTockenSignature() {
-//    return metastoreTockenSignature;
-//  }
-//
-//  public void setMetastoreTockenSignature(String metastoreTockenSignature) {
-//    this.metastoreTockenSignature = metastoreTockenSignature;
-//  }
 
   public Integer getPort() {
     return port;
