@@ -323,7 +323,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       String dbname,
       String name,
       boolean deleteData,
-      EnvironmentContext environment_context) throws NoSuchObjectException, MetaException, TException {
+      EnvironmentContext environment_context)
+      throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissions(dbname);
     mapping
         .getClient()
@@ -395,7 +396,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       String dbname,
       String tbl_name,
       Table new_tbl,
-      EnvironmentContext environment_context) throws InvalidOperationException, MetaException, TException {
+      EnvironmentContext environment_context)
+      throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissions(dbname);
     mapping.checkWritePermissions(new_tbl.getDbName());
     mapping
@@ -541,7 +543,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       String tbl_name,
       List<String> part_vals,
       boolean deleteData,
-      EnvironmentContext environment_context) throws NoSuchObjectException, MetaException, TException {
+      EnvironmentContext environment_context)
+      throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissions(db_name);
     return mapping
         .getClient()
@@ -566,7 +569,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       String tbl_name,
       String part_name,
       boolean deleteData,
-      EnvironmentContext environment_context) throws NoSuchObjectException, MetaException, TException {
+      EnvironmentContext environment_context)
+      throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissions(db_name);
     return mapping
         .getClient()
@@ -620,7 +624,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       String tbl_name,
       List<String> part_vals,
       String user_name,
-      List<String> group_names) throws MetaException, NoSuchObjectException, TException {
+      List<String> group_names)
+      throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
     Partition partition = mapping
         .getClient()
@@ -641,7 +646,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend = true)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions(String db_name, String tbl_name, short max_parts)
       throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -652,13 +657,14 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend = true)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_with_auth(
       String db_name,
       String tbl_name,
       short max_parts,
       String user_name,
-      List<String> group_names) throws NoSuchObjectException, MetaException, TException {
+      List<String> group_names)
+      throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
     List<Partition> partitions = mapping
         .getClient()
@@ -668,7 +674,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend = true)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<PartitionSpec> get_partitions_pspec(String db_name, String tbl_name, int max_parts)
       throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -687,7 +693,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend = true)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_ps(String db_name, String tbl_name, List<String> part_vals, short max_parts)
       throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -698,14 +704,15 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend = true)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_ps_with_auth(
       String db_name,
       String tbl_name,
       List<String> part_vals,
       short max_parts,
       String user_name,
-      List<String> group_names) throws NoSuchObjectException, MetaException, TException {
+      List<String> group_names)
+      throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
     List<Partition> partitions = mapping
         .getClient()
@@ -725,7 +732,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend = true)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_by_filter(String db_name, String tbl_name, String filter, short max_parts)
       throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -736,7 +743,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend = true)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<PartitionSpec> get_part_specs_by_filter(String db_name, String tbl_name, String filter, int max_parts)
       throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -758,7 +765,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend = true)
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME, prepend=true)
   public List<Partition> get_partitions_by_names(String db_name, String tbl_name, List<String> names)
       throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
@@ -800,7 +807,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       String db_name,
       String tbl_name,
       Partition new_part,
-      EnvironmentContext environment_context) throws InvalidOperationException, MetaException, TException {
+      EnvironmentContext environment_context)
+      throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissions(db_name);
     mapping.checkWritePermissions(new_part.getDbName());
     mapping
@@ -1107,7 +1115,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       PrincipalType principal_type,
       String grantor,
       PrincipalType grantorType,
-      boolean grant_option) throws MetaException, TException {
+      boolean grant_option)
+      throws MetaException, TException {
     return getPrimaryClient().grant_role(role_name, principal_name, principal_type, grantor, grantorType, grant_option);
   }
 
@@ -1154,8 +1163,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     } else {
       mapping = databaseMappingService.databaseMapping(hiveObject.getDbName());
     }
-    return mapping.getClient()
-        .get_privilege_set(mapping.transformInboundHiveObjectRef(hiveObject), user_name, group_names);
+    return mapping.getClient().get_privilege_set(mapping.transformInboundHiveObjectRef(hiveObject), user_name,
+        group_names);
   }
 
   @Override
@@ -1163,7 +1172,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public List<HiveObjectPrivilege> list_privileges(
       String principal_name,
       PrincipalType principal_type,
-      HiveObjectRef hiveObject) throws MetaException, TException {
+      HiveObjectRef hiveObject)
+      throws MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(hiveObject.getDbName());
     List<HiveObjectPrivilege> privileges = mapping
         .getClient()
@@ -1285,8 +1295,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public LockResponse check_lock(CheckLockRequest rqst) throws NoSuchTxnException, TxnAbortedException,
-      NoSuchLockException, TException {
+  public LockResponse check_lock(CheckLockRequest rqst)
+      throws NoSuchTxnException, TxnAbortedException, NoSuchLockException, TException {
     return getPrimaryClient().check_lock(rqst);
   }
 
@@ -1407,7 +1417,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       String db_name,
       String tbl_name,
       List<Partition> new_parts,
-      EnvironmentContext environment_context) throws InvalidOperationException, MetaException, TException {
+      EnvironmentContext environment_context)
+      throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissions(db_name);
     mapping
         .getClient()
