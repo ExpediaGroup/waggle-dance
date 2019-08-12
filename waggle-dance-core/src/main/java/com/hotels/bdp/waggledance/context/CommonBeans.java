@@ -39,7 +39,7 @@ public class CommonBeans {
   public HiveConf hiveConf(WaggleDanceConfiguration waggleDanceConfiguration) {
     Map<String, String> confProps = waggleDanceConfiguration.getConfigurationProperties();
 
-    final HiveConf hiveConf = new HiveConf(new Configuration(), getClass());
+    final HiveConf hiveConf = new HiveConf(new Configuration(false), getClass());
     // set all properties specified on the command line
     if (confProps != null) {
       for (Map.Entry<String, String> entry : confProps.entrySet()) {
@@ -55,9 +55,9 @@ public class CommonBeans {
   }
 
   @Bean
-  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory() {
+  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory(WaggleDanceConfiguration waggleDanceConfiguration) {
     return new CloseableThriftHiveMetastoreIfaceClientFactory(new TunnelingMetaStoreClientFactory(),
-        new DefaultMetaStoreClientFactory());
+        new DefaultMetaStoreClientFactory(), waggleDanceConfiguration);
   }
 
   @Bean

@@ -22,6 +22,7 @@ the Hive configuration file *hive-site.xml*:
   <value>KERBEROS</value>
 </property>
 ```
+
  
 Besides Waggle Dance needs a keytab file to communicate with the Metastore so following properties should be present:
 ```
@@ -38,6 +39,9 @@ Besides Waggle Dance needs a keytab file to communicate with the Metastore so fo
   <value>/etc/hive.keytab</value>
 </property>
 ```
+
+String useBeeline
+
 
 If you are intending to use a beeline client, following properties may be valuable:
 ```

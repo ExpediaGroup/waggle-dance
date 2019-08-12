@@ -139,7 +139,7 @@ class ThriftMetastoreClientManager implements Closeable {
                     .getTokenTransport(tokenStrForm, store.getHost(), transport,
                         MetaStoreUtils.getMetaStoreSaslProperties(conf));
               } else {
-                String principalConfig = conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL);
+                String principalConfig = conf.getVar(ConfVars.METASTORE_KERBEROS_PRINCIPAL);
                 transport = KerberosSaslHelper
                     .getKerberosTransport(principalConfig, store.getHost(), transport,
                         MetaStoreUtils.getMetaStoreSaslProperties(conf), false);
