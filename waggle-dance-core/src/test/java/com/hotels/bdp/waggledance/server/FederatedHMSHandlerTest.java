@@ -94,7 +94,7 @@ public class FederatedHMSHandlerTest {
   private FederatedHMSHandler handler;
 
   @Before
-  public void setUp() {
+  public void setUp() throws NoSuchObjectException {
     handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService);
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
     when(databaseMappingService.getDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
@@ -850,7 +850,7 @@ public class FederatedHMSHandlerTest {
     SQLForeignKey key = new SQLForeignKey();
     key.setFktable_db(DB_S);
     key.setFktable_name("table");
-    ForeignKeysResponse response = new ForeignKeysResponse(Arrays.asList(key));
+    ForeignKeysResponse response = new ForeignKeysResponse(Collections.singletonList(key));
 
     when(databaseMappingService.databaseMapping(request.getForeign_db_name())).thenReturn(primaryMapping);
     when(primaryMapping.transformInboundForeignKeysRequest(request)).thenReturn(request);

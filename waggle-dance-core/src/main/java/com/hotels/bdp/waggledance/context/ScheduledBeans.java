@@ -42,7 +42,7 @@ public class ScheduledBeans implements SchedulingConfigurer {
 
   @Override
   public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
-    Runnable task = () -> pollingFederationService.poll();
+    Runnable task = pollingFederationService::poll;
     long delay = waggleDanceConfiguration
         .getStatusPollingDelayTimeUnit()
         .toMillis(waggleDanceConfiguration.getStatusPollingDelay());

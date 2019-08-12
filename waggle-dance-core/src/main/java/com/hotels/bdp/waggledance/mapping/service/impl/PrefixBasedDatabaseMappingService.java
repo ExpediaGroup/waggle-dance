@@ -20,7 +20,6 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +32,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
@@ -43,7 +43,6 @@ import com.google.common.collect.ImmutableList.Builder;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
-import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
@@ -67,9 +66,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private static final String EMPTY_PREFIX = "";
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
+  private final Map<String, DatabaseMapping> mappingsByPrefix;
+  private final Map<String, Whitelist> mappedDbByPrefix;
   private DatabaseMapping primaryDatabaseMapping;
-  private Map<String, DatabaseMapping> mappingsByPrefix;
-  private Map<String, Whitelist> mappedDbByPrefix;
 
   public PrefixBasedDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
@@ -77,35 +76,24 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       QueryMapping queryMapping) {
     this.metaStoreMappingFactory = metaStoreMappingFactory;
     this.queryMapping = queryMapping;
-    init(initialMetastores);
-  }
-
-  private void init(List<AbstractMetaStore> federatedMetaStores) {
     mappingsByPrefix = Collections.synchronizedMap(new LinkedHashMap<>());
     mappedDbByPrefix = new ConcurrentHashMap<>();
-    for (AbstractMetaStore federatedMetaStore : federatedMetaStores) {
-      add(federatedMetaStore);
+    for (AbstractMetaStore abstractMetaStore : initialMetastores) {
+      add(abstractMetaStore);
     }
   }
 
-  private void add(AbstractMetaStore federatedMetaStore) {
-    MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(federatedMetaStore);
+  private void add(AbstractMetaStore metaStore) {
+    MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
+    DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
 
-    if (federatedMetaStore.getFederationType() == PRIMARY) {
-      primaryDatabaseMapping = createDatabaseMapping(metaStoreMapping);
-      mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), primaryDatabaseMapping);
-    } else {
-      mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), createDatabaseMapping(metaStoreMapping));
-      Whitelist mappedDbWhitelist;
-      if (FederatedMetaStore.class.isAssignableFrom(federatedMetaStore.getClass())) {
-        mappedDbWhitelist = getWhitelistedDatabases((FederatedMetaStore) federatedMetaStore);
-        mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
-      }
+    if (metaStore.getFederationType() == PRIMARY) {
+      primaryDatabaseMapping = databaseMapping;
     }
-  }
 
-  private Whitelist getWhitelistedDatabases(FederatedMetaStore federatedMetaStore) {
-    return new Whitelist(federatedMetaStore.getMappedDatabases());
+    mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), databaseMapping);
+    Whitelist mappedDbWhitelist = new Whitelist(metaStore.getMappedDatabases());
+    mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
   }
 
   private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
@@ -115,11 +103,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     return new DatabaseMappingImpl(metaStoreMapping, queryMapping);
   }
 
-  private void remove(AbstractMetaStore federatedMetaStore) {
-    if (federatedMetaStore.getFederationType() == PRIMARY) {
+  private void remove(AbstractMetaStore metaStore) {
+    if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = null;
     }
-    DatabaseMapping removed = mappingsByPrefix.remove(metaStoreMappingFactory.prefixNameFor(federatedMetaStore));
+    DatabaseMapping removed = mappingsByPrefix.remove(metaStoreMappingFactory.prefixNameFor(metaStore));
     IOUtils.closeQuietly(removed);
   }
 
@@ -155,11 +143,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public void onUnregister(AbstractMetaStore federatedMetaStore) {
+  public void onUnregister(AbstractMetaStore metaStore) {
     // Synchronizing on the mappingsByPrefix map field so we ensure the implemented FederationEventListener methods are
     // processes sequentially
     synchronized (mappingsByPrefix) {
-      remove(federatedMetaStore);
+      remove(metaStore);
     }
   }
 
@@ -178,16 +166,14 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
         && isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
+        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
   }
 
   @Override
-  public DatabaseMapping databaseMapping(@NotNull String databaseName) {
+  public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
     // Find a Metastore with a prefix
     synchronized (mappingsByPrefix) {
-      Iterator<Entry<String, DatabaseMapping>> iterator = mappingsByPrefix.entrySet().iterator();
-      while (iterator.hasNext()) {
-        Entry<String, DatabaseMapping> entry = iterator.next();
+      for (Entry<String, DatabaseMapping> entry : mappingsByPrefix.entrySet()) {
         String metastorePrefix = entry.getKey();
         if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
           DatabaseMapping databaseMapping = entry.getValue();
@@ -208,8 +194,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     }
     if (primaryDatabaseMapping != null) {
       // If none found we fall back to primary one
-      LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-      return primaryDatabaseMapping;
+      if (includeInResults(primaryDatabaseMapping, databaseName)) {
+        LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+        return primaryDatabaseMapping;
+      }
+
+      throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
     }
     LOG.debug("Database Name `{}` not mapped", databaseName);
     throw new NoPrimaryMetastoreException(
@@ -257,7 +247,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private boolean isWhitelisted(String databasePrefix, String database) {
     Whitelist whitelist = mappedDbByPrefix.get(databasePrefix);
-    if ((whitelist == null) || whitelist.isEmpty()) {
+    if (whitelist == null) {
       // Accept everything
       return true;
     }
@@ -350,4 +340,5 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       }
     }
   }
+
 }

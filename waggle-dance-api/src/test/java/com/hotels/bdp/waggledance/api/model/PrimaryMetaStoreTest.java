@@ -16,7 +16,7 @@
 package com.hotels.bdp.waggledance.api.model;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
 
   @Test
   public void toJson() throws Exception {
-    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databasePrefix\":\"\",\"federationType\":\"PRIMARY\",\"latency\":0,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
+    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databasePrefix\":\"\",\"federationType\":\"PRIMARY\",\"latency\":0,\"mappedDatabases\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
     ObjectMapper mapper = new ObjectMapper();
     // Sorting to get deterministic test behaviour
     mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
@@ -110,7 +110,7 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
   }
 
   @Test
-  public void constructorWithArrayListForWhtelist() {
+  public void constructorWithArrayListForWhitelist() {
     whitelist.add("databaseOne");
     whitelist.add("databaseTwo");
     PrimaryMetaStore store = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, whitelist);
@@ -119,4 +119,5 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
     assertThat(store.getAccessControlType(), is(accessControlType));
     assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
   }
+
 }

@@ -26,7 +26,7 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ObjectError;
 
@@ -34,7 +34,6 @@ import org.springframework.validation.ObjectError;
 public class ValidationErrorTest {
 
   private @Mock Errors errors;
-  private @Mock ValidationError validationError;
 
   @Test
   public void builderTypical() {

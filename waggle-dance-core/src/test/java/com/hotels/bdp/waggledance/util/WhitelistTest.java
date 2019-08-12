@@ -15,9 +15,12 @@
  */
 package com.hotels.bdp.waggledance.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Collections;
 
 import org.junit.Test;
 
@@ -29,28 +32,34 @@ public class WhitelistTest {
   public void add() {
     Whitelist whitelist = new Whitelist();
     whitelist.add("db");
-    assertEquals(1, whitelist.size());
-  }
-
-  @Test
-  public void isEmpty() {
-    Whitelist whitelist = new Whitelist();
-    assertTrue(whitelist.isEmpty());
-    whitelist.add("db");
-    assertFalse(whitelist.isEmpty());
+    assertThat(whitelist.size(), is(1));
   }
 
   @Test
   public void containsTrue() {
-    Whitelist whitelist = new Whitelist(ImmutableList.<String> of("db_.*", "user"));
+    Whitelist whitelist = new Whitelist(ImmutableList.of("db_.*", "user"));
     assertTrue(whitelist.contains("db_test"));
     assertTrue(whitelist.contains("user"));
   }
 
   @Test
   public void containsFalse() {
-    Whitelist whitelist = new Whitelist(ImmutableList.<String> of("db_.*", "user"));
+    Whitelist whitelist = new Whitelist(ImmutableList.of("db_.*", "user"));
     assertFalse(whitelist.contains("foo"));
     assertFalse(whitelist.contains("users"));
+  }
+
+  @Test
+  public void addNull() {
+    Whitelist whitelist = new Whitelist(null);
+    assertThat(whitelist.size(), is(1));
+    assertThat(whitelist.contains("abc"), is(true));
+  }
+
+  @Test
+  public void addEmpty() {
+    Whitelist whitelist = new Whitelist(Collections.emptyList());
+    assertThat(whitelist.size(), is(0));
+    assertThat(whitelist.contains("abs"), is(false));
   }
 }

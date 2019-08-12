@@ -27,10 +27,10 @@ import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -41,8 +41,6 @@ import org.apache.commons.vfs2.VFS;
 import org.springframework.context.ApplicationContext;
 import org.yaml.snakeyaml.Yaml;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 
 import com.hotels.bdp.waggledance.api.model.AccessControlType;
@@ -112,7 +110,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
     public Builder configurationProperty(String key, String value) {
       if (waggleDanceConfiguration.getConfigurationProperties() == null) {
-        waggleDanceConfiguration.setConfigurationProperties(new HashMap<String, String>());
+        waggleDanceConfiguration.setConfigurationProperties(new HashMap<>());
       }
       waggleDanceConfiguration.getConfigurationProperties().put(key, value);
       return this;
@@ -152,7 +150,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
         String privateKeys,
         String knownHosts) {
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
-      federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
+      federatedMetaStore.setMappedDatabases(Collections.singletonList(mappableDatabases));
 
       MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
       metastoreTunnel.setRoute(route);
@@ -178,6 +176,11 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
     public Builder withPrimaryPrefix(String prefix) {
       primaryMetaStore.setDatabasePrefix(prefix);
+      return this;
+    }
+
+    public Builder withPrimaryMappedDatabases(String[] mappableDatabases) {
+      primaryMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
       return this;
     }
 
@@ -272,12 +275,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
   }
 
   private static String[] getArgsArray(Map<String, String> props) {
-    String[] args = FluentIterable.from(props.entrySet()).transform(new Function<Entry<String, String>, String>() {
-      @Override
-      public String apply(Entry<String, String> input) {
-        return "--" + input.getKey() + "=" + input.getValue();
-      }
-    }).toArray(String.class);
+    String[] args = props.entrySet().stream().map(input -> "--" + input.getKey() + "=" + input.getValue()).toArray(String[]::new);
     return args;
   }
 

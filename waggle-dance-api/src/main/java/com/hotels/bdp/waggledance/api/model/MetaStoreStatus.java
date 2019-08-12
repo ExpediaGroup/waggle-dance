@@ -19,6 +19,6 @@ public enum MetaStoreStatus {
 
   AVAILABLE,
   UNAVAILABLE,
-  UNKNOWN;
+  UNKNOWN
 
 }

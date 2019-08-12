@@ -152,9 +152,9 @@ public abstract class PanopticOperationHandler {
     responses
         .stream()
         .skip(1)
-        .filter(response -> response.isSetFunctions())
+        .filter(GetAllFunctionsResponse::isSetFunctions)
         .flatMap(response -> response.getFunctions().stream())
-        .forEach(function -> result.addToFunctions(function));
+        .forEach(result::addToFunctions);
 
     return result;
   }

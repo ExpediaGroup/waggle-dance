@@ -36,22 +36,22 @@ public class AccessControlHandlerFactory {
     this.federationService = federationService;
   }
 
-  public AccessControlHandler newInstance(AbstractMetaStore federatedMetaStore) {
-    switch (federatedMetaStore.getAccessControlType()) {
+  public AccessControlHandler newInstance(AbstractMetaStore metaStore) {
+    switch (metaStore.getAccessControlType()) {
     case READ_ONLY:
       return new ReadOnlyAccessControlHandler();
     case READ_AND_WRITE_ON_DATABASE_WHITELIST:
-      return new DatabaseWhitelistAccessControlHandler(federatedMetaStore, federationService, CANNOT_CREATE);
+      return new DatabaseWhitelistAccessControlHandler(metaStore, federationService, CANNOT_CREATE);
     case READ_AND_WRITE_AND_CREATE:
-      if (federatedMetaStore.getFederationType() == FederationType.PRIMARY) {
-        return new ReadWriteCreateAccessControlHandler();
+      if (metaStore.getFederationType() == FederationType.PRIMARY) {
+        return new ReadWriteCreateAccessControlHandler(metaStore, federationService);
       } else {
         // Should never be possible to configure this state. If this is thrown it is a bug.
         throw new IllegalStateException("Write access on anything other then a 'primary' metastore is not allowed");
       }
     case READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST:
-      if (federatedMetaStore.getFederationType() == FederationType.PRIMARY) {
-        return new DatabaseWhitelistAccessControlHandler(federatedMetaStore, federationService, CAN_CREATE);
+      if (metaStore.getFederationType() == FederationType.PRIMARY) {
+        return new DatabaseWhitelistAccessControlHandler(metaStore, federationService, CAN_CREATE);
       } else {
         // Should never be possible to configure this state. If this is thrown it is a bug.
         throw new IllegalStateException("Write access on anything other then a 'primary' metastore is not allowed");
@@ -59,7 +59,7 @@ public class AccessControlHandlerFactory {
 
     default:
       throw new IllegalStateException("Cannot determine AcccessControlHandler type given type: '"
-          + federatedMetaStore.getAccessControlType()
+          + metaStore.getAccessControlType()
           + "'");
     }
   }

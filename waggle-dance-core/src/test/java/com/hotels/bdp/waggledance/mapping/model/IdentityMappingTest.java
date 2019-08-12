@@ -15,15 +15,15 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
@@ -484,7 +484,7 @@ public class IdentityMappingTest {
   public void transformInboundGetTablesRequest() throws Exception {
     GetTablesRequest request = new GetTablesRequest();
     request.setDbName(DB_NAME);
-    request.setTblNames(Arrays.asList(TABLE_NAME));
+    request.setTblNames(Collections.singletonList(TABLE_NAME));
     GetTablesRequest transformedRequest = databaseMapping.transformInboundGetTablesRequest(request);
     assertThat(transformedRequest, is(sameInstance(request)));
     assertThat(transformedRequest, is(request));
@@ -496,7 +496,7 @@ public class IdentityMappingTest {
     table.setDbName(DB_NAME);
     table.setTableName(TABLE_NAME);
     GetTablesResult result = new GetTablesResult();
-    result.setTables(Arrays.asList(table));
+    result.setTables(Collections.singletonList(table));
     GetTablesResult transformedResult = databaseMapping.transformOutboundGetTablesResult(result);
     assertThat(transformedResult, is(sameInstance(result)));
     assertThat(transformedResult, is(result));

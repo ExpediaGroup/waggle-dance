@@ -25,7 +25,7 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 public class LowerCasePrefixNamingStrategyTest {
 
   @Test
-  public void apply() throws Exception {
+  public void apply() {
     LowerCasePrefixNamingStrategy namingStrategy = new LowerCasePrefixNamingStrategy();
     String result = namingStrategy.apply(AbstractMetaStore.newFederatedInstance("Name", ""));
     assertThat(result, is("name_"));

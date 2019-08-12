@@ -16,9 +16,13 @@
 package com.hotels.bdp.waggledance.api.model;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -32,14 +36,14 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
-  protected final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+  final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
 
-  protected final T metaStore;
+  final T metaStore;
 
   private final String name = "name";
   private final String remoteMetaStoreUri = "uri";
 
-  public AbstractMetaStoreTest(T metaStore) {
+  AbstractMetaStoreTest(T metaStore) {
     this.metaStore = metaStore;
   }
 
@@ -113,12 +117,12 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   @Test
   public void equalsNull() {
-    assertFalse(metaStore.equals(null));
+    assertNotEquals(metaStore, null);
   }
 
   @Test
   public void equalsDifferentClass() {
-    assertFalse(metaStore.equals("string"));
+    assertNotEquals("string", metaStore);
   }
 
   @Test
@@ -143,6 +147,26 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
     assertThat(primaryMetaStore.getName(), is(name));
     assertThat(primaryMetaStore.getRemoteMetaStoreUris(), is(remoteMetaStoreUri));
     assertThat(primaryMetaStore.getAccessControlType(), is(AccessControlType.READ_ONLY));
+  }
+
+  @Test
+  public void mappedDatabases() {
+    List<String> mappedDatabases = new ArrayList<>();
+    mappedDatabases.add("database");
+    metaStore.setMappedDatabases(mappedDatabases);
+    assertThat(metaStore.getMappedDatabases(), is(mappedDatabases));
+  }
+
+  @Test
+  public void nullMappedDatabases() {
+    metaStore.setMappedDatabases(null);
+    assertThat(metaStore.getMappedDatabases(), is(nullValue()));
+  }
+
+  @Test
+  public void emptyMappedDatabases() {
+    metaStore.setMappedDatabases(Collections.emptyList());
+    assertThat(metaStore.getMappedDatabases().size(), is(0));
   }
 
 }

@@ -40,14 +40,7 @@ public enum ASTQueryMapping implements QueryMapping {
   INSTANCE;
 
   private final static String RE_WORD_BOUNDARY = "\\b";
-  private final static Comparator<CommonToken> ON_START_INDEX = new Comparator<CommonToken>() {
-
-    @Override
-    public int compare(CommonToken o1, CommonToken o2) {
-      return Integer.compare(o1.getStartIndex(), o2.getStartIndex());
-    }
-
-  };
+  private final static Comparator<CommonToken> ON_START_INDEX = Comparator.comparingInt(CommonToken::getStartIndex);
 
   @Override
   public String transformOutboundDatabaseName(MetaStoreMapping metaStoreMapping, String query) {
@@ -74,7 +67,7 @@ public enum ASTQueryMapping implements QueryMapping {
       if (escaped) {
         transformedDbName = "`" + transformedDbName + "`";
       }
-      result.append(query.substring(startIndex, dbNameNode.getStartIndex()));
+      result.append(query, startIndex, dbNameNode.getStartIndex());
       result.append(transformedDbName);
       startIndex = dbNameNode.getStopIndex() + 1;
     }

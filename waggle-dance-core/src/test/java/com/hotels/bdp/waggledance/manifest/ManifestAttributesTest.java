@@ -59,7 +59,7 @@ public class ManifestAttributesTest {
   public void test() {
     // we can't find a manifest as there is no jar here but below at least
     // shouldn't throw an exception
-    new ManifestAttributes(clazzProtectionDomain).toString();
+    new ManifestAttributes(clazzProtectionDomain);
   }
 
   @Test

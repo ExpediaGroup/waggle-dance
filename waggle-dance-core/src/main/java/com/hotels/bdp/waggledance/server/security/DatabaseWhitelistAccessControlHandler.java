@@ -28,18 +28,18 @@ import com.hotels.bdp.waggledance.util.Whitelist;
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
   private final FederationService federationService;
-  private AbstractMetaStore metaStore;
   private final boolean hasCreatePermission;
-  private final Whitelist writeableDatabaseWhiteList;
+  private final Whitelist writableDatabaseWhiteList;
+  private AbstractMetaStore metaStore;
 
-  public DatabaseWhitelistAccessControlHandler(
+  DatabaseWhitelistAccessControlHandler(
       AbstractMetaStore metaStore,
       FederationService federationService,
       boolean hasCreatePermission) {
     this.metaStore = metaStore;
     this.federationService = federationService;
     this.hasCreatePermission = hasCreatePermission;
-    writeableDatabaseWhiteList = new Whitelist(metaStore.getWritableDatabaseWhiteList());
+    writableDatabaseWhiteList = new Whitelist(metaStore.getWritableDatabaseWhiteList());
   }
 
   private String trimToLowerCase(String string) {
@@ -48,7 +48,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
 
   @Override
   public boolean hasWritePermission(String databaseName) {
-    return writeableDatabaseWhiteList.contains(databaseName);
+    return writableDatabaseWhiteList.contains(databaseName);
   }
 
   @Override
@@ -59,23 +59,31 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
   @Override
   public void databaseCreatedNotification(String name) {
     List<String> newWritableDatabaseWhiteList = new ArrayList<>(metaStore.getWritableDatabaseWhiteList());
+    List<String> mappedDatabases = null;
     String nameLowerCase = trimToLowerCase(name);
     if (!newWritableDatabaseWhiteList.contains(nameLowerCase)) {
       newWritableDatabaseWhiteList.add(nameLowerCase);
     }
+    if (metaStore.getMappedDatabases() != null) {
+      mappedDatabases = new ArrayList<>(metaStore.getMappedDatabases());
+      if (!mappedDatabases.contains(name)) {
+        mappedDatabases.add(name);
+      }
+    }
 
-    AbstractMetaStore newMetaStore = null;
+    AbstractMetaStore newMetaStore;
     if (metaStore instanceof PrimaryMetaStore) {
       newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
           metaStore.getAccessControlType(), newWritableDatabaseWhiteList);
+      newMetaStore.setMappedDatabases(mappedDatabases);
     } else {
       throw new WaggleDanceException(
-          String.format("metastore type %s does not support Database creation", metaStore.getClass().getName()));
+          String.format("Metastore type %s does not support database creation", metaStore.getClass().getName()));
     }
 
     federationService.update(metaStore, newMetaStore);
     metaStore = newMetaStore;
-    writeableDatabaseWhiteList.add(nameLowerCase);
+    writableDatabaseWhiteList.add(nameLowerCase);
   }
 
 }

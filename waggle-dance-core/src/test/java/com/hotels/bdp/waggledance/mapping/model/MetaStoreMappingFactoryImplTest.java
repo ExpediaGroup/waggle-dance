@@ -16,7 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -26,6 +26,7 @@ import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederate
 
 import java.util.Arrays;
 
+import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,7 +34,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
@@ -55,18 +55,14 @@ public class MetaStoreMappingFactoryImplTest {
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
   private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceClientFactory(
-      new TunnelingMetaStoreClientFactory(), new DefaultMetaStoreClientFactory());
+      new TunnelingMetaStoreClientFactory(), new DefaultMetaStoreClientFactory(), new WaggleDanceConfiguration());
 
   private MetaStoreMappingFactoryImpl factory;
 
   @Before
   public void init() {
-    when(prefixNamingStrategy.apply(any(AbstractMetaStore.class))).thenAnswer(new Answer<String>() {
-      @Override
-      public String answer(InvocationOnMock invocation) throws Throwable {
-        return ((AbstractMetaStore) invocation.getArgument(0)).getDatabasePrefix();
-      }
-    });
+    when(prefixNamingStrategy.apply(any(AbstractMetaStore.class)))
+            .thenAnswer((Answer<String>) invocation -> ((AbstractMetaStore) invocation.getArgument(0)).getDatabasePrefix());
     factory = new MetaStoreMappingFactoryImpl(prefixNamingStrategy, metaStoreClientFactory,
         accessControlHandlerFactory);
   }

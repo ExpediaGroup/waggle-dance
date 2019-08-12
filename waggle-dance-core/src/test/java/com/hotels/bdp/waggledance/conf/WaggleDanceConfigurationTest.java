@@ -107,7 +107,7 @@ public class WaggleDanceConfigurationTest {
 
   @Test
   public void emptyConfigurationProperties() {
-    waggleDanceConfiguration.setConfigurationProperties(ImmutableMap.<String, String>of());
+    waggleDanceConfiguration.setConfigurationProperties(ImmutableMap.of());
     Set<ConstraintViolation<WaggleDanceConfiguration>> violations = validator.validate(waggleDanceConfiguration);
     assertThat(violations.size(), is(0));
   }
@@ -169,4 +169,5 @@ public class WaggleDanceConfigurationTest {
     waggleDanceConfiguration.setStatusPollingDelayTimeUnit(timeUnit);
     assertThat(waggleDanceConfiguration.getStatusPollingDelayTimeUnit(), is(timeUnit));
   }
+
 }

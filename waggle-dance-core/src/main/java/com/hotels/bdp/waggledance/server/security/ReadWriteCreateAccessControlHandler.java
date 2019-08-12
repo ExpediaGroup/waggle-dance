@@ -15,7 +15,24 @@
  */
 package com.hotels.bdp.waggledance.server.security;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import com.hotels.bdp.waggledance.api.federation.service.FederationService;
+import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
+
 public class ReadWriteCreateAccessControlHandler implements AccessControlHandler {
+
+  private final FederationService federationService;
+  private AbstractMetaStore metaStore;
+
+  ReadWriteCreateAccessControlHandler(AbstractMetaStore metaStore,
+      FederationService federationService) {
+    this.metaStore = metaStore;
+    this.federationService = federationService;
+  }
 
   @Override
   public boolean hasWritePermission(String databaseName) {
@@ -29,7 +46,27 @@ public class ReadWriteCreateAccessControlHandler implements AccessControlHandler
 
   @Override
   public void databaseCreatedNotification(String name) {
-    // nothing to notify
+    // Notify to update mapped databases
+    List<String> mappedDatabases = null;
+    if (metaStore.getMappedDatabases() != null) {
+      mappedDatabases = new ArrayList<>(metaStore.getMappedDatabases());
+      if (!mappedDatabases.contains(name)) {
+        mappedDatabases.add(name);
+      }
+    }
+
+    AbstractMetaStore newMetaStore;
+    if (metaStore instanceof PrimaryMetaStore) {
+      newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
+          metaStore.getAccessControlType());
+      newMetaStore.setMappedDatabases(mappedDatabases);
+    } else {
+      throw new WaggleDanceException(
+          String.format("Metastore type %s does not support database creation", metaStore.getClass().getName()));
+    }
+
+    federationService.update(metaStore, newMetaStore);
+    metaStore = newMetaStore;
   }
 
 }

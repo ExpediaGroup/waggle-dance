@@ -19,11 +19,8 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 public class FederatedMetaStore extends AbstractMetaStore {
-
-  private @NotNull List<String> mappedDatabases = Collections.emptyList();
 
   public FederatedMetaStore() {}
 
@@ -32,7 +29,7 @@ public class FederatedMetaStore extends AbstractMetaStore {
   }
 
   public FederatedMetaStore(String name, String remoteMetaStoreUris, AccessControlType accessControlType) {
-    this(name, remoteMetaStoreUris, accessControlType, Collections.<String>emptyList());
+    this(name, remoteMetaStoreUris, accessControlType, Collections.emptyList());
   }
 
   public FederatedMetaStore(FederatedMetaStore federatedMetaStore) {
@@ -44,8 +41,8 @@ public class FederatedMetaStore extends AbstractMetaStore {
       String name,
       String remoteMetaStoreUris,
       AccessControlType accessControlType,
-      List<String> writeableDatabaseWhiteList) {
-    super(name, remoteMetaStoreUris, accessControlType, writeableDatabaseWhiteList);
+      List<String> writableDatabaseWhiteList) {
+    super(name, remoteMetaStoreUris, accessControlType, writableDatabaseWhiteList);
   }
 
   @Override
@@ -63,11 +60,4 @@ public class FederatedMetaStore extends AbstractMetaStore {
     return prefix;
   }
 
-  public List<String> getMappedDatabases() {
-    return mappedDatabases;
-  }
-
-  public void setMappedDatabases(List<String> mappedDatabases) {
-    this.mappedDatabases = mappedDatabases;
-  }
 }

@@ -15,7 +15,7 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +49,7 @@ public class MonitoredDatabaseMappingServiceTest {
   private MonitoredDatabaseMappingService service;
 
   @Before
-  public void init() {
+  public void init() throws NoSuchObjectException {
     when(primaryMapping.getMetastoreMappingName()).thenReturn("primary");
     when(otherMapping.getMetastoreMappingName()).thenReturn("other");
     when(wrapped.primaryDatabaseMapping()).thenReturn(primaryMapping);
@@ -66,7 +67,7 @@ public class MonitoredDatabaseMappingServiceTest {
   }
 
   @Test
-  public void databaseMapping() {
+  public void databaseMapping() throws NoSuchObjectException {
     assertThat(service.databaseMapping("other"), is(otherMapping));
     verify(wrapped).databaseMapping("other");
     assertThat(CurrentMonitoredMetaStoreHolder.getMonitorMetastore(), is("other"));

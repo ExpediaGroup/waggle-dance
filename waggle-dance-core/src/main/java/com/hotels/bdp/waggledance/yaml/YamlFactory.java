@@ -69,7 +69,7 @@ public final class YamlFactory {
 
   private static class FieldOrderPropertyUtils extends AdvancedPropertyUtils {
     @Override
-    protected Set<Property> createPropertySet(Class<? extends Object> type, BeanAccess bAccess) {
+    protected Set<Property> createPropertySet(Class<?> type, BeanAccess bAccess) {
       if (Federations.class.equals(type)) {
         // Serializing on Field order for Federations.
         Set<Property> fieldOrderedProperties = new LinkedHashSet<>(getPropertiesMap(type, BeanAccess.FIELD).values());

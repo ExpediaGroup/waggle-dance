@@ -16,7 +16,7 @@
 package com.hotels.bdp.waggledance.server;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
