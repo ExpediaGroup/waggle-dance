@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
@@ -63,15 +64,12 @@ public class FederatedHMSHandlerFactory {
   }
 
   private MappingEventListener createDatabaseMappingService() {
-    switch (waggleDanceConfiguration.getDatabaseResolution()) {
-    case MANUAL:
+    if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.MANUAL) {
       return new StaticDatabaseMappingService(metaStoreMappingFactory, notifyingFederationService.getAll());
-
-    case PREFIXED:
+    } else if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.PREFIXED) {
       return new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, notifyingFederationService.getAll(),
           queryMapping);
-
-    default:
+    } else {
       throw new WaggleDanceException("Cannot instantiate databaseMappingService for prefixType '"
           + waggleDanceConfiguration.getDatabaseResolution()
           + "'");

@@ -15,8 +15,8 @@
  */
 package com.hotels.bdp.waggledance.server;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
@@ -38,17 +39,15 @@ import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationServic
 @RunWith(MockitoJUnitRunner.class)
 public class FederatedHMSHandlerFactoryTest {
 
+  private final HiveConf hiveConf = new HiveConf();
   private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
   private @Mock NotifyingFederationService notifyingFederationService;
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
   private @Mock QueryMapping queryMapping;
-
-  private final HiveConf hiveConf = new HiveConf();
   private FederatedHMSHandlerFactory factory;
 
   @Before
   public void init() {
-    when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.MANUAL);
     when(notifyingFederationService.getAll()).thenReturn(new ArrayList<>());
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
         waggleDanceConfiguration, queryMapping);
@@ -56,6 +55,7 @@ public class FederatedHMSHandlerFactoryTest {
 
   @Test
   public void typical() throws Exception {
+    when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.MANUAL);
     CloseableIHMSHandler handler = factory.create();
     assertThat(handler, is(instanceOf(FederatedHMSHandler.class)));
   }
@@ -67,6 +67,13 @@ public class FederatedHMSHandlerFactoryTest {
         waggleDanceConfiguration, queryMapping);
     CloseableIHMSHandler handler = factory.create();
     assertThat(handler, is(instanceOf(FederatedHMSHandler.class)));
+  }
+
+  @Test(expected = WaggleDanceException.class)
+  public void noMode() {
+    factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
+        waggleDanceConfiguration, queryMapping);
+    factory.create();
   }
 
 }

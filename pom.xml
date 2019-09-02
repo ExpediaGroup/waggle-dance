@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>waggle-dance-parent</artifactId>
-  <version>3.4.0-SNAPSHOT</version>
+  <version>3.4.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
@@ -16,8 +16,8 @@
   <inceptionYear>2016</inceptionYear>
 
   <scm>
-    <connection>scm:git:git@github.com:HotelsDotCom/waggle-dance.git</connection>
-    <developerConnection>scm:git:git@github.com:HotelsDotCom/waggle-dance.git</developerConnection>
+    <connection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/HotelsDotCom/waggle-dance.git</connection>
+    <developerConnection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/HotelsDotCom/waggle-dance.git</developerConnection>
     <url>https://github.com/HotelsDotCom/waggle-dance</url>
     <tag>HEAD</tag>
   </scm>

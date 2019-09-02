@@ -1185,15 +1185,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public boolean grant_privileges(PrivilegeBag privileges) throws MetaException, TException {
     if (privileges.isSetPrivileges() && !privileges.getPrivileges().isEmpty()) {
-      DatabaseMapping mapping = databaseMappingService
-          .databaseMapping(privileges.getPrivileges().get(0).getHiveObject().getDbName());
-      for (HiveObjectPrivilege privilege : privileges.getPrivileges()) {
-        HiveObjectRef obj = privilege.getHiveObject();
-        mapping.checkWritePermissions(obj.getDbName());
-        if (obj.getObjectType() == HiveObjectType.DATABASE) {
-          mapping.checkWritePermissions(obj.getObjectName());
-        }
-      }
+      DatabaseMapping mapping = checkWritePermissionsForPrivileges(privileges);
       return mapping.getClient().grant_privileges(mapping.transformInboundPrivilegeBag(privileges));
     }
     return false;
@@ -1203,15 +1195,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public boolean revoke_privileges(PrivilegeBag privileges) throws MetaException, TException {
     if (privileges.isSetPrivileges() && !privileges.getPrivileges().isEmpty()) {
-      DatabaseMapping mapping = databaseMappingService
-          .databaseMapping(privileges.getPrivileges().get(0).getHiveObject().getDbName());
-      for (HiveObjectPrivilege privilege : privileges.getPrivileges()) {
-        HiveObjectRef obj = privilege.getHiveObject();
-        mapping.checkWritePermissions(obj.getDbName());
-        if (obj.getObjectType() == HiveObjectType.DATABASE) {
-          mapping.checkWritePermissions(obj.getObjectName());
-        }
-      }
+      DatabaseMapping mapping = checkWritePermissionsForPrivileges(privileges);
       return mapping.getClient().revoke_privileges(mapping.transformInboundPrivilegeBag(privileges));
     }
     return false;
@@ -1223,18 +1207,23 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       throws MetaException, TException {
     PrivilegeBag privilegesBag = request.getPrivileges();
     if (privilegesBag.isSetPrivileges() && !privilegesBag.getPrivileges().isEmpty()) {
-      DatabaseMapping mapping = databaseMappingService
-          .databaseMapping(privilegesBag.getPrivileges().get(0).getHiveObject().getDbName());
-      for (HiveObjectPrivilege privilege : privilegesBag.getPrivileges()) {
-        HiveObjectRef obj = privilege.getHiveObject();
-        checkWritePermissions(obj.getDbName());
-        if (obj.getObjectType() == HiveObjectType.DATABASE) {
-          checkWritePermissions(obj.getObjectName());
-        }
-      }
+      DatabaseMapping mapping = checkWritePermissionsForPrivileges(privilegesBag);
       return mapping.getClient().grant_revoke_privileges(mapping.transformInboundGrantRevokePrivilegesRequest(request));
     }
     return getPrimaryClient().grant_revoke_privileges(request);
+  }
+
+  private DatabaseMapping checkWritePermissionsForPrivileges(PrivilegeBag privileges) throws NoSuchObjectException {
+    DatabaseMapping mapping = databaseMappingService
+        .databaseMapping(privileges.getPrivileges().get(0).getHiveObject().getDbName());
+    for (HiveObjectPrivilege privilege : privileges.getPrivileges()) {
+      HiveObjectRef obj = privilege.getHiveObject();
+      mapping.checkWritePermissions(obj.getDbName());
+      if (obj.getObjectType() == HiveObjectType.DATABASE) {
+        mapping.checkWritePermissions(obj.getObjectName());
+      }
+    }
+    return mapping;
   }
 
   @Override
@@ -1682,4 +1671,5 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     mapping.checkWritePermissions(rqst.getDbname());
     return mapping.getClient().compact2(mapping.transformInboundCompactionRequest(rqst));
   }
+
 }
