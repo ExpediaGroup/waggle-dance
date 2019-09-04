@@ -26,6 +26,7 @@ import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederate
 
 import java.util.Arrays;
 
+import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,7 +55,7 @@ public class MetaStoreMappingFactoryImplTest {
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
   private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceClientFactory(
-      new TunnelingMetaStoreClientFactory(), new DefaultMetaStoreClientFactory());
+      new TunnelingMetaStoreClientFactory(), new DefaultMetaStoreClientFactory(), new WaggleDanceConfiguration());
 
   private MetaStoreMappingFactoryImpl factory;
 

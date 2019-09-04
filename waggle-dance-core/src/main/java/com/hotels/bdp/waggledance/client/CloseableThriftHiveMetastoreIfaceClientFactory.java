@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
@@ -36,12 +37,15 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private final DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
   private final int defaultConnectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L);
+  private final WaggleDanceConfiguration waggleDanceConfiguration;
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(
-      TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
-      DefaultMetaStoreClientFactory defaultMetaStoreClientFactory) {
+          TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
+          DefaultMetaStoreClientFactory defaultMetaStoreClientFactory,
+          WaggleDanceConfiguration waggleDanceConfiguration) {
     this.tunnelingMetaStoreClientFactory = tunnelingMetaStoreClientFactory;
     this.defaultMetaStoreClientFactory = defaultMetaStoreClientFactory;
+    this.waggleDanceConfiguration = waggleDanceConfiguration;
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
@@ -59,6 +63,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     }
     Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
+    properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     return defaultMetaStoreClientFactory
         .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,

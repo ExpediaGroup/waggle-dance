@@ -72,7 +72,7 @@ public class ThriftMetastoreClientManagerIntegrationTest {
     try {
       manager.open();
     } catch (RuntimeException e) {
-      assertThat(e.getMessage(), containsString("java.net.ConnectException: Connection refused"));
+      assertThat(e.getMessage(), containsString("Connection refused"));
     }
   }
 }
