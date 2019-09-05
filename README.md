@@ -423,7 +423,9 @@ Assumes database resolution is done by adding prefixes. If database resolution i
 
 Being a Spring Boot Application, all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html) are supported.
 
-eg. Healthcheck Endpoint: http://localhost:18000/actuator/health
+e.g. Healthcheck Endpoint: http://localhost:18000/actuator/health
+
+In addition to these Spring endpoints Waggle Dance exposes some custom endpoints which provide more detailed information. The URLs of these are logged when Waggle Dance starts up. The most notable is: `http://host:18000/api/admin/federations`, which returns information about the availability of the configured metastores (it can be used for troubleshooting, but it is not recommended for use as a health check).
 
 ## Notes
 

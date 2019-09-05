@@ -1,3 +1,7 @@
+## TBD - TBD
+### Added
+* Added logging to help debug connection issues.
+
 ## [3.4.0] - 2019-07-14
 ### Added
 * Support for `mapped-databases` configuration for primary metastore. See [#175](https://github.com/HotelsDotCom/waggle-dance/issues/175).
