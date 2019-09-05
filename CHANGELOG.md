@@ -1,6 +1,6 @@
 ## TBD - TBD
 ### Added
-* Clarified endpoints in a readme a bit and added some logging to help debug connection issues.
+* Added logging to help debug connection issues.
 
 ## [3.4.0] - 2019-07-14
 ### Added
