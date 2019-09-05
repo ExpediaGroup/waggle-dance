@@ -15,6 +15,8 @@
  */
 package com.hotels.bdp.waggledance.server;
 
+import java.net.Socket;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.hive.metastore.RetryingHMSHandler;
@@ -22,13 +24,17 @@ import org.apache.hadoop.hive.metastore.TSetIpAddressProcessor;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.TProcessorFactory;
+import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 class TSetIpAddressProcessorFactory extends TProcessorFactory {
 
+  private final static Logger log = LoggerFactory.getLogger(TSetIpAddressProcessorFactory.class);
   private final HiveConf hiveConf;
   private final FederatedHMSHandlerFactory federatedHMSHandlerFactory;
   private final TTransportMonitor transportMonitor;
@@ -47,6 +53,9 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
   @Override
   public TProcessor getProcessor(TTransport transport) {
     try {
+      Socket socket = ((TSocket) transport).getSocket();
+      log.debug("Opened a connection from ip: {}", socket.getInetAddress().getHostAddress());
+
       CloseableIHMSHandler baseHandler = federatedHMSHandlerFactory.create();
       IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
           false);

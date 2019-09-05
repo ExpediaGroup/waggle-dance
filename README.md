@@ -425,6 +425,8 @@ Being a Spring Boot Application, all [standard actuator endpoints](https://docs.
 
 eg. Healthcheck Endpoint: http://localhost:18000/actuator/health
 
+On top of the Spring endpoints there are endpoints available to get more details information. All the urls are printed when Waggle Dance starts up. Most notable is: `http://host:18000//api/admin/federations`. Which returns information about the availability of the metastores that are used. It can be used for troubleshooting it is not recommended to use that as a healthcheck. 
+
 ## Notes
 
  * Only the metadata communications are rerouted.
