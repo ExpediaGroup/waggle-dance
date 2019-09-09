@@ -53,9 +53,10 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
   @Override
   public TProcessor getProcessor(TTransport transport) {
     try {
-      Socket socket = ((TSocket) transport).getSocket();
-      log.debug("Received a connection from ip: {}", socket.getInetAddress().getHostAddress());
-
+      if (transport instanceof TSocket) {
+        Socket socket = ((TSocket) transport).getSocket();
+        log.debug("Received a connection from ip: {}", socket.getInetAddress().getHostAddress());
+      }
       CloseableIHMSHandler baseHandler = federatedHMSHandlerFactory.create();
       IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
           false);
