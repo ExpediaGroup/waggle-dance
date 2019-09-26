@@ -104,6 +104,18 @@ public class YamlFederatedMetaStoreStorageTest {
   }
 
   @Test
+  public void loadEmptyPrefixFederated() throws Exception {
+    File f = dataFolder.getFile("empty-prefix-federated.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    storage.loadFederation();
+    assertThat(storage.getAll().size(), is(3));
+    assertThat(storage.getAll().get(0).getDatabasePrefix(), is("primary_"));
+    assertThat(storage.getAll().get(1).getDatabasePrefix(), is(""));
+    assertThat(storage.getAll().get(2).getDatabasePrefix(), is("hcom_2_prefix_"));
+
+  }
+
+  @Test
   public void update() throws Exception {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);
     PrimaryMetaStore primary = newPrimaryInstance("prefix1", "metastoreUri");
