@@ -50,7 +50,6 @@ public class FederatedMetaStore extends AbstractMetaStore {
     return FederationType.FEDERATED;
   }
 
-  @NotBlank
   @Override
   public String getDatabasePrefix() {
     String prefix = super.getDatabasePrefix();

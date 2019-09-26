@@ -50,7 +50,8 @@ public class FederatedMetaStoreTest extends AbstractMetaStoreTest<FederatedMetaS
   public void emptyDatabasePrefix() {
     metaStore.setDatabasePrefix("");
     Set<ConstraintViolation<FederatedMetaStore>> violations = validator.validate(metaStore);
-    assertThat(violations.size(), is(1));
+    assertThat(violations.size(), is(0));
+    assertThat(metaStore.getDatabasePrefix(), is(""));
   }
 
   @Test

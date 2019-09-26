@@ -89,6 +89,31 @@ public class YamlFederatedMetaStoreStorageTest {
     assertThat(storage.get("name"), is(expected));
   }
 
+  @Test (expected = IllegalArgumentException.class)
+  public void loadFederationSamePrefix() throws Exception {
+    File f = dataFolder.getFile("same-prefix.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    storage.loadFederation();
+  }
+
+  @Test (expected = IllegalArgumentException.class)
+  public void loadTwoEmptyPrefixes() throws Exception {
+    File f = dataFolder.getFile("two-empty-prefixes.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    storage.loadFederation();
+  }
+
+  @Test
+  public void loadEmptyPrefixFederated() throws Exception {
+    File f = dataFolder.getFile("empty-prefix-federated.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    storage.loadFederation();
+    assertThat(storage.getAll().size(), is(3));
+    assertThat(storage.getAll().get(0).getDatabasePrefix(), is("primary_"));
+    assertThat(storage.getAll().get(1).getDatabasePrefix(), is(""));
+    assertThat(storage.getAll().get(2).getDatabasePrefix(), is("hcom_2_prefix_"));
+  }
+
   @Test
   public void update() throws Exception {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);
