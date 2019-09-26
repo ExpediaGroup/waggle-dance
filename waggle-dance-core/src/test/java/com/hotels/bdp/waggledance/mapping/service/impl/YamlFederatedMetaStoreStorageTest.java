@@ -89,6 +89,13 @@ public class YamlFederatedMetaStoreStorageTest {
     assertThat(storage.get("name"), is(expected));
   }
 
+  @Test (expected = IllegalArgumentException.class)
+  public void loadFederationSamePrefix() throws Exception {
+    File f = dataFolder.getFile("same-prefix.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    storage.loadFederation();
+  }
+
   @Test
   public void update() throws Exception {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);

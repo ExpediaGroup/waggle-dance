@@ -1,0 +1,11 @@
+federated-meta-stores:
+  - remote-meta-store-uris: thrift://localhost:19083
+    database-prefix: hcom_1_prefix_
+    name: hcom_1
+  - remote-meta-store-uris: thrift://localhost:29083
+    database-prefix: hcom_2_prefix_
+    name: hcom_2
+primary-meta-store:
+  remote-meta-store-uris: thrift://localhost:39083
+  name: hcom_3
+  database-prefix: hcom_2_prefix_
