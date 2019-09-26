@@ -112,7 +112,6 @@ public class YamlFederatedMetaStoreStorageTest {
     assertThat(storage.getAll().get(0).getDatabasePrefix(), is("primary_"));
     assertThat(storage.getAll().get(1).getDatabasePrefix(), is(""));
     assertThat(storage.getAll().get(2).getDatabasePrefix(), is("hcom_2_prefix_"));
-
   }
 
   @Test
