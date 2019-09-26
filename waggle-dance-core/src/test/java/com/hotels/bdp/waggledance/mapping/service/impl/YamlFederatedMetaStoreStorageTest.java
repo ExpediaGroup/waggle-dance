@@ -96,6 +96,13 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.loadFederation();
   }
 
+  @Test (expected = IllegalArgumentException.class)
+  public void loadTwoEmptyPrefixes() throws Exception {
+    File f = dataFolder.getFile("two-empty-prefixes.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    storage.loadFederation();
+  }
+
   @Test
   public void update() throws Exception {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);
