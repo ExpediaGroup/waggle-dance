@@ -1,4 +1,4 @@
-## TBD - TBD
+## 3.5.0 - 2019-10-01
 ### Added
 * Added logging to help debug connection issues.
 
