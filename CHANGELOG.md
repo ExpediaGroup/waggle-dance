@@ -1,3 +1,7 @@
+## [TBD] - TBD
+### Changed
+* Updated `hotels-oss-parent` to 5.0.0 (was 4.0.1).
+
 ## [3.5.0] - 2019-10-14
 ### Added
 * Added logging to help debug connection issues.

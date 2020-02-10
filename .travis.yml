@@ -10,6 +10,6 @@ before_install:
    - sudo apt-get update -qq
    - sudo apt-get install -qq rpm
 install:
-  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true --quiet --batch-mode --show-version --activate-profiles travis
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true --quiet --batch-mode --show-version --activate-profiles coveralls
 script:
-  - mvn test jacoco:report coveralls:report --batch-mode --activate-profiles travis -DrepoToken=${COVERALLS_REPO_TOKEN} -Dtest.arguments="-Xms256m -Xmx1536m"
+  - mvn test jacoco:report coveralls:report --batch-mode --activate-profiles coveralls -DrepoToken=${COVERALLS_REPO_TOKEN} -Dtest.arguments="-Xms256m -Xmx1536m"
