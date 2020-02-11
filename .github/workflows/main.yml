@@ -8,10 +8,12 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
         java-version: 8
     - name: Run Maven Targets
-      run: mvn package jacoco:report coveralls:report --batch-mode --show-version --activate-profiles coveralls -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }} -Dlicense.skip=true
+      run: mvn package jacoco:report coveralls:report --batch-mode --show-version --activate-profiles coveralls -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
 
