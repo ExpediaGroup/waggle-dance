@@ -17,10 +17,12 @@ package com.hotels.bdp.waggledance.metrics;
 
 import java.time.Duration;
 
+import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.core.instrument.util.HierarchicalNameMapper;
 import io.micrometer.graphite.GraphiteConfig;
@@ -28,8 +30,10 @@ import io.micrometer.graphite.GraphiteMeterRegistry;
 import io.micrometer.graphite.GraphiteProtocol;
 import io.micrometer.jmx.JmxConfig;
 import io.micrometer.jmx.JmxMeterRegistry;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
+import com.hotels.bdp.waggledance.conf.PrometheusConfig;
 
 @Configuration
 public class MonitoringConfiguration {
@@ -111,6 +115,15 @@ public class MonitoringConfiguration {
   @Bean
   public JmxMeterRegistry jmxMeterRegistry() {
     return new JmxMeterRegistry(JmxConfig.DEFAULT, Clock.SYSTEM);
+  }
+
+  @Bean
+  MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(PrometheusConfig prometheusConfig) {
+    return registry -> {
+      if (registry instanceof PrometheusMeterRegistry) {
+        registry.config().commonTags("application", prometheusConfig.getPrefix());
+      }
+    };
   }
 
 }
