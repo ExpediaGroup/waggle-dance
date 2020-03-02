@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,19 @@ package com.hotels.bdp.waggledance.metrics;
 import org.springframework.context.annotation.Bean;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
+import com.hotels.bdp.waggledance.conf.PrometheusConfiguration;
 
 public class MonitoringConfigurationTestContext {
 
   @Bean
   GraphiteConfiguration graphiteConfiguration() {
     GraphiteConfiguration conf = new GraphiteConfiguration();
+    return conf;
+  }
+
+  @Bean
+  PrometheusConfiguration prometheusConfiguration() {
+    PrometheusConfiguration conf = new PrometheusConfiguration();
     return conf;
   }
 

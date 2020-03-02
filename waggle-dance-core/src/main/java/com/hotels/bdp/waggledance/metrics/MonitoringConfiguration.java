@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import io.micrometer.jmx.JmxMeterRegistry;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
-import com.hotels.bdp.waggledance.conf.PrometheusConfig;
+import com.hotels.bdp.waggledance.conf.PrometheusConfiguration;
 
 @Configuration
 public class MonitoringConfiguration {
@@ -118,10 +118,10 @@ public class MonitoringConfiguration {
   }
 
   @Bean
-  MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(PrometheusConfig prometheusConfig) {
+  MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(PrometheusConfiguration prometheusConfiguration) {
     return registry -> {
       if (registry instanceof PrometheusMeterRegistry) {
-        registry.config().commonTags("application", prometheusConfig.getPrefix());
+        registry.config().commonTags("application", prometheusConfiguration.getPrefix());
       }
     };
   }
