@@ -3,7 +3,7 @@
 * Updated `hotels-oss-parent` to 5.0.0 (was 4.0.1).
 
 ### Added
-* Support for prometheus metrics.
+* Support for Prometheus metrics.
 
 ## [3.5.0] - 2019-10-14
 ### Added
