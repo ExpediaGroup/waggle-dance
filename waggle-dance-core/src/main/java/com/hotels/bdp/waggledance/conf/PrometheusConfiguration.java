@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.metrics;
+package com.hotels.bdp.waggledance.conf;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
-import com.hotels.bdp.waggledance.conf.PrometheusConfiguration;
+@Configuration
+@ConfigurationProperties(prefix = "prometheus")
+public class PrometheusConfiguration {
 
-public class MonitoringConfigurationTestContext {
+  private String prefix = "waggle-dance";
 
-  @Bean
-  GraphiteConfiguration graphiteConfiguration() {
-    GraphiteConfiguration conf = new GraphiteConfiguration();
-    return conf;
+  public String getPrefix() {
+    return prefix;
   }
 
-  @Bean
-  PrometheusConfiguration prometheusConfiguration() {
-    PrometheusConfiguration conf = new PrometheusConfiguration();
-    return conf;
+  public void setPrefix(String prefix) {
+    this.prefix = prefix;
   }
 
 }
