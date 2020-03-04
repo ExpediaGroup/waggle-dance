@@ -310,7 +310,7 @@ The following snippet shows a typical Graphite configuration:
 | `graphite.poll-time`                                  | No       | Amount of time between Graphite polls. Defaults to `5000`. |
 | `graphite.poll-time-unit`                             | No       | Time unit of `graphite.poll-time` - this is [the list of allowed values](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/TimeUnit.html). Defaults to `MILLISECONDS`. |
 
-Prometheus can also be used to gather metrics. This can be done by enabling the Prometheus endpoint in the configuration:
+Prometheus can also be used to gather metrics. This can be done by enabling the Prometheus endpoint `/prometheus` in the configuration:
 
     management.endpoints.web.exposure.include: prometheus
 
