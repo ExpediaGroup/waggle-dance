@@ -1,4 +1,4 @@
-## [TBD] - TBD
+## [3.5.1] - 2020-03-04
 ### Changed
 * Updated `hotels-oss-parent` to 5.0.0 (was 4.0.1).
 
