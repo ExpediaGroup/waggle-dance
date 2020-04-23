@@ -46,6 +46,7 @@ import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
@@ -348,6 +349,11 @@ public class IdentityMapping implements DatabaseMapping {
   @Override
   public GetTablesResult transformOutboundGetTablesResult(GetTablesResult result) {
     return result;
+  }
+
+  @Override
+  public PartitionValuesRequest transformInboundPartitionValuesRequest(PartitionValuesRequest request) {
+    return request;
   }
 
   @Override

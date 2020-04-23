@@ -58,6 +58,7 @@ import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
@@ -815,6 +816,17 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
     assertThat(transformedResult.getTable().getViewExpandedText(), is(VIEW_EXPANDED_TEXT_TRANSFORMED));
     assertThat(transformedResult.getTable().getViewOriginalText(), is(VIEW_ORIGINAL_TEXT_TRANSFORMED));
+  }
+
+  @Test
+  public void transformInboundPartitionValuesRequest() {
+    PartitionValuesRequest request = new PartitionValuesRequest();
+    request.setDbName(DB_NAME);
+    request.setTblName(TABLE_NAME);
+    PartitionValuesRequest transformedRequest = databaseMapping.transformInboundPartitionValuesRequest(request);
+    assertThat(transformedRequest, is(sameInstance(request)));
+    assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
+    assertThat(transformedRequest.getTblName(), is(TABLE_NAME));
   }
 
 }

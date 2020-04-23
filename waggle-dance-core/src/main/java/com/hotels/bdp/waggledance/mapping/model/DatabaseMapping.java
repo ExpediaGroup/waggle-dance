@@ -42,6 +42,8 @@ import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesRequest;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesResponse;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
@@ -146,6 +148,8 @@ public interface DatabaseMapping extends MetaStoreMapping {
   GetTablesRequest transformInboundGetTablesRequest(GetTablesRequest req);
 
   GetTablesResult transformOutboundGetTablesResult(GetTablesResult result);
+
+  PartitionValuesRequest transformInboundPartitionValuesRequest(PartitionValuesRequest req);
 
   @Override
   long getLatency();

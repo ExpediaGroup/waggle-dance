@@ -98,6 +98,9 @@ import org.apache.hadoop.hive.metastore.api.OpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesRequest;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesResponse;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesRow;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
@@ -1766,6 +1769,19 @@ public class FederatedHMSHandlerTest {
     when(primaryClient.get_primary_keys(inboundRequest)).thenReturn(response);
     PrimaryKeysResponse result = handler.get_primary_keys(request);
     assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_partition_values() throws TException {
+    Table table = new Table();
+    table.setDbName(DB_P);
+    table.setTableName("table");
+    PartitionValuesRequest request = new PartitionValuesRequest(table.getDbName(), table.getTableName(), Collections.singletonList(new FieldSchema()));
+    PartitionValuesResponse response = new PartitionValuesResponse(Collections.singletonList(new PartitionValuesRow()));
+    when(primaryClient.get_partition_values(request)).thenReturn(response);
+    when(primaryMapping.transformInboundPartitionValuesRequest(request)).thenReturn(request);
+    PartitionValuesResponse result = handler.get_partition_values(request);
+    assertThat(result.getPartitionValuesSize(), is(1));
   }
 
 }

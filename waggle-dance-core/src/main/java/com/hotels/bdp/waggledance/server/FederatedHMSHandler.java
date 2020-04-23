@@ -96,6 +96,8 @@ import org.apache.hadoop.hive.metastore.api.OpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesRequest;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesResponse;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
@@ -1670,6 +1672,17 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     DatabaseMapping mapping = databaseMappingService.primaryDatabaseMapping();
     mapping.checkWritePermissions(rqst.getDbname());
     return mapping.getClient().compact2(mapping.transformInboundCompactionRequest(rqst));
+  }
+
+  // Hive 2.3.7 methods
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public PartitionValuesResponse get_partition_values(PartitionValuesRequest req) throws MetaException, NoSuchObjectException, TException {
+    DatabaseMapping mapping = databaseMappingService.databaseMapping(req.getDbName());
+    return mapping
+        .getClient()
+        .get_partition_values(mapping.transformInboundPartitionValuesRequest(req));
   }
 
 }

@@ -1,3 +1,10 @@
+## [3.6.1] - TBD
+### Changed
+* Upgraded version of `hive.version` to `2.3.7` (was `2.3.3`). Allows Waggle Dance to be used on JDK>=9.
+
+### Added
+* Implemented `get_partition_values()` method in `FederatedHMSHandler` due to hive version change.
+
 ## [3.6.0] - 2020-03-04
 ### Changed
 * Updated `hotels-oss-parent` to 5.0.0 (was 4.0.1).
