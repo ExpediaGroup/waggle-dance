@@ -1674,7 +1674,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     return mapping.getClient().compact2(mapping.transformInboundCompactionRequest(rqst));
   }
 
-  // Hive 2.3.7 methods
+  // Hive 2.3.6 methods
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)

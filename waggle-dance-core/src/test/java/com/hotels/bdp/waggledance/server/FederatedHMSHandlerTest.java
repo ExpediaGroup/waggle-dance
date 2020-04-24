@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.server;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -1773,15 +1774,14 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_partition_values() throws TException {
-    Table table = new Table();
-    table.setDbName(DB_P);
-    table.setTableName("table");
-    PartitionValuesRequest request = new PartitionValuesRequest(table.getDbName(), table.getTableName(), Collections.singletonList(new FieldSchema()));
-    PartitionValuesResponse response = new PartitionValuesResponse(Collections.singletonList(new PartitionValuesRow()));
+    PartitionValuesRequest request = new PartitionValuesRequest(DB_P,"table", Collections.singletonList(new FieldSchema()));
+    List<PartitionValuesRow> partitionValues = Collections.singletonList(new PartitionValuesRow());
+    PartitionValuesResponse response = new PartitionValuesResponse(partitionValues);
     when(primaryClient.get_partition_values(request)).thenReturn(response);
     when(primaryMapping.transformInboundPartitionValuesRequest(request)).thenReturn(request);
     PartitionValuesResponse result = handler.get_partition_values(request);
     assertThat(result.getPartitionValuesSize(), is(1));
+    assertThat(result.getPartitionValues(), is(sameInstance(partitionValues)));
   }
 
 }

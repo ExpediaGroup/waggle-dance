@@ -485,9 +485,9 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
-  public PartitionValuesRequest transformInboundPartitionValuesRequest(PartitionValuesRequest req) {
-    req.setDbName(transformInboundDatabaseName(req.getDbName()));
-    return req;
+  public PartitionValuesRequest transformInboundPartitionValuesRequest(PartitionValuesRequest request) {
+    request.setDbName(transformInboundDatabaseName(request.getDbName()));
+    return request;
   }
 
   @Override

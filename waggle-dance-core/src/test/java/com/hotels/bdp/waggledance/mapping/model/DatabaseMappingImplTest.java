@@ -41,6 +41,7 @@ import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.DropConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
@@ -820,13 +821,13 @@ public class DatabaseMappingImplTest {
 
   @Test
   public void transformInboundPartitionValuesRequest() {
-    PartitionValuesRequest request = new PartitionValuesRequest();
-    request.setDbName(DB_NAME);
-    request.setTblName(TABLE_NAME);
+    List<FieldSchema> partitionKeys = Collections.singletonList(new FieldSchema());
+    PartitionValuesRequest request = new PartitionValuesRequest(DB_NAME, TABLE_NAME, partitionKeys);
     PartitionValuesRequest transformedRequest = databaseMapping.transformInboundPartitionValuesRequest(request);
     assertThat(transformedRequest, is(sameInstance(request)));
     assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
     assertThat(transformedRequest.getTblName(), is(TABLE_NAME));
+    assertThat(transformedRequest.getPartitionKeys(), is(sameInstance(partitionKeys)));
   }
 
 }
