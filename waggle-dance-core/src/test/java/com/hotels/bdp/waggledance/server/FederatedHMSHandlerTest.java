@@ -1774,7 +1774,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_partition_values() throws TException {
-    PartitionValuesRequest request = new PartitionValuesRequest(DB_P,"table", Collections.singletonList(new FieldSchema()));
+    PartitionValuesRequest request = new PartitionValuesRequest(DB_P, "table", Collections.singletonList(new FieldSchema()));
     List<PartitionValuesRow> partitionValues = Collections.singletonList(new PartitionValuesRow());
     PartitionValuesResponse response = new PartitionValuesResponse(partitionValues);
     when(primaryClient.get_partition_values(request)).thenReturn(response);
