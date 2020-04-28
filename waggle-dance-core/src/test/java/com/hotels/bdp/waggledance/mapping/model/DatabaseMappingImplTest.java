@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.DropConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
@@ -58,6 +59,7 @@ import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
+import org.apache.hadoop.hive.metastore.api.PartitionValuesRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprRequest;
 import org.apache.hadoop.hive.metastore.api.PartitionsByExprResult;
 import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
@@ -815,6 +817,17 @@ public class DatabaseMappingImplTest {
     assertThat(transformedResult.getTable().getTableName(), is(TABLE_NAME));
     assertThat(transformedResult.getTable().getViewExpandedText(), is(VIEW_EXPANDED_TEXT_TRANSFORMED));
     assertThat(transformedResult.getTable().getViewOriginalText(), is(VIEW_ORIGINAL_TEXT_TRANSFORMED));
+  }
+
+  @Test
+  public void transformInboundPartitionValuesRequest() {
+    List<FieldSchema> partitionKeys = Collections.singletonList(new FieldSchema());
+    PartitionValuesRequest request = new PartitionValuesRequest(DB_NAME, TABLE_NAME, partitionKeys);
+    PartitionValuesRequest transformedRequest = databaseMapping.transformInboundPartitionValuesRequest(request);
+    assertThat(transformedRequest, is(sameInstance(request)));
+    assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
+    assertThat(transformedRequest.getTblName(), is(TABLE_NAME));
+    assertThat(transformedRequest.getPartitionKeys(), is(sameInstance(partitionKeys)));
   }
 
 }
