@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,22 @@ import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
 public interface MetaStoreMapping extends Closeable {
 
+  /**
+   * Outbound means parameter coming from the Hive Metastore and return result will be sent to user client.
+   * 
+   * @param databaseName
+   * @return
+   */
   String transformOutboundDatabaseName(String databaseName);
 
   Database transformOutboundDatabase(Database database);
 
+  /**
+   * Inbound means parameter coming from the user client and return result will be sent to Hive Metastore.
+   * 
+   * @param databaseName
+   * @return
+   */
   String transformInboundDatabaseName(String databaseName);
 
   ThriftHiveMetastore.Iface getClient();

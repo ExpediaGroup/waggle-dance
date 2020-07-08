@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
-    return getDatabasePrefix() + databaseName.toLowerCase(Locale.ROOT);
+    return databaseName.toLowerCase(Locale.ROOT);
   }
 
   @Override
@@ -77,11 +77,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public String transformInboundDatabaseName(String databaseName) {
-    databaseName = databaseName.toLowerCase(Locale.ROOT);
-    if (databaseName.startsWith(getDatabasePrefix())) {
-      return databaseName.substring(getDatabasePrefix().length());
-    }
-    return databaseName;
+    return databaseName.toLowerCase(Locale.ROOT);
   }
 
   @Override

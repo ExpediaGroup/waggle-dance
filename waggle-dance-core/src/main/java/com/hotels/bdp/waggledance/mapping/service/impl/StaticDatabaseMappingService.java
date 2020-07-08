@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.hotels.bdp.waggledance.mapping.service.impl;
+
+import static java.util.stream.Collectors.toList;
 
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
@@ -51,8 +53,9 @@ import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
-import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
+import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
+import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticConcurrentOperationExecutor;
@@ -72,11 +75,14 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private final Map<String, DatabaseMapping> mappingsByDatabaseName;
   private final Map<String, List<String>> databaseMappingToDatabaseList;
   private DatabaseMapping primaryDatabaseMapping;
+  private final QueryMapping queryMapping;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
-      List<AbstractMetaStore> initialMetastores) {
+      List<AbstractMetaStore> initialMetastores,
+      QueryMapping queryMapping) {
     this.metaStoreMappingFactory = metaStoreMappingFactory;
+    this.queryMapping = queryMapping;
     primaryDatabasesCache = CacheBuilder
         .newBuilder()
         .expireAfterAccess(1, TimeUnit.MINUTES)
@@ -115,6 +121,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       }
     }
     DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
+    mappableDatabases = mappableDatabases
+        .stream()
+        .map(n -> databaseMapping.transformOutboundDatabaseName(n))
+        .collect(toList());
+    // TODO PD the .map(n -> databaseMapping.transformOutboundDatabaseName(n)) could contain duplicates we should fail
+    // if that happens that's an error in configuration.
 
     if (metaStore.getFederationType() == PRIMARY) {
       validatePrimaryMetastoreDatabases(mappableDatabases);
@@ -181,12 +193,15 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
   private void addDatabaseMappings(List<String> databases, DatabaseMapping databaseMapping) {
     for (String databaseName : databases) {
-      mappingsByDatabaseName.put(databaseName.toLowerCase(Locale.ROOT), databaseMapping);
+      mappingsByDatabaseName.put(databaseName, databaseMapping);
     }
   }
 
   private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
-    return new IdentityMapping(metaStoreMapping);
+    // TODO PD something like: if (metaStoreMapping.getDatabaseNameMapping().isEmpty())
+    // else return new IdentityMapping(metaStoreMapping);
+    //
+    return new DatabaseMappingImpl(metaStoreMapping, queryMapping);
   }
 
   private void remove(AbstractMetaStore metaStore) {
@@ -302,8 +317,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases(String pattern) {
-        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) ->
-            mappingsByDatabaseName.keySet().contains(database);
+        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> mappingsByDatabaseName
+            .keySet()
+            .contains(database);
 
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
         for (DatabaseMapping mapping : getDatabaseMappings()) {
