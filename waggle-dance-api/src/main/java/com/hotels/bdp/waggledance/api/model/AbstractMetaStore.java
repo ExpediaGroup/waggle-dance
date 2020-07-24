@@ -21,6 +21,7 @@ import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 import java.beans.Transient;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.collect.HashBiMap;
 
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
@@ -44,12 +46,14 @@ public abstract class AbstractMetaStore {
   private String databasePrefix;
   private List<String> writableDatabaseWhitelist;
   private List<String> mappedDatabases;
+  private Map<String, String> databaseNameMapping;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
+  private transient HashBiMap<String, String> databaseNameBiMapping;
 
   public AbstractMetaStore() {}
 
@@ -159,6 +163,19 @@ public abstract class AbstractMetaStore {
 
   public void setMappedDatabases(List<String> mappedDatabases) {
     this.mappedDatabases = mappedDatabases;
+  }
+
+  public Map<String, String> getDatabasesNameMapping() {
+    return databaseNameMapping;
+  }
+
+  public void setDatabasesNameMapping(Map<String, String> databaseNameMapping) {
+    this.databaseNameMapping = databaseNameMapping;
+    databaseNameBiMapping = HashBiMap.create(databaseNameMapping);
+  }
+
+  public HashBiMap<String, String> getDatabaseNameBiMapping() {
+    return databaseNameBiMapping;
   }
 
   @Transient

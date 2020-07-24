@@ -74,9 +74,9 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
         createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType(),
         metaStore.getLatency());
     if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.PREFIXED) {
-      return new DatabaseNameMapping(new PrefixMapping(metaStoreMappingImpl));
+      return new DatabaseNameMapping(new PrefixMapping(metaStoreMappingImpl), metaStore.getDatabaseNameBiMapping());
     } else {
-      return new DatabaseNameMapping(metaStoreMappingImpl);
+      return new DatabaseNameMapping(metaStoreMappingImpl, metaStore.getDatabaseNameBiMapping());
     }
   }
 

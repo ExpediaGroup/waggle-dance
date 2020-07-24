@@ -152,6 +152,11 @@ public class WaggleDanceIntegrationTest {
                 .add_partitions(Arrays
                     .asList(newPartition(hiveTable, Arrays.asList("Europe", "UK"), partitionUk),
                         newPartition(hiveTable, Arrays.asList("Asia", "China"), partitionChina))));
+
+    client
+        .add_partitions(Arrays
+            .asList(newPartition(hiveTable, Arrays.asList("Europe", "UK"), partitionUk),
+                newPartition(hiveTable, Arrays.asList("Asia", "China"), partitionChina)));
   }
 
   private String getWaggleDanceThriftUri() {

@@ -21,27 +21,25 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.BiMap;
+
 public class DatabaseNameMapping extends MetaStoreMappingDecorator {
 
   private final static Logger log = LoggerFactory.getLogger(DatabaseNameMapping.class);
 
-  private final Map<String, String> inbound = new HashMap<>();
-  private final Map<String, String> outbound = new HashMap<>();
+  private final Map<String, String> inbound;
+  private final Map<String, String> outbound;
 
-  public DatabaseNameMapping(MetaStoreMapping metaStoreMapping) {
+  public DatabaseNameMapping(MetaStoreMapping metaStoreMapping, BiMap<String, String> databaseNameMapping) {
     super(metaStoreMapping);
-    // TODO PD config :P Need to get this from config loaded into: metaStoreMapping.getDatabaseNameMapping()
-    inbound.put("foo", "bar");
-
-    outbound.put("bar", "foo2");
-    // TODO PD: What if you have multiple values? we should validate.
-    // databaseNameMapping.put("foo2", "bar");
+    inbound = new HashMap<>(databaseNameMapping);
+    outbound = new HashMap<>(databaseNameMapping.inverse());
   }
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
     String result = super.transformOutboundDatabaseName(outbound.getOrDefault(databaseName, databaseName));
-    log.info("transformOutboundDatabaseName '" + databaseName + "' to '" + result + "'");
+    log.debug("transformOutboundDatabaseName '" + databaseName + "' to '" + result + "'");
     return result;
   }
 
@@ -49,7 +47,7 @@ public class DatabaseNameMapping extends MetaStoreMappingDecorator {
   public String transformInboundDatabaseName(String databaseName) {
     String newDatabaseName = super.transformInboundDatabaseName(databaseName);
     String result = inbound.getOrDefault(newDatabaseName, newDatabaseName);
-    log.info("transformInboundDatabaseName '" + databaseName + "' to '" + result + "'");
+    log.debug("transformInboundDatabaseName '" + databaseName + "' to '" + result + "'");
     return result;
   }
 
