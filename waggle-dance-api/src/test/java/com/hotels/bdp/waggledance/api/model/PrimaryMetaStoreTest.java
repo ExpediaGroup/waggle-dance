@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
 
   @Test
   public void toJson() throws Exception {
-    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databasePrefix\":\"\",\"federationType\":\"PRIMARY\",\"latency\":0,\"mappedDatabases\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
+    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databaseNameMapping\":null,\"databasePrefix\":\"\",\"federationType\":\"PRIMARY\",\"latency\":0,\"mappedDatabases\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
     ObjectMapper mapper = new ObjectMapper();
     // Sorting to get deterministic test behaviour
     mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);

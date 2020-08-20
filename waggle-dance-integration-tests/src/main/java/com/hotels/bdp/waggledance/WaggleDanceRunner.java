@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,6 +123,24 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
       federatedMetaStore.setLatency(8000L);
       federatedMetaStores.add(federatedMetaStore);
+      return this;
+    }
+
+    /**
+     * Sets the same mapping to all federatedDatabaseMappings
+     *
+     * @param databaseNameMapping
+     * @return
+     */
+    public Builder withFederatedDatabaseNameMappingMap(Map<String, String> databaseNameMapping) {
+      for (FederatedMetaStore federatedMetaStore : federatedMetaStores) {
+        federatedMetaStore.setDatabaseNameMapping(databaseNameMapping);
+      }
+      return this;
+    }
+
+    public Builder withPrimaryDatabaseNameMappingMap(Map<String, String> databaseNameMapping) {
+      primaryMetaStore.setDatabaseNameMapping(databaseNameMapping);
       return this;
     }
 
@@ -275,7 +293,11 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
   }
 
   private static String[] getArgsArray(Map<String, String> props) {
-    String[] args = props.entrySet().stream().map(input -> "--" + input.getKey() + "=" + input.getValue()).toArray(String[]::new);
+    String[] args = props
+        .entrySet()
+        .stream()
+        .map(input -> "--" + input.getKey() + "=" + input.getValue())
+        .toArray(String[]::new);
     return args;
   }
 

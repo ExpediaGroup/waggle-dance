@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
@@ -152,11 +154,6 @@ public class WaggleDanceIntegrationTest {
                 .add_partitions(Arrays
                     .asList(newPartition(hiveTable, Arrays.asList("Europe", "UK"), partitionUk),
                         newPartition(hiveTable, Arrays.asList("Asia", "China"), partitionChina))));
-
-    client
-        .add_partitions(Arrays
-            .asList(newPartition(hiveTable, Arrays.asList("Europe", "UK"), partitionUk),
-                newPartition(hiveTable, Arrays.asList("Asia", "China"), partitionChina)));
   }
 
   private String getWaggleDanceThriftUri() {
@@ -885,4 +882,68 @@ public class WaggleDanceIntegrationTest {
     assertThat(primaryMetaStore.getMappedDatabases().contains("newDB"), is(true));
   }
 
+  @Test
+  public void prefixedModeDatabaseNameMapping() throws Exception {
+    Map<String, String> databaseNameMapping1 = new HashMap<>();
+    databaseNameMapping1.put(LOCAL_DATABASE, "abc");
+    Map<String, String> databaseNameMapping2 = new HashMap<>();
+    databaseNameMapping2.put(REMOTE_DATABASE, "xyz");
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withPrimaryDatabaseNameMappingMap(databaseNameMapping1)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .withFederatedDatabaseNameMappingMap(databaseNameMapping2)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> allDatabases = proxy.getAllDatabases();
+    System.out.println(allDatabases);
+    assertThat(allDatabases.size(), is(3));
+    assertThat(allDatabases.get(0), is("default"));
+    assertThat(allDatabases.get(1), is("abc"));
+    assertThat(allDatabases.get(2), is(SECONDARY_METASTORE_NAME + "_xyz"));
+    // Local table
+    Table waggledLocalTable = proxy.getTable("abc", LOCAL_TABLE);
+    assertNotNull(waggledLocalTable);
+
+    // Remote table
+    Table waggledRemoteTable = proxy.getTable(SECONDARY_METASTORE_NAME + "_xyz", REMOTE_TABLE);
+    assertNotNull(waggledRemoteTable);
+  }
+
+  @Test
+  public void manualModeDatabaseNameMapping() throws Exception {
+    Map<String, String> databaseNameMapping1 = new HashMap<>();
+    databaseNameMapping1.put(LOCAL_DATABASE, "abc");
+    Map<String, String> databaseNameMapping2 = new HashMap<>();
+    databaseNameMapping2.put(REMOTE_DATABASE, "xyz");
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withPrimaryDatabaseNameMappingMap(databaseNameMapping1)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .withFederatedDatabaseNameMappingMap(databaseNameMapping2)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> allDatabases = proxy.getAllDatabases();
+    System.out.println(allDatabases);
+    assertThat(allDatabases.size(), is(3));
+    assertThat(allDatabases.get(0), is("default"));
+    assertThat(allDatabases.get(1), is("abc"));
+    assertThat(allDatabases.get(2), is("xyz"));
+    // Local table
+    Table waggledLocalTable = proxy.getTable("abc", LOCAL_TABLE);
+    assertNotNull(waggledLocalTable);
+
+    // Remote table
+    Table waggledRemoteTable = proxy.getTable("xyz", REMOTE_TABLE);
+    assertNotNull(waggledRemoteTable);
+  }
 }

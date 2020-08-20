@@ -37,6 +37,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
@@ -69,7 +70,19 @@ public class MetaStoreMappingFactoryImplTest {
   }
 
   @Test
-  public void typical() {
+  public void typicalPrefixed() {
+    when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.PREFIXED);
+    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
+    MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
+    assertThat(mapping, is(notNullValue()));
+    verify(prefixNamingStrategy).apply(federatedMetaStore);
+    verify(accessControlHandlerFactory).newInstance(federatedMetaStore);
+    assertThat(mapping.getDatabasePrefix(), is("fed1_"));
+    assertThat(mapping.getMetastoreMappingName(), is("fed1"));
+  }
+
+  @Test
+  public void typicalNonPrefixed() {
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
     MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
     assertThat(mapping, is(notNullValue()));

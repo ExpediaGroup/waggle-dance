@@ -22,6 +22,7 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -120,13 +121,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         LOG.error("Could not get databases for metastore {}", metaStore.getRemoteMetaStoreUris(), e);
       }
     }
-    DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
+    DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping, metaStore);
     mappableDatabases = mappableDatabases
         .stream()
         .map(n -> databaseMapping.transformOutboundDatabaseName(n))
         .collect(toList());
-    // TODO PD the .map(n -> databaseMapping.transformOutboundDatabaseName(n)) could contain duplicates we should fail
-    // if that happens that's an error in configuration.
+    validateMappableDatabases(mappableDatabases, metaStore);
 
     if (metaStore.getFederationType() == PRIMARY) {
       validatePrimaryMetastoreDatabases(mappableDatabases);
@@ -139,6 +139,17 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
     addDatabaseMappings(mappableDatabases, databaseMapping);
     databaseMappingToDatabaseList.put(databaseMapping.getMetastoreMappingName(), mappableDatabases);
+  }
+
+  private void validateMappableDatabases(List<String> mappableDatabases, AbstractMetaStore metaStore) {
+    int uniqueMappableDatabasesSize = new HashSet<>(mappableDatabases).size();
+    if (uniqueMappableDatabasesSize != mappableDatabases.size()) {
+      throw new WaggleDanceException(
+          "Database clash, found duplicate database names after applying all the mappings. Check the configuration for metastore '"
+              + metaStore.getName()
+              + "', mappableDatabases are: '"
+              + mappableDatabases.toString());
+    }
   }
 
   private void validatePrimaryMetastoreDatabases(List<String> databases) {
@@ -197,10 +208,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
   }
 
-  private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
-    // TODO PD something like: if (metaStoreMapping.getDatabaseNameMapping().isEmpty())
-    // else return new IdentityMapping(metaStoreMapping);
-    //
+  private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping, AbstractMetaStore metaStore) {
     return new DatabaseMappingImpl(metaStoreMapping, queryMapping);
   }
 

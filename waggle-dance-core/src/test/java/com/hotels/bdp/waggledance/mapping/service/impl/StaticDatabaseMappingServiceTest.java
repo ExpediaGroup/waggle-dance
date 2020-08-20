@@ -19,6 +19,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -32,6 +34,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
@@ -52,7 +56,7 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
-import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
+import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
@@ -102,6 +106,7 @@ public class StaticDatabaseMappingServiceTest {
     MetaStoreMapping result = Mockito.mock(MetaStoreMapping.class);
     when(result.isAvailable()).thenReturn(isAvailable);
     when(result.getMetastoreMappingName()).thenReturn(metaStore.getName());
+    when(result.transformOutboundDatabaseName(anyString())).then(returnsFirstArg());
     return result;
   }
 
@@ -116,7 +121,11 @@ public class StaticDatabaseMappingServiceTest {
     MetaStoreMapping newMapping = mockNewMapping(availableMapping, newMetastore);
     when(metaStoreMappingFactory.newInstance(newMetastore)).thenReturn(newMapping);
     when(newMapping.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_all_databases()).thenReturn(mappedDatabases);
+    List<String> allLowerCased = mappedDatabases
+        .stream()
+        .map(s -> s.toLowerCase(Locale.ROOT))
+        .collect(Collectors.toList());
+    when(federatedDatabaseClient.get_all_databases()).thenReturn(allLowerCased);
     return newMetastore;
   }
 
@@ -124,7 +133,7 @@ public class StaticDatabaseMappingServiceTest {
   public void databaseMappingPrimary() throws NoSuchObjectException {
     DatabaseMapping databaseMapping = service.databaseMapping(PRIMARY_DB);
     assertThat(databaseMapping.getMetastoreMappingName(), is(PRIMARY_NAME));
-    assertTrue(databaseMapping instanceof IdentityMapping);
+    assertTrue(databaseMapping instanceof DatabaseMappingImpl);
   }
 
   @Test(expected = NoSuchObjectException.class)
@@ -137,7 +146,7 @@ public class StaticDatabaseMappingServiceTest {
     service.databaseMapping(FEDERATED_DB);
     DatabaseMapping databaseMapping = service.databaseMapping(FEDERATED_DB);
     assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
-    assertTrue(databaseMapping instanceof IdentityMapping);
+    assertTrue(databaseMapping instanceof DatabaseMappingImpl);
   }
 
   @Test(expected = WaggleDanceException.class)
@@ -193,7 +202,7 @@ public class StaticDatabaseMappingServiceTest {
     service.onRegister(newMetastore);
     DatabaseMapping databaseMapping = service.databaseMapping("db1");
     assertThat(databaseMapping.getMetastoreMappingName(), is("fed1"));
-    assertTrue(databaseMapping instanceof IdentityMapping);
+    assertTrue(databaseMapping instanceof DatabaseMappingImpl);
   }
 
   @Test(expected = WaggleDanceException.class)
@@ -216,10 +225,10 @@ public class StaticDatabaseMappingServiceTest {
 
     DatabaseMapping databaseMapping = service.databaseMapping("db1");
     assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
-    assertTrue(databaseMapping instanceof IdentityMapping);
+    assertTrue(databaseMapping instanceof DatabaseMappingImpl);
     databaseMapping = service.databaseMapping(FEDERATED_DB);
     assertThat(databaseMapping.getMetastoreMappingName(), is(FEDERATED_NAME));
-    assertTrue(databaseMapping instanceof IdentityMapping);
+    assertTrue(databaseMapping instanceof DatabaseMappingImpl);
   }
 
   @Test
@@ -235,7 +244,7 @@ public class StaticDatabaseMappingServiceTest {
 
     DatabaseMapping databaseMapping = service.databaseMapping(PRIMARY_DB);
     assertThat(databaseMapping.getMetastoreMappingName(), is("newPrimary"));
-    assertTrue(databaseMapping instanceof IdentityMapping);
+    assertTrue(databaseMapping instanceof DatabaseMappingImpl);
 
     // unchanged
     databaseMapping = service.databaseMapping(FEDERATED_DB);
@@ -251,7 +260,7 @@ public class StaticDatabaseMappingServiceTest {
 
     DatabaseMapping databaseMapping = service.databaseMapping(FEDERATED_DB);
     assertThat(databaseMapping.getMetastoreMappingName(), is(newName));
-    assertTrue(databaseMapping instanceof IdentityMapping);
+    assertTrue(databaseMapping instanceof DatabaseMappingImpl);
   }
 
   @Test(expected = WaggleDanceException.class)

@@ -15,6 +15,7 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,10 +31,15 @@ public class DatabaseNameMapping extends MetaStoreMappingDecorator {
   private final Map<String, String> inbound;
   private final Map<String, String> outbound;
 
-  public DatabaseNameMapping(MetaStoreMapping metaStoreMapping, BiMap<String, String> databaseNameMapping) {
+  public DatabaseNameMapping(MetaStoreMapping metaStoreMapping, BiMap<String, String> databaseNameMap) {
     super(metaStoreMapping);
-    inbound = new HashMap<>(databaseNameMapping);
-    outbound = new HashMap<>(databaseNameMapping.inverse());
+    if (databaseNameMap != null && !databaseNameMap.isEmpty()) {
+      inbound = new HashMap<>(databaseNameMap.inverse());
+      outbound = new HashMap<>(databaseNameMap);
+    } else {
+      inbound = Collections.emptyMap();
+      outbound = Collections.emptyMap();
+    }
   }
 
   @Override

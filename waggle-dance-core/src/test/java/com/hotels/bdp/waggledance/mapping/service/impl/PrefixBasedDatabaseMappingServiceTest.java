@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +44,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -97,6 +100,10 @@ public class PrefixBasedDatabaseMappingServiceTest {
     MetaStoreMapping result = Mockito.mock(MetaStoreMapping.class);
     when(result.isAvailable()).thenReturn(isAvailable);
     when(result.getDatabasePrefix()).thenReturn(prefix);
+    if (StringUtils.isBlank(prefix)) {
+      when(result.transformOutboundDatabaseName(anyString())).then(returnsFirstArg());
+      when(result.transformInboundDatabaseName(anyString())).then(returnsFirstArg());
+    }
     return result;
   }
 
@@ -109,8 +116,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
     assertThat(databaseMappings.size(), is(3));
     assertThat(ImmutableSet
-            .of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
-                databaseMappings.get(2).getDatabasePrefix()),
+        .of(databaseMappings.get(0).getDatabasePrefix(), databaseMappings.get(1).getDatabasePrefix(),
+            databaseMappings.get(2).getDatabasePrefix()),
         is(ImmutableSet.of("", DB_PREFIX, "newname_")));
   }
 
@@ -217,7 +224,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
   }
 
-  @Test (expected = NoSuchObjectException.class)
+  @Test(expected = NoSuchObjectException.class)
   public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() throws NoSuchObjectException {
     Mockito.reset(metaStoreMappingPrimary);
     when(metaStoreMappingPrimary.isAvailable()).thenReturn(false);
@@ -286,8 +293,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
-    when(primaryDatabaseClient.get_all_databases()).thenReturn(
-        Lists.newArrayList("primary_db", "another_db_that_is_not_mapped"));
+    when(primaryDatabaseClient.get_all_databases())
+        .thenReturn(Lists.newArrayList("primary_db", "another_db_that_is_not_mapped"));
     when(federatedDatabaseClient.get_all_databases())
         .thenReturn(Lists.newArrayList("federated_db", "another_db_that_is_not_mapped"));
 

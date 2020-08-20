@@ -4,6 +4,7 @@
 
 ### Added
 * Implemented `get_partition_values()` method in `FederatedHMSHandler` due to Hive version change.
+* New `database-name-mapping` feature. See the [README](https://github.com/HotelsDotCom/waggle-dance#database-name-mapping) for more information.
 
 ## [3.6.0] - 2020-03-04
 ### Changed
@@ -104,7 +105,7 @@
 
 ### Changed
 * Refactored general purpose Hive metastore code to leverage [hcommon-hive-metastore](https://github.com/HotelsDotCom/hcommon-hive-metastore) and [hcommon-ssh](https://github.com/HotelsDotCom/hcommon-ssh) libraries. See [#78](https://github.com/HotelsDotCom/waggle-dance/issues/78).
-* Updated versions of dependencies and plugins in waggle-dance-parent, waggle-dance, waggle-dance-core and waggle-dance-rpm modules. 
+* Updated versions of dependencies and plugins in waggle-dance-parent, waggle-dance, waggle-dance-core and waggle-dance-rpm modules.
 * Upgraded default Hive version from 2.3.0 to 2.3.3.
 
 ## [2.3.7] - 2018-06-19
@@ -123,7 +124,7 @@
 ### Fixed
 * Issue where WD is unresponsive when a tunneled metastore connection becomes unreachable. See [#73](https://github.com/HotelsDotCom/waggle-dance/issues/73).
 
-## [2.3.4] - 2018-05-16 
+## [2.3.4] - 2018-05-16
 ### Fixed
 * View query parsing code shouldn't use JRE class. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/74).
 

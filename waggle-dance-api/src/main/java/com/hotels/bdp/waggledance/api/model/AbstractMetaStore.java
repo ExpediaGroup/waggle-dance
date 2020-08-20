@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,15 +165,19 @@ public abstract class AbstractMetaStore {
     this.mappedDatabases = mappedDatabases;
   }
 
-  public Map<String, String> getDatabasesNameMapping() {
+  public Map<String, String> getDatabaseNameMapping() {
     return databaseNameMapping;
   }
 
-  public void setDatabasesNameMapping(Map<String, String> databaseNameMapping) {
-    this.databaseNameMapping = databaseNameMapping;
+  public void setDatabaseNameMapping(Map<String, String> databaseNameMapping) {
+    if (databaseNameMapping == null) {
+      databaseNameMapping = Collections.emptyMap();
+    }
+    this.databaseNameMapping = Collections.unmodifiableMap(databaseNameMapping);
     databaseNameBiMapping = HashBiMap.create(databaseNameMapping);
   }
 
+  @Transient
   public HashBiMap<String, String> getDatabaseNameBiMapping() {
     return databaseNameBiMapping;
   }

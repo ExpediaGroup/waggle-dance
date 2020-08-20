@@ -430,9 +430,40 @@ Assumes database resolution is done by adding prefixes. If database resolution i
 ## Database Name Mapping
 Waggle Dance allows configuration to map database names. This feature is intended to be useful when migrating from an existing databases into different environments.
 A use case:
-We have users running ETL in environment X and we want move those ETL jobs to run in a different environment.
-TODO: Write example config (prefixed and manual mode) and show how database names are resolved.
+We have legacy data lakes that have tables belonging to the same domain in differently names databases. E.G a booking domain is called 'datawarehouse' or 'hotel_booking'. When federating to those datalakes it helps data discovery if those names are standardized to one name. Renaming a database is easy but migrate ETL might not be so to easy migration you can configure Waggle Dance to remap the names.
 
+Example Datalake X federating to 2 other "legacy" datalakes Y and Z. 
+This is how we want the different databases to look like in the datalakes:
+
+X has:
+* y_booking
+* z_booking
+
+Y has:
+* datawarehouse
+* another_db
+
+Z has:
+* hotel_booking
+	
+To achieve this we can configure Waggle Dance in X to map the names:
+
+
+    federated-meta-stores:
+      - remote-meta-store-uris: thrift://10.0.0.1:9083
+        name: y
+        mapped-databases:
+        - datawarehouse
+        database-name-mapping:
+          datawarehouse: booking
+      - remote-meta-store-uris: thrift://10.0.0.2:9083
+        name: z
+        database-name-mapping:
+          hotel_booking: booking
+ 
+   
+If an optional `mapped-databases` is used that filter is applied first the renaming is applied after.
+NOTE: mapping names adds an extra layer of abstraction and we advice to use this as temporary migration solutions only. It becomes harder to debug where a virtual (remapped) table actually is coming from.
 
 ## Endpoints
 
