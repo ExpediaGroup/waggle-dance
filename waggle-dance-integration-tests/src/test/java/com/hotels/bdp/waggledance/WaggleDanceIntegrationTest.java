@@ -901,7 +901,6 @@ public class WaggleDanceIntegrationTest {
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
-    System.out.println(allDatabases);
     assertThat(allDatabases.size(), is(3));
     assertThat(allDatabases.get(0), is("default"));
     assertThat(allDatabases.get(1), is("abc"));
@@ -933,7 +932,6 @@ public class WaggleDanceIntegrationTest {
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
-    System.out.println(allDatabases);
     assertThat(allDatabases.size(), is(3));
     assertThat(allDatabases.get(0), is("default"));
     assertThat(allDatabases.get(1), is("abc"));
