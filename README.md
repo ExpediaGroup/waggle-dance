@@ -436,15 +436,18 @@ Example Datalake X federating to 2 other "legacy" datalakes Y and Z.
 This is what we want the different databases to look like in the datalakes:
 
 X has:
-* y_booking
-* z_booking
+
+    y_booking
+    z_booking
 
 Y has:
-* datawarehouse
-* another_db
+    
+    datawarehouse
+    another_db
 
 Z has:
-* hotel_booking
+    
+    hotel_booking
 
 To achieve this we can configure Waggle Dance in X to map the names:
 
