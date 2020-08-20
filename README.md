@@ -149,7 +149,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store.metastore-tunnel`                   | No       | See metastore tunnel configuration values below. |
 | `primary-meta-store.latency`                            | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
 | `primary-meta-store.mapped-databases`                   | No       | List of databases to federate from the primary metastore; all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
-| `federated-meta-stores[n].database-name-mapping`             | No       | BiDirectional Map of database names and mapped names. key=<database name as known in the primary metastore>, value=<name that should be shown to a client>. See the [Database Name Mapping](#database-name-mapping) section.|
+| `primary-meta-stores.database-name-mapping`             | No       | BiDirectional Map of database names and mapped names. key=&ltdatabase name as known in the primary metastore&gt, value=&ltname that should be shown to a client&gt. See the [Database Name Mapping](#database-name-mapping) section.|
 | `federated-meta-stores`                                 | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`       | Yes      | Thrift URIs of the federated read-only metastore. |
 | `federated-meta-stores[n].name`                         | Yes      | Name that uniquely identifies this metastore. Used internally. Cannot be empty. |
@@ -157,7 +157,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `federated-meta-stores[n].metastore-tunnel`             | No       | See metastore tunnel configuration values below. |
 | `federated-meta-stores[n].latency`                      | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
 | `federated-meta-stores[n].mapped-databases`             | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
-| `federated-meta-stores[n].database-name-mapping`             | No       | BiDirectional Map of database names and mapped names. key=database name as known in the federated metastore, value=name that should be shown to a client. See the [Database Name Mapping](#database-name-mapping) section.|
+| `federated-meta-stores[n].database-name-mapping`             | No       | BiDirectional Map of database names and mapped names. key=&ltdatabase name as known in the federated metastore&gt, value=&ltname that should be shown to a client&gt. See the [Database Name Mapping](#database-name-mapping) section.|
 | `federated-meta-stores[n].writable-database-white-list` | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
 
 The table below describes the metastore tunnel configuration values:
@@ -432,7 +432,7 @@ Waggle Dance allows configuration to map database names. This feature is intende
 A use case:
 We have legacy data lakes that have tables belonging to the same domain in differently named databases. E.g. a booking domain is called 'datawarehouse' or 'hotel_booking'. When federating to those datalakes it helps data discovery if those names are standardized to one name. Renaming a database is easy but migrating ETL might not be, so to make migration easier you can configure Waggle Dance to remap the names.
 
-Example Datalake X federating to 2 other "legacy" datalakes Y and Z. 
+Example Datalake X federating to 2 other "legacy" datalakes Y and Z.
 This is what we want the different databases to look like in the datalakes:
 
 X has:
@@ -445,7 +445,7 @@ Y has:
 
 Z has:
 * hotel_booking
-	
+
 To achieve this we can configure Waggle Dance in X to map the names:
 
 
@@ -460,8 +460,8 @@ To achieve this we can configure Waggle Dance in X to map the names:
         name: z
         database-name-mapping:
           hotel_booking: booking
- 
-   
+
+
 If an optional `mapped-databases` is used that filter is applied first and the renaming is applied after.
 NOTE: mapping names adds an extra layer of abstraction and we advise to use this as a temporary migration solution only. It becomes harder to debug where a virtual (remapped) table actually is coming from.
 
