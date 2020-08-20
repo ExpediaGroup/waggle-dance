@@ -433,7 +433,7 @@ A use case:
 We have legacy data lakes that have tables belonging to the same domain in differently named databases. E.g. a booking domain is called 'datawarehouse' or 'hotel_booking'. When federating to those datalakes it helps data discovery if those names are standardized to one name. Renaming a database is easy but migrating ETL might not be, so to make migration easier you can configure Waggle Dance to remap the names.
 
 Example Datalake X federating to 2 other "legacy" datalakes Y and Z. 
-This is how we want the different databases to look like in the datalakes:
+This is what we want the different databases to look like in the datalakes:
 
 X has:
 * y_booking
