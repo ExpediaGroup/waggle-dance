@@ -462,7 +462,7 @@ To achieve this we can configure Waggle Dance in X to map the names:
           hotel_booking: booking
  
    
-If an optional `mapped-databases` is used that filter is applied first the renaming is applied after.
+If an optional `mapped-databases` is used that filter is applied first and the renaming is applied after.
 NOTE: mapping names adds an extra layer of abstraction and we advise to use this as a temporary migration solution only. It becomes harder to debug where a virtual (remapped) table actually is coming from.
 
 ## Endpoints
