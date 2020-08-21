@@ -850,7 +850,7 @@ public class WaggleDanceIntegrationTest {
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Federations federations = stopServerAndGetConfiguration();
     PrimaryMetaStore primaryMetaStore = federations.getPrimaryMetaStore();
-    assertThat(primaryMetaStore.getMappedDatabases().contains("newDB"), is(true));
+    assertThat(primaryMetaStore.getMappedDatabases().contains("newdb"), is(true));
   }
 
   @Test
@@ -879,7 +879,7 @@ public class WaggleDanceIntegrationTest {
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Federations federations = stopServerAndGetConfiguration();
     PrimaryMetaStore primaryMetaStore = federations.getPrimaryMetaStore();
-    assertThat(primaryMetaStore.getMappedDatabases().contains("newDB"), is(true));
+    assertThat(primaryMetaStore.getMappedDatabases().contains("newdb"), is(true));
   }
 
   @Test
