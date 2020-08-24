@@ -44,8 +44,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -100,7 +100,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     MetaStoreMapping result = Mockito.mock(MetaStoreMapping.class);
     when(result.isAvailable()).thenReturn(isAvailable);
     when(result.getDatabasePrefix()).thenReturn(prefix);
-    if (StringUtils.isBlank(prefix)) {
+    if (Strings.isNullOrEmpty(prefix)) {
       when(result.transformOutboundDatabaseName(anyString())).then(returnsFirstArg());
       when(result.transformInboundDatabaseName(anyString())).then(returnsFirstArg());
     }
