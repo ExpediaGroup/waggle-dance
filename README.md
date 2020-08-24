@@ -429,11 +429,11 @@ Assumes database resolution is done by adding prefixes. If database resolution i
 
 ## Database Name Mapping
 Waggle Dance allows one to refer to databases by names that are different to what they are defined in the Hive metastore via a `database-name-mapping` configuration. This feature can be useful when migrating data from existing databases into different environments.
-A use case:
+To clarify how this feature could be used, below is an example use case:
 As part of a data migration we have decided that we want to store all Hive tables related to hotel bookings in a database called `booking`. However we have legacy data lakes that have tables in this domain but they are stored in databased with names that don't match this new standard, e.g. 'datawarehouse' or 'hotel_booking'. When federating queries to those legacy data lakes it helps data discovery if the database names are standardized to new name. Renaming a database in Hive is easy but updating all the relevant ETL scripts and jobs might not be, so to make migration easier you can configure Waggle Dance to map the database names so both the new and old names can be used. At some point in the future when all the references to the old names are updated this mapping can then be removed.
 
-Example Datalake X federating to 2 other "legacy" datalakes Y and Z.
-This is what we want the different databases to look like in the datalakes:
+So in this example we have a new Data lake X which is federated along with 2 other "legacy" data lakes Y and Z.
+The desired end result is to be able to refer to all the booking related database as "booking" prefixed by the source data lake name.
 
 X has:
 
@@ -442,14 +442,14 @@ X has:
 
 Y has:
     
-    datawarehouse
-    another_db
+    datawarehouse (this actually contains "booking" tables but is misnamed according to the new convention)
+    another_db (this contains tables we want to refer to using this existing name, i.e. we don't want to change this)
 
 Z has:
     
-    hotel_booking
+    hotel_booking (this also contains "booking" tables but is misnamed according to the new convention)
 
-To achieve this we can configure Waggle Dance in X to map the names:
+To achieve a unified view of all the booking tables in the different databases (without actually renaming them in Hive) we can configure Waggle Dance in X to map from the old to the new names like so:
 
 
     federated-meta-stores:
