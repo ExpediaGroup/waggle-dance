@@ -70,13 +70,13 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     LOG
         .info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
             metaStore.getRemoteMetaStoreUris());
-    MetaStoreMappingImpl metaStoreMappingImpl = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
         createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType(),
         metaStore.getLatency());
     if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.PREFIXED) {
-      return new DatabaseNameMapping(new PrefixMapping(metaStoreMappingImpl), metaStore.getDatabaseNameBiMapping());
+      return new DatabaseNameMapping(new PrefixMapping(metaStoreMapping), metaStore.getDatabaseNameBiMapping());
     } else {
-      return new DatabaseNameMapping(metaStoreMappingImpl, metaStore.getDatabaseNameBiMapping());
+      return new DatabaseNameMapping(metaStoreMapping, metaStore.getDatabaseNameBiMapping());
     }
   }
 

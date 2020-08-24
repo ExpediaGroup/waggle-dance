@@ -428,6 +428,8 @@ Assumes database resolution is done by adding prefixes. If database resolution i
     ;
 
 ## Database Name Mapping
+NOTE: mapping names adds an extra layer of abstraction and we advise to use this as a temporary migration solution only. It becomes harder to debug where a virtual (remapped) table actually is coming from.
+
 Waggle Dance allows one to refer to databases by names that are different to what they are defined in the Hive metastore via a `database-name-mapping` configuration. This feature can be useful when migrating data from existing databases into different environments.
 To clarify how this feature could be used, below is an example use case:
 As part of a data migration we have decided that we want to store all Hive tables related to hotel bookings in a database called `booking`. However we have legacy data lakes that have tables in this domain but they are stored in databased with names that don't match this new standard, e.g. 'datawarehouse' or 'hotel_booking'. When federating queries to those legacy data lakes it helps data discovery if the database names are standardized to new name. Renaming a database in Hive is easy but updating all the relevant ETL scripts and jobs might not be, so to make migration easier you can configure Waggle Dance to map the database names so both the new and old names can be used. At some point in the future when all the references to the old names are updated this mapping can then be removed.
@@ -441,12 +443,12 @@ X has:
     z_booking
 
 Y has:
-    
+
     datawarehouse (this actually contains "booking" tables but is misnamed according to the new convention)
     another_db (this contains tables we want to refer to using this existing name, i.e. we don't want to change this)
 
 Z has:
-    
+
     hotel_booking (this also contains "booking" tables but is misnamed according to the new convention)
 
 To achieve a unified view of all the booking tables in the different databases (without actually renaming them in Hive) we can configure Waggle Dance in X to map from the old to the new names like so:
@@ -466,7 +468,6 @@ To achieve a unified view of all the booking tables in the different databases (
 
 
 If an optional `mapped-databases` is used that filter is applied first and the renaming is applied after.
-NOTE: mapping names adds an extra layer of abstraction and we advise to use this as a temporary migration solution only. It becomes harder to debug where a virtual (remapped) table actually is coming from.
 
 ## Endpoints
 
