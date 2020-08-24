@@ -428,7 +428,7 @@ Assumes database resolution is done by adding prefixes. If database resolution i
     ;
 
 ## Database Name Mapping
-Waggle Dance allows configuration to map database names. This feature is intended to be useful when migrating from an existing database into different environments.
+Waggle Dance allows one to refer to databases by names that are different to what they are defined in the Hive metastore via a `database-name-mapping` configuration. This feature can be useful when migrating data from existing databases into different environments.
 A use case:
 We have legacy data lakes that have tables belonging to the same domain in differently named databases. E.g. a booking domain is called 'datawarehouse' or 'hotel_booking'. When federating to those datalakes it helps data discovery if those names are standardized to one name. Renaming a database is easy but migrating ETL might not be, so to make migration easier you can configure Waggle Dance to remap the names.
 
