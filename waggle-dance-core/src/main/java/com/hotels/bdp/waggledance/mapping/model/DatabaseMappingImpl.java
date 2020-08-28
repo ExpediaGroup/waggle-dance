@@ -208,6 +208,11 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
+  public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    return metaStoreMapping.transformOutboundDatabaseNameMultiple(databaseName);
+  }
+
+  @Override
   public Database transformOutboundDatabase(Database database) {
     return metaStoreMapping.transformOutboundDatabase(database);
   }
@@ -494,4 +499,5 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public long getLatency() {
     return metaStoreMapping.getLatency();
   }
+
 }

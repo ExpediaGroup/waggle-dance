@@ -43,7 +43,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
@@ -103,6 +105,14 @@ public class PrefixBasedDatabaseMappingServiceTest {
     if (Strings.isNullOrEmpty(prefix)) {
       when(result.transformOutboundDatabaseName(anyString())).then(returnsFirstArg());
       when(result.transformInboundDatabaseName(anyString())).then(returnsFirstArg());
+      when(result.transformOutboundDatabaseNameMultiple(anyString())).then(new Answer<List<String>>() {
+
+        @Override
+        public List<String> answer(InvocationOnMock invocation) throws Throwable {
+          return Lists.newArrayList((String) invocation.getArguments()[0]);
+        }
+      });
+
     }
     return result;
   }
@@ -277,7 +287,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("primary_db"));
 
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
+    when(metaStoreMappingFederated.transformOutboundDatabaseNameMultiple("federated_db"))
+        .thenReturn(Lists.newArrayList("federated_db"));
     when(federatedDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("federated_db"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
@@ -292,7 +303,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
 
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
+    when(metaStoreMappingFederated.transformOutboundDatabaseNameMultiple("federated_db"))
+        .thenReturn(Lists.newArrayList("federated_db"));
     when(primaryDatabaseClient.get_all_databases())
         .thenReturn(Lists.newArrayList("primary_db", "another_db_that_is_not_mapped"));
     when(federatedDatabaseClient.get_all_databases())
@@ -325,7 +337,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(primaryDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("primary_db"));
 
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
+    when(metaStoreMappingFederated.transformOutboundDatabaseNameMultiple("federated_db"))
+        .thenReturn(Lists.newArrayList("federated_db"));
     when(federatedDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList("federated_db"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
@@ -344,7 +357,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     String pattern = "*_db";
 
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(metaStoreMappingFederated.transformOutboundDatabaseName("federated_db")).thenReturn("federated_db");
+    when(metaStoreMappingFederated.transformOutboundDatabaseNameMultiple("federated_db"))
+        .thenReturn(Lists.newArrayList("federated_db"));
     when(primaryDatabaseClient.get_databases(pattern))
         .thenReturn(Lists.newArrayList("primary_db", "primary_db_that_is_not_mapped_and_ends_with_db"));
     when(federatedDatabaseClient.get_databases(pattern))

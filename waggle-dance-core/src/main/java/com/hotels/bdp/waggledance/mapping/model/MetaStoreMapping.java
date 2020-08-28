@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import java.io.Closeable;
+import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -30,17 +31,27 @@ public interface MetaStoreMapping extends Closeable {
 
   /**
    * Outbound means parameter coming from the Hive Metastore and return result will be sent to user client.
-   * 
-   * @param databaseName
+   *
+   * @param databaseName, (return the first matching in case of multiple names). To get the full list please use
+   *          {@link #transformOutboundDatabaseNameMultiple(String)}
    * @return
    */
   String transformOutboundDatabaseName(String databaseName);
+
+  /**
+   * Outbound means parameter coming from the Hive Metastore and return result will be sent to user client.
+   *
+   * @param List of databaseNames. This methods potentially returns multiple database name if configuration is setup to
+   *          map to multiple.
+   * @return
+   */
+  List<String> transformOutboundDatabaseNameMultiple(String databaseName);
 
   Database transformOutboundDatabase(Database database);
 
   /**
    * Inbound means parameter coming from the user client and return result will be sent to Hive Metastore.
-   * 
+   *
    * @param databaseName
    * @return
    */

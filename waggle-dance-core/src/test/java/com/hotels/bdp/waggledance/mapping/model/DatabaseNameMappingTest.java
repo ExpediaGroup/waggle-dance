@@ -20,16 +20,19 @@ import static org.junit.Assert.assertThat;
 
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 
 @SuppressWarnings("resource")
 public class DatabaseNameMappingTest {
 
-  private final MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl("prefix", "mapping", null, null, DIRECT,
-      0L);
+  private final MetaStoreMapping metaStoreMapping = new PrefixMapping(
+      new MetaStoreMappingImpl("pre_", "mapping", null, null, DIRECT, 0L));
 
   @Test
   public void mapNames() throws Exception {
@@ -37,7 +40,11 @@ public class DatabaseNameMappingTest {
     databaseNameMap.put("remote_name", "local_name");
     DatabaseNameMapping databaseNameMapping = new DatabaseNameMapping(metaStoreMapping, databaseNameMap);
     assertThat(databaseNameMapping.transformInboundDatabaseName("local_name"), is("remote_name"));
-    assertThat(databaseNameMapping.transformOutboundDatabaseName("remote_name"), is("local_name"));
+    assertThat(databaseNameMapping.transformInboundDatabaseName("pre_remote_name"), is("remote_name"));
+    assertThat(databaseNameMapping.transformInboundDatabaseName("pre_local_name"), is("remote_name"));
+    assertThat(databaseNameMapping.transformOutboundDatabaseName("remote_name"), is("pre_remote_name"));
+    List<String> expected = Lists.newArrayList("pre_remote_name", "pre_local_name");
+    assertThat(databaseNameMapping.transformOutboundDatabaseNameMultiple("remote_name"), is(expected));
   }
 
   @Test
@@ -46,14 +53,16 @@ public class DatabaseNameMappingTest {
     databaseNameMap.put("remote_name", "local_name");
     DatabaseNameMapping databaseNameMapping = new DatabaseNameMapping(metaStoreMapping, databaseNameMap);
     assertThat(databaseNameMapping.transformInboundDatabaseName("a"), is("a"));
-    assertThat(databaseNameMapping.transformOutboundDatabaseName("a"), is("a"));
+    assertThat(databaseNameMapping.transformInboundDatabaseName("pre_b"), is("b"));
+    assertThat(databaseNameMapping.transformOutboundDatabaseName("a"), is("pre_a"));
   }
 
   @Test
   public void nullMapping() throws Exception {
     DatabaseNameMapping databaseNameMapping = new DatabaseNameMapping(metaStoreMapping, null);
     assertThat(databaseNameMapping.transformInboundDatabaseName("a"), is("a"));
-    assertThat(databaseNameMapping.transformOutboundDatabaseName("a"), is("a"));
+    assertThat(databaseNameMapping.transformInboundDatabaseName("pre_b"), is("b"));
+    assertThat(databaseNameMapping.transformOutboundDatabaseName("a"), is("pre_a"));
   }
 
 }

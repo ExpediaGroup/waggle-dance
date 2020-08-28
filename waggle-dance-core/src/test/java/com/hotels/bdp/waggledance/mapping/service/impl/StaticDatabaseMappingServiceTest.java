@@ -47,7 +47,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.Lists;
 
@@ -107,6 +109,13 @@ public class StaticDatabaseMappingServiceTest {
     when(result.isAvailable()).thenReturn(isAvailable);
     when(result.getMetastoreMappingName()).thenReturn(metaStore.getName());
     when(result.transformOutboundDatabaseName(anyString())).then(returnsFirstArg());
+    when(result.transformOutboundDatabaseNameMultiple(anyString())).then(new Answer<List<String>>() {
+
+      @Override
+      public List<String> answer(InvocationOnMock invocation) throws Throwable {
+        return Lists.newArrayList((String) invocation.getArguments()[0]);
+      }
+    });
     return result;
   }
 

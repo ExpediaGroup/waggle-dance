@@ -235,7 +235,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     List<String> mappedDatabases = new ArrayList<>();
     for (String database : databases) {
       if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
-        mappedDatabases.add(mapping.transformOutboundDatabaseName(database));
+        mappedDatabases.addAll(mapping.transformOutboundDatabaseNameMultiple(database));
       }
     }
     return mappedDatabases;

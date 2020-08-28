@@ -432,27 +432,21 @@ NOTE: mapping names adds an extra layer of abstraction and we advise to use this
 
 Waggle Dance allows one to refer to databases by names that are different to what they are defined in the Hive metastore via a `database-name-mapping` configuration. This feature can be useful when migrating data from existing databases into different environments.
 To clarify how this feature could be used, below is an example use case:
-As part of a data migration we have decided that we want to store all Hive tables related to hotel bookings in a database called `booking`. However we have legacy data lakes that have tables in this domain but they are stored in databased with names that don't match this new standard, e.g. 'datawarehouse' or 'hotel_booking'. When federating queries to those legacy data lakes it helps data discovery if the database names are standardized to new name. Renaming a database in Hive is easy but updating all the relevant ETL scripts and jobs might not be, so to make migration easier you can configure Waggle Dance to map the database names so both the new and old names can be used. At some point in the future when all the references to the old names are updated this mapping can then be removed.
+As part of a data migration we have decided that we want to store all Hive tables related to hotel bookings in a database called `booking`. However we have legacy data lakes that have tables in this domain but they are stored in databases with names that don't match this new standard, e.g. 'datawarehouse'. To ease migration we want to expose the 'datawarehouse' db as both the original name and the booking name. This way consumers can start using the new name while producers migrate their scripts from the old name or visa versa. When the migration is done the mapping can be removed and the database renamed.
 
-So in this example we have a new Data lake X which is federated along with 2 other "legacy" data lakes Y and Z.
-The desired end result is to be able to refer to all the booking related database as "booking" prefixed by the source data lake name.
+So in this example we have a Data lake X which federates tables from another Data lake Y.
+The desired end result is to show a 'datawarehouse' database and a 'booking' database in X which is proxied to the same 'datawarehouse' database in Y.
 
-X has:
+X: _show databases;_
 
-    y_booking
-    z_booking
+    datawarehouse (proxies to y - datawarehouse)
+    booking (proxies to y - datawarehouse)
 
-Y has:
+Y: _show databases;_
 
-    datawarehouse (this actually contains "booking" tables but is misnamed according to the new convention)
-    another_db (this contains tables we want to refer to using this existing name, i.e. we don't want to change this)
-
-Z has:
-
-    hotel_booking (this also contains "booking" tables but is misnamed according to the new convention)
+    datawarehouse
 
 To achieve a unified view of all the booking tables in the different databases (without actually renaming them in Hive) we can configure Waggle Dance in X to map from the old to the new names like so:
-
 
     federated-meta-stores:
       - remote-meta-store-uris: thrift://10.0.0.1:9083
@@ -461,11 +455,19 @@ To achieve a unified view of all the booking tables in the different databases (
         - datawarehouse
         database-name-mapping:
           datawarehouse: booking
-      - remote-meta-store-uris: thrift://10.0.0.2:9083
-        name: z
-        database-name-mapping:
-          hotel_booking: booking
 
+Note: Both the 'datawarehouse' and the mapped name 'booking' is show in X, so the mapping adds an additional virtual database mapping both to the same remote database. You can only map one extra name and you cannot map different databases to the same name.
+This is *not* allowed (will fail to load (invalid yaml)):
+
+    database-name-mapping:
+      datawarehouse: booking
+      datawarehouse: booking2
+
+This is *not* allowed (will fail to load (invalid mapping)):
+
+    database-name-mapping:
+      datawarehouse: booking
+      datawarehouse2: booking
 
 If an optional `mapped-databases` is used that filter is applied first and the renaming is applied after.
 

@@ -5,6 +5,8 @@
 ### Added
 * Implemented `get_partition_values()` method in `FederatedHMSHandler` due to Hive version change.
 * New `database-name-mapping` feature. See the [README](https://github.com/HotelsDotCom/waggle-dance#database-name-mapping) for more information.
+### Changed
+* Removed `IdentityMapping` as a fallback mapping in certain cases. Simplifies code paths.
 
 ## [3.6.0] - 2020-03-04
 ### Changed

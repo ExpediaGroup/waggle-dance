@@ -124,7 +124,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping, metaStore);
     mappableDatabases = mappableDatabases
         .stream()
-        .map(n -> databaseMapping.transformOutboundDatabaseName(n))
+        .flatMap(n -> databaseMapping.transformOutboundDatabaseNameMultiple(n).stream())
         .collect(toList());
     validateMappableDatabases(mappableDatabases, metaStore);
 

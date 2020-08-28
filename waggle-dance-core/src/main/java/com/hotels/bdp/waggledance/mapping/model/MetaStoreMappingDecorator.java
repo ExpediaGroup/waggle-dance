@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -35,6 +36,11 @@ public abstract class MetaStoreMappingDecorator implements MetaStoreMapping {
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
     return metaStoreMapping.transformOutboundDatabaseName(databaseName);
+  }
+
+  @Override
+  public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    return metaStoreMapping.transformOutboundDatabaseNameMultiple(databaseName);
   }
 
   @Override

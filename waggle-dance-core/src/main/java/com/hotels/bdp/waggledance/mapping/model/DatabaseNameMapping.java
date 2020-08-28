@@ -15,8 +15,10 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -44,9 +46,20 @@ public class DatabaseNameMapping extends MetaStoreMappingDecorator {
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
-    String result = super.transformOutboundDatabaseName(outbound.getOrDefault(databaseName, databaseName));
-    log.debug("transformOutboundDatabaseName '" + databaseName + "' to '" + result + "'");
-    return result;
+    return transformOutboundDatabaseNameMultiple(databaseName).get(0);
+  }
+
+  @Override
+  public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    List<String> results = new ArrayList<>();
+    results.addAll(super.transformOutboundDatabaseNameMultiple(databaseName));
+    if (outbound.containsKey(databaseName)) {
+      String result = outbound.get(databaseName);
+      List<String> databases = super.transformOutboundDatabaseNameMultiple(result);
+      log.debug("transformOutboundDatabaseName '" + databaseName + "' to '" + databases + "'");
+      results.addAll(databases);
+    }
+    return results;
   }
 
   @Override

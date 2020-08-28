@@ -16,6 +16,8 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
@@ -62,6 +64,11 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
     return databaseName.toLowerCase(Locale.ROOT);
+  }
+
+  @Override
+  public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    return Collections.singletonList(transformInboundDatabaseName(databaseName));
   }
 
   @Override
@@ -133,4 +140,5 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   public long getLatency() {
     return latency;
   }
+
 }

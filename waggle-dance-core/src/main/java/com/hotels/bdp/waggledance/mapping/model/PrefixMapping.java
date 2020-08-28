@@ -15,6 +15,9 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PrefixMapping extends MetaStoreMappingDecorator {
 
   public PrefixMapping(MetaStoreMapping metaStoreMapping) {
@@ -24,6 +27,16 @@ public class PrefixMapping extends MetaStoreMappingDecorator {
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
     return getDatabasePrefix() + super.transformOutboundDatabaseName(databaseName);
+  }
+
+  @Override
+  public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    List<String> outbound = super.transformOutboundDatabaseNameMultiple(databaseName);
+    List<String> result = new ArrayList<>(outbound.size());
+    for (String outboundDatabase : outbound) {
+      result.add(getDatabasePrefix() + outboundDatabase);
+    }
+    return result;
   }
 
   @Override

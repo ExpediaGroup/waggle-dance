@@ -42,7 +42,6 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
     @Type(value = PrimaryMetaStore.class, name = "PRIMARY"),
     @Type(value = FederatedMetaStore.class, name = "FEDERATED") })
 public abstract class AbstractMetaStore {
-
   private String databasePrefix;
   private List<String> writableDatabaseWhitelist;
   private List<String> mappedDatabases;

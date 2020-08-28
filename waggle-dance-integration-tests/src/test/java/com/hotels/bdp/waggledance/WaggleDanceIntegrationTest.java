@@ -901,10 +901,12 @@ public class WaggleDanceIntegrationTest {
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
-    assertThat(allDatabases.size(), is(3));
+    assertThat(allDatabases.size(), is(5));
     assertThat(allDatabases.get(0), is("default"));
-    assertThat(allDatabases.get(1), is("abc"));
-    assertThat(allDatabases.get(2), is(SECONDARY_METASTORE_NAME + "_xyz"));
+    assertThat(allDatabases.get(1), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(2), is("abc"));
+    assertThat(allDatabases.get(3), is(PREFIXED_REMOTE_DATABASE));
+    assertThat(allDatabases.get(4), is(SECONDARY_METASTORE_NAME + "_xyz"));
     // Local table
     Table waggledLocalTable = proxy.getTable("abc", LOCAL_TABLE);
     assertNotNull(waggledLocalTable);
@@ -932,10 +934,12 @@ public class WaggleDanceIntegrationTest {
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
-    assertThat(allDatabases.size(), is(3));
+    assertThat(allDatabases.size(), is(5));
     assertThat(allDatabases.get(0), is("default"));
-    assertThat(allDatabases.get(1), is("abc"));
-    assertThat(allDatabases.get(2), is("xyz"));
+    assertThat(allDatabases.get(1), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(2), is("abc"));
+    assertThat(allDatabases.get(3), is(REMOTE_DATABASE));
+    assertThat(allDatabases.get(4), is("xyz"));
     // Local table
     Table waggledLocalTable = proxy.getTable("abc", LOCAL_TABLE);
     assertNotNull(waggledLocalTable);
