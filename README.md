@@ -456,7 +456,7 @@ To achieve a unified view of all the booking tables in the different databases (
         database-name-mapping:
           datawarehouse: booking
 
-Note: Both the 'datawarehouse' and the mapped name 'booking' is show in X, so the mapping adds an additional virtual database mapping both to the same remote database. You can only map one extra name and you cannot map different databases to the same name.
+Note: Both the 'datawarehouse' name and the mapped name 'booking' are shown in X, so the mapping adds an additional virtual database mapping to the same remote database. You can only map one extra name and you cannot map different databases to the same name.
 This is *not* allowed (will fail to load (invalid yaml)):
 
     database-name-mapping:
