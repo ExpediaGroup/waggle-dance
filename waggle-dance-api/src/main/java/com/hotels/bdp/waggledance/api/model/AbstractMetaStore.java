@@ -27,6 +27,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -52,7 +53,7 @@ public abstract class AbstractMetaStore {
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
-  private transient HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
+  private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
 
   public AbstractMetaStore() {}
 
