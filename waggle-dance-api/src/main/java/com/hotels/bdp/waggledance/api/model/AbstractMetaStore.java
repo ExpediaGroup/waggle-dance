@@ -52,7 +52,7 @@ public abstract class AbstractMetaStore {
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
-  private transient HashBiMap<String, String> databaseNameBiMapping;
+  private transient HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
 
   public AbstractMetaStore() {}
 
