@@ -45,7 +45,7 @@ public abstract class AbstractMetaStore {
   private String databasePrefix;
   private List<String> writableDatabaseWhitelist;
   private List<String> mappedDatabases;
-  private Map<String, String> databaseNameMapping;
+  private Map<String, String> databaseNameMapping = Collections.emptyMap();
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
