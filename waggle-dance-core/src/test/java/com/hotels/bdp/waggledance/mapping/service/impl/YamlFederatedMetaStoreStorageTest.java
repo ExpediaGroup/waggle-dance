@@ -52,7 +52,8 @@ public class YamlFederatedMetaStoreStorageTest {
   public final @Rule TemporaryFolder tmp = new TemporaryFolder();
   public final @Rule DataFolder dataFolder = new ClassDataFolder();
 
-  @Mock private YamlStorageConfiguration configuration;
+  @Mock
+  private YamlStorageConfiguration configuration;
 
   @Before
   public void init() {
@@ -89,14 +90,14 @@ public class YamlFederatedMetaStoreStorageTest {
     assertThat(storage.get("name"), is(expected));
   }
 
-  @Test (expected = IllegalArgumentException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void loadFederationSamePrefix() throws Exception {
     File f = dataFolder.getFile("same-prefix.yml");
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
     storage.loadFederation();
   }
 
-  @Test (expected = IllegalArgumentException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void loadTwoEmptyPrefixes() throws Exception {
     File f = dataFolder.getFile("two-empty-prefixes.yml");
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
@@ -153,10 +154,8 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.loadFederation();
     assertThat(storage.getAll(), is(notNullValue()));
     assertThat(storage.getAll().size(), is(3));
-    assertThat(storage.getAll().get(0),
-        is(newPrimaryInstance("hcom_3", "thrift://localhost:39083")));
-    assertThat(storage.getAll().get(1),
-        is(newFederatedInstance("hcom_1", "thrift://localhost:19083")));
+    assertThat(storage.getAll().get(0), is(newPrimaryInstance("hcom_3", "thrift://localhost:39083")));
+    assertThat(storage.getAll().get(1), is(newFederatedInstance("hcom_1", "thrift://localhost:19083")));
     FederatedMetaStore metaStore = newFederatedInstance("hcom_2", "thrift://localhost:29083");
     metaStore.setDatabasePrefix("hcom_2_prefix_");
     assertThat(storage.getAll().get(2), is(metaStore));
@@ -179,7 +178,7 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.insert(newFederatedInstance);
     storage.saveFederation();
     List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
-    assertThat(lines.size(), is(15));
+    assertThat(lines.size(), is(16));
     assertThat(lines.get(0), is("primary-meta-store:"));
     assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
     assertThat(lines.get(2), is("  database-prefix: ''"));
@@ -188,13 +187,14 @@ public class YamlFederatedMetaStoreStorageTest {
     assertThat(lines.get(5), is("  remote-meta-store-uris: thrift://localhost:19083"));
     assertThat(lines.get(6), is("federated-meta-stores:"));
     assertThat(lines.get(7), is("- access-control-type: READ_ONLY"));
-    assertThat(lines.get(8), is("  database-prefix: hcom_2_"));
-    assertThat(lines.get(9), is("  latency: 0"));
-    assertThat(lines.get(10), is("  mapped-databases:"));
-    assertThat(lines.get(11), is("  - db1"));
-    assertThat(lines.get(12), is("  - db2"));
-    assertThat(lines.get(13), is("  name: hcom_2"));
-    assertThat(lines.get(14), is("  remote-meta-store-uris: thrift://localhost:29083"));
+    assertThat(lines.get(8), is("  database-name-mapping: {}"));
+    assertThat(lines.get(9), is("  database-prefix: hcom_2_"));
+    assertThat(lines.get(10), is("  latency: 0"));
+    assertThat(lines.get(11), is("  mapped-databases:"));
+    assertThat(lines.get(12), is("  - db1"));
+    assertThat(lines.get(13), is("  - db2"));
+    assertThat(lines.get(14), is("  name: hcom_2"));
+    assertThat(lines.get(15), is("  remote-meta-store-uris: thrift://localhost:29083"));
   }
 
   @Test
@@ -249,7 +249,7 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.insert(newFederatedInstance("hcom_2", "thrift://localhost:29083"));
     storage.saveFederation();
     List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
-    assertThat(lines.size(), is(15));
+    assertThat(lines.size(), is(16));
     assertThat(lines.get(0), is("primary-meta-store:"));
     assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
     assertThat(lines.get(2), is("  database-prefix: ''"));
@@ -261,10 +261,11 @@ public class YamlFederatedMetaStoreStorageTest {
     assertThat(lines.get(8), is("  remote-meta-store-uris: thrift://localhost:19083"));
     assertThat(lines.get(9), is("federated-meta-stores:"));
     assertThat(lines.get(10), is("- access-control-type: READ_ONLY"));
-    assertThat(lines.get(11), is("  database-prefix: hcom_2_"));
-    assertThat(lines.get(12), is("  latency: 0"));
-    assertThat(lines.get(13), is("  name: hcom_2"));
-    assertThat(lines.get(14), is("  remote-meta-store-uris: thrift://localhost:29083"));
+    assertThat(lines.get(11), is("  database-name-mapping: {}"));
+    assertThat(lines.get(12), is("  database-prefix: hcom_2_"));
+    assertThat(lines.get(13), is("  latency: 0"));
+    assertThat(lines.get(14), is("  name: hcom_2"));
+    assertThat(lines.get(15), is("  remote-meta-store-uris: thrift://localhost:29083"));
   }
 
   private PrimaryMetaStore newPrimaryInstance(String name, String remoteMetaStoreUris) {
