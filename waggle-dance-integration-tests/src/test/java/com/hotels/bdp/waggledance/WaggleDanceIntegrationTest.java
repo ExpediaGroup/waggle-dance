@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
@@ -848,7 +850,7 @@ public class WaggleDanceIntegrationTest {
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Federations federations = stopServerAndGetConfiguration();
     PrimaryMetaStore primaryMetaStore = federations.getPrimaryMetaStore();
-    assertThat(primaryMetaStore.getMappedDatabases().contains("newDB"), is(true));
+    assertThat(primaryMetaStore.getMappedDatabases().contains("newdb"), is(true));
   }
 
   @Test
@@ -877,7 +879,73 @@ public class WaggleDanceIntegrationTest {
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Federations federations = stopServerAndGetConfiguration();
     PrimaryMetaStore primaryMetaStore = federations.getPrimaryMetaStore();
-    assertThat(primaryMetaStore.getMappedDatabases().contains("newDB"), is(true));
+    assertThat(primaryMetaStore.getMappedDatabases().contains("newdb"), is(true));
   }
 
+  @Test
+  public void prefixedModeDatabaseNameMapping() throws Exception {
+    Map<String, String> databaseNameMapping1 = new HashMap<>();
+    databaseNameMapping1.put(LOCAL_DATABASE, "abc");
+    Map<String, String> databaseNameMapping2 = new HashMap<>();
+    databaseNameMapping2.put(REMOTE_DATABASE, "xyz");
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withPrimaryDatabaseNameMappingMap(databaseNameMapping1)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .withFederatedDatabaseNameMappingMap(databaseNameMapping2)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> allDatabases = proxy.getAllDatabases();
+    assertThat(allDatabases.size(), is(5));
+    assertThat(allDatabases.get(0), is("default"));
+    assertThat(allDatabases.get(1), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(2), is("abc"));
+    assertThat(allDatabases.get(3), is(PREFIXED_REMOTE_DATABASE));
+    assertThat(allDatabases.get(4), is(SECONDARY_METASTORE_NAME + "_xyz"));
+    // Local table
+    Table waggledLocalTable = proxy.getTable("abc", LOCAL_TABLE);
+    assertNotNull(waggledLocalTable);
+
+    // Remote table
+    Table waggledRemoteTable = proxy.getTable(SECONDARY_METASTORE_NAME + "_xyz", REMOTE_TABLE);
+    assertNotNull(waggledRemoteTable);
+  }
+
+  @Test
+  public void manualModeDatabaseNameMapping() throws Exception {
+    Map<String, String> databaseNameMapping1 = new HashMap<>();
+    databaseNameMapping1.put(LOCAL_DATABASE, "abc");
+    Map<String, String> databaseNameMapping2 = new HashMap<>();
+    databaseNameMapping2.put(REMOTE_DATABASE, "xyz");
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withPrimaryDatabaseNameMappingMap(databaseNameMapping1)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .withFederatedDatabaseNameMappingMap(databaseNameMapping2)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> allDatabases = proxy.getAllDatabases();
+    assertThat(allDatabases.size(), is(5));
+    assertThat(allDatabases.get(0), is("default"));
+    assertThat(allDatabases.get(1), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(2), is("abc"));
+    assertThat(allDatabases.get(3), is(REMOTE_DATABASE));
+    assertThat(allDatabases.get(4), is("xyz"));
+    // Local table
+    Table waggledLocalTable = proxy.getTable("abc", LOCAL_TABLE);
+    assertNotNull(waggledLocalTable);
+
+    // Remote table
+    Table waggledRemoteTable = proxy.getTable("xyz", REMOTE_TABLE);
+    assertNotNull(waggledRemoteTable);
+  }
 }

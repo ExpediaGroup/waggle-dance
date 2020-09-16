@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class MetaStoreMappingImplTest {
 
   @Test
   public void transformOutboundDatabaseName() {
-    assertThat(metaStoreMapping.transformOutboundDatabaseName("My_Database"), is("prefix_my_database"));
+    assertThat(metaStoreMapping.transformOutboundDatabaseName("My_Database"), is("my_database"));
   }
 
   @Test
@@ -71,12 +71,12 @@ public class MetaStoreMappingImplTest {
     when(database.getName()).thenReturn("My_Database");
     Database outboundDatabase = metaStoreMapping.transformOutboundDatabase(database);
     assertThat(outboundDatabase, is(sameInstance(database)));
-    verify(outboundDatabase).setName("prefix_my_database");
+    verify(outboundDatabase).setName("my_database");
   }
 
   @Test
   public void transformInboundDatabaseName() {
-    assertThat(metaStoreMapping.transformInboundDatabaseName("Prefix_My_Database"), is("my_database"));
+    assertThat(metaStoreMapping.transformInboundDatabaseName("My_Database"), is("my_database"));
   }
 
   @Test

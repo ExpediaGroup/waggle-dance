@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
-import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.GrammarUtils;
@@ -97,9 +96,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
-    if (Strings.isBlank(metaStoreMapping.getDatabasePrefix())) {
-      return new IdentityMapping(metaStoreMapping);
-    }
     return new DatabaseMappingImpl(metaStoreMapping, queryMapping);
   }
 
@@ -166,7 +162,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
         && isWhitelisted(metaStoreMapping.getDatabasePrefix(),
-        metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
+            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
   }
 
   @Override
@@ -239,7 +235,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     List<String> mappedDatabases = new ArrayList<>();
     for (String database : databases) {
       if (isWhitelisted(mapping.getDatabasePrefix(), database)) {
-        mappedDatabases.add(mapping.transformOutboundDatabaseName(database));
+        mappedDatabases.addAll(mapping.transformOutboundDatabaseNameMultiple(database));
       }
     }
     return mappedDatabases;

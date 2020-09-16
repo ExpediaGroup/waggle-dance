@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -31,6 +33,8 @@ import org.hibernate.validator.HibernateValidator;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+import com.google.common.collect.HashBiMap;
 
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
@@ -167,6 +171,22 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   public void emptyMappedDatabases() {
     metaStore.setMappedDatabases(Collections.emptyList());
     assertThat(metaStore.getMappedDatabases().size(), is(0));
+  }
+
+  @Test
+  public void setDatabasesNameMapping() throws Exception {
+    Map<String, String> mapping = new HashMap<>();
+    mapping.put("a", "b");
+    metaStore.setDatabaseNameMapping(mapping);
+    assertThat(metaStore.getDatabaseNameMapping(), is(mapping));
+    assertThat(metaStore.getDatabaseNameBiMapping(), is(HashBiMap.create(mapping)));
+  }
+
+  @Test
+  public void setDatabasesNameMappingNullToEmpty() throws Exception {
+    metaStore.setDatabaseNameMapping(null);
+    assertThat(metaStore.getDatabaseNameMapping().size(), is(0));
+    assertThat(metaStore.getDatabaseNameBiMapping().size(), is(0));
   }
 
 }

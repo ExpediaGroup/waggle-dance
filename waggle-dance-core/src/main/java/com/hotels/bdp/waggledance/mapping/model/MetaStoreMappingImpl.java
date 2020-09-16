@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
@@ -61,7 +63,12 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
-    return getDatabasePrefix() + databaseName.toLowerCase(Locale.ROOT);
+    return databaseName.toLowerCase(Locale.ROOT);
+  }
+
+  @Override
+  public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    return Collections.singletonList(transformInboundDatabaseName(databaseName));
   }
 
   @Override
@@ -77,11 +84,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public String transformInboundDatabaseName(String databaseName) {
-    databaseName = databaseName.toLowerCase(Locale.ROOT);
-    if (databaseName.startsWith(getDatabasePrefix())) {
-      return databaseName.substring(getDatabasePrefix().length());
-    }
-    return databaseName;
+    return databaseName.toLowerCase(Locale.ROOT);
   }
 
   @Override
@@ -137,4 +140,5 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   public long getLatency() {
     return latency;
   }
+
 }

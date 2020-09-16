@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThat;
 
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -31,11 +32,16 @@ public class ASTQueryMappingTest {
 
   private static final String PREFIX = "prefix_";
   private static final long LATENCY = 0;
+  private MetaStoreMapping metaStoreMapping;
+
+  @Before
+  public void setUp() {
+    metaStoreMapping = new PrefixMapping(new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY));
+  }
 
   @Test
   public void transformOutboundDatabaseName() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY);
 
     String query = "SELECT *\n"
         + "FROM db1.table1 alias1 INNER JOIN db2.table2 alias2\n"
@@ -54,7 +60,6 @@ public class ASTQueryMappingTest {
   @Test
   public void transformOutboundDatabaseNameAliasWithBackTicks() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY);
 
     String query = "";
     query += "SELECT col_id AS id ";
@@ -72,7 +77,6 @@ public class ASTQueryMappingTest {
   @Test(expected = WaggleDanceException.class)
   public void transformOutboundDatabaseNameParseException() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY);
 
     String unparsableQuery = "SELCT *";
     queryMapping.transformOutboundDatabaseName(metaStoreMapping, unparsableQuery);
@@ -81,7 +85,6 @@ public class ASTQueryMappingTest {
   @Test
   public void transformOutboundDatabaseNameOnFunctions() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY);
 
     String query = "SELECT db1.myFunction()";
 
@@ -92,7 +95,6 @@ public class ASTQueryMappingTest {
   @Test
   public void transformOutboundDatabaseNameOnMultipleSameFunctions() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY);
 
     String query = "SELECT bdp.hellobdp() as q union all SELECT bdp.hellobdp() as qq where false";
 
@@ -103,7 +105,6 @@ public class ASTQueryMappingTest {
   @Test
   public void transformOutboundDatabaseNameOnMultipleDifferentFunctions() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY);
 
     String query = "SELECT bdp.hellobdp1(), bdp.hellobdp2()";
 
