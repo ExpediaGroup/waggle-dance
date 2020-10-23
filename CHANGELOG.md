@@ -2,6 +2,7 @@
 ### Changed
 * Updated `hotels-oss-parent` to 6.1.0 (was 5.0.0).
 
+## [3.7.0] - 2020-09-16
 ### Changed
 * Upgraded version of `hive.version` to `2.3.7` (was `2.3.3`). Allows Waggle Dance to be used on JDK>=9.
 
