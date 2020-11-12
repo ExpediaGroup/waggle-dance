@@ -292,6 +292,16 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
+  public void checkTable(String databaseName, String tableName, DatabaseMapping mapping) throws NoSuchObjectException {
+
+  }
+
+  @Override
+  public List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping) {
+    return null;
+  }
+
+  @Override
   public List<DatabaseMapping> getDatabaseMappings() {
     Builder<DatabaseMapping> builder = ImmutableList.builder();
     synchronized (mappingsByMetaStoreName) {

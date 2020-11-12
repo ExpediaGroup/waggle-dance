@@ -284,6 +284,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public List<FieldSchema> get_fields(String db_name, String table_name)
       throws MetaException, UnknownTableException, UnknownDBException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
+    databaseMappingService.checkTable(db_name, table_name, mapping);
     return mapping.getClient().get_fields(mapping.transformInboundDatabaseName(db_name), table_name);
   }
 
@@ -292,6 +293,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public List<FieldSchema> get_schema(String db_name, String table_name)
       throws MetaException, UnknownTableException, UnknownDBException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
+    databaseMappingService.checkTable(db_name, table_name, mapping);
     return mapping.getClient().get_schema(mapping.transformInboundDatabaseName(db_name), table_name);
   }
 
@@ -338,7 +340,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public List<String> get_tables(String db_name, String pattern) throws MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
-    return mapping.getClient().get_tables(mapping.transformInboundDatabaseName(db_name), pattern);
+    List<String> resultTables = mapping.getClient().get_tables(mapping.transformInboundDatabaseName(db_name), pattern);
+    return databaseMappingService.filterTables(db_name, resultTables, mapping);
   }
 
   @Override
@@ -352,6 +355,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public Table get_table(String dbname, String tbl_name) throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(dbname);
+    databaseMappingService.checkTable(dbname, tbl_name, mapping);
     return mapping
         .transformOutboundTable(mapping.getClient().get_table(mapping.transformInboundDatabaseName(dbname), tbl_name));
   }

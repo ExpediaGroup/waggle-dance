@@ -29,18 +29,18 @@ public class Whitelist {
 
   public Whitelist() {}
 
-  public Whitelist(List<String> writableDatabaseWhiteList) {
-    if (writableDatabaseWhiteList == null) {
+  public Whitelist(List<String> whiteList) {
+    if (whiteList == null) {
       add(MATCH_ALL);
     } else {
-      for (String databaseName : writableDatabaseWhiteList) {
-        add(databaseName);
+      for (String element : whiteList) {
+        add(element);
       }
     }
   }
 
-  public void add(String databaseName) {
-    whiteList.add(Pattern.compile(trimToLowerCase(databaseName)));
+  public void add(String element) {
+    whiteList.add(Pattern.compile(trimToLowerCase(element)));
   }
 
   int size() {
@@ -51,13 +51,13 @@ public class Whitelist {
     return string.trim().toLowerCase(Locale.ROOT);
   }
 
-  public boolean contains(String databaseName) {
-    if (databaseName == null) {
+  public boolean contains(String element) {
+    if (element == null) {
       return true;
     }
-    databaseName = trimToLowerCase(databaseName);
+    element = trimToLowerCase(element);
     for (Pattern whiteListEntry : whiteList) {
-      Matcher matcher = whiteListEntry.matcher(databaseName);
+      Matcher matcher = whiteListEntry.matcher(element);
       if (matcher.matches()) {
         return true;
       }
