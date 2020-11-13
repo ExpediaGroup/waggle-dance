@@ -53,6 +53,7 @@ import com.google.common.collect.Sets;
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
+import com.hotels.bdp.waggledance.api.model.MappedTables;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
@@ -75,6 +76,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private final Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private final Map<String, DatabaseMapping> mappingsByDatabaseName;
   private final Map<String, List<String>> databaseMappingToDatabaseList;
+  private final Map<String, Whitelist> databaseToTableWhitelist;
   private DatabaseMapping primaryDatabaseMapping;
   private final QueryMapping queryMapping;
 
@@ -103,6 +105,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = Collections.synchronizedMap(new LinkedHashMap<>());
     databaseMappingToDatabaseList = new ConcurrentHashMap<>();
+    databaseToTableWhitelist = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : initialMetastores) {
       add(federatedMetaStore);
     }
@@ -139,6 +142,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
     addDatabaseMappings(mappableDatabases, databaseMapping);
     databaseMappingToDatabaseList.put(databaseMapping.getMetastoreMappingName(), mappableDatabases);
+    addTableMappings(metaStore);
   }
 
   private void validateMappableDatabases(List<String> mappableDatabases, AbstractMetaStore metaStore) {
@@ -205,6 +209,16 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private void addDatabaseMappings(List<String> databases, DatabaseMapping databaseMapping) {
     for (String databaseName : databases) {
       mappingsByDatabaseName.put(databaseName, databaseMapping);
+    }
+  }
+
+  private void addTableMappings(AbstractMetaStore metaStore) {
+    List<MappedTables> mappedTables = metaStore.getMappedTables();
+    if (mappedTables != null) {
+      for (MappedTables mapping : mappedTables) {
+        Whitelist tableWhiteList = new Whitelist(mapping.getMappedTables());
+        databaseToTableWhitelist.put(mapping.getDatabase(), tableWhiteList);
+      }
     }
   }
 
@@ -292,13 +306,38 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public void checkTable(String databaseName, String tableName, DatabaseMapping mapping) throws NoSuchObjectException {
-
+  public DatabaseMapping getDbMappingAndCheckTable(String databaseName, String tableName) throws NoSuchObjectException {
+    DatabaseMapping mapping = databaseMapping(databaseName);
+    String databasePrefix = mapping.getDatabasePrefix();
+    String transformedDbName = mapping.transformInboundDatabaseName(databaseName);
+    if (!isTableWhitelisted(databasePrefix, transformedDbName, tableName)) {
+      throw new NoSuchObjectException("Table not found in database " + databaseName);
+    }
+    return mapping;
   }
 
   @Override
   public List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping) {
-    return null;
+    List<String> filteredTables = new ArrayList<>();
+    String databasePrefix = mapping.getDatabasePrefix();
+    String transformedDb = mapping.transformInboundDatabaseName(databaseName);
+    for (String table: tableNames)
+      if (isTableWhitelisted(databasePrefix, transformedDb, table)) {
+        filteredTables.add(table);
+      }
+    return filteredTables;  }
+
+  private boolean isTableWhitelisted(String databasePrefix, String database, String table) {
+    if (databaseToTableWhitelist == null) {
+      // Accept everything
+      return true;
+    }
+    Whitelist tblWhitelist = databaseToTableWhitelist.get(database);
+    if (tblWhitelist == null) {
+      // No tables allowed for database
+      return false;
+    }
+    return tblWhitelist.contains(table);
   }
 
   @Override

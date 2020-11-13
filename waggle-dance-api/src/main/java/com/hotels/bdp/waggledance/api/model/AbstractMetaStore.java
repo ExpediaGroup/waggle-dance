@@ -46,7 +46,7 @@ public abstract class AbstractMetaStore {
   private String databasePrefix;
   private List<String> writableDatabaseWhitelist;
   private List<String> mappedDatabases;
-  private List<TablesMapping> tablesMappings;
+  private List<MappedTables> mappedTables;
   private Map<String, String> databaseNameMapping = Collections.emptyMap();
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
@@ -166,12 +166,12 @@ public abstract class AbstractMetaStore {
     this.mappedDatabases = mappedDatabases;
   }
 
-  public List<TablesMapping> getTablesMappings() {
-    return tablesMappings;
+  public List<MappedTables> getMappedTables() {
+    return mappedTables;
   }
 
-  public void setTablesMappings(List<TablesMapping> tablesMappings) {
-    this.tablesMappings = tablesMappings;
+  public void setMappedTables(List<MappedTables> mappedTables) {
+    this.mappedTables = mappedTables;
   }
 
   public Map<String, String> getDatabaseNameMapping() {

@@ -51,6 +51,16 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
+  public DatabaseMapping getDbMappingAndCheckTable(String databaseName, String tableName) throws NoSuchObjectException {
+    return wrapped.getDbMappingAndCheckTable(databaseName, tableName);
+    }
+
+  @Override
+  public List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping) {
+    return wrapped.filterTables(databaseName, tableNames, mapping);
+  }
+
+  @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     PanopticOperationHandler handler = wrapped.getPanopticOperationHandler();
     CurrentMonitoredMetaStoreHolder.monitorMetastore();

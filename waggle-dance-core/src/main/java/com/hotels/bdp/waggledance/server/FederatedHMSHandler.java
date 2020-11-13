@@ -283,8 +283,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public List<FieldSchema> get_fields(String db_name, String table_name)
       throws MetaException, UnknownTableException, UnknownDBException, TException {
-    DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
-    databaseMappingService.checkTable(db_name, table_name, mapping);
+    DatabaseMapping mapping = databaseMappingService.getDbMappingAndCheckTable(db_name, table_name);
     return mapping.getClient().get_fields(mapping.transformInboundDatabaseName(db_name), table_name);
   }
 
@@ -292,8 +291,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public List<FieldSchema> get_schema(String db_name, String table_name)
       throws MetaException, UnknownTableException, UnknownDBException, TException {
-    DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
-    databaseMappingService.checkTable(db_name, table_name, mapping);
+    DatabaseMapping mapping = databaseMappingService.getDbMappingAndCheckTable(db_name, table_name);
     return mapping.getClient().get_schema(mapping.transformInboundDatabaseName(db_name), table_name);
   }
 
@@ -354,8 +352,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public Table get_table(String dbname, String tbl_name) throws MetaException, NoSuchObjectException, TException {
-    DatabaseMapping mapping = databaseMappingService.databaseMapping(dbname);
-    databaseMappingService.checkTable(dbname, tbl_name, mapping);
+    DatabaseMapping mapping = databaseMappingService.getDbMappingAndCheckTable(dbname, tbl_name);
     return mapping
         .transformOutboundTable(mapping.getClient().get_table(mapping.transformInboundDatabaseName(dbname), tbl_name));
   }
