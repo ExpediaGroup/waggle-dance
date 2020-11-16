@@ -37,7 +37,8 @@ public interface DatabaseMappingService extends Closeable {
    */
   DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException;
 
-  DatabaseMapping getDbMappingAndCheckTable(String databaseName, String tableName) throws NoSuchObjectException;
+  void checkTable(String databaseName, String tableName,
+      DatabaseMapping mapping) throws NoSuchObjectException;
 
   List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping);
 

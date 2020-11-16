@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
@@ -171,6 +172,27 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   public void emptyMappedDatabases() {
     metaStore.setMappedDatabases(Collections.emptyList());
     assertThat(metaStore.getMappedDatabases().size(), is(0));
+  }
+
+  @Test
+  public void mappedTables() {
+    MappedTables mappedTables1 = new MappedTables("db1", Lists.newArrayList("tbl1"));
+    MappedTables mappedTables2 = new MappedTables("db2", Lists.newArrayList("tbl2"));
+    List<MappedTables> mappedTables = Lists.newArrayList(mappedTables1, mappedTables2);
+    metaStore.setMappedTables(mappedTables);
+    assertThat(metaStore.getMappedTables(), is(mappedTables));
+  }
+
+  @Test
+  public void nullMappedTables() {
+    metaStore.setMappedDatabases(null);
+    assertThat(metaStore.getMappedTables(), is(nullValue()));
+  }
+
+  @Test
+  public void emptyMappedTables() {
+    metaStore.setMappedTables(Collections.emptyList());
+    assertThat(metaStore.getMappedTables().size(), is(0));
   }
 
   @Test
