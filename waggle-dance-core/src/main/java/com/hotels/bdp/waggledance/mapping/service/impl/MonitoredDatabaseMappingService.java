@@ -51,8 +51,9 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public DatabaseMapping getDbMappingAndCheckTable(String databaseName, String tableName) throws NoSuchObjectException {
-    return wrapped.getDbMappingAndCheckTable(databaseName, tableName);
+  public void checkTable(String databaseName, String tableName,
+      DatabaseMapping mapping) throws NoSuchObjectException {
+      wrapped.checkTable(databaseName, tableName, mapping);
     }
 
   @Override

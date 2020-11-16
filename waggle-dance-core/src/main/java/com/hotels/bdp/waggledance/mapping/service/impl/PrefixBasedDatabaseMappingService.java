@@ -217,15 +217,13 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public DatabaseMapping getDbMappingAndCheckTable(String databaseName, String tableName)
+  public void checkTable(String databaseName, String tableName, DatabaseMapping mapping)
       throws NoSuchObjectException {
-    DatabaseMapping mapping = databaseMapping(databaseName);
     String databasePrefix = mapping.getDatabasePrefix();
     String transformedDbName = mapping.transformInboundDatabaseName(databaseName);
     if (!isTableWhitelisted(databasePrefix, transformedDbName, tableName)) {
       throw new NoSuchObjectException("Table not found in database " + databaseName);
     }
-    return mapping;
   }
 
   @Override
@@ -248,10 +246,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       return true;
     }
     Whitelist tblWhitelist = dbToTblWhitelist.get(database);
-    if (tblWhitelist == null) {
-      // No tables allowed for database
-      return false;
-    }
     return tblWhitelist.contains(table);
   }
 

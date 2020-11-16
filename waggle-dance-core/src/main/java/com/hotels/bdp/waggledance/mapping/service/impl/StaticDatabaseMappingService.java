@@ -306,14 +306,13 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public DatabaseMapping getDbMappingAndCheckTable(String databaseName, String tableName) throws NoSuchObjectException {
-    DatabaseMapping mapping = databaseMapping(databaseName);
+  public void checkTable(String databaseName, String tableName,
+      DatabaseMapping mapping) throws NoSuchObjectException {
     String databasePrefix = mapping.getDatabasePrefix();
     String transformedDbName = mapping.transformInboundDatabaseName(databaseName);
     if (!isTableWhitelisted(databasePrefix, transformedDbName, tableName)) {
       throw new NoSuchObjectException("Table not found in database " + databaseName);
     }
-    return mapping;
   }
 
   @Override
