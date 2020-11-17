@@ -345,6 +345,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     List<String> tables = Lists.newArrayList("table1");
     when(primaryClient.get_tables("inbound", "*")).thenReturn(tables);
+    when(databaseMappingService.filterTables(DB_P, tables, primaryMapping)).thenReturn(tables);
     List<String> result = handler.get_tables(DB_P, "*");
     assertThat(result, is(tables));
   }
@@ -354,6 +355,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     List<String> tables = Lists.newArrayList("table1");
     when(primaryClient.get_all_tables("inbound")).thenReturn(tables);
+    when(databaseMappingService.filterTables(DB_P, tables, primaryMapping)).thenReturn(tables);
     List<String> result = handler.get_all_tables(DB_P);
     assertThat(result, is(tables));
   }
@@ -374,10 +376,11 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     Table table = new Table();
     Table outbound = new Table();
-    when(primaryClient.get_table_objects_by_name("inbound", Lists.newArrayList("table")))
-        .thenReturn(Lists.newArrayList(table));
+    List<String> tables = Lists.newArrayList("table");
+    when(primaryClient.get_table_objects_by_name("inbound", tables)).thenReturn(Lists.newArrayList(table));
     when(primaryMapping.transformOutboundTable(table)).thenReturn(outbound);
-    List<Table> result = handler.get_table_objects_by_name(DB_P, Lists.newArrayList("table"));
+    when(databaseMappingService.filterTables(DB_P, tables, primaryMapping)).thenReturn(tables);
+    List<Table> result = handler.get_table_objects_by_name(DB_P, tables);
     List<Table> expected = Lists.newArrayList(outbound);
     assertThat(result, is(expected));
   }
@@ -387,6 +390,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     List<String> tables = Lists.newArrayList("table1");
     when(primaryClient.get_table_names_by_filter("inbound", "*", (short) 2)).thenReturn(tables);
+    when(databaseMappingService.filterTables(DB_P, tables, primaryMapping)).thenReturn(tables);
     List<String> result = handler.get_table_names_by_filter(DB_P, "*", (short) 2);
     assertThat(result, is(tables));
   }
@@ -845,12 +849,14 @@ public class FederatedHMSHandlerTest {
   // Hive 2.3.0 methods
   @Test
   public void get_tables_by_type() throws TException {
-    when(primaryClient.get_tables_by_type(DB_P, "tbl*", "EXTERNAL_TABLE")).thenReturn(Arrays.asList("tbl0", "tbl1"));
-    List<String> tables = handler.get_tables_by_type(DB_P, "tbl*", TableType.EXTERNAL_TABLE.name());
+    List<String> tables = Arrays.asList("tbl0", "tbl1");
+    when(primaryClient.get_tables_by_type(DB_P, "tbl*", "EXTERNAL_TABLE")).thenReturn(tables);
+    when(databaseMappingService.filterTables(DB_P, tables, primaryMapping)).thenReturn(tables);
+    List<String> tablesResult = handler.get_tables_by_type(DB_P, "tbl*", TableType.EXTERNAL_TABLE.name());
     verify(primaryClient).get_tables_by_type(DB_P, "tbl*", "EXTERNAL_TABLE");
-    assertThat(tables.size(), is(2));
-    assertThat(tables.get(0), is("tbl0"));
-    assertThat(tables.get(1), is("tbl1"));
+    assertThat(tablesResult.size(), is(2));
+    assertThat(tablesResult.get(0), is("tbl0"));
+    assertThat(tablesResult.get(1), is("tbl1"));
   }
 
   @Test
