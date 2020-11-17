@@ -423,9 +423,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       EnvironmentContext environment_context)
       throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissionsAndCheckTable(dbname, tbl_name);
-    mapping.checkWritePermissions(new_tbl.getDbName());
-    databaseMappingService.checkTable(new_tbl.getDbName(), new_tbl.getTableName(), mapping);
-    //TODO check new table?
+    checkWritePermissionsAndCheckTable(new_tbl.getDbName(), new_tbl.getTableName(), mapping);
     mapping
         .getClient()
         .alter_table_with_environment_context(mapping.transformInboundDatabaseName(dbname), tbl_name,
@@ -503,7 +501,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     for (Partition partition : request.getParts()) {
       checkWritePermissionsAndCheckTable(partition.getDbName(), partition.getTableName(), mapping);
     }
-    // TODO check?
     AddPartitionsResult result = mapping
         .getClient()
         .add_partitions_req(mapping.transformInboundAddPartitionsRequest(request));
@@ -808,7 +805,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissionsAndCheckTable(db_name, tbl_name);
     checkWritePermissionsAndCheckTable(new_part.getDbName(), new_part.getTableName());
-    // todo have to check partitions or not?
     mapping
         .getClient()
         .alter_partition(mapping.transformInboundDatabaseName(db_name), tbl_name,
@@ -823,7 +819,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     for (Partition newPart : new_parts) {
       checkWritePermissionsAndCheckTable(newPart.getDbName(), newPart.getTableName(), mapping);
     }
-    // todo have to check partitions or not?
     mapping
         .getClient()
         .alter_partitions(mapping.transformInboundDatabaseName(db_name), tbl_name,
@@ -1049,11 +1044,10 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       DatabaseMapping mapping = databaseMappingService
           .databaseMapping(request.getColStats().get(0).getStatsDesc().getDbName());
       for (ColumnStatistics stats : request.getColStats()) {
-        mapping.checkWritePermissions(stats.getStatsDesc().getDbName());
+        checkWritePermissionsAndCheckTable(stats.getStatsDesc().getDbName(), stats.getStatsDesc().getTableName(), mapping);
       }
       return mapping.getClient().set_aggr_stats_for(mapping.transformInboundSetPartitionStatsRequest(request));
     }
-    // TODO check
     return false;
   }
 
@@ -1218,7 +1212,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public boolean grant_privileges(PrivilegeBag privileges) throws MetaException, TException {
     if (privileges.isSetPrivileges() && !privileges.getPrivileges().isEmpty()) {
       DatabaseMapping mapping = checkWritePermissionsForPrivileges(privileges);
-      // TODO check again
       return mapping.getClient().grant_privileges(mapping.transformInboundPrivilegeBag(privileges));
     }
     return false;
@@ -1229,7 +1222,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public boolean revoke_privileges(PrivilegeBag privileges) throws MetaException, TException {
     if (privileges.isSetPrivileges() && !privileges.getPrivileges().isEmpty()) {
       DatabaseMapping mapping = checkWritePermissionsForPrivileges(privileges);
-      // TODO check again
       return mapping.getClient().revoke_privileges(mapping.transformInboundPrivilegeBag(privileges));
     }
     return false;
@@ -1242,7 +1234,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     PrivilegeBag privilegesBag = request.getPrivileges();
     if (privilegesBag.isSetPrivileges() && !privilegesBag.getPrivileges().isEmpty()) {
       DatabaseMapping mapping = checkWritePermissionsForPrivileges(privilegesBag);
-      // TODO check again
       return mapping.getClient().grant_revoke_privileges(mapping.transformInboundGrantRevokePrivilegesRequest(request));
     }
     return getPrimaryClient().grant_revoke_privileges(request);
@@ -1256,7 +1247,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       mapping.checkWritePermissions(obj.getDbName());
       if (obj.getObjectType() == HiveObjectType.DATABASE) {
         mapping.checkWritePermissions(obj.getObjectName());
-        // TODO check again
       }
     }
     return mapping;
@@ -1638,7 +1628,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public List<TableMeta> get_table_meta(String db_patterns, String tbl_patterns, List<String> tbl_types)
       throws MetaException {
-    //TODO filter
     return databaseMappingService.getPanopticOperationHandler()
         .getTableMeta(db_patterns, tbl_patterns, tbl_types);
   }
@@ -1679,8 +1668,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public List<String> get_tables_by_type(String db_name, String pattern, String tableType)
       throws MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
-        //TODO filter
-    return mapping.getClient().get_tables_by_type(mapping.transformInboundDatabaseName(db_name), pattern, tableType);
+    List<String> resultTables = mapping.getClient().get_tables_by_type(mapping.transformInboundDatabaseName(db_name), pattern, tableType);
+    return databaseMappingService.filterTables(db_name, resultTables, mapping);
   }
 
   @Override
@@ -1696,10 +1685,11 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public GetTablesResult get_table_objects_by_name_req(GetTablesRequest req)
       throws MetaException, InvalidOperationException, UnknownDBException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(req.getDbName());
+    List<String> filteredTables = databaseMappingService.filterTables(req.getDbName(), req.getTblNames(), mapping);
+    req.setTblNames(filteredTables);
     GetTablesResult result = mapping
         .getClient()
         .get_table_objects_by_name_req(mapping.transformInboundGetTablesRequest(req));
-    //TODO filter
     return mapping.transformOutboundGetTablesResult(result);
   }
 

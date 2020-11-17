@@ -308,9 +308,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   @Override
   public void checkTable(String databaseName, String tableName,
       DatabaseMapping mapping) throws NoSuchObjectException {
-    String databasePrefix = mapping.getDatabasePrefix();
-    String transformedDbName = mapping.transformInboundDatabaseName(databaseName);
-    if (!isTableWhitelisted(databasePrefix, transformedDbName, tableName)) {
+    if (!isTableWhitelisted(databaseName, tableName)) {
       throw new NoSuchObjectException("Table not found in database " + databaseName);
     }
   }
@@ -318,23 +316,19 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   @Override
   public List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping) {
     List<String> filteredTables = new ArrayList<>();
-    String databasePrefix = mapping.getDatabasePrefix();
-    String transformedDb = mapping.transformInboundDatabaseName(databaseName);
+    String db = databaseName.toLowerCase(Locale.ROOT);
     for (String table: tableNames)
-      if (isTableWhitelisted(databasePrefix, transformedDb, table)) {
+      if (isTableWhitelisted(db, table)) {
         filteredTables.add(table);
       }
-    return filteredTables;  }
+    return filteredTables;
+  }
 
-  private boolean isTableWhitelisted(String databasePrefix, String database, String table) {
-    if (databaseToTableWhitelist == null) {
-      // Accept everything
-      return true;
-    }
+  private boolean isTableWhitelisted(String database, String table) {
     Whitelist tblWhitelist = databaseToTableWhitelist.get(database);
     if (tblWhitelist == null) {
-      // No tables allowed for database
-      return false;
+      // Accept everything
+      return true;
     }
     return tblWhitelist.contains(table);
   }
@@ -362,7 +356,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> {
           boolean isPrimary = mapping.equals(primaryDatabaseMapping);
           boolean isMapped = mappingsByDatabaseName.keySet().contains(tableMeta.getDbName());
-          return isPrimary || isMapped;
+          boolean databaseAllowed = isPrimary || isMapped;
+          boolean tableAllowed = isTableWhitelisted(tableMeta.getDbName(), tableMeta.getTableName());
+          return databaseAllowed && tableAllowed;
         };
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
         for (DatabaseMapping mapping : getDatabaseMappings()) {

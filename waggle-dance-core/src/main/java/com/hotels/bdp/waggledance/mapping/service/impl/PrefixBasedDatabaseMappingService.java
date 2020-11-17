@@ -246,6 +246,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       return true;
     }
     Whitelist tblWhitelist = dbToTblWhitelist.get(database);
+    if (tblWhitelist == null) {
+      // Accept everything
+      return true;
+    }
     return tblWhitelist.contains(table);
   }
 
@@ -305,8 +309,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
 
-        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> isDbWhitelisted(
-            mapping.getDatabasePrefix(), tableMeta.getDbName());
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) ->
+            isDbWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName()) &&
+                isTableWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName(), tableMeta.getTableName());
 
         return super.getTableMeta(tbl_patterns, tbl_types, databaseMappingsForPattern, filter);
       }
