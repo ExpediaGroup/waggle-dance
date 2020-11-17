@@ -163,7 +163,7 @@ public class YamlFederatedMetaStoreStorageTest {
   }
 
   @Test
-  public void loadFederation_mappedTables() throws Exception {
+  public void loadFederationMappedDatabasesAndTables() throws Exception {
     File f = dataFolder.getFile("mapped-tables.yml");
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
     storage.loadFederation();
@@ -176,7 +176,20 @@ public class YamlFederatedMetaStoreStorageTest {
     MappedTables mappedTables1 = new MappedTables("db1", Lists.newArrayList("tbl1"));
     MappedTables mappedTables2 = new MappedTables("db2", Lists.newArrayList("tbl2"));
     metaStore.setMappedTables(Lists.newArrayList(mappedTables1, mappedTables2));
-    assertThat(storage.getAll().get(1), is(metaStore));
+    AbstractMetaStore federatedMetastore = storage.getAll().get(1);
+    assertThat(federatedMetastore, is(metaStore));
+    assertThat(federatedMetastore.getMappedDatabases(), is(Lists.newArrayList("db1", "db2")));
+    assertThat(federatedMetastore.getMappedTables().get(0).getDatabase(), is("db1"));
+    assertThat(federatedMetastore.getMappedTables().get(0).getMappedTables(), is(Lists.newArrayList("tbl1")));
+    assertThat(federatedMetastore.getMappedTables().get(1).getDatabase(), is("db2"));
+    assertThat(federatedMetastore.getMappedTables().get(1).getMappedTables(), is(Lists.newArrayList("tbl2")));
+  }
+
+  @Test(expected = ConstraintViolationException.class)
+  public void loadFederationMappedTablesEmptyTablesInvalid() throws Exception {
+    File f = dataFolder.getFile("mapped-tables-empty-tables.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    storage.loadFederation();
   }
 
   @Test(expected = ConstraintViolationException.class)

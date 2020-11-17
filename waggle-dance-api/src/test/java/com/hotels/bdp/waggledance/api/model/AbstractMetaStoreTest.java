@@ -181,18 +181,63 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
     List<MappedTables> mappedTables = Lists.newArrayList(mappedTables1, mappedTables2);
     metaStore.setMappedTables(mappedTables);
     assertThat(metaStore.getMappedTables(), is(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(0));
+  }
+
+  @Test
+  public void mappedTablesEmptyDbInvalid() {
+    MappedTables mappedTables = new MappedTables("", Lists.newArrayList("tbl1"));
+    metaStore.setMappedTables(Lists.newArrayList(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void mappedTablesNullDbInvalid() {
+    MappedTables mappedTables = new MappedTables(null, Lists.newArrayList("tbl1"));
+    metaStore.setMappedTables(Lists.newArrayList(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void mappedTablesNullTblInvalid() {
+    MappedTables mappedTables = new MappedTables("valid_db", null);
+    metaStore.setMappedTables(Lists.newArrayList(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void mappedTablesEmptyTblsInvalid() {
+    MappedTables mappedTables = new MappedTables("valid_db", Lists.newArrayList() );
+    metaStore.setMappedTables(Lists.newArrayList(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(1));
   }
 
   @Test
   public void nullMappedTables() {
-    metaStore.setMappedDatabases(null);
+    metaStore.setMappedTables(null);
     assertThat(metaStore.getMappedTables(), is(nullValue()));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(0));
   }
 
   @Test
   public void emptyMappedTables() {
     metaStore.setMappedTables(Collections.emptyList());
     assertThat(metaStore.getMappedTables().size(), is(0));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(0));
   }
 
   @Test

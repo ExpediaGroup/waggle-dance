@@ -3,14 +3,6 @@ federated-meta-stores:
     name: hcom_1
     mapped-databases:
       - db1
-      - db2
     mapped-tables:
       - database: db1
         mapped-tables:
-          - tbl1
-      - database: db2
-        mapped-tables:
-          - tbl2
-primary-meta-store:
-  remote-meta-store-uris: thrift://localhost:39083
-  name: hcom_2
