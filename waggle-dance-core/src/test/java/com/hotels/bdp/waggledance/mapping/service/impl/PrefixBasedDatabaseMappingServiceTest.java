@@ -280,8 +280,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Test
   public void checkTableNoMappedTablesConfig() throws IOException, NoSuchObjectException {
-    DatabaseMapping mapping = service.databaseMapping("primary_db");
-    service.checkTable("primary_db", "table", mapping);
+    DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
+    service.checkTable(PRIMARY_DB, "table", mapping);
   }
 
   @Test(expected = NoSuchObjectException.class)
@@ -308,7 +308,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void checkTableMappedTablesAllowedPrimary() throws NoSuchObjectException {
+  public void checkTableMappedTablesAllowed() throws NoSuchObjectException {
     String otherDb = "other_db";
     primaryMetastore.setMappedDatabases(Lists.newArrayList(PRIMARY_DB, otherDb));
     MappedTables mappedTables1 = new MappedTables(PRIMARY_DB, Lists.newArrayList("table"));
@@ -321,32 +321,6 @@ public class PrefixBasedDatabaseMappingServiceTest {
     mapping = service.databaseMapping(otherDb);
     service.checkTable(otherDb, "table1", mapping);
   }
-
-  @Test(expected = NoSuchObjectException.class)
-  public void checkTableMappedTablesEmptyTablesList() throws NoSuchObjectException {
-    primaryMetastore.setMappedDatabases(Collections.singletonList(PRIMARY_DB));
-    // if mapped tables list for a db is empty, then whitelist will be created with empty set of patterns
-    // and tables will not be accepted for that db
-    MappedTables mappedTables = new MappedTables(PRIMARY_DB, Lists.newArrayList());
-    primaryMetastore.setMappedTables(Collections.singletonList(mappedTables));
-    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
-    DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
-    service.checkTable(PRIMARY_DB, "table", mapping);
-  }
-
-  @Test
-  public void checkTableMappedTablesNullTablesList() throws NoSuchObjectException {
-    primaryMetastore.setMappedDatabases(Collections.singletonList(PRIMARY_DB));
-    // if mapped tables for a db are null, then whitelist will be accept everything
-    MappedTables mappedTables = new MappedTables(PRIMARY_DB, null);
-    primaryMetastore.setMappedTables(Collections.singletonList(mappedTables));
-    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
-        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
-    DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
-    service.checkTable(PRIMARY_DB, "table", mapping);
-  }
-
 
   @Test
   public void filterTables() throws NoSuchObjectException {
