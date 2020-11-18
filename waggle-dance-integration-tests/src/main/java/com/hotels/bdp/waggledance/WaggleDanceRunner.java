@@ -47,6 +47,7 @@ import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.Federations;
+import com.hotels.bdp.waggledance.api.model.MappedTables;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
@@ -144,6 +145,17 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       return this;
     }
 
+    public Builder federate(String name, String remoteMetaStoreUris, List<MappedTables> mappedTables, String... mappableDatabases) {
+      checkArgument(isNotEmpty(name));
+      checkArgument(isNotEmpty(remoteMetaStoreUris));
+      FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
+      federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
+      federatedMetaStore.setMappedTables(mappedTables);
+      federatedMetaStore.setLatency(8000L);
+      federatedMetaStores.add(federatedMetaStore);
+      return this;
+    }
+
     public Builder federate(
         String name,
         String remoteMetaStoreUris,
@@ -199,6 +211,11 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
     public Builder withPrimaryMappedDatabases(String[] mappableDatabases) {
       primaryMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
+      return this;
+    }
+
+    public Builder withPrimaryMappedTables(List<MappedTables> mappableTables) {
+      primaryMetaStore.setMappedTables(mappableTables);
       return this;
     }
 
