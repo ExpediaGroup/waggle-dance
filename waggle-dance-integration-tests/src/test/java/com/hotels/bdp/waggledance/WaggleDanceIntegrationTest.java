@@ -819,10 +819,10 @@ public class WaggleDanceIntegrationTest {
 
     HiveMetaStoreClient proxy = getWaggleDanceClient();
     proxy.getAllTables(LOCAL_DATABASE);
-    // List<String> allDatabases = proxy.getAllTables(LOCAL_DATABASE);
+    List<String> allDatabases = proxy.getAllTables(LOCAL_DATABASE);
 
     List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, PREFIXED_REMOTE_DATABASE);
-    //assertThat(allDatabases, is(expected));
+    assertThat(allDatabases, is(expected));
   }
 
   @Test
