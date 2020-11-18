@@ -509,6 +509,33 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
+  public void panopticOperationsHandlerGetTableMetaWithMappedTables() throws Exception {
+    MappedTables mappedTablesFederated = new MappedTables(FEDERATED_DB, Collections.singletonList("tbl"));
+    MappedTables mappedTablesPrimary = new MappedTables(PRIMARY_DB, Collections.singletonList("no_match"));
+    federatedMetastore.setMappedTables(Lists.newArrayList(mappedTablesFederated));
+    primaryMetastore.setMappedTables(Lists.newArrayList(mappedTablesPrimary));
+    service = new StaticDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+
+    TableMeta federatedTableMeta = new TableMeta(FEDERATED_DB, "tbl", null);
+    TableMeta primaryTableMeta = new TableMeta(PRIMARY_DB, "tbl", null);
+    TableMeta ignoredTableMeta = new TableMeta("non_mapped_db", "tbl", null);
+
+    when(primaryDatabaseClient.get_table_meta("*_db", "*", null))
+        .thenReturn(Collections.singletonList(primaryTableMeta));
+    when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
+    when(federatedDatabaseClient.get_table_meta("*_db", "*", null))
+        .thenReturn(Arrays.asList(federatedTableMeta, ignoredTableMeta));
+    when(metaStoreMappingFederated.transformOutboundDatabaseName(FEDERATED_DB)).thenReturn("name_federated_db");
+
+    PanopticOperationHandler handler = service.getPanopticOperationHandler();
+    // table from primary was filtered out
+    List<TableMeta> expected = Arrays.asList(federatedTableMeta);
+    List<TableMeta> result = handler.getTableMeta("*_db", "*", null);
+    assertThat(result, is(expected));
+  }
+
+  @Test
   public void panopticOperationsHandlerSetUgi() throws Exception {
     String user = "user";
     List<String> groups = Lists.newArrayList();

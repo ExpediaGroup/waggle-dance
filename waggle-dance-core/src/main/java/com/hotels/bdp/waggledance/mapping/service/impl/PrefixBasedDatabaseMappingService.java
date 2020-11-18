@@ -309,10 +309,13 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
 
-        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) ->
-            isDbWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName()) &&
-                isTableWhitelisted(mapping.getDatabasePrefix(), tableMeta.getDbName(), tableMeta.getTableName());
-
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> {
+          String dbPrefix = mapping.getDatabasePrefix();
+          String dbName = tableMeta.getDbName();
+          boolean databaseAllowed = isDbWhitelisted(dbPrefix, dbName);
+          boolean tableAllowed = isTableWhitelisted(dbPrefix, dbName, tableMeta.getTableName());
+          return databaseAllowed && tableAllowed;
+        };
         return super.getTableMeta(tbl_patterns, tbl_types, databaseMappingsForPattern, filter);
       }
 
