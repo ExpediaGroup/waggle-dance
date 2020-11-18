@@ -309,7 +309,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   public void checkTable(String databaseName, String tableName,
       DatabaseMapping mapping) throws NoSuchObjectException {
     if (!isTableWhitelisted(databaseName, tableName)) {
-      throw new NoSuchObjectException("Table not found in database " + databaseName);
+      throw new NoSuchObjectException(String.format("%s.%s table not found", databaseName, tableName));
     }
   }
 

@@ -222,7 +222,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     String databasePrefix = mapping.getDatabasePrefix();
     String transformedDbName = mapping.transformInboundDatabaseName(databaseName);
     if (!isTableWhitelisted(databasePrefix, transformedDbName, tableName)) {
-      throw new NoSuchObjectException("Table not found in database " + databaseName);
+      throw new NoSuchObjectException(String.format("%s.%s table not found", databaseName, tableName));
     }
   }
 
