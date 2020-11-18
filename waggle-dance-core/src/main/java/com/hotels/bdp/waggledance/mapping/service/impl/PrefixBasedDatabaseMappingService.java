@@ -235,7 +235,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     if (isTableWhitelisted(databasePrefix, transformedDb, table)) {
       filteredTables.add(table);
     }
-    // TODO AP: Throw error if filteredTables empty?
     return filteredTables;
   }
 

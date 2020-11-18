@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
@@ -108,14 +107,8 @@ public class PrefixBasedDatabaseMappingServiceTest {
     if (Strings.isNullOrEmpty(prefix)) {
       when(result.transformOutboundDatabaseName(anyString())).then(returnsFirstArg());
       when(result.transformInboundDatabaseName(anyString())).then(returnsFirstArg());
-      when(result.transformOutboundDatabaseNameMultiple(anyString())).then(new Answer<List<String>>() {
-
-        @Override
-        public List<String> answer(InvocationOnMock invocation) throws Throwable {
-          return Lists.newArrayList((String) invocation.getArguments()[0]);
-        }
-      });
-
+      when(result.transformOutboundDatabaseNameMultiple(anyString())).then(
+          (Answer<List<String>>) invocation -> Lists.newArrayList((String) invocation.getArguments()[0]));
     }
     return result;
   }
@@ -279,7 +272,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void checkTableNoMappedTablesConfig() throws IOException, NoSuchObjectException {
+  public void checkTableNoMappedTablesConfig() throws NoSuchObjectException {
     DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
     service.checkTable(PRIMARY_DB, "table", mapping);
   }
@@ -336,6 +329,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     assertThat(result, is(allowedTables));
   }
 
+  @Test
   public void closeOnEmptyInit() throws Exception {
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory, Collections.emptyList(), queryMapping);
     service.close();
@@ -488,7 +482,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     // table from primary was filtered out
-    List<TableMeta> expected = Arrays.asList(federatedTableMeta);
+    List<TableMeta> expected = Collections.singletonList(federatedTableMeta);
     List<TableMeta> result = handler.getTableMeta("*_db", "*", null);
     assertThat(result, is(expected));
   }
