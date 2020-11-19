@@ -215,7 +215,7 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
 
   @Test
   public void mappedTablesEmptyTblsInvalid() {
-    MappedTables mappedTables = new MappedTables("valid_db", Lists.newArrayList() );
+    MappedTables mappedTables = new MappedTables("valid_db", Lists.newArrayList());
     metaStore.setMappedTables(Lists.newArrayList(mappedTables));
 
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
