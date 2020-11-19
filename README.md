@@ -134,6 +134,14 @@ Example:
       - prod_db1
       - prod_db2
       - dev_group_1.*
+      mapped-tables:
+      - database: prod_db1
+        mapped-tables: 
+        - tbl1
+        - tbl_.*
+      - database: prod_db2
+        mapped-tables: 
+        - tbl2
     - ...
 
 The table below describes all the available configuration values for Waggle Dance federations:
@@ -149,6 +157,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store.metastore-tunnel`                   | No       | See metastore tunnel configuration values below. |
 | `primary-meta-store.latency`                            | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
 | `primary-meta-store.mapped-databases`                   | No       | List of databases to federate from the primary metastore; all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
+| `primary-meta-store.mapped-tables`                      | No       | List of mappings from databases to tables to federate from the primary metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
 | `primary-meta-stores.database-name-mapping`             | No       | BiDirectional Map of database names and mapped name, where key=`<database name as known in the primary metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
 | `federated-meta-stores`                                 | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`       | Yes      | Thrift URIs of the federated read-only metastore. |
@@ -157,7 +166,8 @@ The table below describes all the available configuration values for Waggle Danc
 | `federated-meta-stores[n].metastore-tunnel`             | No       | See metastore tunnel configuration values below. |
 | `federated-meta-stores[n].latency`                      | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
 | `federated-meta-stores[n].mapped-databases`             | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
-| `federated-meta-stores[n].database-name-mapping`             | No       | BiDirectional Map of database names and mapped names where key=`<database name as known in the federated metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
+| `federated-meta-stores[n].mapped-tables`                | No       | List of mappings from databases to tables to federate from this federated metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
+| `federated-meta-stores[n].database-name-mapping`        | No       | BiDirectional Map of database names and mapped names where key=`<database name as known in the federated metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
 | `federated-meta-stores[n].writable-database-white-list` | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
 
 The table below describes the metastore tunnel configuration values:
@@ -171,6 +181,14 @@ The table below describes the metastore tunnel configuration values:
 | `*.metastore-tunnel.private-keys`                       | No       | A comma-separated list of paths to any SSH keys required in order to set up the SSH tunnel. |
 | `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds, `0` means no timeout. Default is `60000` milliseconds, i.e. 1 minute. |
 | `*.metastore-tunnel.strict-host-key-checking`           | No       | Whether the SSH tunnel should be created with strict host key checking. Can be set to `yes` or `no`. The default is `yes`. |
+
+The table below describes the `mapped-tables` configuration. For each entry in the list, a database name and the corresponding list of table names/patterns must be mentioned.
+
+| Property                                                | Required | Description |
+|:----|:----:|:----|
+| `*.mapped-tables[n].database`                           | Yes       | Name of the database which contains the tables to be mapped.|
+| `*.mapped-tables[n].mapped-tables`                      | Yes       | List of tables allowed for the database specified in the field above. This property supports both full table names and [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) (both being case-insensitive).|
+
 
 #### Access Control
 
