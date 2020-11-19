@@ -353,11 +353,12 @@ public class FederatedHMSHandlerTest {
   @Test
   public void get_all_tables() throws TException {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
-    List<String> tables = Lists.newArrayList("table1");
+    List<String> tables = Lists.newArrayList("table1", "table2");
+    List<String> filteredTables = Lists.newArrayList("table2");
     when(primaryClient.get_all_tables("inbound")).thenReturn(tables);
-    when(databaseMappingService.filterTables(DB_P, tables, primaryMapping)).thenReturn(tables);
+    when(databaseMappingService.filterTables(DB_P, tables, primaryMapping)).thenReturn(filteredTables);
     List<String> result = handler.get_all_tables(DB_P);
-    assertThat(result, is(tables));
+    assertThat(result, is(filteredTables));
   }
 
   @Test

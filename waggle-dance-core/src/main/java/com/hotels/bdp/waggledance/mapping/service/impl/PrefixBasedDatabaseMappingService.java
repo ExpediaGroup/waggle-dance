@@ -100,12 +100,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
     List<MappedTables> mappedTables = metaStore.getMappedTables();
     if (mappedTables != null) {
-    Map<String, Whitelist> mappedTblByDb = new ConcurrentHashMap<>();
-    for (MappedTables mapping : mappedTables) {
-      Whitelist tableWhiteList = new Whitelist(mapping.getMappedTables());
-      mappedTblByDb.put(mapping.getDatabase(), tableWhiteList);
-    }
-    mappedTblByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedTblByDb);
+      Map<String, Whitelist> mappedTblByDb = new ConcurrentHashMap<>();
+      for (MappedTables mapping : mappedTables) {
+        Whitelist tableWhiteList = new Whitelist(mapping.getMappedTables());
+        mappedTblByDb.put(mapping.getDatabase(), tableWhiteList);
+      }
+      mappedTblByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedTblByDb);
     }
   }
 
@@ -231,9 +231,10 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     List<String> filteredTables = new ArrayList<>();
     String databasePrefix = mapping.getDatabasePrefix();
     String transformedDb = mapping.transformInboundDatabaseName(databaseName);
-    for (String table: tableNames)
-    if (isTableWhitelisted(databasePrefix, transformedDb, table)) {
-      filteredTables.add(table);
+    for (String table: tableNames) {
+      if (isTableWhitelisted(databasePrefix, transformedDb, table)) {
+        filteredTables.add(table);
+      }
     }
     return filteredTables;
   }
