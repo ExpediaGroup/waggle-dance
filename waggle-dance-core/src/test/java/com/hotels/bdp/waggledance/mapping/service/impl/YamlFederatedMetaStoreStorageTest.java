@@ -63,24 +63,24 @@ public class YamlFederatedMetaStoreStorageTest {
 
   @Test
   public void loadFederation_empty() throws Exception {
-    File f = dataFolder.getFile("empty-file.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("empty-file.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
     assertThat(storage.getAll().size(), is(0));
   }
 
   @Test
   public void loadFederationNoFederations() throws Exception {
-    File f = dataFolder.getFile("no-federations.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("no-federations.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
     assertThat(storage.getAll().size(), is(0));
   }
 
   @Test
   public void loadFederation_singleFederation() throws Exception {
-    File f = dataFolder.getFile("single-federation.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("single-federation.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
     assertThat(storage.getAll(), is(notNullValue()));
     assertThat(storage.getAll().size(), is(1));
@@ -93,22 +93,22 @@ public class YamlFederatedMetaStoreStorageTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void loadFederationSamePrefix() throws Exception {
-    File f = dataFolder.getFile("same-prefix.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("same-prefix.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void loadTwoEmptyPrefixes() throws Exception {
-    File f = dataFolder.getFile("two-empty-prefixes.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("two-empty-prefixes.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
   }
 
   @Test
   public void loadEmptyPrefixFederated() throws Exception {
-    File f = dataFolder.getFile("empty-prefix-federated.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("empty-prefix-federated.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
     assertThat(storage.getAll().size(), is(3));
     assertThat(storage.getAll().get(0).getDatabasePrefix(), is("primary_"));
@@ -117,7 +117,7 @@ public class YamlFederatedMetaStoreStorageTest {
   }
 
   @Test
-  public void update() throws Exception {
+  public void update() {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);
     PrimaryMetaStore primary = newPrimaryInstance("prefix1", "metastoreUri");
     storage.insert(primary);
@@ -128,7 +128,7 @@ public class YamlFederatedMetaStoreStorageTest {
   }
 
   @Test
-  public void updateDifferentPrefix() throws Exception {
+  public void updateDifferentPrefix() {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);
     PrimaryMetaStore primary = newPrimaryInstance("prefix1", "metastoreUri");
     storage.insert(primary);
@@ -139,7 +139,7 @@ public class YamlFederatedMetaStoreStorageTest {
   }
 
   @Test
-  public void delete() throws Exception {
+  public void delete() {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);
     PrimaryMetaStore metaStore = newPrimaryInstance("name1", "metastoreUri");
     storage.insert(metaStore);
@@ -150,8 +150,8 @@ public class YamlFederatedMetaStoreStorageTest {
 
   @Test
   public void loadFederationMultipleFederations() throws Exception {
-    File f = dataFolder.getFile("multi-federation.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("multi-federation.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
     assertThat(storage.getAll(), is(notNullValue()));
     assertThat(storage.getAll().size(), is(3));
@@ -164,8 +164,8 @@ public class YamlFederatedMetaStoreStorageTest {
 
   @Test
   public void loadFederationMappedDatabasesAndTables() throws Exception {
-    File f = dataFolder.getFile("mapped-tables.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("mapped-tables.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
     assertThat(storage.getAll(), is(notNullValue()));
     assertThat(storage.getAll().size(), is(2));
@@ -187,22 +187,22 @@ public class YamlFederatedMetaStoreStorageTest {
 
   @Test(expected = ConstraintViolationException.class)
   public void loadFederationMappedTablesEmptyTablesInvalid() throws Exception {
-    File f = dataFolder.getFile("mapped-tables-empty-tables.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("mapped-tables-empty-tables.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
   }
 
   @Test(expected = ConstraintViolationException.class)
   public void loadFederationInvalidFederation() throws Exception {
-    File f = dataFolder.getFile("invalid-federation.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = dataFolder.getFile("invalid-federation.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.loadFederation();
   }
 
   @Test
   public void saveFederationWriteFederations() throws Exception {
-    File f = tmp.newFile("federations.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = tmp.newFile("federations.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.insert(newPrimaryInstance("hcom_1", "thrift://localhost:19083"));
     FederatedMetaStore newFederatedInstance = newFederatedInstance("hcom_2", "thrift://localhost:29083");
     newFederatedInstance.setMappedDatabases(Lists.newArrayList("db1", "db2"));
@@ -211,7 +211,7 @@ public class YamlFederatedMetaStoreStorageTest {
     newFederatedInstance.setMappedTables(Lists.newArrayList(mappedTables1, mappedTables2));
     storage.insert(newFederatedInstance);
     storage.saveFederation();
-    List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
+    List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
     assertThat(lines.size(), is(23));
     assertThat(lines.get(0), is("primary-meta-store:"));
     assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
@@ -241,19 +241,19 @@ public class YamlFederatedMetaStoreStorageTest {
   @Test
   public void doNotSaveFederationWriteFederations() throws Exception {
     when(configuration.isOverwriteConfigOnShutdown()).thenReturn(false);
-    File f = tmp.newFile("federations.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = tmp.newFile("federations.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     storage.insert(newPrimaryInstance("hcom_1", "thrift://localhost:19083"));
     FederatedMetaStore newFederatedInstance = newFederatedInstance("hcom_2", "thrift://localhost:29083");
     newFederatedInstance.setMappedDatabases(Lists.newArrayList("db1", "db2"));
     storage.insert(newFederatedInstance);
     storage.saveFederation();
-    List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
+    List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
     assertThat(lines.size(), is(0));
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void insertWithSameNameFails() throws Exception {
+  public void insertWithSameNameFails() {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);
     PrimaryMetaStore primary = newPrimaryInstance("primary", "metastoreUri");
     storage.insert(primary);
@@ -262,7 +262,7 @@ public class YamlFederatedMetaStoreStorageTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void insertPrimaryWithSamePrefixFails() throws Exception {
+  public void insertPrimaryWithSamePrefixFails() {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);
     PrimaryMetaStore primary = newPrimaryInstance("primary", "metastoreUri");
     storage.insert(primary);
@@ -271,7 +271,7 @@ public class YamlFederatedMetaStoreStorageTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void insertFederatedWithSamePrefixFails() throws Exception {
+  public void insertFederatedWithSamePrefixFails() {
     YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage("", configuration);
     FederatedMetaStore metaStore = newFederatedInstance("name", "metastoreUri");
     storage.insert(metaStore);
@@ -282,8 +282,8 @@ public class YamlFederatedMetaStoreStorageTest {
 
   @Test
   public void savePrimaryWriteFederations() throws Exception {
-    File f = tmp.newFile("federations.yml");
-    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(f.toURI().toString(), configuration);
+    File file = tmp.newFile("federations.yml");
+    YamlFederatedMetaStoreStorage storage = new YamlFederatedMetaStoreStorage(file.toURI().toString(), configuration);
     PrimaryMetaStore primaryMetaStore = newPrimaryInstance("hcom_1", "thrift://localhost:19083");
     primaryMetaStore.setMappedDatabases(Lists.newArrayList("db1", "db2"));
     MappedTables mappedTables1 = new MappedTables("db1", Lists.newArrayList("tbl1"));
@@ -292,7 +292,7 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.insert(primaryMetaStore);
     storage.insert(newFederatedInstance("hcom_2", "thrift://localhost:29083"));
     storage.saveFederation();
-    List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
+    List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
     assertThat(lines.size(), is(23));
     assertThat(lines.get(0), is("primary-meta-store:"));
     assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
@@ -320,13 +320,11 @@ public class YamlFederatedMetaStoreStorageTest {
   }
 
   private PrimaryMetaStore newPrimaryInstance(String name, String remoteMetaStoreUris) {
-    PrimaryMetaStore result = AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUris);
-    return result;
+    return AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUris);
   }
 
   private FederatedMetaStore newFederatedInstance(String name, String remoteMetaStoreUris) {
-    FederatedMetaStore result = AbstractMetaStore.newFederatedInstance(name, remoteMetaStoreUris);
-    return result;
+    return AbstractMetaStore.newFederatedInstance(name, remoteMetaStoreUris);
   }
 
 }
