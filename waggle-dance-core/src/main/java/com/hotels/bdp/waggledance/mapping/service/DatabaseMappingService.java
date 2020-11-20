@@ -40,6 +40,9 @@ public interface DatabaseMappingService extends Closeable {
   void checkTable(String databaseName, String tableName,
       DatabaseMapping mapping) throws NoSuchObjectException;
 
+  /**
+   * Filters out the tables which are not allowed and returns the rest.
+   */
   List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping);
 
   PanopticOperationHandler getPanopticOperationHandler();
