@@ -346,6 +346,14 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     return builder.build();
   }
 
+  private boolean databaseAndTableAllowed(String database, String table, DatabaseMapping mapping) {
+    boolean isPrimary = mapping.equals(primaryDatabaseMapping);
+    boolean isMapped = mappingsByDatabaseName.containsKey(database);
+    boolean databaseAllowed = isPrimary || isMapped;
+    boolean tableAllowed = isTableAllowed(database, table);
+    return databaseAllowed && tableAllowed;
+  }
+
   @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
@@ -353,13 +361,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
 
-        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> {
-          boolean isPrimary = mapping.equals(primaryDatabaseMapping);
-          boolean isMapped = mappingsByDatabaseName.containsKey(tableMeta.getDbName());
-          boolean databaseAllowed = isPrimary || isMapped;
-          boolean tableAllowed = isTableAllowed(tableMeta.getDbName(), tableMeta.getTableName());
-          return databaseAllowed && tableAllowed;
-        };
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) ->
+            databaseAndTableAllowed(tableMeta.getDbName(), tableMeta.getTableName(), mapping);
+
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
         for (DatabaseMapping mapping : getDatabaseMappings()) {
           mappingsForPattern.put(mapping, db_patterns);

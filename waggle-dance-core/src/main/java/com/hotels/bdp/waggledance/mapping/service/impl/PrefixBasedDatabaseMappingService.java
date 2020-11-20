@@ -302,6 +302,13 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     return allowList.contains(database);
   }
 
+  private boolean databaseAndTableAllowed(String database, String table, DatabaseMapping mapping) {
+    String dbPrefix = mapping.getDatabasePrefix();
+    boolean databaseAllowed = isDbAllowed(dbPrefix, database);
+    boolean tableAllowed = isTableAllowed(dbPrefix, database, table;
+    return databaseAllowed && tableAllowed;
+  }
+
   @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
@@ -310,13 +317,9 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
 
-        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> {
-          String dbPrefix = mapping.getDatabasePrefix();
-          String dbName = tableMeta.getDbName();
-          boolean databaseAllowed = isDbAllowed(dbPrefix, dbName);
-          boolean tableAllowed = isTableAllowed(dbPrefix, dbName, tableMeta.getTableName());
-          return databaseAllowed && tableAllowed;
-        };
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) ->
+            databaseAndTableAllowed(tableMeta.getDbName(), tableMeta.getTableName(), mapping);
+
         return super.getTableMeta(tbl_patterns, tbl_types, databaseMappingsForPattern, filter);
       }
 
