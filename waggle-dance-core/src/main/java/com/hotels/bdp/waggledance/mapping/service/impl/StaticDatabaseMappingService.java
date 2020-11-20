@@ -306,7 +306,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public void checkTable(String databaseName, String tableName,
+  public void checkTableAllowed(String databaseName, String tableName,
       DatabaseMapping mapping) throws NoSuchObjectException {
     if (!isTableAllowed(databaseName, tableName)) {
       throw new NoSuchObjectException(String.format("%s.%s table not found", databaseName, tableName));

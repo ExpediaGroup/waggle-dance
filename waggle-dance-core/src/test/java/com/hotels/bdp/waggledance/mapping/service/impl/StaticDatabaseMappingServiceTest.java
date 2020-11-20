@@ -343,32 +343,32 @@ public class StaticDatabaseMappingServiceTest {
 
 
   @Test
-  public void checkTableNoMappedTablesConfig() throws NoSuchObjectException {
-    service.checkTable(PRIMARY_DB, "table", null);
+  public void checkTableAllowedNoMappedTablesConfig() throws NoSuchObjectException {
+    service.checkTableAllowed(PRIMARY_DB, "table", null);
   }
 
   @Test(expected = NoSuchObjectException.class)
-  public void checkTableMappedTablesConfigPresentFederated() throws NoSuchObjectException {
+  public void checkTableAllowedMappedTablesConfigPresentFederated() throws NoSuchObjectException {
     federatedMetastore.setMappedDatabases(Collections.singletonList(FEDERATED_DB));
     MappedTables mappedTables = new MappedTables(FEDERATED_DB, Lists.newArrayList("table"));
     federatedMetastore.setMappedTables(Collections.singletonList(mappedTables));
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
-    service.checkTable(FEDERATED_DB, "table_not_mapped", null);
+    service.checkTableAllowed(FEDERATED_DB, "table_not_mapped", null);
   }
 
   @Test(expected = NoSuchObjectException.class)
-  public void checkTableMappedTablesConfigPresentPrimary() throws NoSuchObjectException {
+  public void checkTableAllowedMappedTablesConfigPresentPrimary() throws NoSuchObjectException {
     primaryMetastore.setMappedDatabases(Collections.singletonList(PRIMARY_DB));
     MappedTables mappedTables = new MappedTables(PRIMARY_DB, Lists.newArrayList("table"));
     primaryMetastore.setMappedTables(Collections.singletonList(mappedTables));
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
-    service.checkTable(PRIMARY_DB, "table_not_mapped", null);
+    service.checkTableAllowed(PRIMARY_DB, "table_not_mapped", null);
   }
 
   @Test
-  public void checkTableMappedTablesAllowed() throws NoSuchObjectException {
+  public void checkTableAllowedMappedTablesAllowed() throws NoSuchObjectException {
     String otherDb = "other_db";
     primaryMetastore.setMappedDatabases(Lists.newArrayList(PRIMARY_DB, otherDb));
     MappedTables mappedTables1 = new MappedTables(PRIMARY_DB, Lists.newArrayList("table"));
@@ -376,18 +376,18 @@ public class StaticDatabaseMappingServiceTest {
     primaryMetastore.setMappedTables(Lists.newArrayList(mappedTables1, mappedTables2));
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
-    service.checkTable(PRIMARY_DB, "table", null);
-    service.checkTable(otherDb, "table1", null);
+    service.checkTableAllowed(PRIMARY_DB, "table", null);
+    service.checkTableAllowed(otherDb, "table1", null);
   }
 
   @Test
-  public void checkTableMappedTablesEmptyList() throws NoSuchObjectException {
+  public void checkTableAllowedMappedTablesEmptyList() throws NoSuchObjectException {
     primaryMetastore.setMappedDatabases(Lists.newArrayList(PRIMARY_DB));
     primaryMetastore.setMappedTables(Collections.emptyList());
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
     DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
-    service.checkTable(PRIMARY_DB, "table", mapping);
+    service.checkTableAllowed(PRIMARY_DB, "table", mapping);
   }
 
   @Test

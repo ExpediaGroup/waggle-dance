@@ -218,7 +218,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public void checkTable(String databaseName, String tableName, DatabaseMapping mapping)
+  public void checkTableAllowed(String databaseName, String tableName, DatabaseMapping mapping)
       throws NoSuchObjectException {
     String databasePrefix = mapping.getDatabasePrefix();
     String transformedDbName = mapping.transformInboundDatabaseName(databaseName);

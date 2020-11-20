@@ -37,7 +37,10 @@ public interface DatabaseMappingService extends Closeable {
    */
   DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException;
 
-  void checkTable(String databaseName, String tableName,
+  /**
+   * Checks that the table from the specified database is allowed and throws a {@link NoSuchObjectException} if not.
+   */
+  void checkTableAllowed(String databaseName, String tableName,
       DatabaseMapping mapping) throws NoSuchObjectException;
 
   /**

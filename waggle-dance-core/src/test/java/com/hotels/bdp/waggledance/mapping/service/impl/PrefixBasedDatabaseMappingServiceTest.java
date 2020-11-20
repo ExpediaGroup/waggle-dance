@@ -272,13 +272,13 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void checkTableNoMappedTablesConfig() throws NoSuchObjectException {
+  public void checkTableAllowedNoMappedTablesConfig() throws NoSuchObjectException {
     DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
-    service.checkTable(PRIMARY_DB, "table", mapping);
+    service.checkTableAllowed(PRIMARY_DB, "table", mapping);
   }
 
   @Test(expected = NoSuchObjectException.class)
-  public void checkTableMappedTablesConfigPresentFederated() throws NoSuchObjectException {
+  public void checkTableAllowedMappedTablesConfigPresentFederated() throws NoSuchObjectException {
     when(metaStoreMappingFederated.transformInboundDatabaseName(DB_PREFIX + FEDERATED_DB)).thenReturn(FEDERATED_DB);
     federatedMetastore.setMappedDatabases(Collections.singletonList(FEDERATED_DB));
     MappedTables mappedTables = new MappedTables(FEDERATED_DB, Lists.newArrayList("table"));
@@ -286,22 +286,22 @@ public class PrefixBasedDatabaseMappingServiceTest {
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
     DatabaseMapping mapping = service.databaseMapping(DB_PREFIX + FEDERATED_DB);
-    service.checkTable(DB_PREFIX + FEDERATED_DB, "table_not_mapped", mapping);
+    service.checkTableAllowed(DB_PREFIX + FEDERATED_DB, "table_not_mapped", mapping);
   }
 
   @Test(expected = NoSuchObjectException.class)
-  public void checkTableMappedTablesConfigPresentPrimary() throws NoSuchObjectException {
+  public void checkTableAllowedMappedTablesConfigPresentPrimary() throws NoSuchObjectException {
     primaryMetastore.setMappedDatabases(Collections.singletonList(PRIMARY_DB));
     MappedTables mappedTables = new MappedTables(PRIMARY_DB, Lists.newArrayList("table"));
     primaryMetastore.setMappedTables(Collections.singletonList(mappedTables));
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
     DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
-    service.checkTable(PRIMARY_DB, "table_not_mapped", mapping);
+    service.checkTableAllowed(PRIMARY_DB, "table_not_mapped", mapping);
   }
 
   @Test
-  public void checkTableMappedTablesAllowed() throws NoSuchObjectException {
+  public void checkTableAllowedMappedTablesAllowed() throws NoSuchObjectException {
     String otherDb = "other_db";
     primaryMetastore.setMappedDatabases(Lists.newArrayList(PRIMARY_DB, otherDb));
     MappedTables mappedTables1 = new MappedTables(PRIMARY_DB, Lists.newArrayList("table"));
@@ -310,19 +310,19 @@ public class PrefixBasedDatabaseMappingServiceTest {
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
     DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
-    service.checkTable(PRIMARY_DB, "table", mapping);
+    service.checkTableAllowed(PRIMARY_DB, "table", mapping);
     mapping = service.databaseMapping(otherDb);
-    service.checkTable(otherDb, "table1", mapping);
+    service.checkTableAllowed(otherDb, "table1", mapping);
   }
 
   @Test
-  public void checkTableMappedTablesEmptyList() throws NoSuchObjectException {
+  public void checkTableAllowedMappedTablesEmptyList() throws NoSuchObjectException {
     primaryMetastore.setMappedDatabases(Lists.newArrayList(PRIMARY_DB));
     primaryMetastore.setMappedTables(Collections.emptyList());
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
     DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
-    service.checkTable(PRIMARY_DB, "table", mapping);
+    service.checkTableAllowed(PRIMARY_DB, "table", mapping);
   }
 
   @Test
