@@ -381,6 +381,16 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
+  public void checkTableMappedTablesEmptyList() throws NoSuchObjectException {
+    primaryMetastore.setMappedDatabases(Lists.newArrayList(PRIMARY_DB));
+    primaryMetastore.setMappedTables(Collections.emptyList());
+    service = new StaticDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+    DatabaseMapping mapping = service.databaseMapping(PRIMARY_DB);
+    service.checkTable(PRIMARY_DB, "table", mapping);
+  }
+
+  @Test
   public void filterTables() {
     List<String> allowedTables = Lists.newArrayList("table", "another_table");
     primaryMetastore.setMappedDatabases(Collections.singletonList(PRIMARY_DB));
