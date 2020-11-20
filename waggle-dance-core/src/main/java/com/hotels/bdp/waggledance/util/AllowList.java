@@ -22,29 +22,29 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Whitelist {
+public class AllowList {
 
   private final static String MATCH_ALL = ".*";
-  private final Set<Pattern> whiteList = new HashSet<>();
+  private final Set<Pattern> allowList = new HashSet<>();
 
-  public Whitelist() {}
+  public AllowList() {}
 
-  public Whitelist(List<String> whiteList) {
-    if (whiteList == null) {
+  public AllowList(List<String> allowList) {
+    if (allowList == null) {
       add(MATCH_ALL);
     } else {
-      for (String element : whiteList) {
+      for (String element : allowList) {
         add(element);
       }
     }
   }
 
   public void add(String element) {
-    whiteList.add(Pattern.compile(trimToLowerCase(element)));
+    allowList.add(Pattern.compile(trimToLowerCase(element)));
   }
 
   int size() {
-    return whiteList.size();
+    return allowList.size();
   }
 
   private String trimToLowerCase(String string) {
@@ -56,8 +56,8 @@ public class Whitelist {
       return true;
     }
     element = trimToLowerCase(element);
-    for (Pattern whiteListEntry : whiteList) {
-      Matcher matcher = whiteListEntry.matcher(element);
+    for (Pattern allowListEntry : allowList) {
+      Matcher matcher = allowListEntry.matcher(element);
       if (matcher.matches()) {
         return true;
       }

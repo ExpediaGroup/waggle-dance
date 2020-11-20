@@ -20,6 +20,7 @@ import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ import com.hotels.bdp.waggledance.mapping.service.PanopticOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
-import com.hotels.bdp.waggledance.util.Whitelist;
+import com.hotels.bdp.waggledance.util.AllowList;
 
 public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
@@ -67,8 +68,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
   private final Map<String, DatabaseMapping> mappingsByPrefix;
-  private final Map<String, Whitelist> mappedDbByPrefix;
-  private final Map<String, Map<String, Whitelist>> mappedTblByPrefix;
+  private final Map<String, AllowList> mappedDbByPrefix;
+  private final Map<String, Map<String, AllowList>> mappedTblByPrefix;
 
   private DatabaseMapping primaryDatabaseMapping;
 
@@ -95,15 +96,15 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     }
 
     mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), databaseMapping);
-    Whitelist mappedDbWhitelist = new Whitelist(metaStore.getMappedDatabases());
-    mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbWhitelist);
+    AllowList mappedDbAllowList = new AllowList(metaStore.getMappedDatabases());
+    mappedDbByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedDbAllowList);
 
     List<MappedTables> mappedTables = metaStore.getMappedTables();
     if (mappedTables != null) {
-      Map<String, Whitelist> mappedTblByDb = new ConcurrentHashMap<>();
+      Map<String, AllowList> mappedTblByDb = new HashMap<>();
       for (MappedTables mapping : mappedTables) {
-        Whitelist tableWhiteList = new Whitelist(mapping.getMappedTables());
-        mappedTblByDb.put(mapping.getDatabase(), tableWhiteList);
+        AllowList tableAllowList = new AllowList(mapping.getMappedTables());
+        mappedTblByDb.put(mapping.getDatabase(), tableAllowList);
       }
       mappedTblByPrefix.put(metaStoreMapping.getDatabasePrefix(), mappedTblByDb);
     }
@@ -175,7 +176,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
     return includeInResults(metaStoreMapping)
-        && isDbWhitelisted(metaStoreMapping.getDatabasePrefix(),
+        && isDbAllowed(metaStoreMapping.getDatabasePrefix(),
             metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
   }
 
@@ -221,36 +222,36 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       throws NoSuchObjectException {
     String databasePrefix = mapping.getDatabasePrefix();
     String transformedDbName = mapping.transformInboundDatabaseName(databaseName);
-    if (!isTableWhitelisted(databasePrefix, transformedDbName, tableName)) {
+    if (!isTableAllowed(databasePrefix, transformedDbName, tableName)) {
       throw new NoSuchObjectException(String.format("%s.%s table not found", databaseName, tableName));
     }
   }
 
   @Override
   public List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping) {
-    List<String> filteredTables = new ArrayList<>();
+    List<String> allowedTables = new ArrayList<>();
     String databasePrefix = mapping.getDatabasePrefix();
     String transformedDb = mapping.transformInboundDatabaseName(databaseName);
     for (String table: tableNames) {
-      if (isTableWhitelisted(databasePrefix, transformedDb, table)) {
-        filteredTables.add(table);
+      if (isTableAllowed(databasePrefix, transformedDb, table)) {
+        allowedTables.add(table);
       }
     }
-    return filteredTables;
+    return allowedTables;
   }
 
-  private boolean isTableWhitelisted(String databasePrefix, String database, String table) {
-    Map<String, Whitelist> dbToTblWhitelist = mappedTblByPrefix.get(databasePrefix);
-    if (dbToTblWhitelist == null) {
+  private boolean isTableAllowed(String databasePrefix, String database, String table) {
+    Map<String, AllowList> dbToTblAllowList = mappedTblByPrefix.get(databasePrefix);
+    if (dbToTblAllowList == null) {
       // Accept everything
       return true;
     }
-    Whitelist tblWhitelist = dbToTblWhitelist.get(database);
-    if (tblWhitelist == null) {
+    AllowList tblAllowList = dbToTblAllowList.get(database);
+    if (tblAllowList == null) {
       // Accept everything
       return true;
     }
-    return tblWhitelist.contains(table);
+    return tblAllowList.contains(table);
   }
 
   @Override
@@ -282,23 +283,23 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     return mappings;
   }
 
-  private List<String> getMappedWhitelistedDatabases(List<String> databases, DatabaseMapping mapping) {
+  private List<String> getMappedAllowedDatabases(List<String> databases, DatabaseMapping mapping) {
     List<String> mappedDatabases = new ArrayList<>();
     for (String database : databases) {
-      if (isDbWhitelisted(mapping.getDatabasePrefix(), database)) {
+      if (isDbAllowed(mapping.getDatabasePrefix(), database)) {
         mappedDatabases.addAll(mapping.transformOutboundDatabaseNameMultiple(database));
       }
     }
     return mappedDatabases;
   }
 
-  private boolean isDbWhitelisted(String databasePrefix, String database) {
-    Whitelist whitelist = mappedDbByPrefix.get(databasePrefix);
-    if (whitelist == null) {
+  private boolean isDbAllowed(String databasePrefix, String database) {
+    AllowList allowList = mappedDbByPrefix.get(databasePrefix);
+    if (allowList == null) {
       // Accept everything
       return true;
     }
-    return whitelist.contains(database);
+    return allowList.contains(database);
   }
 
   @Override
@@ -312,8 +313,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> {
           String dbPrefix = mapping.getDatabasePrefix();
           String dbName = tableMeta.getDbName();
-          boolean databaseAllowed = isDbWhitelisted(dbPrefix, dbName);
-          boolean tableAllowed = isTableWhitelisted(dbPrefix, dbName, tableMeta.getTableName());
+          boolean databaseAllowed = isDbAllowed(dbPrefix, dbName);
+          boolean tableAllowed = isTableAllowed(dbPrefix, dbName, tableMeta.getTableName());
           return databaseAllowed && tableAllowed;
         };
         return super.getTableMeta(tbl_patterns, tbl_types, databaseMappingsForPattern, filter);
@@ -323,7 +324,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       public List<String> getAllDatabases(String databasePattern) {
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(databasePattern);
 
-        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> isDbWhitelisted(
+        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> isDbAllowed(
             mapping.getDatabasePrefix(), database);
 
         return super.getAllDatabases(databaseMappingsForPattern, filter);
@@ -336,15 +337,14 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
         BiFunction<List<String>, DatabaseMapping, List<String>> filter = (
             databases,
-            mapping) -> getMappedWhitelistedDatabases(databases, mapping);
+            mapping) -> getMappedAllowedDatabases(databases, mapping);
 
         for (DatabaseMapping mapping : databaseMappings) {
           GetAllDatabasesRequest allDatabasesRequest = new GetAllDatabasesRequest(mapping, filter);
           allRequests.add(allDatabasesRequest);
         }
-        List<String> result = getPanopticOperationExecutor()
+        return getPanopticOperationExecutor()
             .executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases: {}");
-        return result;
       }
 
       @Override
