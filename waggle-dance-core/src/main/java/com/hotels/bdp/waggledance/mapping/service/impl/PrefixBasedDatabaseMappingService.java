@@ -305,7 +305,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   private boolean databaseAndTableAllowed(String database, String table, DatabaseMapping mapping) {
     String dbPrefix = mapping.getDatabasePrefix();
     boolean databaseAllowed = isDbAllowed(dbPrefix, database);
-    boolean tableAllowed = isTableAllowed(dbPrefix, database, table;
+    boolean tableAllowed = isTableAllowed(dbPrefix, database, table);
     return databaseAllowed && tableAllowed;
   }
 
