@@ -60,7 +60,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
       return metaStoreClientFactory.newInstance(metaStore);
     } catch (Exception e) {
       LOG.error("Can't create a client for metastore '{}':", metaStore.getName(), e);
-      return newUnreachableMetatstoreClient(metaStore);
+      return newUnreachableMetastoreClient(metaStore);
     }
   }
 
@@ -85,7 +85,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     return prefixNamingStrategy.apply(federatedMetaStore);
   }
 
-  private CloseableThriftHiveMetastoreIface newUnreachableMetatstoreClient(AbstractMetaStore metaStore) {
+  private CloseableThriftHiveMetastoreIface newUnreachableMetastoreClient(AbstractMetaStore metaStore) {
     return (CloseableThriftHiveMetastoreIface) Proxy
         .newProxyInstance(getClass().getClassLoader(), new Class[] { CloseableThriftHiveMetastoreIface.class },
             new UnreachableMetastoreClientInvocationHandler(metaStore.getName()));

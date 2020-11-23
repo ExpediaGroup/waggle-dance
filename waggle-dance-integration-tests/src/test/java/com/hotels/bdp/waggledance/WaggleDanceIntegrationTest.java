@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,7 @@ import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.Federations;
+import com.hotels.bdp.waggledance.api.model.MappedTables;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.junit.ServerSocketRule;
@@ -116,10 +118,10 @@ public class WaggleDanceIntegrationTest {
     localWarehouseUri = temporaryFolder.newFolder("local-warehouse");
     remoteWarehouseUri = temporaryFolder.newFolder("remote-warehouse");
 
-    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + LOCAL_TABLE));
+    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + LOCAL_TABLE), LOCAL_TABLE);
     LOG.info(">>>> Table {} ", localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE));
 
-    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + REMOTE_TABLE));
+    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + REMOTE_TABLE), REMOTE_TABLE);
     LOG.info(">>>> Table {} ", remoteServer.client().getTable(REMOTE_DATABASE, REMOTE_TABLE));
 
     executor = Executors.newSingleThreadExecutor();
@@ -133,14 +135,14 @@ public class WaggleDanceIntegrationTest {
     executor.shutdownNow();
   }
 
-  private void createLocalTable(File tableUri) throws Exception {
-    createUnpartitionedTable(localServer.client(), LOCAL_DATABASE, LOCAL_TABLE, tableUri);
+  private void createLocalTable(File tableUri, String table) throws Exception {
+    createUnpartitionedTable(localServer.client(), LOCAL_DATABASE, table, tableUri);
   }
 
-  private void createRemoteTable(File tableUri) throws Exception {
+  private void createRemoteTable(File tableUri, String table) throws Exception {
     HiveMetaStoreClient client = remoteServer.client();
 
-    Table hiveTable = createPartitionedTable(client, REMOTE_DATABASE, REMOTE_TABLE, tableUri);
+    Table hiveTable = createPartitionedTable(client, REMOTE_DATABASE, table, tableUri);
 
     File partitionEurope = new File(tableUri, "continent=Europe");
     File partitionUk = new File(partitionEurope, "country=UK");
@@ -880,6 +882,69 @@ public class WaggleDanceIntegrationTest {
     Federations federations = stopServerAndGetConfiguration();
     PrimaryMetaStore primaryMetaStore = federations.getPrimaryMetaStore();
     assertThat(primaryMetaStore.getMappedDatabases().contains("newdb"), is(true));
+  }
+
+  @Test
+  public void primaryAndFederatedMappedTables() throws Exception {
+    String localTable = "other_local_table";
+    String remoteTable = "other_remote_table";
+    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + localTable), localTable);
+    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + "not_mapped_local"), "not_mapped_local");
+    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + remoteTable), remoteTable);
+    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + "not_mapped_remote"), "not_mapped_remote");
+
+    MappedTables mappedTablesLocal = new MappedTables(LOCAL_DATABASE, Collections.singletonList(localTable));
+    MappedTables mappedTablesRemote = new MappedTables(REMOTE_DATABASE, Collections.singletonList(remoteTable));
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .withPrimaryMappedTables(Collections.singletonList(mappedTablesLocal))
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(),
+            Collections.singletonList(mappedTablesRemote), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    List<String> resultTables = proxy.getAllTables(LOCAL_DATABASE);
+    assertThat(resultTables.size(), is(1));
+    assertThat(resultTables.get(0), is(localTable));
+
+    resultTables = proxy.getAllTables(PREFIXED_REMOTE_DATABASE);
+    assertThat(resultTables.size(), is(1));
+    assertThat(resultTables.get(0), is(remoteTable));
+  }
+
+  @Test
+  public void getTablesFromPatternMappedTables() throws Exception {
+    String localTable = "other_local_table";
+    String remoteTable = "other_remote_table";
+    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + localTable), localTable);
+    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + remoteTable), remoteTable);
+
+    MappedTables mappedTablesLocal = new MappedTables(LOCAL_DATABASE, Collections.singletonList(".*other.*"));
+    MappedTables mappedTablesRemote = new MappedTables(REMOTE_DATABASE, Collections.singletonList("no_match.*"));
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .withPrimaryMappedTables(Collections.singletonList(mappedTablesLocal))
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(),
+            Collections.singletonList(mappedTablesRemote), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    List<String> resultTables = proxy.getAllTables(LOCAL_DATABASE);
+    assertThat(resultTables.size(), is(1));
+    assertThat(resultTables.get(0), is(localTable));
+
+    resultTables = proxy.getAllTables(PREFIXED_REMOTE_DATABASE);
+    assertThat(resultTables.size(), is(0));
   }
 
   @Test

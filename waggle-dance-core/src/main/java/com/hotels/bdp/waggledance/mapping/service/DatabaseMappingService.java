@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,17 @@ public interface DatabaseMappingService extends Closeable {
    * @return the {@link DatabaseMapping} that maps to the given databaseName
    */
   DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException;
+
+  /**
+   * Checks that the table from the specified database is allowed and throws a {@link NoSuchObjectException} if not.
+   */
+  void checkTableAllowed(String databaseName, String tableName,
+      DatabaseMapping mapping) throws NoSuchObjectException;
+
+  /**
+   * Filters out the tables which are not allowed and returns the rest.
+   */
+  List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping);
 
   PanopticOperationHandler getPanopticOperationHandler();
 
