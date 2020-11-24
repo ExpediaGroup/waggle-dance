@@ -11,6 +11,6 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-java -Dlogging.config=$SCRIPT_DIR/../conf/log4j2.xml -jar $SCRIPT_DIR/../service/waggle-dance-core-latest-exec.jar "$@"
+java -jar $SCRIPT_DIR/../service/waggle-dance-core-latest-exec.jar "$@"
 
 exit
