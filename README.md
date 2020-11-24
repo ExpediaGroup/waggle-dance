@@ -497,6 +497,14 @@ e.g. Healthcheck Endpoint: http://localhost:18000/actuator/health
 
 In addition to these Spring endpoints Waggle Dance exposes some custom endpoints which provide more detailed information. The URLs of these are logged when Waggle Dance starts up. The most notable is: `http://host:18000/api/admin/federations`, which returns information about the availability of the configured metastores (it can be used for troubleshooting, but it is not recommended for use as a health check).
 
+## Logging
+Waggle Dance uses [Log4j 2](https://logging.apache.org/log4j/2.x/) for logging. In order to use a custom Log4j 2 XML file, the path to the logging configuration file has to be added to the server configuration YAML file:
+    
+    logging:
+        config: file:/home/foo/waggle-dance/conf/log4j2.xml
+
+This only works when Waggle Dance is obtained from the compressed archive (.tar.gz) file. If the RPM version is being used, the default log file path is hardcoded. Refer to the [RPM version](#rpm-version) section for more details.
+
 ## Notes
 
  * Only the metadata communications are rerouted.
@@ -505,6 +513,7 @@ In addition to these Spring endpoints Waggle Dance exposes some custom endpoints
  * All data processing occurs in the client cluster, not the external clusters. Data is simply pulled into the client cluster that connect to Waggle Dance.
  * Metadata read operations are routed only. Write and destructive operations can be performed on the local metastore only.
  * When using Spark to read tables with a big number of partitions it may be necessary to set `spark.sql.hive.metastorePartitionPruning=true` to enable partition pruning. If this property is `false` Spark will try to fetch all the partitions of the tables in the query which may result on a `OutOfMemoryError` in Waggle Dance.
+ * If a configuration file is updated and the update disappears after server shutdown, `yaml-storage.overwrite-config-on-shutdown` should be set to `false` in the federation configuration file (refer to the [federation configuration storage](#federation-configuration-storage) section).
 
 
 ## Limitations
