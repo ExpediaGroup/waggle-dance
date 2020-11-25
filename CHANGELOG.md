@@ -1,4 +1,4 @@
-## [3.8.0] - TBD
+## [3.8.0] - 2020-11-25
 ### Added
 * New `mapped-tables` feature. See [#195](https://github.com/HotelsDotCom/waggle-dance/issues/195) and the [README](https://github.com/HotelsDotCom/waggle-dance#database-name-mapping) for more information.
 
