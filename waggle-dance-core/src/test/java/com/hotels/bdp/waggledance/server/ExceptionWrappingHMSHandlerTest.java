@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,14 @@
  */
 package com.hotels.bdp.waggledance.server;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -33,7 +32,7 @@ import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 @RunWith(MockitoJUnitRunner.class)
 public class ExceptionWrappingHMSHandlerTest {
 
-  public @Rule ExpectedException expectedException = ExpectedException.none();
+  //public @Rule ExpectedException expectedException;// = ExpectedException;//.none();
 
   private @Mock IHMSHandler baseHandler;
 
@@ -46,35 +45,29 @@ public class ExceptionWrappingHMSHandlerTest {
 
   @Test
   public void get_databaseWaggleDanceServerException() throws Exception {
-    expectedException.expect(MetaException.class);
     IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
     when(baseHandler.get_database("bdp")).thenThrow(new WaggleDanceServerException("waggle waggle!"));
-    handler.get_database("bdp");
+    assertThrows(MetaException.class, () -> { handler.get_database("bdp");});
   }
 
   @Test
   public void get_databasNotAllowedException() throws Exception {
-    expectedException.expect(MetaException.class);
     IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
     when(baseHandler.get_database("bdp")).thenThrow(new NotAllowedException("waggle waggle!"));
-    handler.get_database("bdp");
+    assertThrows(MetaException.class, () -> { handler.get_database("bdp");});
   }
 
   @Test
   public void get_databaseRunTimeExceptionIsNotWrapped() throws Exception {
-    expectedException.expect(RuntimeException.class);
-    expectedException.expectMessage("generic non waggle dance exception");
     IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
     when(baseHandler.get_database("bdp")).thenThrow(new RuntimeException("generic non waggle dance exception"));
-    handler.get_database("bdp");
+    assertThrows("generic non waggle dance exception",RuntimeException.class, () -> { handler.get_database("bdp");});
   }
 
   @Test
   public void get_databaseCheckedExceptionIsNotWrapped() throws Exception {
-    expectedException.expect(NoSuchObjectException.class);
-    expectedException.expectMessage("Does not exist!");
     IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
     when(baseHandler.get_database("bdp")).thenThrow(new NoSuchObjectException("Does not exist!"));
-    handler.get_database("bdp");
+    assertThrows("Does not exist!",NoSuchObjectException.class, () -> { handler.get_database("bdp");});
   }
 }

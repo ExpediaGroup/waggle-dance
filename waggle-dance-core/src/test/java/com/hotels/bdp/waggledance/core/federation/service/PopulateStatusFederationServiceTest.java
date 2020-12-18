@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 package com.hotels.bdp.waggledance.core.federation.service;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -59,21 +59,21 @@ public class PopulateStatusFederationServiceTest {
   public void register() {
     service.register(federatedMetaStore1);
     verify(federationService).register(federatedMetaStore1);
-    verifyZeroInteractions(federationStatusService);
+    verifyNoInteractions(federationStatusService);
   }
 
   @Test
   public void update() {
     service.update(federatedMetaStore1, federatedMetaStore2);
     verify(federationService).update(federatedMetaStore1, federatedMetaStore2);
-    verifyZeroInteractions(federationStatusService);
+    verifyNoInteractions(federationStatusService);
   }
 
   @Test
   public void unregister() {
     service.unregister("federatedMetaStore1");
     verify(federationService).unregister("federatedMetaStore1");
-    verifyZeroInteractions(federationStatusService);
+    verifyNoInteractions(federationStatusService);
   }
 
   @Test

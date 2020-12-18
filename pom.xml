@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -38,6 +39,7 @@
     <hadoop.version>2.7.2</hadoop.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hive.version>2.3.7</hive.version>
+    <junit.version>4.13.1</junit.version>
     <mockito.version>3.5.15</mockito.version>
     <dropwizard.metrics.version>3.1.5</dropwizard.metrics.version>
     <aspectj-maven-plugin.version>1.9</aspectj-maven-plugin.version>
@@ -81,12 +83,24 @@
         <version>2.2.6</version>
       </dependency>
       <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
-      <!-- spring uses a newer version of byte-buddy but Mockito requires 
+      <!-- spring uses a newer version of byte-buddy but Mockito requires
         an older version -->
       <dependency>
         <groupId>net.bytebuddy</groupId>
@@ -151,7 +165,7 @@
       <dependency>
         <groupId>org.apache.derby</groupId>
         <artifactId>derby</artifactId>
-        <!-- we should use whatever hive-metastore is using. Cannot rely 
+        <!-- we should use whatever hive-metastore is using. Cannot rely
           on the transitive dep because we want it test scoped. -->
         <version>10.10.2.0</version>
         <scope>test</scope>
@@ -179,7 +193,7 @@
           <version>${maven.release.plugin.version}</version>
         </plugin>
         <plugin>
-          <!-- NOTE: we are blocked on building waggle dance using Java 11 
+          <!-- NOTE: we are blocked on building waggle dance using Java 11
             on the below, need to wait for https://github.com/mojohaus/aspectj-maven-plugin/pull/45 -->
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>aspectj-maven-plugin</artifactId>
