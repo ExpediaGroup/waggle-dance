@@ -32,8 +32,6 @@ import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 @RunWith(MockitoJUnitRunner.class)
 public class ExceptionWrappingHMSHandlerTest {
 
-  //public @Rule ExpectedException expectedException;// = ExpectedException;//.none();
-
   private @Mock IHMSHandler baseHandler;
 
   @Test
