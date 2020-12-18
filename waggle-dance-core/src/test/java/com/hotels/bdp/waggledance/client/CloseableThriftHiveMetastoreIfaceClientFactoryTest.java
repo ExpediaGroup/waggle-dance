@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 package com.hotels.bdp.waggledance.client;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
@@ -58,7 +58,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     factory.newInstance(newFederatedInstance("fed1", THRIFT_URI));
     verify(defaultMetaStoreClientFactory).newInstance(hiveConfCaptor.capture(), eq(
         "waggledance-fed1"), eq(3), eq(2000));
-    verifyZeroInteractions(tunnelingMetaStoreClientFactory);
+    verifyNoInteractions(tunnelingMetaStoreClientFactory);
     HiveConf hiveConf = hiveConfCaptor.getValue();
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
   }
@@ -77,6 +77,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
     factory.newInstance(federatedMetaStore);
     verify(tunnelingMetaStoreClientFactory).newInstance(THRIFT_URI, metastoreTunnel, "fed1", 3, 2000);
-    verifyZeroInteractions(defaultMetaStoreClientFactory);
+    verifyNoInteractions(defaultMetaStoreClientFactory);
   }
 }
