@@ -266,15 +266,7 @@
           <configuration>
             <!-- excluding files that don't need a header update -->
             <excludes>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/api/validation/constraint/TunnelRoute.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/api/validation/validator/TunnelRouteValidator.java
-              </exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/client/ThriftMetastoreClient.java</exclude>
               <exclude>src/main/java/com/hotels/bdp/waggledance/server/MetaStoreProxyServer.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/validation/Preconditions.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/parse/ASTConverter.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/parse/ASTNodeUtils.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/parse/Rule.java</exclude>
             </excludes>
           </configuration>
         </plugin>

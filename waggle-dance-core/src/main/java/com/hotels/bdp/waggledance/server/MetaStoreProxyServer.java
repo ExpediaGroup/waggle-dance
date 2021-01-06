@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2015-2017 The Apache Software Foundation and Expedia Inc.
+ * Copyright (C) 2015-2021 The Apache Software Foundation and Expedia, Inc.
  *
  * This code is based on Hive's HiveMetaStore:
  *
