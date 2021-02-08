@@ -90,10 +90,15 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public DatabaseMappingImpl(MetaStoreMapping metaStoreMapping, QueryMapping queryMapping) {
     this.metaStoreMapping = metaStoreMapping;
     this.queryMapping = queryMapping;
-    this.metastoreFilter = getMetastoreFilter();
+    this.metastoreFilter = loadMetastoreFilter();
   }
 
+  @Override
   public MetaStoreFilterHook getMetastoreFilter() {
+    return metastoreFilter;
+  }
+
+  public MetaStoreFilterHook loadMetastoreFilter() {
     HiveConf conf = new HiveConf();
     conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, "com.hotels.bdp.waggledance.mapping.model.AlluxioMetastoreFilter");
     Class<? extends MetaStoreFilterHook> authProviderClass = conf.getClass(
@@ -112,11 +117,6 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public Table transformOutboundTable(Table table) {
-    try {
-      metastoreFilter.filterTable(table);
-    } catch (Exception e) {
-      throw new WaggleDanceException(e.getMessage());
-    }
     table.setDbName(metaStoreMapping.transformOutboundDatabaseName(table.getDbName()));
     if (table.isSetViewExpandedText()) {
       try {
@@ -150,22 +150,12 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public Partition transformOutboundPartition(Partition partition) {
-    try {
-      metastoreFilter.filterPartition(partition);
-    } catch (Exception e) {
-      throw new WaggleDanceException(e.getMessage());
-    }
     partition.setDbName(metaStoreMapping.transformOutboundDatabaseName(partition.getDbName()));
     return partition;
   }
 
   @Override
   public Index transformOutboundIndex(Index index) {
-    try {
-      metastoreFilter.filterIndex(index);
-    } catch (Exception e) {
-      throw new WaggleDanceException(e.getMessage());
-    }
     index.setDbName(metaStoreMapping.transformOutboundDatabaseName(index.getDbName()));
     return index;
   }
@@ -214,13 +204,6 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public PartitionSpec transformOutboundPartitionSpec(PartitionSpec partitionSpec) {
-    try {
-      // The MetaStoreFilterHook interface has a method for filterPartitionSpecs, but not for filterPartitionSpec
-      // So we have to turn the element into a list and take it out again...
-      partitionSpec = metastoreFilter.filterPartitionSpecs(Lists.newArrayList(partitionSpec)).get(0);
-    } catch (Exception e) {
-      throw new WaggleDanceException(e.getMessage());
-    }
     partitionSpec.setDbName(metaStoreMapping.transformOutboundDatabaseName(partitionSpec.getDbName()));
     return partitionSpec;
   }

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -74,6 +75,11 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   @Override
   public ThriftHiveMetastore.Iface getClient() {
     return client;
+  }
+
+  @Override
+  public MetaStoreFilterHook getMetastoreFilter() {
+    return null;
   }
 
   @Override
