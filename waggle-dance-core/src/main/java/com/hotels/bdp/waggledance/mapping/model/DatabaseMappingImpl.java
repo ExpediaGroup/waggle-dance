@@ -16,8 +16,13 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
@@ -46,6 +51,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
 import org.apache.hadoop.hive.metastore.api.PartitionValuesRequest;
@@ -66,7 +72,12 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import sun.security.krb5.RealmException;
+
+import com.google.common.collect.Lists;
+
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
 
 public class DatabaseMappingImpl implements DatabaseMapping {
 
@@ -74,14 +85,38 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   private final MetaStoreMapping metaStoreMapping;
   private final QueryMapping queryMapping;
+  private final MetaStoreFilterHook metastoreFilter;
 
   public DatabaseMappingImpl(MetaStoreMapping metaStoreMapping, QueryMapping queryMapping) {
     this.metaStoreMapping = metaStoreMapping;
     this.queryMapping = queryMapping;
+    this.metastoreFilter = getMetastoreFilter();
+  }
+
+  public MetaStoreFilterHook getMetastoreFilter() {
+    HiveConf conf = new HiveConf();
+    conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, "com.hotels.bdp.waggledance.mapping.model.AlluxioMetastoreFilter");
+    Class<? extends MetaStoreFilterHook> authProviderClass = conf.getClass(
+        HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, DefaultMetaStoreFilterHookImpl.class, MetaStoreFilterHook.class);
+    String msg = "Unable to create instance of " + authProviderClass.getName() + ": ";
+    try {
+      System.out.println("-----------------" + authProviderClass.toString());
+      Constructor<? extends MetaStoreFilterHook> constructor =
+          authProviderClass.getConstructor(HiveConf.class);
+      System.out.println("-----------------");
+      return constructor.newInstance(conf);
+    } catch (Exception e) {
+      throw new WaggleDanceServerException(msg + e);
+    }
   }
 
   @Override
   public Table transformOutboundTable(Table table) {
+    try {
+      metastoreFilter.filterTable(table);
+    } catch (Exception e) {
+      throw new WaggleDanceException(e.getMessage());
+    }
     table.setDbName(metaStoreMapping.transformOutboundDatabaseName(table.getDbName()));
     if (table.isSetViewExpandedText()) {
       try {
@@ -115,12 +150,22 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public Partition transformOutboundPartition(Partition partition) {
+    try {
+      metastoreFilter.filterPartition(partition);
+    } catch (Exception e) {
+      throw new WaggleDanceException(e.getMessage());
+    }
     partition.setDbName(metaStoreMapping.transformOutboundDatabaseName(partition.getDbName()));
     return partition;
   }
 
   @Override
   public Index transformOutboundIndex(Index index) {
+    try {
+      metastoreFilter.filterIndex(index);
+    } catch (Exception e) {
+      throw new WaggleDanceException(e.getMessage());
+    }
     index.setDbName(metaStoreMapping.transformOutboundDatabaseName(index.getDbName()));
     return index;
   }
@@ -169,6 +214,13 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public PartitionSpec transformOutboundPartitionSpec(PartitionSpec partitionSpec) {
+    try {
+      // The MetaStoreFilterHook interface has a method for filterPartitionSpecs, but not for filterPartitionSpec
+      // So we have to turn the element into a list and take it out again...
+      partitionSpec = metastoreFilter.filterPartitionSpecs(Lists.newArrayList(partitionSpec)).get(0);
+    } catch (Exception e) {
+      throw new WaggleDanceException(e.getMessage());
+    }
     partitionSpec.setDbName(metaStoreMapping.transformOutboundDatabaseName(partitionSpec.getDbName()));
     return partitionSpec;
   }
