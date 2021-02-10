@@ -44,7 +44,7 @@
     <dropwizard.metrics.version>3.1.5</dropwizard.metrics.version>
     <aspectj-maven-plugin.version>1.9</aspectj-maven-plugin.version>
     <aspectj.version>1.8.9</aspectj.version>
-    <beeju.version>3.3.0</beeju.version>
+    <beeju.version>4.0.0</beeju.version>
     <guava.version>23.0</guava.version>
     <guice.version>4.0</guice.version>
     <hcommon-hive-metastore.version>1.2.3</hcommon-hive-metastore.version>
