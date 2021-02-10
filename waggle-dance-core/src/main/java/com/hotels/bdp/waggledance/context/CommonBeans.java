@@ -55,9 +55,9 @@ public class CommonBeans {
   }
 
   @Bean
-  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory() {
+  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory(WaggleDanceConfiguration waggleDanceConfiguration) {
     return new CloseableThriftHiveMetastoreIfaceClientFactory(new TunnelingMetaStoreClientFactory(),
-        new DefaultMetaStoreClientFactory());
+        new DefaultMetaStoreClientFactory(), waggleDanceConfiguration);
   }
 
   @Bean

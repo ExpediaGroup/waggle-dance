@@ -57,7 +57,7 @@ public class MetaStoreMappingFactoryImplTest {
   private @Mock PrefixNamingStrategy prefixNamingStrategy;
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
   private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceClientFactory(
-      new TunnelingMetaStoreClientFactory(), new DefaultMetaStoreClientFactory());
+      new TunnelingMetaStoreClientFactory(), new DefaultMetaStoreClientFactory(), new WaggleDanceConfiguration());
 
   private MetaStoreMappingFactoryImpl factory;
 
