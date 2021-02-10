@@ -38,8 +38,7 @@ public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
 
   @Override
   public Table filterTable(Table table) throws MetaException, NoSuchObjectException {
-    table.getSd().setLocation("foo");
-    //setAlluxioLocation(table);
+    setAlluxioLocation(table);
     return table;
   }
 

@@ -18,6 +18,8 @@ package com.hotels.bdp.waggledance.mapping.model;
 import java.io.Closeable;
 import java.util.List;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -60,7 +62,9 @@ public interface MetaStoreMapping extends Closeable {
 
   ThriftHiveMetastore.Iface getClient();
 
-  MetaStoreFilterHook getMetastoreFilter();
+  default MetaStoreFilterHook getMetastoreFilter() {
+    return new DefaultMetaStoreFilterHookImpl(new HiveConf());
+  }
 
   String getDatabasePrefix();
 

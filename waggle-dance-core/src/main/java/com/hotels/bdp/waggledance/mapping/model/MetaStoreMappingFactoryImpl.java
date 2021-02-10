@@ -15,10 +15,15 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Map;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +37,7 @@ import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClient
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
+import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 
 @Component
@@ -72,7 +78,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
             metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
         createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType(),
-        metaStore.getLatency());
+        metaStore.getLatency(), loadMetastoreFilterHook(metaStore));
     if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.PREFIXED) {
       return new DatabaseNameMapping(new PrefixMapping(metaStoreMapping), metaStore.getDatabaseNameBiMapping());
     } else {
@@ -89,6 +95,30 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     return (CloseableThriftHiveMetastoreIface) Proxy
         .newProxyInstance(getClass().getClassLoader(), new Class[] { CloseableThriftHiveMetastoreIface.class },
             new UnreachableMetastoreClientInvocationHandler(metaStore.getName()));
+  }
+
+  private MetaStoreFilterHook loadMetastoreFilterHook(AbstractMetaStore metaStore) {
+    HiveConf conf = new HiveConf();
+    String metaStoreFilterHook = metaStore.getHiveMetaStoreFilterHook();
+    if (metaStoreFilterHook == null || metaStoreFilterHook.isEmpty()) {
+      return new DefaultMetaStoreFilterHookImpl(conf);
+    }
+    for (Map.Entry<String, String> property: waggleDanceConfiguration.getConfigurationProperties().entrySet()) {
+      conf.set(property.getKey(), property.getValue());
+    }
+    conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, metaStoreFilterHook);
+//        "com.hotels.bdp.waggledance.mapping.model.AlluxioMetastoreFilter");
+    Class<? extends MetaStoreFilterHook> filterHookClass = conf.getClass(
+        HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, DefaultMetaStoreFilterHookImpl.class,
+        MetaStoreFilterHook.class);
+    String msg = "Unable to create instance of " + filterHookClass.getName() + ": ";
+    try {
+      Constructor<? extends MetaStoreFilterHook> constructor =
+          filterHookClass.getConstructor(HiveConf.class);
+      return constructor.newInstance(conf);
+    } catch (Exception e) {
+      throw new WaggleDanceServerException(msg + e);
+    }
   }
 
   /**

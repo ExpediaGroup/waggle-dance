@@ -20,6 +20,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +38,8 @@ public class ASTQueryMappingTest {
 
   @Before
   public void setUp() {
-    metaStoreMapping = new PrefixMapping(new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY));
+    metaStoreMapping = new PrefixMapping(new MetaStoreMappingImpl(PREFIX, "mapping", null,
+        null, DIRECT, LATENCY, new DefaultMetaStoreFilterHookImpl(new HiveConf())));
   }
 
   @Test

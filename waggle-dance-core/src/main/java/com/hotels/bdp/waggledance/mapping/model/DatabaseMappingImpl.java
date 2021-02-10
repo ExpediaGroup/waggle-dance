@@ -85,34 +85,15 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   private final MetaStoreMapping metaStoreMapping;
   private final QueryMapping queryMapping;
-  private final MetaStoreFilterHook metastoreFilter;
 
   public DatabaseMappingImpl(MetaStoreMapping metaStoreMapping, QueryMapping queryMapping) {
     this.metaStoreMapping = metaStoreMapping;
     this.queryMapping = queryMapping;
-    this.metastoreFilter = loadMetastoreFilter();
   }
 
   @Override
   public MetaStoreFilterHook getMetastoreFilter() {
-    return metastoreFilter;
-  }
-
-  public MetaStoreFilterHook loadMetastoreFilter() {
-    HiveConf conf = new HiveConf();
-    conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, "com.hotels.bdp.waggledance.mapping.model.AlluxioMetastoreFilter");
-    Class<? extends MetaStoreFilterHook> authProviderClass = conf.getClass(
-        HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, DefaultMetaStoreFilterHookImpl.class, MetaStoreFilterHook.class);
-    String msg = "Unable to create instance of " + authProviderClass.getName() + ": ";
-    try {
-      System.out.println("-----------------" + authProviderClass.toString());
-      Constructor<? extends MetaStoreFilterHook> constructor =
-          authProviderClass.getConstructor(HiveConf.class);
-      System.out.println("-----------------");
-      return constructor.newInstance(conf);
-    } catch (Exception e) {
-      throw new WaggleDanceServerException(msg + e);
-    }
+    return metaStoreMapping.getMetastoreFilter();
   }
 
   @Override

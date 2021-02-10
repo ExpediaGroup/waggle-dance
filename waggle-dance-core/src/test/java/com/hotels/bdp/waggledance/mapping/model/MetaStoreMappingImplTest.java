@@ -28,6 +28,8 @@ import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 
 import java.io.IOException;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.thrift.TException;
 import org.junit.Before;
@@ -56,9 +58,10 @@ public class MetaStoreMappingImplTest {
 
   @Before
   public void init() {
-    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT, LATENCY);
+    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT, LATENCY,
+        new DefaultMetaStoreFilterHookImpl(new HiveConf()));
     tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED,
-        LATENCY);
+        LATENCY, new DefaultMetaStoreFilterHookImpl(new HiveConf()));
   }
 
   @Test

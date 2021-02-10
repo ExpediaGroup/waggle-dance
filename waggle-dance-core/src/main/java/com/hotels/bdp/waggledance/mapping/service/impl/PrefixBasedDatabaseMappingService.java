@@ -89,7 +89,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
-    DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping, metaStore.getHiveMetaStoreFilterHook());
+    DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
 
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = databaseMapping;
@@ -110,8 +110,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     }
   }
 
-  private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping, String hook) {
-    //check hook
+  private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
     return new DatabaseMappingImpl(metaStoreMapping, queryMapping);
   }
 

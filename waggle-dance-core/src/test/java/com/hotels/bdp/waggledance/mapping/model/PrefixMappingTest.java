@@ -20,13 +20,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.junit.Test;
 
 @SuppressWarnings("resource")
 public class PrefixMappingTest {
 
   private final MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl("prefix_", "mapping", null, null, DIRECT,
-      0L);
+      0L, new DefaultMetaStoreFilterHookImpl(new HiveConf()));
 
   @Test
   public void mapNames() throws Exception {

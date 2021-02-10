@@ -44,6 +44,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final AccessControlHandler accessControlHandler;
   private final String name;
   private final long latency;
+  private final MetaStoreFilterHook metastoreFilter;
 
   private final ConnectionType connectionType;
 
@@ -53,13 +54,15 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
       CloseableThriftHiveMetastoreIface client,
       AccessControlHandler accessControlHandler,
       ConnectionType connectionType,
-      long latency) {
+      long latency,
+      MetaStoreFilterHook metastoreFilter) {
     this.databasePrefix = databasePrefix;
     this.name = name;
     this.client = client;
     this.accessControlHandler = accessControlHandler;
     this.connectionType = connectionType;
     this.latency = latency;
+    this.metastoreFilter = metastoreFilter;
   }
 
   @Override
@@ -79,7 +82,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public MetaStoreFilterHook getMetastoreFilter() {
-    return null;
+    return metastoreFilter;
   }
 
   @Override
