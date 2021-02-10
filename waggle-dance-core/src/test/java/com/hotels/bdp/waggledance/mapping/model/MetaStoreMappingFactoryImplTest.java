@@ -15,6 +15,9 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
+
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -22,10 +25,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
-
 import java.util.Arrays;
 
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -129,4 +131,20 @@ public class MetaStoreMappingFactoryImplTest {
     }
   }
 
+  @Test
+  public void loadMetastoreFilterHookFromConfig() {
+    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
+    federatedMetaStore.setHiveMetastoreFilterHook(AlluxioMetastoreFilter.class.getName());
+    MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
+    assertThat(mapping, is(notNullValue()));
+    assertThat(mapping.getMetastoreFilter(), instanceOf(AlluxioMetastoreFilter.class));
+  }
+
+  @Test
+  public void loadDefaultMetastoreFilterHook() {
+    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
+    MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
+    assertThat(mapping, is(notNullValue()));
+    assertThat(mapping.getMetastoreFilter(), instanceOf(DefaultMetaStoreFilterHookImpl.class));
+  }
 }

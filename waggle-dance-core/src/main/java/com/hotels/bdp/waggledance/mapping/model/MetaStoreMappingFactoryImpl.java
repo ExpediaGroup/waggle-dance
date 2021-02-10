@@ -109,17 +109,15 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
         conf.set(property.getKey(), property.getValue());
       }
     }
-    conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname,
-        metaStoreFilterHook);
-    Class<? extends MetaStoreFilterHook> filterHookClass = conf.getClass(
-        HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, DefaultMetaStoreFilterHookImpl.class,
-        MetaStoreFilterHook.class);
-    String msg = "Unable to create instance of " + filterHookClass.getName() + ": ";
+    conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, metaStoreFilterHook);
     try {
-      Constructor<? extends MetaStoreFilterHook> constructor =
-          filterHookClass.getConstructor(HiveConf.class);
+      Class<? extends MetaStoreFilterHook> filterHookClass = conf
+          .getClass(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, DefaultMetaStoreFilterHookImpl.class,
+              MetaStoreFilterHook.class);
+      Constructor<? extends MetaStoreFilterHook> constructor = filterHookClass.getConstructor(HiveConf.class);
       return constructor.newInstance(conf);
     } catch (Exception e) {
+      String msg = "Unable to create instance of " + metaStoreFilterHook + ": ";
       throw new WaggleDanceServerException(msg + e);
     }
   }

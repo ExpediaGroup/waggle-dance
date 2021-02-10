@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance;
+package com.hotels.bdp.waggledance.mapping.model;
 
 import java.util.List;
 
