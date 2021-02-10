@@ -18,8 +18,6 @@ package com.hotels.bdp.waggledance.mapping.model;
 import java.io.Closeable;
 import java.util.List;
 
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -44,9 +42,9 @@ public interface MetaStoreMapping extends Closeable {
   /**
    * Outbound means parameter coming from the Hive Metastore and return result will be sent to user client.
    *
-   * @param List of databaseNames. This methods potentially returns multiple database name if configuration is setup to
-   *          map to multiple.
-   * @return
+   * @param databaseName
+   * @return List of databaseNames. This method potentially returns multiple database names if configuration is setup to
+   *    *          map to multiple.
    */
   List<String> transformOutboundDatabaseNameMultiple(String databaseName);
 
@@ -62,9 +60,7 @@ public interface MetaStoreMapping extends Closeable {
 
   ThriftHiveMetastore.Iface getClient();
 
-  default MetaStoreFilterHook getMetastoreFilter() {
-    return new DefaultMetaStoreFilterHookImpl(new HiveConf());
-  }
+   MetaStoreFilterHook getMetastoreFilter();
 
   String getDatabasePrefix();
 

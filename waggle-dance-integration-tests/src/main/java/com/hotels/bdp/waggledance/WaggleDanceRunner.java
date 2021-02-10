@@ -219,6 +219,11 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       return this;
     }
 
+    public Builder withHiveMetastoreFilterHook(String hiveMetastoreFilterHook) {
+      primaryMetaStore.setHiveMetastoreFilterHook(hiveMetastoreFilterHook);
+      return this;
+    }
+
     public Builder graphite(String graphiteHost, int graphitePort, String graphitePrefix, long pollInterval) {
       graphiteConfiguration.setHost(graphiteHost);
       graphiteConfiguration.setPort(graphitePort);

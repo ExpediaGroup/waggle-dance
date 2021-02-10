@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.mapping.model;
+package com.hotels.bdp.waggledance;
 
 import java.util.List;
 
@@ -28,9 +28,11 @@ import org.apache.hadoop.hive.metastore.api.PartitionSpec;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
 
+/**
+ * For testing purposes
+ * */
 public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
 
-  public static final String S3_PREFIX = "s3://";
   public static final String ALLUXIO_PREFIX = "alluxio://";
 
   public AlluxioMetastoreFilter(HiveConf conf) {
@@ -123,10 +125,7 @@ public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
 
   private void setAlluxioLocation(StorageDescriptor sd) {
     String location = sd.getLocation();
-    if (location.startsWith(S3_PREFIX)) {
-      String newLocation = location.replace(S3_PREFIX, ALLUXIO_PREFIX);
-      sd.setLocation(newLocation);
-    }
+    sd.setLocation(ALLUXIO_PREFIX + location);
   }
 
 }

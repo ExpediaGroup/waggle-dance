@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -61,6 +62,11 @@ public abstract class MetaStoreMappingDecorator implements MetaStoreMapping {
   @Override
   public Iface getClient() {
     return metaStoreMapping.getClient();
+  }
+
+  @Override
+  public MetaStoreFilterHook getMetastoreFilter() {
+    return metaStoreMapping.getMetastoreFilter();
   }
 
   @Override

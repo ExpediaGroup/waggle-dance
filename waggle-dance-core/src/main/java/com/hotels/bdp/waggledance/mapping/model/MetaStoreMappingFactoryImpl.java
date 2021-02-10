@@ -103,11 +103,14 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     if (metaStoreFilterHook == null || metaStoreFilterHook.isEmpty()) {
       return new DefaultMetaStoreFilterHookImpl(conf);
     }
-    for (Map.Entry<String, String> property: waggleDanceConfiguration.getConfigurationProperties().entrySet()) {
-      conf.set(property.getKey(), property.getValue());
+    Map<String, String> configurationProperties = waggleDanceConfiguration.getConfigurationProperties();
+    if (configurationProperties != null) {
+      for (Map.Entry<String, String> property : configurationProperties.entrySet()) {
+        conf.set(property.getKey(), property.getValue());
+      }
     }
-    conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, metaStoreFilterHook);
-//        "com.hotels.bdp.waggledance.mapping.model.AlluxioMetastoreFilter");
+    conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname,
+        metaStoreFilterHook);
     Class<? extends MetaStoreFilterHook> filterHookClass = conf.getClass(
         HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, DefaultMetaStoreFilterHookImpl.class,
         MetaStoreFilterHook.class);

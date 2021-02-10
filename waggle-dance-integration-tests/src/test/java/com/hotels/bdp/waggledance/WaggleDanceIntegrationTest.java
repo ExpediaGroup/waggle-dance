@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -1013,5 +1014,24 @@ public class WaggleDanceIntegrationTest {
     // Remote table
     Table waggledRemoteTable = proxy.getTable("xyz", REMOTE_TABLE);
     assertNotNull(waggledRemoteTable);
+  }
+
+  @Test
+  public void hiveMetastoreFilterHookConfiguredForPrimary() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withHiveMetastoreFilterHook(AlluxioMetastoreFilter.class.getName())
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    assertThat(waggledLocalTable.getSd().getLocation(), startsWith("alluxio"));
+
+    Table remoteTable = proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
+    assertThat(remoteTable.getSd().getLocation().startsWith("alluxio"), is(false));
   }
 }
