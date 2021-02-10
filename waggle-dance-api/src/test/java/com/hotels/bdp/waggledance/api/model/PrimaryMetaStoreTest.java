@@ -89,7 +89,7 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
 
   @Test
   public void toJson() throws Exception {
-    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databaseNameMapping\":{},\"databasePrefix\":\"\",\"federationType\":\"PRIMARY\",\"latency\":0,\"mappedDatabases\":null,\"mappedTables\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
+    String expected = "{\"accessControlType\":\"READ_ONLY\",\"connectionType\":\"DIRECT\",\"databaseNameMapping\":{},\"databasePrefix\":\"\",\"federationType\":\"PRIMARY\",\"hiveMetastoreFilterHook\":null,\"latency\":0,\"mappedDatabases\":null,\"mappedTables\":null,\"metastoreTunnel\":null,\"name\":\"name\",\"remoteMetaStoreUris\":\"uri\",\"status\":\"UNKNOWN\",\"writableDatabaseWhiteList\":[]}";
     ObjectMapper mapper = new ObjectMapper();
     // Sorting to get deterministic test behaviour
     mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);

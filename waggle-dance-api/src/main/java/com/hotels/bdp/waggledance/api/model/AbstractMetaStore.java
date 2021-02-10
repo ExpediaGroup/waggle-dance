@@ -48,7 +48,7 @@ public abstract class AbstractMetaStore {
   private List<String> mappedDatabases;
   private @Valid List<MappedTables> mappedTables;
   private Map<String, String> databaseNameMapping = Collections.emptyMap();
-  private String hiveMetaStoreFilterHook;
+  private String hiveMetastoreFilterHook;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
@@ -99,12 +99,12 @@ public abstract class AbstractMetaStore {
     this.databasePrefix = databasePrefix;
   }
 
-  public String getHiveMetaStoreFilterHook() {
-    return hiveMetaStoreFilterHook;
+  public String getHiveMetastoreFilterHook() {
+    return hiveMetastoreFilterHook;
   }
 
-  public void setHiveMetaStoreFilterHook(String hiveMetaStoreFilterHook) {
-    this.hiveMetaStoreFilterHook = hiveMetaStoreFilterHook;
+  public void setHiveMetastoreFilterHook(String hiveMetastoreFilterHook) {
+    this.hiveMetastoreFilterHook = hiveMetastoreFilterHook;
   }
 
   public String getName() {

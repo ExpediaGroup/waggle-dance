@@ -99,7 +99,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
 
   private MetaStoreFilterHook loadMetastoreFilterHook(AbstractMetaStore metaStore) {
     HiveConf conf = new HiveConf();
-    String metaStoreFilterHook = metaStore.getHiveMetaStoreFilterHook();
+    String metaStoreFilterHook = metaStore.getHiveMetastoreFilterHook();
     if (metaStoreFilterHook == null || metaStoreFilterHook.isEmpty()) {
       return new DefaultMetaStoreFilterHookImpl(conf);
     }
