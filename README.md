@@ -174,6 +174,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `federated-meta-stores[n].database-name-mapping`        | No       | BiDirectional Map of database names and mapped names where key=`<database name as known in the federated metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
 | `federated-meta-stores[n].writable-database-white-list` | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).|
 
+#### Metastore tunnel
 The table below describes the metastore tunnel configuration values:
 
 | Property                                                | Required | Description |
@@ -186,6 +187,7 @@ The table below describes the metastore tunnel configuration values:
 | `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds, `0` means no timeout. Default is `60000` milliseconds, i.e. 1 minute. |
 | `*.metastore-tunnel.strict-host-key-checking`           | No       | Whether the SSH tunnel should be created with strict host key checking. Can be set to `yes` or `no`. The default is `yes`. |
 
+#### Mapped tables
 The table below describes the `mapped-tables` configuration. For each entry in the list, a database name and the corresponding list of table names/patterns must be mentioned.
 
 | Property                                                | Required | Description |
