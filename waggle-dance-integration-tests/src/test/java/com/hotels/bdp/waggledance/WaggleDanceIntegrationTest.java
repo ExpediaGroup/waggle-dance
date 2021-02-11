@@ -76,7 +76,7 @@ import com.hotels.bdp.waggledance.api.model.MappedTables;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.junit.ServerSocketRule;
-import com.hotels.bdp.waggledance.mapping.model.AlluxioMetastoreFilter;
+import com.hotels.bdp.waggledance.mapping.model.PrefixingMetastoreFilter;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
@@ -1021,7 +1021,7 @@ public class WaggleDanceIntegrationTest {
     runner = WaggleDanceRunner
         .builder(configLocation)
         .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
-        .withHiveMetastoreFilterHook(AlluxioMetastoreFilter.class.getName())
+        .withHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName())
         .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
         .build();
 
@@ -1029,9 +1029,9 @@ public class WaggleDanceIntegrationTest {
     HiveMetaStoreClient proxy = getWaggleDanceClient();
 
     Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
-    assertThat(waggledLocalTable.getSd().getLocation(), startsWith("alluxio"));
+    assertThat(waggledLocalTable.getSd().getLocation(), startsWith("prefix"));
 
     Table remoteTable = proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
-    assertThat(remoteTable.getSd().getLocation().startsWith("alluxio"), is(false));
+    assertThat(remoteTable.getSd().getLocation().startsWith("prefix"), is(false));
   }
 }

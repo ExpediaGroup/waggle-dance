@@ -31,11 +31,11 @@ import org.apache.hadoop.hive.metastore.api.Table;
 /**
  * For testing purposes
  * */
-public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
+public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
 
-  public static final String ALLUXIO_PREFIX = "alluxio://";
+  public static final String PREFIX = "prefix";
 
-  public AlluxioMetastoreFilter(HiveConf conf) {
+  public PrefixingMetastoreFilter(HiveConf conf) {
   }
 
   @Override
@@ -55,14 +55,14 @@ public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
 
   @Override
   public Table filterTable(Table table) throws MetaException, NoSuchObjectException {
-    setAlluxioLocation(table);
+    setLocationPrefix(table);
     return table;
   }
 
   @Override
   public List<Table> filterTables(List<Table> tableList) throws MetaException {
     for (Table table: tableList){
-      setAlluxioLocation(table);
+      setLocationPrefix(table);
     }
     return tableList;
   }
@@ -70,7 +70,7 @@ public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
   @Override
   public List<Partition> filterPartitions(List<Partition> partitionList) throws MetaException {
     for (Partition partition: partitionList){
-      setAlluxioLocation(partition.getSd());
+      setLocationPrefix(partition.getSd());
     }
     return partitionList;
   }
@@ -78,7 +78,7 @@ public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
   @Override
   public List<PartitionSpec> filterPartitionSpecs(List<PartitionSpec> partitionSpecList) throws MetaException {
     for (PartitionSpec partitionSpec : partitionSpecList) {
-      setAlluxioLocation(partitionSpec.getSharedSDPartitionSpec().getSd());
+      setLocationPrefix(partitionSpec.getSharedSDPartitionSpec().getSd());
       filterPartitions(partitionSpec.getPartitionList().getPartitions());
     }
     return partitionSpecList;
@@ -86,7 +86,7 @@ public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
 
   @Override
   public Partition filterPartition(Partition partition) throws MetaException, NoSuchObjectException {
-    setAlluxioLocation(partition);
+    setLocationPrefix(partition);
     return partition;
   }
 
@@ -98,7 +98,7 @@ public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
 
   @Override
   public Index filterIndex(Index index) throws MetaException, NoSuchObjectException {
-    setAlluxioLocation(index.getSd());
+    setLocationPrefix(index.getSd());
     return index;
   }
 
@@ -110,22 +110,22 @@ public class AlluxioMetastoreFilter implements MetaStoreFilterHook {
   @Override
   public List<Index> filterIndexes(List<Index> indexeList) throws MetaException {
     for (Index index: indexeList) {
-      setAlluxioLocation(index.getSd());
+      setLocationPrefix(index.getSd());
     }
     return indexeList;
   }
 
-  private void setAlluxioLocation(Table table) {
-    setAlluxioLocation(table.getSd());
+  private void setLocationPrefix(Table table) {
+    setLocationPrefix(table.getSd());
   }
 
-  private void setAlluxioLocation(Partition partition) {
-    setAlluxioLocation(partition.getSd());
+  private void setLocationPrefix(Partition partition) {
+    setLocationPrefix(partition.getSd());
   }
 
-  private void setAlluxioLocation(StorageDescriptor sd) {
+  private void setLocationPrefix(StorageDescriptor sd) {
     String location = sd.getLocation();
-    sd.setLocation(ALLUXIO_PREFIX + location);
+    sd.setLocation(PREFIX + location);
   }
 
 }

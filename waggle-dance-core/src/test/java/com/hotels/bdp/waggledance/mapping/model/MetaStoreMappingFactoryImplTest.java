@@ -134,10 +134,10 @@ public class MetaStoreMappingFactoryImplTest {
   @Test
   public void loadMetastoreFilterHookFromConfig() {
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
-    federatedMetaStore.setHiveMetastoreFilterHook(AlluxioMetastoreFilter.class.getName());
+    federatedMetaStore.setHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName());
     MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
     assertThat(mapping, is(notNullValue()));
-    assertThat(mapping.getMetastoreFilter(), instanceOf(AlluxioMetastoreFilter.class));
+    assertThat(mapping.getMetastoreFilter(), instanceOf(PrefixingMetastoreFilter.class));
   }
 
   @Test
