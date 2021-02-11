@@ -44,11 +44,11 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
     @Type(value = FederatedMetaStore.class, name = "FEDERATED") })
 public abstract class AbstractMetaStore {
   private String databasePrefix;
+  private String hiveMetastoreFilterHook;
   private List<String> writableDatabaseWhitelist;
   private List<String> mappedDatabases;
   private @Valid List<MappedTables> mappedTables;
   private Map<String, String> databaseNameMapping = Collections.emptyMap();
-  private String hiveMetastoreFilterHook;
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
