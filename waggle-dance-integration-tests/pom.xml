@@ -89,7 +89,7 @@
     <!-- Test -->
     <dependency>
       <groupId>com.hotels</groupId>
-      <artifactId>waggle-dance-api</artifactId>
+      <artifactId>waggle-dance-core</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
