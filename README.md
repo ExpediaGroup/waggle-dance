@@ -107,7 +107,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `database-resolution`             | No         | Controls what type of database resolution to use. See the [Database Resolution](#database-resolution) section. Default is `MANUAL`. |
 | `status-polling-delay`            | No         | Controls the delay that checks metastore availability and updates long running connections of any status change. Default is `5` (every 5 minutes). |
 | `status-polling-delay-time-unit`  | No         | Controls the delay time unit. Default is `MINUTES` . |
-| `configuration-properties`        | No         | Map of hive properties that will be added to the HiveConf used when creating the Thrift clients. |
+| `configuration-properties`        | No         | Map of hive properties that will be added to the HiveConf used when creating the Thrift clients (they will be shared among all the clients). |
 
 ### Federation
 

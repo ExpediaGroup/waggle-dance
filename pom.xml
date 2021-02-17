@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>waggle-dance-parent</artifactId>
-  <version>3.8.1-SNAPSHOT</version>
+  <version>3.9.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
