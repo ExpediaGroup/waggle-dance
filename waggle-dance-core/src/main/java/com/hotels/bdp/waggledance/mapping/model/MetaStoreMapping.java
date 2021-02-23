@@ -43,7 +43,7 @@ public interface MetaStoreMapping extends Closeable {
    * Outbound means parameter coming from the Hive Metastore and return result will be sent to user client.
    *
    * @param databaseName
-   * @return List of databaseNames. This method potentially returns multiple database names if configuration is setup to
+   * @return List of databaseNames. This method potentially returns multiple database names if configuration is set up to
    *    *          map to multiple.
    */
   List<String> transformOutboundDatabaseNameMultiple(String databaseName);
