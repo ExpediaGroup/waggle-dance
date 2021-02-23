@@ -33,7 +33,7 @@ import org.apache.hadoop.hive.metastore.api.Table;
  * */
 public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
 
-  public static final String PREFIX = "prefix";
+  public static final String PREFIX = "prefix-";
 
   public PrefixingMetastoreFilter(HiveConf conf) {
   }

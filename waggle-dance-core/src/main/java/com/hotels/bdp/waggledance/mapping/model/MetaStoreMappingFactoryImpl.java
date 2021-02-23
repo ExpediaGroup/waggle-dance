@@ -117,8 +117,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
       Constructor<? extends MetaStoreFilterHook> constructor = filterHookClass.getConstructor(HiveConf.class);
       return constructor.newInstance(conf);
     } catch (Exception e) {
-      String msg = "Unable to create instance of " + metaStoreFilterHook + ": ";
-      throw new WaggleDanceServerException(msg, e);
+      throw new WaggleDanceServerException("Unable to create instance of " + metaStoreFilterHook, e);
     }
   }
 
