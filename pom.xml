@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -9,7 +8,7 @@
   </parent>
 
   <artifactId>waggle-dance-parent</artifactId>
-  <version>3.9.0-SNAPSHOT</version>
+  <version>3.9.0</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
@@ -20,7 +19,7 @@
     <connection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/HotelsDotCom/waggle-dance.git</connection>
     <developerConnection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/HotelsDotCom/waggle-dance.git</developerConnection>
     <url>https://github.com/HotelsDotCom/waggle-dance</url>
-    <tag>HEAD</tag>
+    <tag>waggle-dance-parent-3.9.0</tag>
   </scm>
 
   <modules>
