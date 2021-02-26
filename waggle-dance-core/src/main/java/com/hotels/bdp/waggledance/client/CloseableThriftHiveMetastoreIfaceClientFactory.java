@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
@@ -36,12 +37,15 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private final DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
   private final int defaultConnectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L);
+  private final WaggleDanceConfiguration waggleDanceConfiguration;
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(
       TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
-      DefaultMetaStoreClientFactory defaultMetaStoreClientFactory) {
+      DefaultMetaStoreClientFactory defaultMetaStoreClientFactory,
+      WaggleDanceConfiguration waggleDanceConfiguration) {
     this.tunnelingMetaStoreClientFactory = tunnelingMetaStoreClientFactory;
     this.defaultMetaStoreClientFactory = defaultMetaStoreClientFactory;
+    this.waggleDanceConfiguration = waggleDanceConfiguration;
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
@@ -55,10 +59,13 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     if (metaStore.getConnectionType() == TUNNELED) {
       return tunnelingMetaStoreClientFactory
           .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
-              connectionTimeout);
+              connectionTimeout, waggleDanceConfiguration.getConfigurationProperties());
     }
     Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
+    if (waggleDanceConfiguration.getConfigurationProperties() != null) {
+      properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
+    }
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     return defaultMetaStoreClientFactory
         .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,

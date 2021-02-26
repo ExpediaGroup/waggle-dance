@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>3.8.1-SNAPSHOT</version>
+    <version>3.9.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-core</artifactId>
@@ -307,6 +307,17 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -34,6 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -44,11 +50,19 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   private CloseableThriftHiveMetastoreIfaceClientFactory factory;
   private @Mock TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private @Mock DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
+  private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
+  private Map<String, String> configurationProperties = new HashMap<>();
 
   @Before
   public void setUp() {
+    configurationProperties.put(ConfVars.METASTORETHRIFTCONNECTIONRETRIES.varname, "5");
+    configurationProperties.put(ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT.varname, "6");
+    configurationProperties.put(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY.varname, "5");
+    configurationProperties.put(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT.varname, "true");
+    configurationProperties.put(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL.varname, "false");
+    when(waggleDanceConfiguration.getConfigurationProperties()).thenReturn(configurationProperties);
     factory = new CloseableThriftHiveMetastoreIfaceClientFactory(tunnelingMetaStoreClientFactory,
-        defaultMetaStoreClientFactory);
+        defaultMetaStoreClientFactory, waggleDanceConfiguration);
   }
 
   @Test
@@ -61,6 +75,11 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     verifyNoInteractions(tunnelingMetaStoreClientFactory);
     HiveConf hiveConf = hiveConfCaptor.getValue();
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
+    assertThat(hiveConf.getIntVar(ConfVars.METASTORETHRIFTCONNECTIONRETRIES), is(5));
+    assertThat(hiveConf.getTimeVar(ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, TimeUnit.MILLISECONDS), is(6000L));
+    assertThat(hiveConf.getTimeVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY, TimeUnit.SECONDS), is(5L));
+    assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT), is(true));
+    assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL), is(false));
   }
 
   @Test
@@ -76,7 +95,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
 
     factory.newInstance(federatedMetaStore);
-    verify(tunnelingMetaStoreClientFactory).newInstance(THRIFT_URI, metastoreTunnel, "fed1", 3, 2000);
+    verify(tunnelingMetaStoreClientFactory).newInstance(THRIFT_URI, metastoreTunnel, "fed1", 3, 2000, configurationProperties);
     verifyNoInteractions(defaultMetaStoreClientFactory);
   }
 }

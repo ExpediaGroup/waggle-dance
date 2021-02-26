@@ -1,6 +1,12 @@
+## [3.9.0] - TBD
+### Added
+* Support for setting Hive metastore filter hooks which can be configured per federated metastore. See the [README](https://github.com/HotelsDotCom/waggle-dance#federation) for more information.
+### Fixed
+* The `configuration-properties` from `waggle-dance-server.yml` are set when creating the Thrift clients.
+
 ## [3.8.0] - 2020-11-25
 ### Added
-* New `mapped-tables` feature. See [#195](https://github.com/HotelsDotCom/waggle-dance/issues/195) and the [README](https://github.com/HotelsDotCom/waggle-dance#database-name-mapping) for more information.
+* New `mapped-tables` feature. See [#195](https://github.com/HotelsDotCom/waggle-dance/issues/195) and the [README](https://github.com/HotelsDotCom/waggle-dance#federation) for more information.
 
 ### Changed
 * Updated `hotels-oss-parent` to 6.1.0 (was 5.0.0).

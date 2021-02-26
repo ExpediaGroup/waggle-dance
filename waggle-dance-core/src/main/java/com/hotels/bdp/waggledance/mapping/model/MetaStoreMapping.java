@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import java.io.Closeable;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -41,9 +42,9 @@ public interface MetaStoreMapping extends Closeable {
   /**
    * Outbound means parameter coming from the Hive Metastore and return result will be sent to user client.
    *
-   * @param List of databaseNames. This methods potentially returns multiple database name if configuration is setup to
-   *          map to multiple.
-   * @return
+   * @param databaseName
+   * @return List of databaseNames. This method potentially returns multiple database names if configuration is set up to
+   *    *          map to multiple.
    */
   List<String> transformOutboundDatabaseNameMultiple(String databaseName);
 
@@ -58,6 +59,8 @@ public interface MetaStoreMapping extends Closeable {
   String transformInboundDatabaseName(String databaseName);
 
   ThriftHiveMetastore.Iface getClient();
+
+   MetaStoreFilterHook getMetastoreFilter();
 
   String getDatabasePrefix();
 

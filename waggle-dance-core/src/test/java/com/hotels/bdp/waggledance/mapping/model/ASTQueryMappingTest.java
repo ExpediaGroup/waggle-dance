@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +38,8 @@ public class ASTQueryMappingTest {
 
   @Before
   public void setUp() {
-    metaStoreMapping = new PrefixMapping(new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY));
+    metaStoreMapping = new PrefixMapping(new MetaStoreMappingImpl(PREFIX, "mapping", null,
+        null, DIRECT, LATENCY, new DefaultMetaStoreFilterHookImpl(new HiveConf())));
   }
 
   @Test

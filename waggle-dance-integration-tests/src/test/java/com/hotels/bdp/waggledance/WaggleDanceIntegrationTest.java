@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,18 @@
  */
 package com.hotels.bdp.waggledance;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
 import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.newPartition;
 import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
 import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,13 +66,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 
-import feign.Feign;
-import feign.jackson.JacksonDecoder;
-import feign.jackson.JacksonEncoder;
-import feign.jaxrs.JAXRSContract;
-import fm.last.commons.test.file.ClassDataFolder;
-import fm.last.commons.test.file.DataFolder;
-
 import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.api.model.AccessControlType;
@@ -82,10 +76,18 @@ import com.hotels.bdp.waggledance.api.model.MappedTables;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.junit.ServerSocketRule;
+import com.hotels.bdp.waggledance.mapping.model.PrefixingMetastoreFilter;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
+
+import feign.Feign;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
+import feign.jaxrs.JAXRSContract;
+import fm.last.commons.test.file.ClassDataFolder;
+import fm.last.commons.test.file.DataFolder;
 
 public class WaggleDanceIntegrationTest {
 
@@ -1012,5 +1014,24 @@ public class WaggleDanceIntegrationTest {
     // Remote table
     Table waggledRemoteTable = proxy.getTable("xyz", REMOTE_TABLE);
     assertNotNull(waggledRemoteTable);
+  }
+
+  @Test
+  public void hiveMetastoreFilterHookConfiguredForPrimary() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName())
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    assertThat(waggledLocalTable.getSd().getLocation(), startsWith("prefix"));
+
+    Table remoteTable = proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
+    assertThat(remoteTable.getSd().getLocation().startsWith("prefix"), is(false));
   }
 }

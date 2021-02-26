@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 
 import java.util.List;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.junit.Test;
 
 import com.google.common.collect.BiMap;
@@ -32,7 +34,8 @@ import com.google.common.collect.Lists;
 public class DatabaseNameMappingTest {
 
   private final MetaStoreMapping metaStoreMapping = new PrefixMapping(
-      new MetaStoreMappingImpl("pre_", "mapping", null, null, DIRECT, 0L));
+      new MetaStoreMappingImpl("pre_", "mapping", null, null, DIRECT,
+          0L, new DefaultMetaStoreFilterHookImpl(new HiveConf())));
 
   @Test
   public void mapNames() throws Exception {

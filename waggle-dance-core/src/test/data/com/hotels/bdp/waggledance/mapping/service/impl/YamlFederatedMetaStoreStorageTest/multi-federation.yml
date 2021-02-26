@@ -3,6 +3,7 @@ federated-meta-stores:
     remote-meta-store-uris: thrift://localhost:19083
     name: hcom_1
   -
+    hive-metastore-filter-hook: filter.hook.class
     remote-meta-store-uris: thrift://localhost:29083
     database-prefix: hcom_2_prefix_
     name: hcom_2

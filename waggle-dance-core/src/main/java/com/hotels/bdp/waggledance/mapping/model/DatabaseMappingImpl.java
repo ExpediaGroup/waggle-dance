@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
@@ -78,6 +79,11 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public DatabaseMappingImpl(MetaStoreMapping metaStoreMapping, QueryMapping queryMapping) {
     this.metaStoreMapping = metaStoreMapping;
     this.queryMapping = queryMapping;
+  }
+
+  @Override
+  public MetaStoreFilterHook getMetastoreFilter() {
+    return metaStoreMapping.getMetastoreFilter();
   }
 
   @Override

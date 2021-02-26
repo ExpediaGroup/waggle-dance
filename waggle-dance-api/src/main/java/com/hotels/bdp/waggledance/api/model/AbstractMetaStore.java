@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
     @Type(value = FederatedMetaStore.class, name = "FEDERATED") })
 public abstract class AbstractMetaStore {
   private String databasePrefix;
+  private String hiveMetastoreFilterHook;
   private List<String> writableDatabaseWhitelist;
   private List<String> mappedDatabases;
   private @Valid List<MappedTables> mappedTables;
@@ -96,6 +97,14 @@ public abstract class AbstractMetaStore {
 
   public void setDatabasePrefix(String databasePrefix) {
     this.databasePrefix = databasePrefix;
+  }
+
+  public String getHiveMetastoreFilterHook() {
+    return hiveMetastoreFilterHook;
+  }
+
+  public void setHiveMetastoreFilterHook(String hiveMetastoreFilterHook) {
+    this.hiveMetastoreFilterHook = hiveMetastoreFilterHook;
   }
 
   public String getName() {

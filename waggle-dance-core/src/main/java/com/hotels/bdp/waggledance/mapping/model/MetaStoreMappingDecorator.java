@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -61,6 +62,11 @@ public abstract class MetaStoreMappingDecorator implements MetaStoreMapping {
   @Override
   public Iface getClient() {
     return metaStoreMapping.getClient();
+  }
+
+  @Override
+  public MetaStoreFilterHook getMetastoreFilter() {
+    return metaStoreMapping.getMetastoreFilter();
   }
 
   @Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.AbortTxnRequest;
 import org.apache.hadoop.hive.metastore.api.AbortTxnsRequest;
@@ -160,6 +162,7 @@ public class FederatedHMSHandlerTest {
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
     when(databaseMappingService.getDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
     when(primaryMapping.getClient()).thenReturn(primaryClient);
+    when(primaryMapping.getMetastoreFilter()).thenReturn(new DefaultMetaStoreFilterHookImpl(new HiveConf()));
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn(DB_P);
     when(databaseMappingService.databaseMapping(DB_P)).thenReturn(primaryMapping);
   }
