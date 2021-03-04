@@ -1,3 +1,7 @@
+## [3.9.1] - TBD
+### Fixed
+* Null pointer exception when creating a metastore tunnel by adding a check for null `configuration-properties`.
+
 ## [3.9.0] - 2021-02-26
 ### Added
 * Support for setting Hive metastore filter hooks which can be configured per federated metastore. See the [README](https://github.com/HotelsDotCom/waggle-dance#federation) for more information.
