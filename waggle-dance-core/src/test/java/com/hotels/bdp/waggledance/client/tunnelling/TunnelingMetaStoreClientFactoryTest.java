@@ -104,6 +104,12 @@ public class TunnelingMetaStoreClientFactoryTest {
   }
 
   @Test
+  public void newInstanceNullConfigurationProperties() {
+    tunnelingMetaStoreClientFactory.newInstance(METASTORE_URI, metastoreTunnel, NAME, RECONNECTION_RETRIES,
+        CONNECTION_TIMEOUT, null);
+  }
+
+  @Test
   public void newInstanceMultipleUris() {
     String metastoreUris = METASTORE_URI + ",thrift://metastore-host2:43";
     tunnelingMetaStoreClientFactory.newInstance(metastoreUris, metastoreTunnel, NAME, RECONNECTION_RETRIES,
