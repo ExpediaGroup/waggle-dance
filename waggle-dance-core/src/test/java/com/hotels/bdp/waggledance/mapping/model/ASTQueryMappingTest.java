@@ -38,8 +38,27 @@ public class ASTQueryMappingTest {
 
   @Before
   public void setUp() {
-    metaStoreMapping = new PrefixMapping(new MetaStoreMappingImpl(PREFIX, "mapping", null,
-        null, DIRECT, LATENCY, new DefaultMetaStoreFilterHookImpl(new HiveConf())));
+    metaStoreMapping = new PrefixMapping(new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY,
+        new DefaultMetaStoreFilterHookImpl(new HiveConf())));
+  }
+
+  @Test
+  public void transformOutboundDatabaseNamePrestoMarker() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+
+    String query = "/* Presto View */";
+
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query), is("/* Presto View */"));
+  }
+
+  @Test
+  public void transformOutboundDatabaseNamePrestoExpandedTextMarker() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+
+    String query = "/* Presto View: <base64 of view sql> */";
+
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("/* Presto View: <base64 of view sql> */"));
   }
 
   @Test

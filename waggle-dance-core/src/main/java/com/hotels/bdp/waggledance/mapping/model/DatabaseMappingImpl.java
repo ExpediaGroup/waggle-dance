@@ -88,7 +88,15 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public Table transformOutboundTable(Table table) {
-    table.setDbName(metaStoreMapping.transformOutboundDatabaseName(table.getDbName()));
+    String originalDatabaseName = table.getDbName();
+    String databaseName = metaStoreMapping.transformOutboundDatabaseName(originalDatabaseName);
+    table.setDbName(databaseName);
+    if (databaseName.equalsIgnoreCase(originalDatabaseName)) {
+      // Skip all the view stuff if nothing is going to change, the parsing is not without problems and we can't catch
+      // all use cases here. For instance Presto creates views that are stored in these fields this is stored
+      // differently than Hive. There might be others.
+      return table;
+    }
     if (table.isSetViewExpandedText()) {
       try {
         log.debug("Transforming ViewExpandedText: {}", table.getViewExpandedText());

@@ -1,6 +1,7 @@
 ## [3.9.1] - TBD
 ### Fixed
 * Null pointer exception when creating a metastore tunnel by adding a check for null `configuration-properties`.
+* Fixing issue where Presto view are cannot be parsed resulting in errors.
 
 ## [3.9.0] - 2021-02-26
 ### Added
