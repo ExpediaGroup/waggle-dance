@@ -46,7 +46,7 @@ public enum ASTQueryMapping implements QueryMapping {
   @Override
   public String transformOutboundDatabaseName(MetaStoreMapping metaStoreMapping, String query) {
     if (hasMarker(query)) {
-      // skipping view that are not "Hive" views queries. We can't parse those at this moment.
+      // skipping query that are not "Hive" view queries. We can't parse those.
       return query;
     }
     ASTNode root;
