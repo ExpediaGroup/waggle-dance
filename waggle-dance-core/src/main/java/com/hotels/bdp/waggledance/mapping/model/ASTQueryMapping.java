@@ -39,11 +39,16 @@ public enum ASTQueryMapping implements QueryMapping {
 
   INSTANCE;
 
+  private static final String PRESTO_VIEW_MARKER = "/* Presto View";
   private final static String RE_WORD_BOUNDARY = "\\b";
   private final static Comparator<CommonToken> ON_START_INDEX = Comparator.comparingInt(CommonToken::getStartIndex);
 
   @Override
   public String transformOutboundDatabaseName(MetaStoreMapping metaStoreMapping, String query) {
+    if (hasNonHiveViewMarker(query)) {
+      // skipping queries that are not "Hive" view queries. We can't parse those.
+      return query;
+    }
     ASTNode root;
     try {
       root = ParseUtils.parse(query);
@@ -54,6 +59,13 @@ public enum ASTQueryMapping implements QueryMapping {
     StringBuilder result = transformDatabaseTableTokens(metaStoreMapping, root, query);
     transformFunctionTokens(metaStoreMapping, root, result);
     return result.toString();
+  }
+
+  private boolean hasNonHiveViewMarker(String query) {
+    if (query != null && query.trim().startsWith(PRESTO_VIEW_MARKER)) {
+      return true;
+    }
+    return false;
   }
 
   private StringBuilder transformDatabaseTableTokens(MetaStoreMapping metaStoreMapping, ASTNode root, String query) {

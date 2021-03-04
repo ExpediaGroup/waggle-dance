@@ -160,6 +160,20 @@ public class DatabaseMappingImplTest {
   }
 
   @Test
+  public void transformOutboundTableViewIgnoreParsingWhenSame() throws Exception {
+    Table table = new Table();
+    table.setDbName(OUT_DB_NAME);
+    table.setViewExpandedText(VIEW_EXPANDED_TEXT);
+    table.setViewOriginalText(VIEW_ORIGINAL_TEXT);
+
+    Table result = databaseMapping.transformOutboundTable(table);
+    assertThat(result, is(sameInstance(table)));
+    assertThat(result.getDbName(), is(OUT_DB_NAME));
+    assertThat(result.getViewExpandedText(), is(VIEW_EXPANDED_TEXT));
+    assertThat(result.getViewOriginalText(), is(VIEW_ORIGINAL_TEXT));
+  }
+
+  @Test
   public void transformOutboundTableViewExpandedTextErrorKeepOriginal() throws Exception {
     String viewExpandedText = "error";
     when(queryMapping.transformOutboundDatabaseName(metastoreMapping, viewExpandedText))
