@@ -58,7 +58,7 @@ public class ASTQueryMappingTest {
     String query = "/* Presto View: <base64 of view sql> */";
 
     assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
-        is("/* Presto View: <base64 of view sql> */"));
+        is(query));
   }
 
   @Test
