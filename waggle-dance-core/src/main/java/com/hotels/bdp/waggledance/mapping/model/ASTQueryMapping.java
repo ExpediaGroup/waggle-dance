@@ -45,7 +45,7 @@ public enum ASTQueryMapping implements QueryMapping {
 
   @Override
   public String transformOutboundDatabaseName(MetaStoreMapping metaStoreMapping, String query) {
-    if (hasMarker(query)) {
+    if (hasNonHiveViewMarker(query)) {
       // skipping queries that are not "Hive" view queries. We can't parse those.
       return query;
     }
@@ -61,7 +61,7 @@ public enum ASTQueryMapping implements QueryMapping {
     return result.toString();
   }
 
-  boolean hasMarker(String query) {
+  private boolean hasNonHiveViewMarker(String query) {
     if (query != null && query.trim().startsWith(PRESTO_VIEW_MARKER)) {
       return true;
     }
