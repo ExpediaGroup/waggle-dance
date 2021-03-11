@@ -138,11 +138,11 @@ Example:
       - dev_group_1.*
       mapped-tables:
       - database: prod_db1
-        mapped-tables: 
+        mapped-tables:
         - tbl1
         - tbl_.*
       - database: prod_db2
-        mapped-tables: 
+        mapped-tables:
         - tbl2
     - ...
 
@@ -505,7 +505,7 @@ In addition to these Spring endpoints Waggle Dance exposes some custom endpoints
 
 ## Logging
 Waggle Dance uses [Log4j 2](https://logging.apache.org/log4j/2.x/) for logging. In order to use a custom Log4j 2 XML file, the path to the logging configuration file has to be added to the server configuration YAML file:
-    
+
     logging:
         config: file:/home/foo/waggle-dance/conf/log4j2.xml
 
@@ -536,7 +536,10 @@ Hive UDFs are registered with a database. There are currently two limitations in
 Due to the distributed nature of Waggle Dance using UDFs is not that simple. If you would like a UDF to be used from a federated metastore we'd recommend registering the code implementing it in a distributed file or object store that is accessible from any client (for example you could store the UDF's jar file on S3). See creating permanent functions in the [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-Create/Drop/ReloadFunction).
 
 ### Hive metastore filter hook
-The database calls `getDatabases` and `getAllDatabases`, as well as `getTableMeta` do not support having the provided filter applied at the moment, so their result will not be modified by the filter.
+You can configure a Hive filter hook via: `hive-metastore-filter-hook: filter.hook.class`
+This class needs to be on the classpath and can be an external jar. If so the command to run wd needs to be updated to ensure correct class loading this can be done by adding: -Dloader.path=<path_to_jar>
+Note: The database calls `getDatabases` and `getAllDatabases`, as well as `getTableMeta` do not support having the provided filter applied at the moment, so their result will not be modified by the filter.
+
 
 ## Building
 

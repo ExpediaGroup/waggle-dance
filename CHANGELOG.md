@@ -1,3 +1,7 @@
+## [3.9.2] - 2021-03-11
+### Fixed
+* Changed spring-boot-maven-plugin layout to ZIP (was JAR). This fixes classloading issues with external jars loaded for Hive metastore filter hooks.
+
 ## [3.9.1] - 2021-03-04
 ### Fixed
 * Null pointer exception when creating a metastore tunnel by adding a check for null `configuration-properties`.
