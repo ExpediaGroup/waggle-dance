@@ -1,6 +1,6 @@
 ## [3.9.2] - 2021-03-11
 ### Fixed
-* Changed spring-boot-maven-plugin layout to ZIP (was JAR). This fixes classloading issues with external jars loaded for Hive metastore filter hooks.
+* Changed spring-boot-maven-plugin layout to ZIP (was JAR). This fixes classloading issues with external jars (which can be loaded by adding `-Dloader.path=my.jar`).
 
 ## [3.9.1] - 2021-03-04
 ### Fixed
