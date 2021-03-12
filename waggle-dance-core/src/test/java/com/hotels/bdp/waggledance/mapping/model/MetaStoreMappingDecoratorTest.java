@@ -17,8 +17,12 @@ package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
+import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
@@ -27,6 +31,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import com.beust.jcommander.internal.Lists;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetaStoreMappingDecoratorTest {
@@ -102,10 +108,39 @@ public class MetaStoreMappingDecoratorTest {
   }
 
   @Test
+  public void transformInboundDatabaseNameIsNull() throws Exception {
+    String result = decorator.transformInboundDatabaseName(null);
+    assertNull(result);
+    verifyNoInteractions(metaStoreMapping);
+  }
+
+  @Test
   public void transformOutboundDatabaseName() throws Exception {
     when(metaStoreMapping.transformOutboundDatabaseName("db")).thenReturn("trans_db");
     String result = decorator.transformOutboundDatabaseName("db");
     assertThat(result, is("trans_db"));
+  }
+
+  @Test
+  public void transformOutboundDatabaseNameIsNull() throws Exception {
+    String result = decorator.transformOutboundDatabaseName(null);
+    assertNull(result);
+    verifyNoInteractions(metaStoreMapping);
+  }
+
+  @Test
+  public void transformOutboundDatabaseNameMultiple() throws Exception {
+    when(metaStoreMapping.transformOutboundDatabaseNameMultiple("db")).thenReturn(Lists.newArrayList("trans_db"));
+    List<String> result = decorator.transformOutboundDatabaseNameMultiple("db");
+    assertThat(result.size(), is(1));
+    assertThat(result.get(0), is("trans_db"));
+  }
+
+  @Test
+  public void transformOutboundDatabaseNameMultipleIsNull() throws Exception {
+    List<String> result = decorator.transformOutboundDatabaseNameMultiple(null);
+    assertThat(result.isEmpty(), is(true));
+    verifyNoInteractions(metaStoreMapping);
   }
 
   @Test

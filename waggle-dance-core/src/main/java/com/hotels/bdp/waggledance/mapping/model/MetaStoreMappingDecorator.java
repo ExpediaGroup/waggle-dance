@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
@@ -36,11 +37,17 @@ public abstract class MetaStoreMappingDecorator implements MetaStoreMapping {
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
+    if (databaseName == null) {
+      return null;
+    }
     return metaStoreMapping.transformOutboundDatabaseName(databaseName);
   }
 
   @Override
   public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    if (databaseName == null) {
+      return Collections.emptyList();
+    }
     return metaStoreMapping.transformOutboundDatabaseNameMultiple(databaseName);
   }
 
@@ -51,6 +58,9 @@ public abstract class MetaStoreMappingDecorator implements MetaStoreMapping {
 
   @Override
   public String transformInboundDatabaseName(String databaseName) {
+    if (databaseName == null) {
+      return null;
+    }
     return metaStoreMapping.transformInboundDatabaseName(databaseName);
   }
 

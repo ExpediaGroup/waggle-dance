@@ -1,3 +1,7 @@
+## [3.9.3] - 2021-03-15
+### Fixed
+* Null Pointer Exception when database name was null in `get_privilege_set` call.
+
 ## [3.9.2] - 2021-03-12
 ### Fixed
 * Changed spring-boot-maven-plugin layout to ZIP (was JAR). This fixes classloading issues with external jars (which can be loaded by adding `-Dloader.path=my.jar`).
