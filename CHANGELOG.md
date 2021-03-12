@@ -1,4 +1,4 @@
-## [3.9.2] - 2021-03-11
+## [3.9.2] - 2021-03-12
 ### Fixed
 * Changed spring-boot-maven-plugin layout to ZIP (was JAR). This fixes classloading issues with external jars (which can be loaded by adding `-Dloader.path=my.jar`).
 
