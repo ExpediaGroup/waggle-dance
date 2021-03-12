@@ -1,3 +1,7 @@
+## [3.9.2] - 2021-03-12
+### Fixed
+* Changed spring-boot-maven-plugin layout to ZIP (was JAR). This fixes classloading issues with external jars (which can be loaded by adding `-Dloader.path=my.jar`).
+
 ## [3.9.1] - 2021-03-04
 ### Fixed
 * Null pointer exception when creating a metastore tunnel by adding a check for null `configuration-properties`.
