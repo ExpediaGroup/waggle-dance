@@ -537,7 +537,7 @@ Due to the distributed nature of Waggle Dance using UDFs is not that simple. If 
 
 ### Hive metastore filter hook
 You can configure a Hive filter hook via: `hive-metastore-filter-hook: filter.hook.class`
-This class needs to be on the classpath and can be an external jar. If so the command to run wd needs to be updated to ensure correct class loading this can be done by adding: -Dloader.path=<path_to_jar>
+This class needs to be on the classpath and can be an external jar. If so the command to run needs to be updated to ensure correct class loading. This can be done by adding: `-Dloader.path=<path_to_jar>`
 Note: The database calls `getDatabases` and `getAllDatabases`, as well as `getTableMeta` do not support having the provided filter applied at the moment, so their result will not be modified by the filter.
 
 
