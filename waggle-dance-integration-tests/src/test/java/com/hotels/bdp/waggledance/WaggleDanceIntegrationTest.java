@@ -15,18 +15,18 @@
  */
 package com.hotels.bdp.waggledance;
 
-import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
-import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
-import static com.hotels.bdp.waggledance.TestUtils.newPartition;
-import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
-import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+
+import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
+import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
+import static com.hotels.bdp.waggledance.TestUtils.newPartition;
+import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
+import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,9 +48,12 @@ import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.FunctionType;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
+import org.apache.hadoop.hive.metastore.api.HiveObjectType;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.ResourceType;
 import org.apache.hadoop.hive.metastore.api.ResourceUri;
@@ -65,6 +68,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
+
+import feign.Feign;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
+import feign.jaxrs.JAXRSContract;
+import fm.last.commons.test.file.ClassDataFolder;
+import fm.last.commons.test.file.DataFolder;
 
 import com.google.common.collect.Lists;
 
@@ -81,13 +91,6 @@ import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
-
-import feign.Feign;
-import feign.jackson.JacksonDecoder;
-import feign.jackson.JacksonEncoder;
-import feign.jaxrs.JAXRSContract;
-import fm.last.commons.test.file.ClassDataFolder;
-import fm.last.commons.test.file.DataFolder;
 
 public class WaggleDanceIntegrationTest {
 
@@ -1034,4 +1037,27 @@ public class WaggleDanceIntegrationTest {
     Table remoteTable = proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
     assertThat(remoteTable.getSd().getLocation().startsWith("prefix"), is(false));
   }
+
+  @Test
+  public void get_privilege_set() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    HiveObjectType objectType = HiveObjectType.DATABASE;
+    String dbName = LOCAL_DATABASE;
+    // Explicitly set to null as this threw errors
+    String objectName = null;
+    List<String> partValues = null;
+    String columnName = null;
+    HiveObjectRef hiveObjectRef = new HiveObjectRef(objectType, dbName, objectName, partValues, columnName);
+    PrincipalPrivilegeSet get_privilege_set = proxy.get_privilege_set(hiveObjectRef, "hadoop", null);
+    assertNotNull(get_privilege_set);
+  }
+
 }
