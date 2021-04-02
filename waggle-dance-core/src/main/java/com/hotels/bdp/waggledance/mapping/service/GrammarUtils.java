@@ -46,13 +46,18 @@ public final class GrammarUtils {
     while (index >= 0) {
       String subPatternRegex = subPattern.replaceAll("\\*", ".*");
       if (prefix.matches(subPatternRegex)) {
+        if (subPattern.endsWith(".")) {
+          // Dot is a one character x match so can't belong to the pattern anymore.
+          return new String[] { subPattern, pattern.substring(subPattern.length()) };
+        }
+        // * is a multi character match so belongs to prefix and pattern.
         return new String[] { subPattern, pattern.substring(subPattern.length() - 1) };
       }
-      // Skip last * and find the next sub-pattern
-      if (subPattern.endsWith("*")) {
+      // Skip last * or . and find the next sub-pattern
+      if (subPattern.endsWith("*") || subPattern.endsWith(".")) {
         subPattern = subPattern.substring(0, subPattern.length() - 1);
       }
-      index = subPattern.lastIndexOf("*");
+      index = Math.max(subPattern.lastIndexOf('*'), subPattern.lastIndexOf('.'));
       if (index >= 0) {
         subPattern = subPattern.substring(0, index + 1);
       }

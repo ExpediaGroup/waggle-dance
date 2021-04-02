@@ -58,6 +58,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.ResourceType;
 import org.apache.hadoop.hive.metastore.api.ResourceUri;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Before;
@@ -1058,6 +1059,30 @@ public class WaggleDanceIntegrationTest {
     HiveObjectRef hiveObjectRef = new HiveObjectRef(objectType, dbName, objectName, partValues, columnName);
     PrincipalPrivilegeSet get_privilege_set = proxy.get_privilege_set(hiveObjectRef, "hadoop", null);
     assertNotNull(get_privilege_set);
+  }
+
+  @Test
+  public void getTableMeta() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<TableMeta> tableMeta = proxy
+        .getTableMeta("waggle_remote_remote_database", "*", Lists.newArrayList("EXTERNAL_TABLE"));
+    assertThat(tableMeta.size(), is(1));
+    assertThat(tableMeta.get(0).getDbName(), is("waggle_remote_remote_database"));
+    assertThat(tableMeta.get(0).getTableName(), is(REMOTE_TABLE));
+    // use wildcards: '.'
+    tableMeta = proxy.getTableMeta("waggle_remote.remote_database", "*", Lists.newArrayList("EXTERNAL_TABLE"));
+    assertThat(tableMeta.size(), is(1));
+    assertThat(tableMeta.get(0).getDbName(), is("waggle_remote_remote_database"));
+    assertThat(tableMeta.get(0).getTableName(), is(REMOTE_TABLE));
   }
 
 }

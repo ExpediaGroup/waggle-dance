@@ -1,3 +1,7 @@
+## [3.9.4] - 2021-04-06
+### Fixed
+* Support for '.' wildcards in database pattern calls. See [#216](https://github.com/HotelsDotCom/waggle-dance/issues/216) 
+
 ## [3.9.3] - 2021-03-15
 ### Fixed
 * Null Pointer Exception when database name was null in `get_privilege_set` call.
