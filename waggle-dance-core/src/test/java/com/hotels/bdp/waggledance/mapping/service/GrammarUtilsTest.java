@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,13 @@ public class GrammarUtilsTest {
     String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle...dm");
     assertThat(patternParts[0], is("waggle."));
     assertThat(patternParts[1], is("..dm"));
+  }
+
+  @Test
+  public void splitPatternWithDotsInMiddle() {
+    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "wa..le_dm");
+    assertThat(patternParts[0], is("wa..le_"));
+    assertThat(patternParts[1], is("dm"));
   }
 
   @Test

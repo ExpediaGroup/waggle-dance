@@ -1083,6 +1083,10 @@ public class WaggleDanceIntegrationTest {
     assertThat(tableMeta.size(), is(1));
     assertThat(tableMeta.get(0).getDbName(), is("waggle_remote_remote_database"));
     assertThat(tableMeta.get(0).getTableName(), is(REMOTE_TABLE));
+    tableMeta = proxy.getTableMeta("waggle.remote_remote_database", "*", Lists.newArrayList("EXTERNAL_TABLE"));
+    assertThat(tableMeta.size(), is(1));
+    assertThat(tableMeta.get(0).getDbName(), is("waggle_remote_remote_database"));
+    assertThat(tableMeta.get(0).getTableName(), is(REMOTE_TABLE));
   }
 
 }
