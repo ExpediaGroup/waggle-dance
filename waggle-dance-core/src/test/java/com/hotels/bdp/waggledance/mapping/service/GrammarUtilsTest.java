@@ -92,6 +92,20 @@ public class GrammarUtilsTest {
   }
 
   @Test
+  public void splitPatternWithDotsAndStarEnd() {
+    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle...dm*");
+    assertThat(patternParts[0], is("waggle."));
+    assertThat(patternParts[1], is("..dm*"));
+  }
+
+  @Test
+  public void splitPatternWithDotsAndStar() {
+    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle.*.dm");
+    assertThat(patternParts[0], is("waggle.*"));
+    assertThat(patternParts[1], is("*.dm"));
+  }
+
+  @Test
   public void splitPatternWithDotsInMiddle() {
     String[] patternParts = GrammarUtils.splitPattern(PREFIX, "wa..le_dm");
     assertThat(patternParts[0], is("wa..le_"));
