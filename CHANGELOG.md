@@ -1,6 +1,6 @@
-## [3.9.4] - 2021-04-06
+## [3.9.4] - 2021-04-08
 ### Fixed
-* Support for '.' wildcards in database pattern calls. See [#216](https://github.com/HotelsDotCom/waggle-dance/issues/216) 
+* Support for '.' wildcards in database pattern calls. See [#216](https://github.com/HotelsDotCom/waggle-dance/issues/216)
 
 ## [3.9.3] - 2021-03-15
 ### Fixed
