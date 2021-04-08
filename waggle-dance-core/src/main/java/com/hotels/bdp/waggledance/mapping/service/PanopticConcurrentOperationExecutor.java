@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,12 @@ public class PanopticConcurrentOperationExecutor implements PanopticOperationExe
       List<? extends RequestCallable<List<T>>> allRequests,
       long requestTimeout,
       String errorMessage) {
+    List<T> allResults = new ArrayList<>();
+    if (allRequests.isEmpty()) {
+      return allResults;
+    }
     ExecutorService executorService = Executors.newFixedThreadPool(allRequests.size());
     try {
-      List<T> allResults = new ArrayList<>();
       List<Future<List<T>>> futures = Collections.emptyList();
       Iterator<? extends RequestCallable<List<T>>> iterator = allRequests.iterator();
 

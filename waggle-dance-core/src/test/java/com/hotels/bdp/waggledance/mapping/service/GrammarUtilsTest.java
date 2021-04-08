@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,41 @@ public class GrammarUtilsTest {
   }
 
   @Test
+  public void splitPatternWithDot() {
+    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle.dm*");
+    assertThat(patternParts[0], is("waggle."));
+    assertThat(patternParts[1], is("dm*"));
+  }
+
+  @Test
+  public void splitPatternWithDots() {
+    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle...dm");
+    assertThat(patternParts[0], is("waggle."));
+    assertThat(patternParts[1], is("..dm"));
+  }
+
+  @Test
+  public void splitPatternWithDotsAndStarEnd() {
+    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle...dm*");
+    assertThat(patternParts[0], is("waggle."));
+    assertThat(patternParts[1], is("..dm*"));
+  }
+
+  @Test
+  public void splitPatternWithDotsAndStar() {
+    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle.*.dm");
+    assertThat(patternParts[0], is("waggle.*"));
+    assertThat(patternParts[1], is("*.dm"));
+  }
+
+  @Test
+  public void splitPatternWithDotsInMiddle() {
+    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "wa..le_dm");
+    assertThat(patternParts[0], is("wa..le_"));
+    assertThat(patternParts[1], is("dm"));
+  }
+
+  @Test
   public void matchesWithNullPattern() {
     Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), null);
     assertThat(splits.size(), is(2));
@@ -91,6 +126,13 @@ public class GrammarUtilsTest {
     assertThat(splits.size(), is(2));
     assertThat(splits.get(PREFIX), is("*"));
     assertThat(splits.get("other_"), is("*"));
+  }
+
+  @Test
+  public void matchesWithDotWildcardPattern() {
+    Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), "other.dm");
+    assertThat(splits.size(), is(1));
+    assertThat(splits.get("other_"), is("dm"));
   }
 
   @Test

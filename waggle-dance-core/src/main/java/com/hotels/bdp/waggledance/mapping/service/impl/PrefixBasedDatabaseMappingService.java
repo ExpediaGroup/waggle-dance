@@ -219,7 +219,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   @Override
   public void checkTableAllowed(String databaseName, String tableName, DatabaseMapping mapping)
-      throws NoSuchObjectException {
+    throws NoSuchObjectException {
     String databasePrefix = mapping.getDatabasePrefix();
     String transformedDbName = mapping.transformInboundDatabaseName(databaseName);
     if (!isTableAllowed(databasePrefix, transformedDbName, tableName)) {
@@ -232,7 +232,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     List<String> allowedTables = new ArrayList<>();
     String databasePrefix = mapping.getDatabasePrefix();
     String transformedDb = mapping.transformInboundDatabaseName(databaseName);
-    for (String table: tableNames) {
+    for (String table : tableNames) {
       if (isTableAllowed(databasePrefix, transformedDb, table)) {
         allowedTables.add(table);
       }
@@ -317,8 +317,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
         Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
 
-        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) ->
-            databaseAndTableAllowed(tableMeta.getDbName(), tableMeta.getTableName(), mapping);
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> databaseAndTableAllowed(
+            tableMeta.getDbName(), tableMeta.getTableName(), mapping);
 
         return super.getTableMeta(tbl_patterns, tbl_types, databaseMappingsForPattern, filter);
       }
