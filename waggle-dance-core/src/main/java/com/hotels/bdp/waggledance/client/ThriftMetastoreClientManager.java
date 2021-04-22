@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.conf.HiveConfUtil;
-import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
-import org.apache.hadoop.hive.shims.ShimLoader;
-import org.apache.hadoop.hive.shims.Utils;
-import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
+import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge;
+import org.apache.hadoop.hive.metastore.utils.MetaStoreUtils;
+import org.apache.hadoop.hive.metastore.utils.SecurityUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -122,8 +121,7 @@ class ThriftMetastoreClientManager implements Closeable {
           if (useSasl) {
             // Wrap thrift connection with SASL for secure connection.
             try {
-              HadoopThriftAuthBridge.Client authBridge = ShimLoader.getHadoopThriftAuthBridge().createClient();
-
+              HadoopThriftAuthBridge.Client authBridge = HadoopThriftAuthBridge.getBridge().createClient();
               // check if we should use delegation tokens to authenticate
               // the call below gets hold of the tokens if they are set up by hadoop
               // this should happen on the map/reduce tasks if the client added the
@@ -131,17 +129,18 @@ class ThriftMetastoreClientManager implements Closeable {
               // submission.
               String tokenSig = conf.getVar(ConfVars.METASTORE_TOKEN_SIGNATURE);
               // tokenSig could be null
-              String tokenStrForm = Utils.getTokenStrForm(tokenSig);
+              String tokenStrForm = SecurityUtils.getTokenStrForm(tokenSig);
               if (tokenStrForm != null) {
                 // authenticate using delegation tokens via the "DIGEST" mechanism
                 transport = authBridge
                     .createClientTransport(null, store.getHost(), "DIGEST", tokenStrForm, transport,
-                        MetaStoreUtils.getMetaStoreSaslProperties(conf));
+                        //TODO: check useSSL
+                        MetaStoreUtils.getMetaStoreSaslProperties(conf,false));
               } else {
                 String principalConfig = conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL);
                 transport = authBridge
                     .createClientTransport(principalConfig, store.getHost(), "KERBEROS", null, transport,
-                        MetaStoreUtils.getMetaStoreSaslProperties(conf));
+                        MetaStoreUtils.getMetaStoreSaslProperties(conf,false));
               }
             } catch (IOException ioe) {
               LOG.error("Couldn't create client transport", ioe);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
-import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
@@ -56,15 +55,12 @@ import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 
 public interface DatabaseMapping extends MetaStoreMapping {
 
-  Index transformInboundIndex(Index index);
 
   Partition transformInboundPartition(Partition partition);
 
   Table transformInboundTable(Table table);
 
   HiveObjectRef transformInboundHiveObjectRef(HiveObjectRef function);
-
-  Index transformOutboundIndex(Index index);
 
   Partition transformOutboundPartition(Partition partition);
 
@@ -115,8 +111,6 @@ public interface DatabaseMapping extends MetaStoreMapping {
   List<PartitionSpec> transformOutboundPartitionSpecs(List<PartitionSpec> partitionSpecs);
 
   List<Partition> transformInboundPartitions(List<Partition> partitions);
-
-  List<Index> transformOutboundIndexes(List<Index> indexes);
 
   ColumnStatistics transformInboundColumnStatistics(ColumnStatistics columnStatistics);
 

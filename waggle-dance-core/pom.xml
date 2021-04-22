@@ -15,6 +15,11 @@
   </properties>
 
   <dependencies>
+<!--    <dependency>-->
+<!--      <groupId>com.hotels</groupId>-->
+<!--      <artifactId>waggle-dance-glue</artifactId>-->
+<!--      <version>3.9.4</version>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>com.hotels</groupId>
       <artifactId>hcommon-ssh</artifactId>

@@ -41,7 +41,6 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.TServerSocketKeepAlive;
 import org.apache.hadoop.hive.shims.ShimLoader;
-import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
@@ -125,7 +124,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       }));
 
       AtomicBoolean startedServing = new AtomicBoolean();
-      startWaggleDance(ShimLoader.getHadoopThriftAuthBridge(), startLock, startCondition, startedServing);
+      startWaggleDance(startLock, startCondition, startedServing);
     } catch (Throwable t) {
       // Catch the exception, log it and rethrow it.
       LOG.error("WaggleDance Thrift Server threw an exception...", t);
@@ -134,16 +133,14 @@ public class MetaStoreProxyServer implements ApplicationRunner {
   }
 
   /**
-   * Start Metastore based on a passed {@link HadoopThriftAuthBridge}
+   * Start Metastore based on a passed
    *
-   * @param bridge
    * @param startLock
    * @param startCondition
    * @param startedServing
    * @throws Throwable
    */
   private void startWaggleDance(
-      HadoopThriftAuthBridge bridge,
       Lock startLock,
       Condition startCondition,
       AtomicBoolean startedServing)

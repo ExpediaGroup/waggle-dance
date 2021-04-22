@@ -77,7 +77,6 @@ import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeResponse;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
-import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
@@ -360,6 +359,8 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     resultTables = databaseMappingService.filterTables(db_name, resultTables, mapping);
     return mapping.getMetastoreFilter().filterTableNames(db_name, resultTables);
   }
+
+
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
@@ -913,70 +914,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     return mapping
         .getClient()
         .isPartitionMarkedForEvent(mapping.transformInboundDatabaseName(db_name), tbl_name, part_vals, eventType);
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public Index add_index(Index new_index, Table index_table)
-      throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
-    DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(new_index.getDbName(), new_index.getOrigTableName());
-    checkWritePermissionsAndCheckTableAllowed(index_table.getDbName(), index_table.getTableName(), mapping);
-    Index result = mapping
-        .getClient()
-        .add_index(mapping.transformInboundIndex(new_index), mapping.transformInboundTable(index_table));
-    return mapping.transformOutboundIndex(result);
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public void alter_index(String dbname, String base_tbl_name, String idx_name, Index new_idx)
-      throws InvalidOperationException, MetaException, TException {
-    DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(dbname, base_tbl_name);
-    checkWritePermissionsAndCheckTableAllowed(new_idx.getDbName(), new_idx.getOrigTableName(), mapping);
-    mapping
-        .getClient()
-        .alter_index(mapping.transformInboundDatabaseName(dbname), base_tbl_name, idx_name,
-            mapping.transformInboundIndex(new_idx));
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public boolean drop_index_by_name(String db_name, String tbl_name, String index_name, boolean deleteData)
-      throws NoSuchObjectException, MetaException, TException {
-    DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(db_name, tbl_name);
-    return mapping
-        .getClient()
-        .drop_index_by_name(mapping.transformInboundDatabaseName(db_name), tbl_name, index_name, deleteData);
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public Index get_index_by_name(String db_name, String tbl_name, String index_name)
-      throws MetaException, NoSuchObjectException, TException {
-    DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(db_name, tbl_name);
-    Index result = mapping.getClient().get_index_by_name(mapping.transformInboundDatabaseName(db_name), tbl_name, index_name);
-    return mapping.transformOutboundIndex(mapping.getMetastoreFilter().filterIndex(result));
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public List<Index> get_indexes(String db_name, String tbl_name, short max_indexes)
-      throws NoSuchObjectException, MetaException, TException {
-    DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(db_name, tbl_name);
-    List<Index> indexes = mapping
-        .getClient()
-        .get_indexes(mapping.transformInboundDatabaseName(db_name), tbl_name, max_indexes);
-    return mapping.transformOutboundIndexes(mapping.getMetastoreFilter().filterIndexes(indexes));
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public List<String> get_index_names(String db_name, String tbl_name, short max_indexes)
-      throws MetaException, TException {
-    DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(db_name, tbl_name);
-    List<String> result = mapping.getClient()
-        .get_index_names(mapping.transformInboundDatabaseName(db_name), tbl_name, max_indexes);
-    return mapping.getMetastoreFilter().filterIndexNames(db_name, tbl_name, result);
   }
 
   @Override

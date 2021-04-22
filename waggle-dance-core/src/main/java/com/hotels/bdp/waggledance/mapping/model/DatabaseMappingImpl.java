@@ -42,7 +42,6 @@ import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
-import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
@@ -134,12 +133,6 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
-  public Index transformOutboundIndex(Index index) {
-    index.setDbName(metaStoreMapping.transformOutboundDatabaseName(index.getDbName()));
-    return index;
-  }
-
-  @Override
   public Table transformInboundTable(Table table) {
     table.setDbName(metaStoreMapping.transformInboundDatabaseName(table.getDbName()));
     return table;
@@ -151,11 +144,6 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return partition;
   }
 
-  @Override
-  public Index transformInboundIndex(Index index) {
-    index.setDbName(metaStoreMapping.transformInboundDatabaseName(index.getDbName()));
-    return index;
-  }
 
   @Override
   public Function transformOutboundFunction(Function function) {
@@ -375,13 +363,6 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return partitions;
   }
 
-  @Override
-  public List<Index> transformOutboundIndexes(List<Index> indexes) {
-    for (Index index : indexes) {
-      transformOutboundIndex(index);
-    }
-    return indexes;
-  }
 
   @Override
   public ColumnStatistics transformInboundColumnStatistics(ColumnStatistics columnStatistics) {
