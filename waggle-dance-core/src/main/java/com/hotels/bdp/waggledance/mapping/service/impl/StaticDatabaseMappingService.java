@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticConcurrentOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
+import com.hotels.bdp.waggledance.server.FederatedHMSHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.AllowList;
 
@@ -292,7 +293,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
   @Override
   public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
-    DatabaseMapping databaseMapping = mappingsByDatabaseName.get(databaseName.toLowerCase(Locale.ROOT));
+    DatabaseMapping databaseMapping = mappingsByDatabaseName.get(FederatedHMSHandler.getDbInternalName(databaseName.toLowerCase(Locale.ROOT)));
     if (databaseMapping != null) {
       LOG
           .debug("Database Name `{}` maps to metastore with name '{}'", databaseName,
@@ -360,28 +361,29 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
+        String internal_pattern = FederatedHMSHandler.getDbInternalName(db_patterns);
 
         BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) ->
             databaseAndTableAllowed(tableMeta.getDbName(), tableMeta.getTableName(), mapping);
 
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
         for (DatabaseMapping mapping : getDatabaseMappings()) {
-          mappingsForPattern.put(mapping, db_patterns);
+          mappingsForPattern.put(mapping, internal_pattern);
         }
         return super.getTableMeta(tbl_patterns, tbl_types, mappingsForPattern, filter);
       }
 
       @Override
       public List<String> getAllDatabases(String pattern) {
-        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> mappingsByDatabaseName
-            .containsKey(database);
+        String internal_pattern = FederatedHMSHandler.getDbInternalName(pattern);
+        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> isDbAllowed(database);
 
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
         for (DatabaseMapping mapping : getDatabaseMappings()) {
-          mappingsForPattern.put(mapping, pattern);
+          mappingsForPattern.put(mapping, internal_pattern);
         }
 
-        return super.getAllDatabases(mappingsForPattern, filter);
+        return new ArrayList<String>(new HashSet<String>(super.getAllDatabases(mappingsForPattern, filter)));
       }
 
       @Override
@@ -394,6 +396,12 @@ public class StaticDatabaseMappingService implements MappingEventListener {
         return new PanopticConcurrentOperationExecutor();
       }
     };
+  }
+
+  private boolean isDbAllowed(String database)
+  {
+    String internal_name = FederatedHMSHandler.getDbInternalName(database);
+    return mappingsByDatabaseName.containsKey(internal_name);
   }
 
   @Override

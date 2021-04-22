@@ -15,8 +15,6 @@
  */
 package com.hotels.bdp.waggledance;
 
-import static org.apache.directory.api.util.Strings.isNotEmpty;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.File;
@@ -38,6 +36,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.context.ApplicationContext;
 import org.yaml.snakeyaml.Yaml;
 
@@ -118,8 +117,8 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
     }
 
     public Builder federate(String name, String remoteMetaStoreUris, String... mappableDatabases) {
-      checkArgument(isNotEmpty(name));
-      checkArgument(isNotEmpty(remoteMetaStoreUris));
+      checkArgument(Strings.isNotEmpty(name));
+      checkArgument(Strings.isNotEmpty(remoteMetaStoreUris));
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
       federatedMetaStore.setLatency(8000L);
@@ -146,8 +145,8 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
     }
 
     public Builder federate(String name, String remoteMetaStoreUris, List<MappedTables> mappedTables, String... mappableDatabases) {
-      checkArgument(isNotEmpty(name));
-      checkArgument(isNotEmpty(remoteMetaStoreUris));
+      checkArgument(Strings.isNotEmpty(name));
+      checkArgument(Strings.isNotEmpty(remoteMetaStoreUris));
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
       federatedMetaStore.setMappedTables(mappedTables);
@@ -162,8 +161,8 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
         AccessControlType accessControlType,
         String[] mappableDatabases,
         String[] writeableDatabaseWhiteList) {
-      checkArgument(isNotEmpty(name));
-      checkArgument(isNotEmpty(remoteMetaStoreUris));
+      checkArgument(Strings.isNotEmpty(name));
+      checkArgument(Strings.isNotEmpty(remoteMetaStoreUris));
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris, accessControlType);
       federatedMetaStore.setMappedDatabases(Arrays.asList(mappableDatabases));
       federatedMetaStore.setWritableDatabaseWhiteList(Arrays.asList(writeableDatabaseWhiteList));
@@ -197,8 +196,8 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
         String remoteMetaStoreUris,
         AccessControlType accessControlType,
         String... writableDatabaseWhiteList) {
-      checkArgument(isNotEmpty(name));
-      checkArgument(isNotEmpty(remoteMetaStoreUris));
+      checkArgument(Strings.isNotEmpty(name));
+      checkArgument(Strings.isNotEmpty(remoteMetaStoreUris));
       primaryMetaStore = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, writableDatabaseWhiteList);
       primaryMetaStore.setLatency(8000L);
       return this;

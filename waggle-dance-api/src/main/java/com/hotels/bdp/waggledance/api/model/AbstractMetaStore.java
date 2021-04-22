@@ -43,6 +43,7 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
     @Type(value = PrimaryMetaStore.class, name = "PRIMARY"),
     @Type(value = FederatedMetaStore.class, name = "FEDERATED") })
 public abstract class AbstractMetaStore {
+  private String catalog = "hive";
   private String databasePrefix;
   private String hiveMetastoreFilterHook;
   private List<String> writableDatabaseWhitelist;
@@ -89,6 +90,16 @@ public abstract class AbstractMetaStore {
 
   public static PrimaryMetaStore newPrimaryInstance(String name, String remoteMetaStoreUris) {
     return new PrimaryMetaStore(name, remoteMetaStoreUris, AccessControlType.READ_ONLY);
+  }
+
+  public String getCatalog()
+  {
+    return catalog;
+  }
+
+  public void setCatalog(String catalog)
+  {
+    this.catalog = catalog;
   }
 
   public String getDatabasePrefix() {
@@ -212,7 +223,7 @@ public abstract class AbstractMetaStore {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(name);
+    return Objects.hashCode(name, catalog);
   }
 
   @Override
@@ -224,7 +235,7 @@ public abstract class AbstractMetaStore {
       return false;
     }
     final AbstractMetaStore other = (AbstractMetaStore) obj;
-    return Objects.equal(name, other.name);
+    return Objects.equal(name, other.name) && Objects.equal(catalog, other.catalog);
   }
 
   @Override

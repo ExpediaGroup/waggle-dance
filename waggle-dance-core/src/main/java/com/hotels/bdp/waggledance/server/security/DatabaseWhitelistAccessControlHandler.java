@@ -27,63 +27,63 @@ import com.hotels.bdp.waggledance.util.AllowList;
 
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
-  private final FederationService federationService;
-  private final boolean hasCreatePermission;
-  private final AllowList writableDatabaseWhiteList;
-  private AbstractMetaStore metaStore;
+    private final FederationService federationService;
+    private final boolean hasCreatePermission;
+    private final AllowList writableDatabaseWhiteList;
+    private AbstractMetaStore metaStore;
 
-  DatabaseWhitelistAccessControlHandler(
-      AbstractMetaStore metaStore,
-      FederationService federationService,
+    DatabaseWhitelistAccessControlHandler(
+            AbstractMetaStore metaStore,
+            FederationService federationService,
       boolean hasCreatePermission) {
-    this.metaStore = metaStore;
-    this.federationService = federationService;
-    this.hasCreatePermission = hasCreatePermission;
-    writableDatabaseWhiteList = new AllowList(metaStore.getWritableDatabaseWhiteList());
-  }
+        this.metaStore = metaStore;
+        this.federationService = federationService;
+        this.hasCreatePermission = hasCreatePermission;
+        writableDatabaseWhiteList = new AllowList(metaStore.getWritableDatabaseWhiteList());
+    }
 
   private String trimToLowerCase(String string) {
-    return string.trim().toLowerCase(Locale.ROOT);
-  }
+        return string.trim().toLowerCase(Locale.ROOT);
+    }
 
-  @Override
+    @Override
   public boolean hasWritePermission(String databaseName) {
     return writableDatabaseWhiteList.contains(databaseName);
-  }
+    }
 
-  @Override
+    @Override
   public boolean hasCreatePermission() {
-    return hasCreatePermission;
-  }
+        return hasCreatePermission;
+    }
 
-  @Override
+    @Override
   public void databaseCreatedNotification(String name) {
-    List<String> newWritableDatabaseWhiteList = new ArrayList<>(metaStore.getWritableDatabaseWhiteList());
-    List<String> mappedDatabases = null;
-    String nameLowerCase = trimToLowerCase(name);
-    if (!newWritableDatabaseWhiteList.contains(nameLowerCase)) {
-      newWritableDatabaseWhiteList.add(nameLowerCase);
-    }
-    if (metaStore.getMappedDatabases() != null) {
-      mappedDatabases = new ArrayList<>(metaStore.getMappedDatabases());
-      if (!mappedDatabases.contains(name)) {
-        mappedDatabases.add(name);
-      }
-    }
+        List<String> newWritableDatabaseWhiteList = new ArrayList<>(metaStore.getWritableDatabaseWhiteList());
+        List<String> mappedDatabases = null;
+        String nameLowerCase = trimToLowerCase(name);
+        if (!newWritableDatabaseWhiteList.contains(nameLowerCase)) {
+            newWritableDatabaseWhiteList.add(nameLowerCase);
+        }
+        if (metaStore.getMappedDatabases() != null) {
+            mappedDatabases = new ArrayList<>(metaStore.getMappedDatabases());
+            if (!mappedDatabases.contains(name)) {
+                mappedDatabases.add(name);
+            }
+        }
 
-    AbstractMetaStore newMetaStore;
-    if (metaStore instanceof PrimaryMetaStore) {
-      newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
-          metaStore.getAccessControlType(), newWritableDatabaseWhiteList);
-      newMetaStore.setMappedDatabases(mappedDatabases);
+        AbstractMetaStore newMetaStore;
+        if (metaStore instanceof PrimaryMetaStore) {
+            newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
+                    metaStore.getAccessControlType(), newWritableDatabaseWhiteList);
+            newMetaStore.setMappedDatabases(mappedDatabases);
     } else {
-      throw new WaggleDanceException(
-          String.format("Metastore type %s does not support database creation", metaStore.getClass().getName()));
-    }
+            throw new WaggleDanceException(
+                    String.format("Metastore type %s does not support database creation", metaStore.getClass().getName()));
+        }
 
-    federationService.update(metaStore, newMetaStore);
-    metaStore = newMetaStore;
-    writableDatabaseWhiteList.add(nameLowerCase);
-  }
+        federationService.update(metaStore, newMetaStore);
+        metaStore = newMetaStore;
+        writableDatabaseWhiteList.add(nameLowerCase);
+    }
 
 }

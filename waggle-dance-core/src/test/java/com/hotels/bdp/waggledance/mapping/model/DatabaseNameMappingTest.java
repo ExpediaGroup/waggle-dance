@@ -34,7 +34,7 @@ import com.google.common.collect.Lists;
 public class DatabaseNameMappingTest {
 
   private final MetaStoreMapping metaStoreMapping = new PrefixMapping(
-      new MetaStoreMappingImpl("pre_", "mapping", null, null, DIRECT,
+      new MetaStoreMappingImpl("pre_", "mapping", "hive", null, null, DIRECT,
           0L, new DefaultMetaStoreFilterHookImpl(new HiveConf())));
 
   @Test

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class FederatedHMSHandlerFactory {
     MappingEventListener service = createDatabaseMappingService();
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
 
-    CloseableIHMSHandler baseHandler = new FederatedHMSHandler(monitoredService, notifyingFederationService);
+    CloseableIHMSHandler baseHandler = new FederatedHMSHandlerHive3(monitoredService, notifyingFederationService);
     HiveConf conf = new HiveConf(hiveConf);
     baseHandler.setConf(conf);
     return baseHandler;

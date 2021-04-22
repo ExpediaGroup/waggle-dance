@@ -57,6 +57,7 @@ import com.hotels.bdp.waggledance.mapping.service.PanopticConcurrentOperationExe
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesRequest;
+import com.hotels.bdp.waggledance.server.FederatedHMSHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.AllowList;
 
@@ -294,15 +295,16 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   private boolean isDbAllowed(String databasePrefix, String database) {
+    String internal_name = FederatedHMSHandler.getDbInternalName(database);
     AllowList allowList = mappedDbByPrefix.get(databasePrefix);
     if (allowList == null) {
       // Accept everything
       return true;
     }
-    return allowList.contains(database);
+    return allowList.contains(internal_name);
   }
 
-  private boolean databaseAndTableAllowed(String database, String table, DatabaseMapping mapping) {
+  private boolean databaseAndTableAllowed(String database, String table, DatabaseMapping mapping)  {
     String dbPrefix = mapping.getDatabasePrefix();
     boolean databaseAllowed = isDbAllowed(dbPrefix, database);
     boolean tableAllowed = isTableAllowed(dbPrefix, database, table);
@@ -315,7 +317,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
-        Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(db_patterns);
+        String internal_pattern = FederatedHMSHandler.getDbInternalName(db_patterns);
+        Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(internal_pattern);
 
         BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> databaseAndTableAllowed(
             tableMeta.getDbName(), tableMeta.getTableName(), mapping);
@@ -325,10 +328,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases(String databasePattern) {
-        Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(databasePattern);
+        String internal_pattern = FederatedHMSHandler.getDbInternalName(databasePattern);
+        Map<DatabaseMapping, String> databaseMappingsForPattern = databaseMappingsByDbPattern(internal_pattern);
 
         BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> isDbAllowed(
-            mapping.getDatabasePrefix(), database);
+                mapping.getDatabasePrefix(), database);
 
         return super.getAllDatabases(databaseMappingsForPattern, filter);
       }

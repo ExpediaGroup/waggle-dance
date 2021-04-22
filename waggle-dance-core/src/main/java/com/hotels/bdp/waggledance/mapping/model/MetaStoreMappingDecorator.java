@@ -36,6 +36,12 @@ public abstract class MetaStoreMappingDecorator implements MetaStoreMapping {
   }
 
   @Override
+  public String getCatalog()
+  {
+    return metaStoreMapping.getCatalog();
+  }
+
+  @Override
   public String transformOutboundDatabaseName(String databaseName) {
     if (databaseName == null) {
       return null;

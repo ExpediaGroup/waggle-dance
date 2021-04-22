@@ -15,6 +15,8 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import static org.apache.hadoop.hive.metastore.utils.MetaStoreUtils.*;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.api.model.ConnectionType;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
+import com.hotels.bdp.waggledance.server.FederatedHMSHandler;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
@@ -43,6 +46,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final CloseableThriftHiveMetastoreIface client;
   private final AccessControlHandler accessControlHandler;
   private final String name;
+  private final String catalog;
   private final long latency;
   private final MetaStoreFilterHook metastoreFilter;
 
@@ -51,6 +55,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   MetaStoreMappingImpl(
       String databasePrefix,
       String name,
+      String catalog,
       CloseableThriftHiveMetastoreIface client,
       AccessControlHandler accessControlHandler,
       ConnectionType connectionType,
@@ -58,11 +63,17 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
       MetaStoreFilterHook metastoreFilter) {
     this.databasePrefix = databasePrefix;
     this.name = name;
+    this.catalog = catalog;
     this.client = client;
     this.accessControlHandler = accessControlHandler;
     this.connectionType = connectionType;
     this.latency = latency;
     this.metastoreFilter = metastoreFilter;
+  }
+
+  public String getCatalog()
+  {
+    return catalog;
   }
 
   @Override
@@ -121,10 +132,11 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   }
 
   @Override
-  public MetaStoreMapping checkWritePermissions(String databaseName) {
-    if (!accessControlHandler.hasWritePermission(databaseName)) {
+  public MetaStoreMapping checkWritePermissions(String databaseName){
+    String internal_name = FederatedHMSHandler.getDbInternalName(databaseName);
+    if (!accessControlHandler.hasWritePermission(internal_name)) {
       throw new NotAllowedException(
-          "You cannot perform this operation on the virtual database '" + databaseName + "'.");
+              "You cannot perform this operation on the virtual database '" + databaseName + "'.");
     }
     return this;
   }

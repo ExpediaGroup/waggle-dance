@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
@@ -44,6 +45,7 @@ import java.util.concurrent.Executors;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.ObjectStore;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.FunctionType;
@@ -106,9 +108,16 @@ public class WaggleDanceIntegrationTest {
 
   public @Rule ServerSocketRule graphite = new ServerSocketRule();
   public @Rule TemporaryFolder temporaryFolder = new TemporaryFolder();
-  public @Rule ThriftHiveMetaStoreJUnitRule localServer = new ThriftHiveMetaStoreJUnitRule(LOCAL_DATABASE);
-  public @Rule ThriftHiveMetaStoreJUnitRule remoteServer = new ThriftHiveMetaStoreJUnitRule(REMOTE_DATABASE);
-  public @Rule ThriftHiveMetaStoreJUnitRule newRemoteServer = new ThriftHiveMetaStoreJUnitRule();
+  public static Map<String,String> hiveConfig = new HashMap<>();
+  static{
+    hiveConfig.put("hive.in.test","true");
+    hiveConfig.put("metastore.client.capability.check","false");
+    ObjectStore.setTwoMetastoreTesting(true);
+  }
+
+  public @Rule ThriftHiveMetaStoreJUnitRule localServer = new ThriftHiveMetaStoreJUnitRule(LOCAL_DATABASE,hiveConfig);
+  public @Rule ThriftHiveMetaStoreJUnitRule remoteServer = new ThriftHiveMetaStoreJUnitRule(REMOTE_DATABASE,hiveConfig);
+  public @Rule ThriftHiveMetaStoreJUnitRule newRemoteServer = new ThriftHiveMetaStoreJUnitRule("test_database",hiveConfig);
   public @Rule DataFolder dataFolder = new ClassDataFolder();
 
   private ExecutorService executor;
@@ -1006,11 +1015,8 @@ public class WaggleDanceIntegrationTest {
 
     List<String> allDatabases = proxy.getAllDatabases();
     assertThat(allDatabases.size(), is(5));
-    assertThat(allDatabases.get(0), is("default"));
-    assertThat(allDatabases.get(1), is(LOCAL_DATABASE));
-    assertThat(allDatabases.get(2), is("abc"));
-    assertThat(allDatabases.get(3), is(REMOTE_DATABASE));
-    assertThat(allDatabases.get(4), is("xyz"));
+    String[] expected = new String[]{"default", LOCAL_DATABASE, "abc", REMOTE_DATABASE, "xyz"};
+    assertThat("List equality without order", allDatabases, containsInAnyOrder(expected));
     // Local table
     Table waggledLocalTable = proxy.getTable("abc", LOCAL_TABLE);
     assertNotNull(waggledLocalTable);

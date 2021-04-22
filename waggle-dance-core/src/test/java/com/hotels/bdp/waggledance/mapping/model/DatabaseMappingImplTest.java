@@ -54,7 +54,6 @@ import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
-import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.Partition;
@@ -99,7 +98,6 @@ public class DatabaseMappingImplTest {
 
   private DatabaseMappingImpl databaseMapping;
   private Partition partition;
-  private Index index;
   private HiveObjectRef hiveObjectRef;
   private PartitionSpec partitionSpec;
   private Database database;
@@ -114,8 +112,6 @@ public class DatabaseMappingImplTest {
     partition = new Partition();
     partition.setDbName(DB_NAME);
     partitions = Lists.newArrayList(partition);
-    index = new Index();
-    index.setDbName(DB_NAME);
     hiveObjectRef = new HiveObjectRef();
     hiveObjectRef.setDbName(DB_NAME);
     hiveObjectRef.setObjectType(HiveObjectType.DATABASE);
@@ -238,20 +234,6 @@ public class DatabaseMappingImplTest {
   public void transformInboundPartition() throws Exception {
     Partition result = databaseMapping.transformInboundPartition(partition);
     assertThat(result, is(sameInstance(partition)));
-    assertThat(result.getDbName(), is(IN_DB_NAME));
-  }
-
-  @Test
-  public void transformOutboundIndex() throws Exception {
-    Index result = databaseMapping.transformOutboundIndex(index);
-    assertThat(result, is(sameInstance(index)));
-    assertThat(result.getDbName(), is(OUT_DB_NAME));
-  }
-
-  @Test
-  public void transformInboundIndex() throws Exception {
-    Index result = databaseMapping.transformInboundIndex(index);
-    assertThat(result, is(sameInstance(index)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
@@ -559,17 +541,6 @@ public class DatabaseMappingImplTest {
     PartitionSpec resultSpec = result.get(0);
     assertThat(resultSpec, is(sameInstance(partitionSpec)));
     assertThat(resultSpec.getDbName(), is(OUT_DB_NAME));
-  }
-
-  @Test
-  public void transformOutboundIndexes() throws Exception {
-    List<Index> indexes = new ArrayList<>();
-    indexes.add(index);
-    List<Index> result = databaseMapping.transformOutboundIndexes(indexes);
-    assertThat(result, is(sameInstance(indexes)));
-    Index resultIndex = result.get(0);
-    assertThat(resultIndex, is(sameInstance(index)));
-    assertThat(resultIndex.getDbName(), is(OUT_DB_NAME));
   }
 
   @Test

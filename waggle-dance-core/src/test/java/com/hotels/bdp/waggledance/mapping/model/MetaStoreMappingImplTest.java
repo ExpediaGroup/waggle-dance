@@ -58,9 +58,9 @@ public class MetaStoreMappingImplTest {
 
   @Before
   public void init() {
-    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT, LATENCY,
+    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME,"hive", client, accessControlHandler, DIRECT, LATENCY,
         new DefaultMetaStoreFilterHookImpl(new HiveConf()));
-    tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED,
+    tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME,"hive", client, accessControlHandler, TUNNELED,
         LATENCY, new DefaultMetaStoreFilterHookImpl(new HiveConf()));
   }
 

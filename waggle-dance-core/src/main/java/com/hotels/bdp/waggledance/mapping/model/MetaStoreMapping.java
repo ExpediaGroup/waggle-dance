@@ -30,6 +30,8 @@ import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
 public interface MetaStoreMapping extends Closeable {
 
+  String getCatalog();
+
   /**
    * Outbound means parameter coming from the Hive Metastore and return result will be sent to user client.
    *

@@ -76,7 +76,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     LOG
         .info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
             metaStore.getRemoteMetaStoreUris());
-    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),metaStore.getCatalog(),
         createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType(),
         metaStore.getLatency(), loadMetastoreFilterHook(metaStore));
     if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.PREFIXED) {

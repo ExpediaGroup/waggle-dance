@@ -55,7 +55,6 @@ import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 
 public interface DatabaseMapping extends MetaStoreMapping {
 
-
   Partition transformInboundPartition(Partition partition);
 
   Table transformInboundTable(Table table);

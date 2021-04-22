@@ -87,7 +87,6 @@ import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeRequest;
 import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeResponse;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
-import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockLevel;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
@@ -114,8 +113,12 @@ import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.SQLCheckConstraint;
+import org.apache.hadoop.hive.metastore.api.SQLDefaultConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
+import org.apache.hadoop.hive.metastore.api.SQLNotNullConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
+import org.apache.hadoop.hive.metastore.api.SQLUniqueConstraint;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.ShowCompactRequest;
 import org.apache.hadoop.hive.metastore.api.ShowCompactResponse;
@@ -158,7 +161,7 @@ public class FederatedHMSHandlerTest {
 
   @Before
   public void setUp() throws NoSuchObjectException {
-    handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService);
+    handler = new FederatedHMSHandlerHive3(databaseMappingService, notifyingFederationService);
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
     when(databaseMappingService.getDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
     when(primaryMapping.getClient()).thenReturn(primaryClient);
@@ -1058,75 +1061,6 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void add_index() throws TException {
-    Index newIndex = new Index();
-    newIndex.setDbName(DB_P);
-    Index inboundIndex = new Index();
-    Index outboundIndex = new Index();
-    Table newTable = new Table();
-    newTable.setDbName(DB_P);
-    Table inboundTable = new Table();
-
-    when(primaryMapping.transformInboundIndex(newIndex)).thenReturn(inboundIndex);
-    when(primaryMapping.transformInboundTable(newTable)).thenReturn(inboundTable);
-    when(primaryMapping.transformOutboundIndex(outboundIndex)).thenReturn(newIndex);
-    when(primaryClient.add_index(inboundIndex, inboundTable)).thenReturn(outboundIndex);
-
-    Index result = handler.add_index(newIndex, newTable);
-    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
-    assertThat(result, is(newIndex));
-  }
-
-  @Test
-  public void alter_index() throws TException {
-    Index newIndex = new Index();
-    newIndex.setDbName(DB_P);
-    Index inboundIndex = new Index();
-    when(primaryMapping.transformInboundIndex(newIndex)).thenReturn(inboundIndex);
-
-    handler.alter_index(DB_P, "table", "index", newIndex);
-    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
-    verify(primaryClient).alter_index(DB_P, "table", "index", inboundIndex);
-  }
-
-  @Test
-  public void drop_index_by_name() throws TException {
-    when(primaryClient.drop_index_by_name(DB_P, "table", "index", true)).thenReturn(true);
-    boolean result = handler.drop_index_by_name(DB_P, "table", "index", true);
-    verify(primaryMapping).checkWritePermissions(DB_P);
-    assertThat(result, is(true));
-  }
-
-  @Test
-  public void get_index_by_name() throws TException {
-    Index index = new Index();
-    Index outboundIndex = new Index();
-    when(primaryClient.get_index_by_name(DB_P, "table", "index")).thenReturn(index);
-    when(primaryMapping.transformOutboundIndex(index)).thenReturn(outboundIndex);
-    Index result = handler.get_index_by_name(DB_P, "table", "index");
-    assertThat(result, is(outboundIndex));
-  }
-
-  @Test
-  public void get_indexes() throws TException {
-    List<Index> indexList = Collections.singletonList(new Index());
-    List<Index> outboundIndexList = Collections.singletonList(new Index());
-    when(primaryMapping.transformOutboundIndexes(indexList)).thenReturn(outboundIndexList);
-    when(primaryClient.get_indexes(DB_P, "table", (short) 2)).thenReturn(indexList);
-
-    List<Index> result = handler.get_indexes(DB_P, "table", (short) 2);
-    assertThat(result, is(outboundIndexList));
-  }
-
-  @Test
-  public void get_index_names() throws TException {
-    List<String> indexNames = Arrays.asList("name1", "name2");
-    when(primaryClient.get_index_names(DB_P, "table", (short) 2)).thenReturn(indexNames);
-    List<String> result = handler.get_index_names(DB_P, "table", (short) 2);
-    assertThat(result, is(indexNames));
-  }
-
-  @Test
   public void update_table_column_statistics() throws TException {
     ColumnStatisticsDesc columnStatisticsDesc = new ColumnStatisticsDesc(true, DB_P, "table");
     ColumnStatistics columnStatistics = new ColumnStatistics(columnStatisticsDesc, Collections.emptyList());
@@ -1578,7 +1512,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void add_dynamic_partitions() throws TException {
-    AddDynamicPartitions request = new AddDynamicPartitions(1, DB_P, "table", Collections.emptyList());
+    AddDynamicPartitions request = new AddDynamicPartitions(1,1, DB_P, "table", Collections.emptyList());
     AddDynamicPartitions inboundRequest = new AddDynamicPartitions();
     when(primaryMapping.transformInboundAddDynamicPartitions(request)).thenReturn(inboundRequest);
     handler.add_dynamic_partitions(request);
@@ -1659,10 +1593,14 @@ public class FederatedHMSHandlerTest {
     Table inboundTable = new Table();
     List<SQLPrimaryKey> primaryKeys = Collections.emptyList();
     List<SQLForeignKey> foreignKeys = Collections.emptyList();
+    List<SQLUniqueConstraint> uniqueConstraints= Collections.emptyList();
+    List<SQLNotNullConstraint > notNullConstraints = Collections.emptyList();
+    List< SQLDefaultConstraint > defaultConstraints = Collections.emptyList();
+    List< SQLCheckConstraint > checkConstraints = Collections.emptyList();
     when(primaryMapping.transformInboundTable(table)).thenReturn(inboundTable);
-    handler.create_table_with_constraints(table, primaryKeys, foreignKeys);
+    handler.create_table_with_constraints(table, primaryKeys, foreignKeys, uniqueConstraints, notNullConstraints, defaultConstraints, checkConstraints);
     verify(primaryMapping).checkWritePermissions(DB_P);
-    verify(primaryClient).create_table_with_constraints(inboundTable, primaryKeys, foreignKeys);
+    verify(primaryClient).create_table_with_constraints(inboundTable, primaryKeys, foreignKeys, uniqueConstraints, notNullConstraints, defaultConstraints, checkConstraints);
   }
 
   @Test

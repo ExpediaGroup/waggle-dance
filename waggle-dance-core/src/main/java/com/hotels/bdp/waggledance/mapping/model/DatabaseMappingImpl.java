@@ -81,6 +81,12 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
+  public String getCatalog()
+  {
+    return metaStoreMapping.getCatalog();
+  }
+
+  @Override
   public MetaStoreFilterHook getMetastoreFilter() {
     return metaStoreMapping.getMetastoreFilter();
   }

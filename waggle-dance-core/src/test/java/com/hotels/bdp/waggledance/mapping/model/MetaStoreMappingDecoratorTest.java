@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -31,8 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import com.beust.jcommander.internal.Lists;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetaStoreMappingDecoratorTest {
@@ -130,7 +129,7 @@ public class MetaStoreMappingDecoratorTest {
 
   @Test
   public void transformOutboundDatabaseNameMultiple() throws Exception {
-    when(metaStoreMapping.transformOutboundDatabaseNameMultiple("db")).thenReturn(Lists.newArrayList("trans_db"));
+    when(metaStoreMapping.transformOutboundDatabaseNameMultiple("db")).thenReturn(Arrays.asList("trans_db"));
     List<String> result = decorator.transformOutboundDatabaseNameMultiple("db");
     assertThat(result.size(), is(1));
     assertThat(result.get(0), is("trans_db"));

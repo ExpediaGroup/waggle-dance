@@ -27,7 +27,7 @@ import org.junit.Test;
 @SuppressWarnings("resource")
 public class PrefixMappingTest {
 
-  private final MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl("prefix_", "mapping", null, null, DIRECT,
+  private final MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl("prefix_", "mapping","hive", null, null, DIRECT,
       0L, new DefaultMetaStoreFilterHookImpl(new HiveConf()));
 
   @Test
