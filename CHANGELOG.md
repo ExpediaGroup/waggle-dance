@@ -1,9 +1,42 @@
-## [3.7.0] - TBD
+## [3.9.4] - 2021-04-08
+### Fixed
+* Support for '.' wildcards in database pattern calls. See [#216](https://github.com/HotelsDotCom/waggle-dance/issues/216)
+
+## [3.9.3] - 2021-03-15
+### Fixed
+* Null Pointer Exception when database name was null in `get_privilege_set` call.
+
+## [3.9.2] - 2021-03-12
+### Fixed
+* Changed spring-boot-maven-plugin layout to ZIP (was JAR). This fixes classloading issues with external jars (which can be loaded by adding `-Dloader.path=my.jar`).
+
+## [3.9.1] - 2021-03-04
+### Fixed
+* Null pointer exception when creating a metastore tunnel by adding a check for null `configuration-properties`.
+* Fixing issue where Presto views cannot be parsed resulting in errors.
+
+## [3.9.0] - 2021-02-26
+### Added
+* Support for setting Hive metastore filter hooks which can be configured per federated metastore. See the [README](https://github.com/HotelsDotCom/waggle-dance#federation) for more information.
+### Fixed
+* The `configuration-properties` from `waggle-dance-server.yml` are set when creating the Thrift clients.
+
+## [3.8.0] - 2020-11-25
+### Added
+* New `mapped-tables` feature. See [#195](https://github.com/HotelsDotCom/waggle-dance/issues/195) and the [README](https://github.com/HotelsDotCom/waggle-dance#federation) for more information.
+
+### Changed
+* Updated `hotels-oss-parent` to 6.1.0 (was 5.0.0).
+
+## [3.7.0] - 2020-09-16
 ### Changed
 * Upgraded version of `hive.version` to `2.3.7` (was `2.3.3`). Allows Waggle Dance to be used on JDK>=9.
 
 ### Added
 * Implemented `get_partition_values()` method in `FederatedHMSHandler` due to Hive version change.
+* New `database-name-mapping` feature. See the [README](https://github.com/HotelsDotCom/waggle-dance#database-name-mapping) for more information.
+### Changed
+* Removed `IdentityMapping` as a fallback mapping in certain cases. Simplifies code paths.
 
 ## [3.6.0] - 2020-03-04
 ### Changed
@@ -104,7 +137,7 @@
 
 ### Changed
 * Refactored general purpose Hive metastore code to leverage [hcommon-hive-metastore](https://github.com/HotelsDotCom/hcommon-hive-metastore) and [hcommon-ssh](https://github.com/HotelsDotCom/hcommon-ssh) libraries. See [#78](https://github.com/HotelsDotCom/waggle-dance/issues/78).
-* Updated versions of dependencies and plugins in waggle-dance-parent, waggle-dance, waggle-dance-core and waggle-dance-rpm modules. 
+* Updated versions of dependencies and plugins in waggle-dance-parent, waggle-dance, waggle-dance-core and waggle-dance-rpm modules.
 * Upgraded default Hive version from 2.3.0 to 2.3.3.
 
 ## [2.3.7] - 2018-06-19
@@ -123,7 +156,7 @@
 ### Fixed
 * Issue where WD is unresponsive when a tunneled metastore connection becomes unreachable. See [#73](https://github.com/HotelsDotCom/waggle-dance/issues/73).
 
-## [2.3.4] - 2018-05-16 
+## [2.3.4] - 2018-05-16
 ### Fixed
 * View query parsing code shouldn't use JRE class. See [#62](https://github.com/HotelsDotCom/waggle-dance/issues/74).
 

@@ -15,5 +15,5 @@ jobs:
       with:
         java-version: 8
     - name: Run Maven Targets
-      run: mvn package jacoco:report coveralls:report --batch-mode --show-version --activate-profiles coveralls -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
-
+      run: mvn package jacoco:report coveralls:report --batch-mode --show-version --no-transfer-progress --activate-profiles coveralls -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
+      

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
@@ -153,7 +153,7 @@ public class NotifyingFederationServiceTest {
     AbstractMetaStore federatedMetaStore = newFederatedInstance("new_name", URI);
     service.register(federatedMetaStore);
     verify(federatedMetaStoreStorage).insert(federatedMetaStore);
-    verifyZeroInteractions(federationEventListener);
+    verifyNoInteractions(federationEventListener);
   }
 
 }

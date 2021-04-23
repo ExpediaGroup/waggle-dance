@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@ package com.hotels.bdp.waggledance.api.model;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -31,6 +33,9 @@ import org.hibernate.validator.HibernateValidator;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
@@ -167,6 +172,88 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   public void emptyMappedDatabases() {
     metaStore.setMappedDatabases(Collections.emptyList());
     assertThat(metaStore.getMappedDatabases().size(), is(0));
+  }
+
+  @Test
+  public void mappedTables() {
+    MappedTables mappedTables1 = new MappedTables("db1", Lists.newArrayList("tbl1"));
+    MappedTables mappedTables2 = new MappedTables("db2", Lists.newArrayList("tbl2"));
+    List<MappedTables> mappedTables = Lists.newArrayList(mappedTables1, mappedTables2);
+    metaStore.setMappedTables(mappedTables);
+    assertThat(metaStore.getMappedTables(), is(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(0));
+  }
+
+  @Test
+  public void mappedTablesEmptyDbInvalid() {
+    MappedTables mappedTables = new MappedTables("", Lists.newArrayList("tbl1"));
+    metaStore.setMappedTables(Lists.newArrayList(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void mappedTablesNullDbInvalid() {
+    MappedTables mappedTables = new MappedTables(null, Lists.newArrayList("tbl1"));
+    metaStore.setMappedTables(Lists.newArrayList(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void mappedTablesNullTblInvalid() {
+    MappedTables mappedTables = new MappedTables("valid_db", null);
+    metaStore.setMappedTables(Lists.newArrayList(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void mappedTablesEmptyTblsInvalid() {
+    MappedTables mappedTables = new MappedTables("valid_db", Lists.newArrayList());
+    metaStore.setMappedTables(Lists.newArrayList(mappedTables));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(1));
+  }
+
+  @Test
+  public void nullMappedTables() {
+    metaStore.setMappedTables(null);
+    assertThat(metaStore.getMappedTables(), is(nullValue()));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(0));
+  }
+
+  @Test
+  public void emptyMappedTables() {
+    metaStore.setMappedTables(Collections.emptyList());
+    assertThat(metaStore.getMappedTables().size(), is(0));
+
+    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
+    assertThat(violations.size(), is(0));
+  }
+
+  @Test
+  public void setDatabasesNameMapping() throws Exception {
+    Map<String, String> mapping = new HashMap<>();
+    mapping.put("a", "b");
+    metaStore.setDatabaseNameMapping(mapping);
+    assertThat(metaStore.getDatabaseNameMapping(), is(mapping));
+    assertThat(metaStore.getDatabaseNameBiMapping(), is(HashBiMap.create(mapping)));
+  }
+
+  @Test
+  public void setDatabasesNameMappingNullToEmpty() throws Exception {
+    metaStore.setDatabaseNameMapping(null);
+    assertThat(metaStore.getDatabaseNameMapping().size(), is(0));
+    assertThat(metaStore.getDatabaseNameBiMapping().size(), is(0));
   }
 
 }

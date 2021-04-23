@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>hotels-oss-parent</artifactId>
-    <version>5.0.0</version>
+    <version>6.1.0</version>
   </parent>
 
   <artifactId>waggle-dance-parent</artifactId>
@@ -36,11 +36,14 @@
     <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
     <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
     <hadoop.version>3.1.0</hadoop.version>
+    <hamcrest.version>2.2</hamcrest.version>
     <hive.version>3.1.2</hive.version>
+    <junit.version>4.13.1</junit.version>
+    <mockito.version>3.5.15</mockito.version>
     <dropwizard.metrics.version>3.1.5</dropwizard.metrics.version>
     <aspectj-maven-plugin.version>1.9</aspectj-maven-plugin.version>
     <aspectj.version>1.8.9</aspectj.version>
-    <beeju.version>1.2.1</beeju.version>
+    <beeju.version>5.0.0</beeju.version>
     <guava.version>23.0</guava.version>
     <guice.version>4.0</guice.version>
     <hcommon-hive-metastore.version>1.2.3</hcommon-hive-metastore.version>
@@ -77,6 +80,38 @@
         <groupId>org.glassfish.web</groupId>
         <artifactId>javax.el</artifactId>
         <version>2.2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <!-- spring uses a newer version of byte-buddy but Mockito requires
+        an older version -->
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy</artifactId>
+        <version>1.10.15</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy-agent</artifactId>
+        <version>1.10.15</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -116,6 +151,12 @@
         <scope>compile</scope>
       </dependency>
       <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>${hamcrest.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
         <version>1.23</version>
@@ -123,7 +164,8 @@
       <dependency>
         <groupId>org.apache.derby</groupId>
         <artifactId>derby</artifactId>
-        <!-- we should use whatever hive-metastore is using. Cannot rely on the transitive dep because we want it test scoped. -->
+        <!-- we should use whatever hive-metastore is using. Cannot rely
+          on the transitive dep because we want it test scoped. -->
         <version>10.10.2.0</version>
         <scope>test</scope>
       </dependency>
@@ -150,6 +192,8 @@
           <version>${maven.release.plugin.version}</version>
         </plugin>
         <plugin>
+          <!-- NOTE: we are blocked on building waggle dance using Java 11
+            on the below, need to wait for https://github.com/mojohaus/aspectj-maven-plugin/pull/45 -->
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>aspectj-maven-plugin</artifactId>
           <version>${aspectj-maven-plugin.version}</version>
@@ -221,15 +265,7 @@
           <configuration>
             <!-- excluding files that don't need a header update -->
             <excludes>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/api/validation/constraint/TunnelRoute.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/api/validation/validator/TunnelRouteValidator.java
-              </exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/client/ThriftMetastoreClient.java</exclude>
               <exclude>src/main/java/com/hotels/bdp/waggledance/server/MetaStoreProxyServer.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/validation/Preconditions.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/parse/ASTConverter.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/parse/ASTNodeUtils.java</exclude>
-              <exclude>src/main/java/com/hotels/bdp/waggledance/parse/Rule.java</exclude>
             </excludes>
           </configuration>
         </plugin>

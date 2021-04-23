@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
-import com.hotels.bdp.waggledance.util.Whitelist;
+import com.hotels.bdp.waggledance.util.AllowList;
 
 public class DatabaseWhitelistAccessControlHandler implements AccessControlHandler {
 
   private final FederationService federationService;
   private final boolean hasCreatePermission;
-  private final Whitelist writableDatabaseWhiteList;
+  private final AllowList writableDatabaseWhiteList;
   private AbstractMetaStore metaStore;
 
   DatabaseWhitelistAccessControlHandler(
@@ -39,7 +39,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     this.metaStore = metaStore;
     this.federationService = federationService;
     this.hasCreatePermission = hasCreatePermission;
-    writableDatabaseWhiteList = new Whitelist(metaStore.getWritableDatabaseWhiteList());
+    writableDatabaseWhiteList = new AllowList(metaStore.getWritableDatabaseWhiteList());
   }
 
   private String trimToLowerCase(String string) {

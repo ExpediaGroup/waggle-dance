@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.service;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -117,6 +117,14 @@ public class PanopticConcurrentOperationExecutorTest {
     assertThat(executeRequests.size(), is(2));
     assertThat(executeRequests.get(0), is("call1"));
     assertThat(executeRequests.get(1), is("call3"));
+  }
+
+  @Test
+  public void executeEmptyRequests() throws Exception {
+    PanopticConcurrentOperationExecutor executor = new PanopticConcurrentOperationExecutor();
+    List<DummyRequestCallable> allRequests = Lists.newArrayList();
+    List<String> executeRequests = executor.executeRequests(allRequests, REQUEST_TIMEOUT, "error in call: {}");
+    assertThat(executeRequests.size(), is(0));
   }
 
   private class DummyRequestCallable implements RequestCallable<List<String>> {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,15 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Map;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,25 +31,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
+import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 
 @Component
 public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   private static final Logger LOG = LoggerFactory.getLogger(MetaStoreMappingFactoryImpl.class);
 
+  private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final PrefixNamingStrategy prefixNamingStrategy;
   private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
   private final AccessControlHandlerFactory accessControlHandlerFactory;
 
   @Autowired
   public MetaStoreMappingFactoryImpl(
+      WaggleDanceConfiguration waggleDanceConfiguration,
       PrefixNamingStrategy prefixNamingStrategy,
       CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory,
       AccessControlHandlerFactory accessControlHandlerFactory) {
+    this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.prefixNamingStrategy = prefixNamingStrategy;
     this.metaStoreClientFactory = metaStoreClientFactory;
     this.accessControlHandlerFactory = accessControlHandlerFactory;
@@ -55,19 +66,24 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
       return metaStoreClientFactory.newInstance(metaStore);
     } catch (Exception e) {
       LOG.error("Can't create a client for metastore '{}':", metaStore.getName(), e);
-      return newUnreachableMetatstoreClient(metaStore);
+      return newUnreachableMetastoreClient(metaStore);
     }
   }
 
+  @SuppressWarnings("resource")
   @Override
   public MetaStoreMapping newInstance(AbstractMetaStore metaStore) {
     LOG
         .info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
             metaStore.getRemoteMetaStoreUris());
-    MetaStoreMapping mapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
+    MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
         createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType(),
-        metaStore.getLatency());
-    return mapping;
+        metaStore.getLatency(), loadMetastoreFilterHook(metaStore));
+    if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.PREFIXED) {
+      return new DatabaseNameMapping(new PrefixMapping(metaStoreMapping), metaStore.getDatabaseNameBiMapping());
+    } else {
+      return new DatabaseNameMapping(metaStoreMapping, metaStore.getDatabaseNameBiMapping());
+    }
   }
 
   @Override
@@ -75,10 +91,34 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     return prefixNamingStrategy.apply(federatedMetaStore);
   }
 
-  private CloseableThriftHiveMetastoreIface newUnreachableMetatstoreClient(AbstractMetaStore metaStore) {
+  private CloseableThriftHiveMetastoreIface newUnreachableMetastoreClient(AbstractMetaStore metaStore) {
     return (CloseableThriftHiveMetastoreIface) Proxy
         .newProxyInstance(getClass().getClassLoader(), new Class[] { CloseableThriftHiveMetastoreIface.class },
             new UnreachableMetastoreClientInvocationHandler(metaStore.getName()));
+  }
+
+  private MetaStoreFilterHook loadMetastoreFilterHook(AbstractMetaStore metaStore) {
+    HiveConf conf = new HiveConf();
+    String metaStoreFilterHook = metaStore.getHiveMetastoreFilterHook();
+    if (metaStoreFilterHook == null || metaStoreFilterHook.isEmpty()) {
+      return new DefaultMetaStoreFilterHookImpl(conf);
+    }
+    Map<String, String> configurationProperties = waggleDanceConfiguration.getConfigurationProperties();
+    if (configurationProperties != null) {
+      for (Map.Entry<String, String> property : configurationProperties.entrySet()) {
+        conf.set(property.getKey(), property.getValue());
+      }
+    }
+    conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, metaStoreFilterHook);
+    try {
+      Class<? extends MetaStoreFilterHook> filterHookClass = conf
+          .getClass(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, DefaultMetaStoreFilterHookImpl.class,
+              MetaStoreFilterHook.class);
+      Constructor<? extends MetaStoreFilterHook> constructor = filterHookClass.getConstructor(HiveConf.class);
+      return constructor.newInstance(conf);
+    } catch (Exception e) {
+      throw new WaggleDanceServerException("Unable to create instance of " + metaStoreFilterHook, e);
+    }
   }
 
   /**

@@ -5,7 +5,7 @@
 You can obtain Waggle Dance from Maven Central:
 
 [![Maven Central TGZ](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance/badge.svg?subject=com.hotels:waggle-dance-bin.tgz)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance)
-[![Maven Central RPM](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm/badge.svg?subject=com.hotels:waggle-dance.rpm)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm)  [![Build Status](https://travis-ci.org/HotelsDotCom/waggle-dance.svg?branch=master)](https://travis-ci.org/HotelsDotCom/waggle-dance) ![Java CI](https://github.com/HotelsDotCom/waggle-dance/workflows/Java%20CI/badge.svg?event=push) [![Coverage Status](https://coveralls.io/repos/github/HotelsDotCom/waggle-dance/badge.svg?branch=master)](https://coveralls.io/github/HotelsDotCom/waggle-dance?branch=master) ![GitHub license](https://img.shields.io/github/license/HotelsDotCom/waggle-dance.svg)
+[![Maven Central RPM](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm/badge.svg?subject=com.hotels:waggle-dance.rpm)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm)  [![Build Status](https://travis-ci.org/HotelsDotCom/waggle-dance.svg?branch=main)](https://travis-ci.org/HotelsDotCom/waggle-dance) ![Java CI](https://github.com/HotelsDotCom/waggle-dance/workflows/Java%20CI/badge.svg?event=push) [![Coverage Status](https://coveralls.io/repos/github/HotelsDotCom/waggle-dance/badge.svg?branch=main)](https://coveralls.io/github/HotelsDotCom/waggle-dance?branch=main) ![GitHub license](https://img.shields.io/github/license/HotelsDotCom/waggle-dance.svg)
 
 ## Overview
 
@@ -48,7 +48,7 @@ The TGZ package provides a "vanilla" version of Waggle Dance that is easy to get
 Although it's not necessary, we recommend exporting the environment variable `WAGGLE_DANCE_HOME` by setting its value to wherever you extracted it to:
 
     export WAGGLE_DANCE_HOME=/<foo>/<bar>/waggle-dance-<version>
-    
+
 Refer to the [configuration](#configuration) section below on what is needed to customise the configuration files before continuing.
 
 #### Running on the command line
@@ -107,6 +107,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `database-resolution`             | No         | Controls what type of database resolution to use. See the [Database Resolution](#database-resolution) section. Default is `MANUAL`. |
 | `status-polling-delay`            | No         | Controls the delay that checks metastore availability and updates long running connections of any status change. Default is `5` (every 5 minutes). |
 | `status-polling-delay-time-unit`  | No         | Controls the delay time unit. Default is `MINUTES` . |
+| `configuration-properties`        | No         | Map of Hive properties that will be added to the HiveConf used when creating the Thrift clients (they will be shared among all the clients). |
 
 ### Federation
 
@@ -130,10 +131,19 @@ Example:
         route: ec2-user@bastion-host -> hadoop@emr-master
         private-keys: /home/user/.ssh/bastion-key-pair.pem,/home/user/.ssh/emr-key-pair.pem
         known-hosts: /home/user/.ssh/known_hosts
+      hive-metastore-filter-hook: filter.hook.class
       mapped-databases:
       - prod_db1
       - prod_db2
       - dev_group_1.*
+      mapped-tables:
+      - database: prod_db1
+        mapped-tables:
+        - tbl1
+        - tbl_.*
+      - database: prod_db2
+        mapped-tables:
+        - tbl2
     - ...
 
 The table below describes all the available configuration values for Waggle Dance federations:
@@ -145,19 +155,26 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store.name`                               | Yes      | Database name that uniquely identifies this metastore. Used internally. Cannot be empty. |
 | `primary-meta-store.database-prefix`                    | No       | Prefix used to access the primary metastore and differentiate databases in it from databases in another metastore. The default prefix (i.e. if this value isn't explicitly set) is empty string.|
 | `primary-meta-store.access-control-type`                | No       | Sets how the client access controls should be handled. Default is `READ_ONLY` Other options `READ_AND_WRITE_AND_CREATE`, `READ_AND_WRITE_ON_DATABASE_WHITELIST` and `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST` see Access Control section below. |
-| `primary-meta-store.writable-database-white-list`       | No       | White-list of databases used to verify write access used in conjunction with `primary-meta-store.access-control-type`. The list of databases should be listed without any `primary-meta-store.database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
+| `primary-meta-store.writable-database-white-list`       | No       | White-list of databases used to verify write access used in conjunction with `primary-meta-store.access-control-type`. The list of databases should be listed without any `primary-meta-store.database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).|
 | `primary-meta-store.metastore-tunnel`                   | No       | See metastore tunnel configuration values below. |
 | `primary-meta-store.latency`                            | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
-| `primary-meta-store.mapped-databases`                   | No       | List of databases to federate from the primary metastore; all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
+| `primary-meta-store.mapped-databases`                   | No       | List of databases to federate from the primary metastore; all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
+| `primary-meta-store.mapped-tables`                      | No       | List of mappings from databases to tables to federate from the primary metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
+| `primary-meta-stores.hive-metastore-filter-hook`        | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
+| `primary-meta-stores.database-name-mapping`             | No       | BiDirectional Map of database names and mapped name, where key=`<database name as known in the primary metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
 | `federated-meta-stores`                                 | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`       | Yes      | Thrift URIs of the federated read-only metastore. |
 | `federated-meta-stores[n].name`                         | Yes      | Name that uniquely identifies this metastore. Used internally. Cannot be empty. |
 | `federated-meta-stores[n].database-prefix`              | No       | Prefix used to access this particular metastore and differentiate databases in it from databases in another metastore. Typically used if databases have the same name across metastores but federated access to them is still needed. The default prefix (i.e. if this value isn't explicitly set) is {federated-meta-stores[n].name} lowercased and postfixed with an underscore. For example if the metastore name was configured as "waggle" and no database prefix was provided but `PREFIXED` database resolution was used then the value of `database-prefix` would be "waggle_". |
 | `federated-meta-stores[n].metastore-tunnel`             | No       | See metastore tunnel configuration values below. |
 | `federated-meta-stores[n].latency`                      | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
-| `federated-meta-stores[n].mapped-databases`             | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
-| `federated-meta-stores[n].writable-database-white-list` | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).|
+| `federated-meta-stores[n].mapped-databases`             | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
+| `federated-meta-stores[n].mapped-tables`                | No       | List of mappings from databases to tables to federate from this federated metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
+| `federated-meta-stores[n].hive-metastore-filter-hook`   | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
+| `federated-meta-stores[n].database-name-mapping`        | No       | BiDirectional Map of database names and mapped names where key=`<database name as known in the federated metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
+| `federated-meta-stores[n].writable-database-white-list` | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).|
 
+#### Metastore tunnel
 The table below describes the metastore tunnel configuration values:
 
 | Property                                                | Required | Description |
@@ -169,6 +186,15 @@ The table below describes the metastore tunnel configuration values:
 | `*.metastore-tunnel.private-keys`                       | No       | A comma-separated list of paths to any SSH keys required in order to set up the SSH tunnel. |
 | `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds, `0` means no timeout. Default is `60000` milliseconds, i.e. 1 minute. |
 | `*.metastore-tunnel.strict-host-key-checking`           | No       | Whether the SSH tunnel should be created with strict host key checking. Can be set to `yes` or `no`. The default is `yes`. |
+
+#### Mapped tables
+The table below describes the `mapped-tables` configuration. For each entry in the list, a database name and the corresponding list of table names/patterns must be mentioned.
+
+| Property                                                | Required | Description |
+|:----|:----:|:----|
+| `*.mapped-tables[n].database`                           | Yes       | Name of the database which contains the tables to be mapped.|
+| `*.mapped-tables[n].mapped-tables`                      | Yes       | List of tables allowed for the database specified in the field above. This property supports both full table names and [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html) (both being case-insensitive).|
+
 
 #### Access Control
 
@@ -308,12 +334,12 @@ The following snippet shows a typical Graphite configuration:
 | `graphite.host`                                       | No       | Hostname of the Graphite server. If not specified then no metrics will be sent to Graphite. |
 | `graphite.prefix`                                     | No       | Graphite path prefix. |
 | `graphite.poll-time`                                  | No       | Amount of time between Graphite polls. Defaults to `5000`. |
-| `graphite.poll-time-unit`                             | No       | Time unit of `graphite.poll-time` - this is [the list of allowed values](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/TimeUnit.html). Defaults to `MILLISECONDS`. |
+| `graphite.poll-time-unit`                             | No       | Time unit of `graphite.poll-time` - this is [the list of allowed values](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeUnit.html). Defaults to `MILLISECONDS`. |
 
 Prometheus can also be used to gather metrics. This can be done by enabling the Prometheus endpoint in the configuration:
 
     management.endpoints.web.exposure.include: health,info,prometheus
-   
+
 If this config is added, all endpoints that are required to be expose need to be specified. The Prometheus endpoint can be accessed at `/actuator/prometheus`.
 
 #### Database Resolution
@@ -348,10 +374,10 @@ Adding a mapped database in the configuration requires a restart of the Waggle D
 
 ##### Database resolution: `PREFIXED`
 
-Waggle Dance can be configured to use a prefix when resolving the names of databases in its primary or federated metastores. In this mode all queries that are issued to Waggle Dance need to be written to use fully qualified database names that start with the prefixes configured here. In the example below Waggle Dance is configured with a federated 
-metastore with the prefix `waggle_prod_`. Because of this it will inspect the database names in all requests, and if any start with `waggle_prod_` it will route 
-the request to the configured matching metastore. The prefix will be removed for those requests as the underlying metastore knows nothing of the prefixes. So, the 
-query: `select * from waggle_prod_etldata.my_table` will effectively be translated into this query: `select * from etldata.my_table` on the federated metastore. If a 
+Waggle Dance can be configured to use a prefix when resolving the names of databases in its primary or federated metastores. In this mode all queries that are issued to Waggle Dance need to be written to use fully qualified database names that start with the prefixes configured here. In the example below Waggle Dance is configured with a federated
+metastore with the prefix `waggle_prod_`. Because of this it will inspect the database names in all requests, and if any start with `waggle_prod_` it will route
+the request to the configured matching metastore. The prefix will be removed for those requests as the underlying metastore knows nothing of the prefixes. So, the
+query: `select * from waggle_prod_etldata.my_table` will effectively be translated into this query: `select * from etldata.my_table` on the federated metastore. If a
 database is encountered that is not prefixed then the primary metastore is used to resolve the database name.
 
 `waggle-dance-server.yml`:
@@ -368,12 +394,12 @@ database is encountered that is not prefixed then the primary metastore is used 
         database-prefix: waggle_prod_
         remote-meta-store-uris: thrift://federatedProdMetastore:9083
 
-Note: When choosing a prefix ensure that it does not match the start of _any_ existing database names in any of the configured metastores. To illustrate the problem this would cause, 
-imagine you have a database in the `primary` metastore named "my_database" and you configure the `federated` metastore with the prefix `my_`. Waggle Dance will register the prefix 
+Note: When choosing a prefix ensure that it does not match the start of _any_ existing database names in any of the configured metastores. To illustrate the problem this would cause,
+imagine you have a database in the `primary` metastore named "my_database" and you configure the `federated` metastore with the prefix `my_`. Waggle Dance will register the prefix
 and any requests for a database starting with `my_` will be routed to the `federated` metastore even if they were intended to go to the `primary` metastore.
 
-In `PREFIXED` mode any databases that are created while Waggle Dance is running will be automatically visible and will need to adhere to the naming rules described above 
-(e.g. not clash with the prefix). Alternatively, Waggle Dance can be configured to use a static list of unprefixed databases in the configuration 
+In `PREFIXED` mode any databases that are created while Waggle Dance is running will be automatically visible and will need to adhere to the naming rules described above
+(e.g. not clash with the prefix). Alternatively, Waggle Dance can be configured to use a static list of unprefixed databases in the configuration
 `waggle-dance-federations.yml`:`federated-meta-stores[n].mapped-databases` and `primary-meta-store.mapped-databases`. Example configuration:
 
 `waggle-dance-server.yml`:
@@ -392,7 +418,7 @@ In `PREFIXED` mode any databases that are created while Waggle Dance is running 
         mapped-databases:
         - etldata
 
-In this scenario, like in the previous example, the query: `select * from waggle_prod_etldata.my_table` will effectively be this query: `select * from etldata.my_table` on 
+In this scenario, like in the previous example, the query: `select * from waggle_prod_etldata.my_table` will effectively be this query: `select * from etldata.my_table` on
 the federated metastore. Any other databases which exist in the metastore named `federated` won't be visible to clients.
 
 ## Sample run through
@@ -424,7 +450,51 @@ Assumes database resolution is done by adding prefixes. If database resolution i
      where h.date = '2016-05-13'
        and h.hour = 1
     ;
-    
+
+## Database Name Mapping
+NOTE: mapping names adds an extra layer of abstraction and we advise to use this as a temporary migration solution only. It becomes harder to debug where a virtual (remapped) table actually is coming from.
+
+Waggle Dance allows one to refer to databases by names that are different to what they are defined in the Hive metastore via a `database-name-mapping` configuration. This feature can be useful when migrating data from existing databases into different environments.
+To clarify how this feature could be used, below is an example use case:
+As part of a data migration we have decided that we want to store all Hive tables related to hotel bookings in a database called `booking`. However we have legacy data lakes that contain booking-related tables which are stored in databases with other names e.g. 'datawarehouse'. To ease migration we want to expose the 'datawarehouse' database via both the original name and the `booking` name. This way consumers can start using the new name while producers migrate their scripts from the old name or vice versa. When the migration is done the mapping can be removed and the database renamed.
+
+So in this example we have a Data lake X which federates tables from another Data lake Y.
+The desired end result is to show a 'datawarehouse' database and a 'booking' database in X which is proxied to the same 'datawarehouse' database in Y.
+
+X: _show databases;_
+
+    datawarehouse (proxies to y - datawarehouse)
+    booking (proxies to y - datawarehouse)
+
+Y: _show databases;_
+
+    datawarehouse
+
+To achieve a unified view of all the booking tables in the different databases (without actually renaming them in Hive) we can configure Waggle Dance in X to map from the old to the new names like so:
+
+    federated-meta-stores:
+      - remote-meta-store-uris: thrift://10.0.0.1:9083
+        name: y
+        mapped-databases:
+        - datawarehouse
+        database-name-mapping:
+          datawarehouse: booking
+
+Note: Both the 'datawarehouse' name and the mapped name 'booking' are shown in X, so the mapping adds an additional virtual database mapping to the same remote database. You can only map one extra name and you cannot map different databases to the same name.
+This is *not* allowed (will fail to load (invalid yaml)):
+
+    database-name-mapping:
+      datawarehouse: booking
+      datawarehouse: booking2
+
+This is *not* allowed (will fail to load (invalid mapping)):
+
+    database-name-mapping:
+      datawarehouse: booking
+      datawarehouse2: booking
+
+If an optional `mapped-databases` is used that filter is applied first and the renaming is applied after.
+
 ## Endpoints
 
 Being a Spring Boot Application, all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html) are supported.
@@ -432,6 +502,14 @@ Being a Spring Boot Application, all [standard actuator endpoints](https://docs.
 e.g. Healthcheck Endpoint: http://localhost:18000/actuator/health
 
 In addition to these Spring endpoints Waggle Dance exposes some custom endpoints which provide more detailed information. The URLs of these are logged when Waggle Dance starts up. The most notable is: `http://host:18000/api/admin/federations`, which returns information about the availability of the configured metastores (it can be used for troubleshooting, but it is not recommended for use as a health check).
+
+## Logging
+Waggle Dance uses [Log4j 2](https://logging.apache.org/log4j/2.x/) for logging. In order to use a custom Log4j 2 XML file, the path to the logging configuration file has to be added to the server configuration YAML file:
+
+    logging:
+        config: file:/home/foo/waggle-dance/conf/log4j2.xml
+
+This only works when Waggle Dance is obtained from the compressed archive (.tar.gz) file. If the RPM version is being used, the default log file path is hardcoded. Refer to the [RPM version](#rpm-version) section for more details.
 
 ## Notes
 
@@ -441,6 +519,7 @@ In addition to these Spring endpoints Waggle Dance exposes some custom endpoints
  * All data processing occurs in the client cluster, not the external clusters. Data is simply pulled into the client cluster that connect to Waggle Dance.
  * Metadata read operations are routed only. Write and destructive operations can be performed on the local metastore only.
  * When using Spark to read tables with a big number of partitions it may be necessary to set `spark.sql.hive.metastorePartitionPruning=true` to enable partition pruning. If this property is `false` Spark will try to fetch all the partitions of the tables in the query which may result on a `OutOfMemoryError` in Waggle Dance.
+ * If a configuration file is updated and the update disappears after server shutdown, `yaml-storage.overwrite-config-on-shutdown` should be set to `false` in the federation configuration file (refer to the [federation configuration storage](#federation-configuration-storage) section).
 
 
 ## Limitations
@@ -455,6 +534,12 @@ Hive UDFs are registered with a database. There are currently two limitations in
 * UDFs used in a view are not prefixed with their corresponding metastore. A workaround is to register the UDF from the federated metastore in your own (primary) metastore.
 
 Due to the distributed nature of Waggle Dance using UDFs is not that simple. If you would like a UDF to be used from a federated metastore we'd recommend registering the code implementing it in a distributed file or object store that is accessible from any client (for example you could store the UDF's jar file on S3). See creating permanent functions in the [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-Create/Drop/ReloadFunction).
+
+### Hive metastore filter hook
+You can configure a Hive filter hook via: `hive-metastore-filter-hook: filter.hook.class`
+This class needs to be on the classpath and can be an external jar. If so the command to run needs to be updated to ensure correct class loading. This can be done by adding: `-Dloader.path=<path_to_jar>`
+Note: The database calls `getDatabases` and `getAllDatabases`, as well as `getTableMeta` do not support having the provided filter applied at the moment, so their result will not be modified by the filter.
+
 
 ## Building
 

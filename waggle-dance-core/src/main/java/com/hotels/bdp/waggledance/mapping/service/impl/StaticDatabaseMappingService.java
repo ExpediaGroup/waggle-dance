@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
+import static java.util.stream.Collectors.toList;
+
 import static com.hotels.bdp.waggledance.api.model.FederationType.PRIMARY;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -50,16 +53,18 @@ import com.google.common.collect.Sets;
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederationType;
+import com.hotels.bdp.waggledance.api.model.MappedTables;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
-import com.hotels.bdp.waggledance.mapping.model.IdentityMapping;
+import com.hotels.bdp.waggledance.mapping.model.DatabaseMappingImpl;
 import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
+import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticConcurrentOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
-import com.hotels.bdp.waggledance.util.Whitelist;
+import com.hotels.bdp.waggledance.util.AllowList;
 
 public class StaticDatabaseMappingService implements MappingEventListener {
 
@@ -71,12 +76,16 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   private final Map<String, DatabaseMapping> mappingsByMetaStoreName;
   private final Map<String, DatabaseMapping> mappingsByDatabaseName;
   private final Map<String, List<String>> databaseMappingToDatabaseList;
+  private final Map<String, AllowList> databaseToTableAllowList;
   private DatabaseMapping primaryDatabaseMapping;
+  private final QueryMapping queryMapping;
 
   public StaticDatabaseMappingService(
       MetaStoreMappingFactory metaStoreMappingFactory,
-      List<AbstractMetaStore> initialMetastores) {
+      List<AbstractMetaStore> initialMetastores,
+      QueryMapping queryMapping) {
     this.metaStoreMappingFactory = metaStoreMappingFactory;
+    this.queryMapping = queryMapping;
     primaryDatabasesCache = CacheBuilder
         .newBuilder()
         .expireAfterAccess(1, TimeUnit.MINUTES)
@@ -96,6 +105,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     mappingsByMetaStoreName = Collections.synchronizedMap(new LinkedHashMap<>());
     mappingsByDatabaseName = Collections.synchronizedMap(new LinkedHashMap<>());
     databaseMappingToDatabaseList = new ConcurrentHashMap<>();
+    databaseToTableAllowList = new ConcurrentHashMap<>();
     for (AbstractMetaStore federatedMetaStore : initialMetastores) {
       add(federatedMetaStore);
     }
@@ -108,13 +118,18 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     if (metaStoreMapping.isAvailable()) {
       try {
         List<String> allDatabases = metaStoreMapping.getClient().get_all_databases();
-        Whitelist whitelistedDatabases = new Whitelist(metaStore.getMappedDatabases());
-        mappableDatabases = applyWhitelist(allDatabases, whitelistedDatabases);
+        AllowList allowedDatabases = new AllowList(metaStore.getMappedDatabases());
+        mappableDatabases = applyAllowList(allDatabases, allowedDatabases);
       } catch (TException e) {
         LOG.error("Could not get databases for metastore {}", metaStore.getRemoteMetaStoreUris(), e);
       }
     }
     DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
+    mappableDatabases = mappableDatabases
+        .stream()
+        .flatMap(n -> databaseMapping.transformOutboundDatabaseNameMultiple(n).stream())
+        .collect(toList());
+    validateMappableDatabases(mappableDatabases, metaStore);
 
     if (metaStore.getFederationType() == PRIMARY) {
       validatePrimaryMetastoreDatabases(mappableDatabases);
@@ -127,6 +142,18 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     mappingsByMetaStoreName.put(metaStoreMapping.getMetastoreMappingName(), databaseMapping);
     addDatabaseMappings(mappableDatabases, databaseMapping);
     databaseMappingToDatabaseList.put(databaseMapping.getMetastoreMappingName(), mappableDatabases);
+    addTableMappings(metaStore);
+  }
+
+  private void validateMappableDatabases(List<String> mappableDatabases, AbstractMetaStore metaStore) {
+    int uniqueMappableDatabasesSize = new HashSet<>(mappableDatabases).size();
+    if (uniqueMappableDatabasesSize != mappableDatabases.size()) {
+      throw new WaggleDanceException(
+          "Database clash, found duplicate database names after applying all the mappings. Check the configuration for metastore '"
+              + metaStore.getName()
+              + "', mappableDatabases are: '"
+              + mappableDatabases.toString());
+    }
   }
 
   private void validatePrimaryMetastoreDatabases(List<String> databases) {
@@ -168,11 +195,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     }
   }
 
-  private List<String> applyWhitelist(List<String> allDatabases, Whitelist whitelist) {
+  private List<String> applyAllowList(List<String> allDatabases, AllowList allowList) {
     List<String> matchedDatabases = new ArrayList<>();
 
     for (String database : allDatabases) {
-      if (whitelist.contains(database)) {
+      if (allowList.contains(database)) {
         matchedDatabases.add(database);
       }
     }
@@ -181,12 +208,22 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
   private void addDatabaseMappings(List<String> databases, DatabaseMapping databaseMapping) {
     for (String databaseName : databases) {
-      mappingsByDatabaseName.put(databaseName.toLowerCase(Locale.ROOT), databaseMapping);
+      mappingsByDatabaseName.put(databaseName, databaseMapping);
+    }
+  }
+
+  private void addTableMappings(AbstractMetaStore metaStore) {
+    List<MappedTables> mappedTables = metaStore.getMappedTables();
+    if (mappedTables != null) {
+      for (MappedTables mapping : mappedTables) {
+        AllowList tableAllowList = new AllowList(mapping.getMappedTables());
+        databaseToTableAllowList.put(mapping.getDatabase(), tableAllowList);
+      }
     }
   }
 
   private DatabaseMapping createDatabaseMapping(MetaStoreMapping metaStoreMapping) {
-    return new IdentityMapping(metaStoreMapping);
+    return new DatabaseMappingImpl(metaStoreMapping, queryMapping);
   }
 
   private void remove(AbstractMetaStore metaStore) {
@@ -269,6 +306,34 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
+  public void checkTableAllowed(String databaseName, String tableName,
+      DatabaseMapping mapping) throws NoSuchObjectException {
+    if (!isTableAllowed(databaseName, tableName)) {
+      throw new NoSuchObjectException(String.format("%s.%s table not found in any mappings", databaseName, tableName));
+    }
+  }
+
+  @Override
+  public List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping) {
+    List<String> allowedTables = new ArrayList<>();
+    String db = databaseName.toLowerCase(Locale.ROOT);
+    for (String table: tableNames)
+      if (isTableAllowed(db, table)) {
+        allowedTables.add(table);
+      }
+    return allowedTables;
+  }
+
+  private boolean isTableAllowed(String database, String table) {
+    AllowList tblAllowList = databaseToTableAllowList.get(database);
+    if (tblAllowList == null) {
+      // Accept everything
+      return true;
+    }
+    return tblAllowList.contains(table);
+  }
+
+  @Override
   public List<DatabaseMapping> getDatabaseMappings() {
     Builder<DatabaseMapping> builder = ImmutableList.builder();
     synchronized (mappingsByMetaStoreName) {
@@ -281,6 +346,14 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     return builder.build();
   }
 
+  private boolean databaseAndTableAllowed(String database, String table, DatabaseMapping mapping) {
+    boolean isPrimary = mapping.equals(primaryDatabaseMapping);
+    boolean isMapped = mappingsByDatabaseName.containsKey(database);
+    boolean databaseAllowed = isPrimary || isMapped;
+    boolean tableAllowed = isTableAllowed(database, table);
+    return databaseAllowed && tableAllowed;
+  }
+
   @Override
   public PanopticOperationHandler getPanopticOperationHandler() {
     return new PanopticOperationHandler() {
@@ -288,11 +361,9 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
 
-        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> {
-          boolean isPrimary = mapping.equals(primaryDatabaseMapping);
-          boolean isMapped = mappingsByDatabaseName.keySet().contains(tableMeta.getDbName());
-          return isPrimary || isMapped;
-        };
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) ->
+            databaseAndTableAllowed(tableMeta.getDbName(), tableMeta.getTableName(), mapping);
+
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
         for (DatabaseMapping mapping : getDatabaseMappings()) {
           mappingsForPattern.put(mapping, db_patterns);
@@ -302,8 +373,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases(String pattern) {
-        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) ->
-            mappingsByDatabaseName.keySet().contains(database);
+        BiFunction<String, DatabaseMapping, Boolean> filter = (database, mapping) -> mappingsByDatabaseName
+            .containsKey(database);
 
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
         for (DatabaseMapping mapping : getDatabaseMappings()) {

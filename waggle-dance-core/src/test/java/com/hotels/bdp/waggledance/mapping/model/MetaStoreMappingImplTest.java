@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -28,6 +28,8 @@ import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 
 import java.io.IOException;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.thrift.TException;
 import org.junit.Before;
@@ -56,14 +58,15 @@ public class MetaStoreMappingImplTest {
 
   @Before
   public void init() {
-    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT, LATENCY);
+    metaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, DIRECT, LATENCY,
+        new DefaultMetaStoreFilterHookImpl(new HiveConf()));
     tunneledMetaStoreMapping = new MetaStoreMappingImpl(DATABASE_PREFIX, NAME, client, accessControlHandler, TUNNELED,
-        LATENCY);
+        LATENCY, new DefaultMetaStoreFilterHookImpl(new HiveConf()));
   }
 
   @Test
   public void transformOutboundDatabaseName() {
-    assertThat(metaStoreMapping.transformOutboundDatabaseName("My_Database"), is("prefix_my_database"));
+    assertThat(metaStoreMapping.transformOutboundDatabaseName("My_Database"), is("my_database"));
   }
 
   @Test
@@ -71,12 +74,12 @@ public class MetaStoreMappingImplTest {
     when(database.getName()).thenReturn("My_Database");
     Database outboundDatabase = metaStoreMapping.transformOutboundDatabase(database);
     assertThat(outboundDatabase, is(sameInstance(database)));
-    verify(outboundDatabase).setName("prefix_my_database");
+    verify(outboundDatabase).setName("my_database");
   }
 
   @Test
   public void transformInboundDatabaseName() {
-    assertThat(metaStoreMapping.transformInboundDatabaseName("Prefix_My_Database"), is("my_database"));
+    assertThat(metaStoreMapping.transformInboundDatabaseName("My_Database"), is("my_database"));
   }
 
   @Test

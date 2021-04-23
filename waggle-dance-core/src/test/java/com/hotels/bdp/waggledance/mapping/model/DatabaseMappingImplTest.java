@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package com.hotels.bdp.waggledance.mapping.model;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -157,6 +157,20 @@ public class DatabaseMappingImplTest {
     assertThat(result.getDbName(), is(OUT_DB_NAME));
     assertThat(result.getViewExpandedText(), is(VIEW_EXPANDED_TEXT_TRANSFORMED));
     assertThat(result.getViewOriginalText(), is(VIEW_ORIGINAL_TEXT_TRANSFORMED));
+  }
+
+  @Test
+  public void transformOutboundTableViewIgnoreParsingWhenSame() throws Exception {
+    Table table = new Table();
+    table.setDbName(OUT_DB_NAME);
+    table.setViewExpandedText(VIEW_EXPANDED_TEXT);
+    table.setViewOriginalText(VIEW_ORIGINAL_TEXT);
+
+    Table result = databaseMapping.transformOutboundTable(table);
+    assertThat(result, is(sameInstance(table)));
+    assertThat(result.getDbName(), is(OUT_DB_NAME));
+    assertThat(result.getViewExpandedText(), is(VIEW_EXPANDED_TEXT));
+    assertThat(result.getViewOriginalText(), is(VIEW_ORIGINAL_TEXT));
   }
 
   @Test

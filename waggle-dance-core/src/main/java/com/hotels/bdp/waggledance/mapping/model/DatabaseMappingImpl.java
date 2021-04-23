@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
@@ -81,8 +82,21 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
+  public MetaStoreFilterHook getMetastoreFilter() {
+    return metaStoreMapping.getMetastoreFilter();
+  }
+
+  @Override
   public Table transformOutboundTable(Table table) {
-    table.setDbName(metaStoreMapping.transformOutboundDatabaseName(table.getDbName()));
+    String originalDatabaseName = table.getDbName();
+    String databaseName = metaStoreMapping.transformOutboundDatabaseName(originalDatabaseName);
+    table.setDbName(databaseName);
+    if (databaseName.equalsIgnoreCase(originalDatabaseName)) {
+      // Skip all the view parsing if nothing is going to change, the parsing is not without problems and we can't catch
+      // all use cases here. For instance Presto creates views that are stored in these fields and this is stored
+      // differently than Hive. There might be others.
+      return table;
+    }
     if (table.isSetViewExpandedText()) {
       try {
         log.debug("Transforming ViewExpandedText: {}", table.getViewExpandedText());
@@ -205,6 +219,11 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
     return metaStoreMapping.transformOutboundDatabaseName(databaseName);
+  }
+
+  @Override
+  public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    return metaStoreMapping.transformOutboundDatabaseNameMultiple(databaseName);
   }
 
   @Override
@@ -494,4 +513,5 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public long getLatency() {
     return metaStoreMapping.getLatency();
   }
+
 }

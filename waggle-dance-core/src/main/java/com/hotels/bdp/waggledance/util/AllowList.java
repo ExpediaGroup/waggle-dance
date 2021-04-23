@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,42 +22,42 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Whitelist {
+public class AllowList {
 
   private final static String MATCH_ALL = ".*";
-  private final Set<Pattern> whiteList = new HashSet<>();
+  private final Set<Pattern> allowList = new HashSet<>();
 
-  public Whitelist() {}
+  public AllowList() {}
 
-  public Whitelist(List<String> writableDatabaseWhiteList) {
-    if (writableDatabaseWhiteList == null) {
+  public AllowList(List<String> allowList) {
+    if (allowList == null) {
       add(MATCH_ALL);
     } else {
-      for (String databaseName : writableDatabaseWhiteList) {
-        add(databaseName);
+      for (String element : allowList) {
+        add(element);
       }
     }
   }
 
-  public void add(String databaseName) {
-    whiteList.add(Pattern.compile(trimToLowerCase(databaseName)));
+  public void add(String element) {
+    allowList.add(Pattern.compile(trimToLowerCase(element)));
   }
 
   int size() {
-    return whiteList.size();
+    return allowList.size();
   }
 
   private String trimToLowerCase(String string) {
     return string.trim().toLowerCase(Locale.ROOT);
   }
 
-  public boolean contains(String databaseName) {
-    if (databaseName == null) {
+  public boolean contains(String element) {
+    if (element == null) {
       return true;
     }
-    databaseName = trimToLowerCase(databaseName);
-    for (Pattern whiteListEntry : whiteList) {
-      Matcher matcher = whiteListEntry.matcher(databaseName);
+    element = trimToLowerCase(element);
+    for (Pattern allowListEntry : allowList) {
+      Matcher matcher = allowListEntry.matcher(element);
       if (matcher.matches()) {
         return true;
       }

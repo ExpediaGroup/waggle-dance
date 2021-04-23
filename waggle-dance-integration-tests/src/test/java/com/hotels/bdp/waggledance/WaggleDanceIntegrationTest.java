@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@ package com.hotels.bdp.waggledance;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
@@ -31,7 +32,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
@@ -44,13 +48,17 @@ import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.FunctionType;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
+import org.apache.hadoop.hive.metastore.api.HiveObjectType;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.ResourceType;
 import org.apache.hadoop.hive.metastore.api.ResourceUri;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Before;
@@ -75,9 +83,11 @@ import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.api.model.Federations;
+import com.hotels.bdp.waggledance.api.model.MappedTables;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.junit.ServerSocketRule;
+import com.hotels.bdp.waggledance.mapping.model.PrefixingMetastoreFilter;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
@@ -114,10 +124,10 @@ public class WaggleDanceIntegrationTest {
     localWarehouseUri = temporaryFolder.newFolder("local-warehouse");
     remoteWarehouseUri = temporaryFolder.newFolder("remote-warehouse");
 
-    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + LOCAL_TABLE));
+    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + LOCAL_TABLE), LOCAL_TABLE);
     LOG.info(">>>> Table {} ", localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE));
 
-    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + REMOTE_TABLE));
+    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + REMOTE_TABLE), REMOTE_TABLE);
     LOG.info(">>>> Table {} ", remoteServer.client().getTable(REMOTE_DATABASE, REMOTE_TABLE));
 
     executor = Executors.newSingleThreadExecutor();
@@ -131,14 +141,14 @@ public class WaggleDanceIntegrationTest {
     executor.shutdownNow();
   }
 
-  private void createLocalTable(File tableUri) throws Exception {
-    createUnpartitionedTable(localServer.client(), LOCAL_DATABASE, LOCAL_TABLE, tableUri);
+  private void createLocalTable(File tableUri, String table) throws Exception {
+    createUnpartitionedTable(localServer.client(), LOCAL_DATABASE, table, tableUri);
   }
 
-  private void createRemoteTable(File tableUri) throws Exception {
+  private void createRemoteTable(File tableUri, String table) throws Exception {
     HiveMetaStoreClient client = remoteServer.client();
 
-    Table hiveTable = createPartitionedTable(client, REMOTE_DATABASE, REMOTE_TABLE, tableUri);
+    Table hiveTable = createPartitionedTable(client, REMOTE_DATABASE, table, tableUri);
 
     File partitionEurope = new File(tableUri, "continent=Europe");
     File partitionUk = new File(partitionEurope, "country=UK");
@@ -848,7 +858,7 @@ public class WaggleDanceIntegrationTest {
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Federations federations = stopServerAndGetConfiguration();
     PrimaryMetaStore primaryMetaStore = federations.getPrimaryMetaStore();
-    assertThat(primaryMetaStore.getMappedDatabases().contains("newDB"), is(true));
+    assertThat(primaryMetaStore.getMappedDatabases().contains("newdb"), is(true));
   }
 
   @Test
@@ -877,7 +887,206 @@ public class WaggleDanceIntegrationTest {
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Federations federations = stopServerAndGetConfiguration();
     PrimaryMetaStore primaryMetaStore = federations.getPrimaryMetaStore();
-    assertThat(primaryMetaStore.getMappedDatabases().contains("newDB"), is(true));
+    assertThat(primaryMetaStore.getMappedDatabases().contains("newdb"), is(true));
+  }
+
+  @Test
+  public void primaryAndFederatedMappedTables() throws Exception {
+    String localTable = "other_local_table";
+    String remoteTable = "other_remote_table";
+    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + localTable), localTable);
+    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + "not_mapped_local"), "not_mapped_local");
+    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + remoteTable), remoteTable);
+    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + "not_mapped_remote"), "not_mapped_remote");
+
+    MappedTables mappedTablesLocal = new MappedTables(LOCAL_DATABASE, Collections.singletonList(localTable));
+    MappedTables mappedTablesRemote = new MappedTables(REMOTE_DATABASE, Collections.singletonList(remoteTable));
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .withPrimaryMappedTables(Collections.singletonList(mappedTablesLocal))
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(),
+            Collections.singletonList(mappedTablesRemote), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    List<String> resultTables = proxy.getAllTables(LOCAL_DATABASE);
+    assertThat(resultTables.size(), is(1));
+    assertThat(resultTables.get(0), is(localTable));
+
+    resultTables = proxy.getAllTables(PREFIXED_REMOTE_DATABASE);
+    assertThat(resultTables.size(), is(1));
+    assertThat(resultTables.get(0), is(remoteTable));
+  }
+
+  @Test
+  public void getTablesFromPatternMappedTables() throws Exception {
+    String localTable = "other_local_table";
+    String remoteTable = "other_remote_table";
+    createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + localTable), localTable);
+    createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + remoteTable), remoteTable);
+
+    MappedTables mappedTablesLocal = new MappedTables(LOCAL_DATABASE, Collections.singletonList(".*other.*"));
+    MappedTables mappedTablesRemote = new MappedTables(REMOTE_DATABASE, Collections.singletonList("no_match.*"));
+
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(),
+            AccessControlType.READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST)
+        .withPrimaryMappedTables(Collections.singletonList(mappedTablesLocal))
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(),
+            Collections.singletonList(mappedTablesRemote), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    List<String> resultTables = proxy.getAllTables(LOCAL_DATABASE);
+    assertThat(resultTables.size(), is(1));
+    assertThat(resultTables.get(0), is(localTable));
+
+    resultTables = proxy.getAllTables(PREFIXED_REMOTE_DATABASE);
+    assertThat(resultTables.size(), is(0));
+  }
+
+  @Test
+  public void prefixedModeDatabaseNameMapping() throws Exception {
+    Map<String, String> databaseNameMapping1 = new HashMap<>();
+    databaseNameMapping1.put(LOCAL_DATABASE, "abc");
+    Map<String, String> databaseNameMapping2 = new HashMap<>();
+    databaseNameMapping2.put(REMOTE_DATABASE, "xyz");
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withPrimaryDatabaseNameMappingMap(databaseNameMapping1)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .withFederatedDatabaseNameMappingMap(databaseNameMapping2)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> allDatabases = proxy.getAllDatabases();
+    assertThat(allDatabases.size(), is(5));
+    assertThat(allDatabases.get(0), is("default"));
+    assertThat(allDatabases.get(1), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(2), is("abc"));
+    assertThat(allDatabases.get(3), is(PREFIXED_REMOTE_DATABASE));
+    assertThat(allDatabases.get(4), is(SECONDARY_METASTORE_NAME + "_xyz"));
+    // Local table
+    Table waggledLocalTable = proxy.getTable("abc", LOCAL_TABLE);
+    assertNotNull(waggledLocalTable);
+
+    // Remote table
+    Table waggledRemoteTable = proxy.getTable(SECONDARY_METASTORE_NAME + "_xyz", REMOTE_TABLE);
+    assertNotNull(waggledRemoteTable);
+  }
+
+  @Test
+  public void manualModeDatabaseNameMapping() throws Exception {
+    Map<String, String> databaseNameMapping1 = new HashMap<>();
+    databaseNameMapping1.put(LOCAL_DATABASE, "abc");
+    Map<String, String> databaseNameMapping2 = new HashMap<>();
+    databaseNameMapping2.put(REMOTE_DATABASE, "xyz");
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withPrimaryDatabaseNameMappingMap(databaseNameMapping1)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .withFederatedDatabaseNameMappingMap(databaseNameMapping2)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> allDatabases = proxy.getAllDatabases();
+    assertThat(allDatabases.size(), is(5));
+    assertThat(allDatabases.get(0), is("default"));
+    assertThat(allDatabases.get(1), is(LOCAL_DATABASE));
+    assertThat(allDatabases.get(2), is("abc"));
+    assertThat(allDatabases.get(3), is(REMOTE_DATABASE));
+    assertThat(allDatabases.get(4), is("xyz"));
+    // Local table
+    Table waggledLocalTable = proxy.getTable("abc", LOCAL_TABLE);
+    assertNotNull(waggledLocalTable);
+
+    // Remote table
+    Table waggledRemoteTable = proxy.getTable("xyz", REMOTE_TABLE);
+    assertNotNull(waggledRemoteTable);
+  }
+
+  @Test
+  public void hiveMetastoreFilterHookConfiguredForPrimary() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .withHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName())
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    assertThat(waggledLocalTable.getSd().getLocation(), startsWith("prefix"));
+
+    Table remoteTable = proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
+    assertThat(remoteTable.getSd().getLocation().startsWith("prefix"), is(false));
+  }
+
+  @Test
+  public void get_privilege_set() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    HiveObjectType objectType = HiveObjectType.DATABASE;
+    String dbName = LOCAL_DATABASE;
+    // Explicitly set to null as this threw errors
+    String objectName = null;
+    List<String> partValues = null;
+    String columnName = null;
+    HiveObjectRef hiveObjectRef = new HiveObjectRef(objectType, dbName, objectName, partValues, columnName);
+    PrincipalPrivilegeSet get_privilege_set = proxy.get_privilege_set(hiveObjectRef, "hadoop", null);
+    assertNotNull(get_privilege_set);
+  }
+
+  @Test
+  public void getTableMeta() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri(), REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<TableMeta> tableMeta = proxy
+        .getTableMeta("waggle_remote_remote_database", "*", Lists.newArrayList("EXTERNAL_TABLE"));
+    assertThat(tableMeta.size(), is(1));
+    assertThat(tableMeta.get(0).getDbName(), is("waggle_remote_remote_database"));
+    assertThat(tableMeta.get(0).getTableName(), is(REMOTE_TABLE));
+    // use wildcards: '.'
+    tableMeta = proxy.getTableMeta("waggle_remote.remote_database", "*", Lists.newArrayList("EXTERNAL_TABLE"));
+    assertThat(tableMeta.size(), is(1));
+    assertThat(tableMeta.get(0).getDbName(), is("waggle_remote_remote_database"));
+    assertThat(tableMeta.get(0).getTableName(), is(REMOTE_TABLE));
+    tableMeta = proxy.getTableMeta("waggle.remote_remote_database", "*", Lists.newArrayList("EXTERNAL_TABLE"));
+    assertThat(tableMeta.size(), is(1));
+    assertThat(tableMeta.get(0).getDbName(), is("waggle_remote_remote_database"));
+    assertThat(tableMeta.get(0).getTableName(), is(REMOTE_TABLE));
   }
 
 }

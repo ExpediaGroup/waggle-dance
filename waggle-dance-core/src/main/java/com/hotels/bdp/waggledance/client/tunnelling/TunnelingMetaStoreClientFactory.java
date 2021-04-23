@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,8 @@ public class TunnelingMetaStoreClientFactory {
       MetastoreTunnel metastoreTunnel,
       String name,
       int reconnectionRetries,
-      int connectionTimeout) {
+      int connectionTimeout,
+      Map<String, String> configurationProperties) {
     String uri = uris;
     String[] urisSplit = uri.split(",");
     if (urisSplit.length > 1) {
@@ -77,6 +78,9 @@ public class TunnelingMetaStoreClientFactory {
 
     Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uri);
+    if (configurationProperties != null) {
+    properties.putAll(configurationProperties);
+    }
     HiveConfFactory confFactory = new HiveConfFactory(Collections.<String>emptyList(), properties);
     HiveConf localHiveConf = localHiveConfFactory.newInstance(localHost, localPort, confFactory.newInstance());
 

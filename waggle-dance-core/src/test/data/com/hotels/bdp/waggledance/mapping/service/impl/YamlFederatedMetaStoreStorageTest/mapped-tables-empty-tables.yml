@@ -1,0 +1,8 @@
+federated-meta-stores:
+  - remote-meta-store-uris: thrift://localhost:19083
+    name: hcom_1
+    mapped-databases:
+      - db1
+    mapped-tables:
+      - database: db1
+        mapped-tables:

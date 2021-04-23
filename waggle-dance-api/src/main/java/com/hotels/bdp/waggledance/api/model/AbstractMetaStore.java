@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,20 @@ import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 import java.beans.Transient;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.collect.HashBiMap;
 
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
@@ -40,16 +43,19 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
     @Type(value = PrimaryMetaStore.class, name = "PRIMARY"),
     @Type(value = FederatedMetaStore.class, name = "FEDERATED") })
 public abstract class AbstractMetaStore {
-
   private String databasePrefix;
+  private String hiveMetastoreFilterHook;
   private List<String> writableDatabaseWhitelist;
   private List<String> mappedDatabases;
+  private @Valid List<MappedTables> mappedTables;
+  private Map<String, String> databaseNameMapping = Collections.emptyMap();
   private @NotBlank String name;
   private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
+  private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
 
   public AbstractMetaStore() {}
 
@@ -91,6 +97,14 @@ public abstract class AbstractMetaStore {
 
   public void setDatabasePrefix(String databasePrefix) {
     this.databasePrefix = databasePrefix;
+  }
+
+  public String getHiveMetastoreFilterHook() {
+    return hiveMetastoreFilterHook;
+  }
+
+  public void setHiveMetastoreFilterHook(String hiveMetastoreFilterHook) {
+    this.hiveMetastoreFilterHook = hiveMetastoreFilterHook;
   }
 
   public String getName() {
@@ -159,6 +173,31 @@ public abstract class AbstractMetaStore {
 
   public void setMappedDatabases(List<String> mappedDatabases) {
     this.mappedDatabases = mappedDatabases;
+  }
+
+  public List<MappedTables> getMappedTables() {
+    return mappedTables;
+  }
+
+  public void setMappedTables(List<MappedTables> mappedTables) {
+    this.mappedTables = mappedTables;
+  }
+
+  public Map<String, String> getDatabaseNameMapping() {
+    return databaseNameMapping;
+  }
+
+  public void setDatabaseNameMapping(Map<String, String> databaseNameMapping) {
+    if (databaseNameMapping == null) {
+      databaseNameMapping = Collections.emptyMap();
+    }
+    this.databaseNameMapping = Collections.unmodifiableMap(databaseNameMapping);
+    databaseNameBiMapping = HashBiMap.create(databaseNameMapping);
+  }
+
+  @Transient
+  public HashBiMap<String, String> getDatabaseNameBiMapping() {
+    return databaseNameBiMapping;
   }
 
   @Transient

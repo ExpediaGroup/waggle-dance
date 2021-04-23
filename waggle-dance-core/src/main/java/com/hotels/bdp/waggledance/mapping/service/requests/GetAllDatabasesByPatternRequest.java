@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class GetAllDatabasesByPatternRequest implements RequestCallable<List<Str
     List<String> mappedDatabases = new ArrayList<>();
     for (String database : databases) {
       if (filter.apply(database, mapping)) {
-        mappedDatabases.add(mapping.transformOutboundDatabaseName(database));
+        mappedDatabases.addAll(mapping.transformOutboundDatabaseNameMultiple(database));
       }
     }
     return mappedDatabases;

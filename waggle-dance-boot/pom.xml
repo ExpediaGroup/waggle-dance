@@ -34,7 +34,8 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot-maven-plugin.version}</version>
         <configuration>
-		  <mainClass>com.hotels.bdp.waggledance.WaggleDance</mainClass>
+          <layout>ZIP</layout>
+          <mainClass>com.hotels.bdp.waggledance.WaggleDance</mainClass>
           <requiresUnpack>
             <!-- We are hitting an issue introduced in hive-common-2.1.1 and fixed in https://issues.apache.org/jira/browse/HIVE-17155
               The HiveConf class tries loading conf (e.g. hive-site.xml) from the uberjar and fails. Unpacking it with this

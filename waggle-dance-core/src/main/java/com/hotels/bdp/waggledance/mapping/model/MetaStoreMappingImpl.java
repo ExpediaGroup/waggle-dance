@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -41,6 +44,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final AccessControlHandler accessControlHandler;
   private final String name;
   private final long latency;
+  private final MetaStoreFilterHook metastoreFilter;
 
   private final ConnectionType connectionType;
 
@@ -50,23 +54,35 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
       CloseableThriftHiveMetastoreIface client,
       AccessControlHandler accessControlHandler,
       ConnectionType connectionType,
-      long latency) {
+      long latency,
+      MetaStoreFilterHook metastoreFilter) {
     this.databasePrefix = databasePrefix;
     this.name = name;
     this.client = client;
     this.accessControlHandler = accessControlHandler;
     this.connectionType = connectionType;
     this.latency = latency;
+    this.metastoreFilter = metastoreFilter;
   }
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
-    return getDatabasePrefix() + databaseName.toLowerCase(Locale.ROOT);
+    return databaseName.toLowerCase(Locale.ROOT);
+  }
+
+  @Override
+  public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    return Collections.singletonList(transformInboundDatabaseName(databaseName));
   }
 
   @Override
   public ThriftHiveMetastore.Iface getClient() {
     return client;
+  }
+
+  @Override
+  public MetaStoreFilterHook getMetastoreFilter() {
+    return metastoreFilter;
   }
 
   @Override
@@ -77,11 +93,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
 
   @Override
   public String transformInboundDatabaseName(String databaseName) {
-    databaseName = databaseName.toLowerCase(Locale.ROOT);
-    if (databaseName.startsWith(getDatabasePrefix())) {
-      return databaseName.substring(getDatabasePrefix().length());
-    }
-    return databaseName;
+    return databaseName.toLowerCase(Locale.ROOT);
   }
 
   @Override
@@ -137,4 +149,5 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   public long getLatency() {
     return latency;
   }
+
 }
