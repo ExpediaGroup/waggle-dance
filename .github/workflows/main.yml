@@ -1,6 +1,10 @@
 name: Java CI
 
-on: [push, pull_request]
+on: 
+  pull_request:
+  push:
+    branches: 
+      - main
 
 jobs:
   test:
@@ -10,10 +14,22 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+    - name: Init Coveralls
+      shell: bash
+      run: |
+          COVERALLS_TOKEN=${{ secrets.COVERALLS_REPO_TOKEN }}
+          if [[ -z "${COVERALLS_TOKEN}" ]];
+          then
+             echo "Coveralls token not available"
+             COVERALLS_SKIP=true
+          else
+             echo "Coveralls token available"
+             COVERALLS_SKIP=false
+          fi
+          echo "COVERALLS_SKIP=${COVERALLS_SKIP}" >> $GITHUB_ENV        
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
         java-version: 8
     - name: Run Maven Targets
-      run: mvn package jacoco:report coveralls:report --batch-mode --show-version --no-transfer-progress --activate-profiles coveralls -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
-      
+       run: mvn package jacoco:report coveralls:report --batch-mode --show-version --activate-profiles coveralls -Dcoveralls.skip=$COVERALLS_SKIP -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
