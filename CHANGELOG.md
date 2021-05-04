@@ -1,3 +1,7 @@
+## [3.9.5] - TBD
+### Changed
+* `commons-io` updated to `2.7.` (was `2.6`).
+
 ## [3.9.4] - 2021-04-08
 ### Fixed
 * Support for '.' wildcards in database pattern calls. See [#216](https://github.com/HotelsDotCom/waggle-dance/issues/216)
