@@ -1,9 +1,9 @@
 name: Java CI
 
-on: 
+on:
   pull_request:
   push:
-    branches: 
+    branches:
       - main
 
 jobs:
@@ -26,10 +26,10 @@ jobs:
              echo "Coveralls token available"
              COVERALLS_SKIP=false
           fi
-          echo "COVERALLS_SKIP=${COVERALLS_SKIP}" >> $GITHUB_ENV        
+          echo "COVERALLS_SKIP=${COVERALLS_SKIP}" >> $GITHUB_ENV
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
         java-version: 8
     - name: Run Maven Targets
-       run: mvn package jacoco:report coveralls:report --batch-mode --show-version --activate-profiles coveralls -Dcoveralls.skip=$COVERALLS_SKIP -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
+       run: mvn package jacoco:report coveralls:report --batch-mode --show-version --activate-profiles coveralls -Dcoveralls.skip=${COVERALLS_SKIP} -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
