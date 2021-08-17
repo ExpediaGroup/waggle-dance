@@ -31,7 +31,6 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 8
-        java-version: '8'
         server-id: sonatype-nexus-staging # Value of the distributionManagement/repository/id field of the pom.xml
         server-username: SONATYPE_USERNAME # env variable for username in deploy
         server-password: SONATYPE_PASSWORD # env variable for token in deploy
