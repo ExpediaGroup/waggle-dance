@@ -44,6 +44,6 @@ jobs:
     - name: Run Maven Targets
       run: mvn deploy jacoco:report coveralls:report --batch-mode --show-version --activate-profiles coveralls -Dcoveralls.skip=$COVERALLS_SKIP -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
       env:
-        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-        GPG_PASSPHRASE: ${{secrets.GPG_PRIVATE_KEY_PASSPHRASE}}
+        SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
+        SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
+        GPG_PASSPHRASE: ${{secrets.HCOM_GPG_PRIVATE_KEY_PASSPHRASE}}
