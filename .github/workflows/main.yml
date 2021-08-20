@@ -34,8 +34,8 @@ jobs:
         java-version: '8'
         java-package: jdk
         server-id: sonatype-nexus-snapshots # Value of the distributionManagement/repository/id field of the pom.xml
-        server-username: SONATYPE_USERNAME # env variable for username in deploy
-        server-password: SONATYPE_PASSWORD # env variable for token in deploy
+        server-username: HCOM_SONATYPE_USERNAME # env variable for username in deploy
+        server-password: HCOM_SONATYPE_PASSWORD # env variable for token in deploy
         # only signed artifacts will be released to maven central. this sets up things for the maven-gpg-plugin
         gpg-private-key: ${{ secrets.HCOM_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
         gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
@@ -45,6 +45,6 @@ jobs:
 #      run: mvn deploy jacoco:report coveralls:report --batch-mode --show-version --activate-profiles coveralls -Dcoveralls.skip=$COVERALLS_SKIP -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
       run: mvn deploy -DskipTests --batch-mode --show-version -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
       env:
-        SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
-        SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
+        HCOM_SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
+        HCOM_SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
         GPG_PASSPHRASE: ${{secrets.HCOM_GPG_PRIVATE_KEY_PASSPHRASE}}
