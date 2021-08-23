@@ -40,10 +40,10 @@ jobs:
         gpg-private-key: ${{ secrets.HCOM_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
         gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
         # this creates a settings.xml with the following server
-        settings-path: ${{ github.workspace }}        
+        settings-path: ${{ github.workspace }}
     - name: Run Maven Targets
 #      run: mvn deploy jacoco:report coveralls:report --batch-mode --show-version --activate-profiles coveralls -Dcoveralls.skip=$COVERALLS_SKIP -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
-      run: mvn deploy -DskipTests --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
+      run: mvn deploy -DskipTests --activate-profiles release-via-github-actions --batch-mode --show-version -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
       env:
         HCOM_SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
         HCOM_SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
