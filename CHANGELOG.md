@@ -1,4 +1,4 @@
-## [3.9.5] - TBD
+## [3.9.5] - 2021-08-23
 ### Changed
 * `commons-io` updated to `2.7.` (was `2.6`).
 * `org.pentaho:pentaho-aggdesigner-algorithm` dependency excluded from `waggle-dance-core`.

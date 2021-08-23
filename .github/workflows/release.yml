@@ -30,7 +30,7 @@ jobs:
         server-username: SONATYPE_USERNAME # env variable for username in deploy
         server-password: SONATYPE_PASSWORD # env variable for token in deploy
         # only signed artifacts will be released to maven central. this sets up things for the maven-gpg-plugin
-        gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+        gpg-private-key: ${{ secrets.HCOM_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
         gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
         # this creates a settings.xml with the following server
         settings-path: ${{ github.workspace }}
@@ -42,10 +42,10 @@ jobs:
 
     - name: Run Maven Targets
       # we are skipping the tests because we are testing the release.yml and they take too long, but once it works they shouldn't be skipped
-      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress 
+      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
       env:
-        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+        SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
+        SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
         DOCKERHUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-        GPG_PASSPHRASE: ${{secrets.GPG_PRIVATE_KEY_PASSPHRASE}}
+        GPG_PASSPHRASE: ${{secrets.HCOM_GPG_PRIVATE_KEY_PASSPHRASE}}
