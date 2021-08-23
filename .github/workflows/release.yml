@@ -42,7 +42,7 @@ jobs:
 
     - name: Run Maven Targets
       # we are skipping the tests because we are testing the release.yml and they take too long, but once it works they shouldn't be skipped
-      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml -DskipTests -Darguments='-DskipTests --settings $GITHUB_WORKSPACE/settings.xml' --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
+      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml -DskipTests -Darguments="-DskipTests --settings $GITHUB_WORKSPACE/settings.xml" --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
       env:
         SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
