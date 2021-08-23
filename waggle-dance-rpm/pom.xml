@@ -127,11 +127,6 @@
             <executions>
               <execution>
                 <id>attach-rpm</id>
-                <configuration>
-                  <keyPassphrase>
-                    <passphrase>${gpg.passphrase}</passphrase>
-                  </keyPassphrase>
-                </configuration>
               </execution>
             </executions>
           </plugin>
