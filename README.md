@@ -5,10 +5,10 @@
 You can obtain Waggle Dance from Maven Central:
 
 [![Maven Central TGZ](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance/badge.svg?subject=com.hotels:waggle-dance-bin.tgz)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance)
-[![Maven Central RPM](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm/badge.svg?subject=com.hotels:waggle-dance.rpm)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm) 
-![Build](https://github.com/HotelsDotCom/waggle-dance/workflows/Java%20CI/badge.svg?event=push) 
-[![Coverage Status](https://coveralls.io/repos/github/HotelsDotCom/waggle-dance/badge.svg?branch=main)](https://coveralls.io/github/HotelsDotCom/waggle-dance?branch=main) 
-![GitHub license](https://img.shields.io/github/license/HotelsDotCom/waggle-dance.svg)
+[![Maven Central RPM](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm/badge.svg?subject=com.hotels:waggle-dance.rpm)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm)
+![Build](https://github.com/ExpediaGroup/waggle-dance/workflows/Java%20CI/badge.svg?event=push)
+[![Coverage Status](https://coveralls.io/repos/github/ExpediaGroup/waggle-dance/badge.svg?branch=main)](https://coveralls.io/github/ExpediaGroup/waggle-dance?branch=main)
+![GitHub license](https://img.shields.io/github/license/ExpediaGroup/waggle-dance.svg)
 
 ## Overview
 
