@@ -13,7 +13,7 @@
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
-  <url>https://github.com/HotelsDotCom/waggle-dance</url>
+  <url>https://github.com/ExpediaGroup/waggle-dance</url>
   <inceptionYear>2016</inceptionYear>
 
   <scm>
