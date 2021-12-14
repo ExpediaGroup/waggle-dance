@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.glue.catalog.metastore.AWSCatalogMetastoreClient;
+import com.amazonaws.glue.catalog.metastore.GlueMetastoreClientDelegate;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
@@ -73,9 +74,10 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     properties.put(ConfVars.METASTOREURIS.varname, uris);
     if (waggleDanceConfiguration.getConfigurationProperties() != null) {
       properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
+      properties.put(GlueMetastoreClientDelegate.CATALOG_ID_CONF, metaStore.getGlueAccountId());
     }
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
-    if (metaStore.getName().equals("glue")) { // TODO PD trigger on something better.
+    if (metaStore.getName().startsWith("glue")) { // TODO PD trigger on something better.
       // TODO PD make sure healthchecks either work or skip glue
       try {
         // TODO PD need to set:

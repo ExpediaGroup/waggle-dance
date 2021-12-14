@@ -56,6 +56,7 @@ public abstract class AbstractMetaStore {
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
+  private String glueAccountId;
 
   public AbstractMetaStore() {}
 
@@ -193,6 +194,14 @@ public abstract class AbstractMetaStore {
     }
     this.databaseNameMapping = Collections.unmodifiableMap(databaseNameMapping);
     databaseNameBiMapping = HashBiMap.create(databaseNameMapping);
+  }
+
+  public String getGlueAccountId() {
+    return glueAccountId;
+  }
+
+  public void setGlueAccountId(String glueAccountId) {
+    this.glueAccountId = glueAccountId;
   }
 
   @Transient
