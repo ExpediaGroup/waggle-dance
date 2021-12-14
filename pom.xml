@@ -9,7 +9,7 @@
 
   <groupId>com.hotels</groupId>
   <artifactId>waggle-dance-parent</artifactId>
-  <version>3.9.8-SNAPSHOT</version>
+  <version>3.9.7-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>

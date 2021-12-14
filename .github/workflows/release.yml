@@ -42,7 +42,7 @@ jobs:
 
     - name: Run Maven Targets
       # we are skipping the tests for releases, run a build step first.
-      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml -DskipTests -Darguments=-DskipTests --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
+      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml -DstagingProgressTimeoutMinutes=20 -DskipTests -Darguments=-DskipTests --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
       env:
         SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
