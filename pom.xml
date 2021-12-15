@@ -9,7 +9,7 @@
 
   <groupId>com.hotels</groupId>
   <artifactId>waggle-dance-parent</artifactId>
-  <version>3.9.8-SNAPSHOT</version>
+  <version>3.9.7-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
@@ -233,7 +233,7 @@
             <serverId>sonatype-nexus-staging</serverId>
             <nexusUrl>https://oss.sonatype.org/</nexusUrl>
             <autoReleaseAfterClose>true</autoReleaseAfterClose>
-            <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
+            <stagingProgressTimeoutMinutes>30</stagingProgressTimeoutMinutes>
           </configuration>
         </plugin>
         <plugin>
