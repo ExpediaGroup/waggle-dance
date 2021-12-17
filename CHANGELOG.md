@@ -1,3 +1,11 @@
+## [3.9.7] - 2021-12-14
+### Changed
+* `log4j2` updated to `2.16.0` (was `2.15.0`) 
+
+## [3.9.6] - 2021-12-14
+### Changed
+* `log4j2` updated to `2.15.0` (was `2.10.0`)
+
 ## [3.9.5] - 2021-08-23
 ### Changed
 * `commons-io` updated to `2.7.` (was `2.6`).
