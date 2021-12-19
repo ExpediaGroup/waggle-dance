@@ -76,20 +76,6 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   }
 
   @Test
-  public void nullRemoteMetaStoreUris() {
-    metaStore.setRemoteMetaStoreUris(null);
-    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
-    assertThat(violations.size(), is(1));
-  }
-
-  @Test
-  public void emptyRemoteMetaStoreUris() {
-    metaStore.setRemoteMetaStoreUris(" ");
-    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
-    assertThat(violations.size(), is(1));
-  }
-
-  @Test
   public void validMetastoreTunnel() {
     metaStore.setMetastoreTunnel(newMetastoreTunnel());
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);

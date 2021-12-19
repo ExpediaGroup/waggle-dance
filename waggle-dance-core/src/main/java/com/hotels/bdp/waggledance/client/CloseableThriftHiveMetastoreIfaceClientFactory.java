@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.glue.catalog.metastore.AWSCatalogMetastoreClient;
-import com.amazonaws.glue.catalog.metastore.GlueMetastoreClientDelegate;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
@@ -74,25 +73,19 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     properties.put(ConfVars.METASTOREURIS.varname, uris);
     if (waggleDanceConfiguration.getConfigurationProperties() != null) {
       properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
-      properties.put(GlueMetastoreClientDelegate.CATALOG_ID_CONF, metaStore.getGlueAccountId());
     }
-    HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
-    if (metaStore.getName().startsWith("glue")) { // TODO PD trigger on something better.
+    if (metaStore.getGlueConfig() != null) {
+      properties.putAll(metaStore.getGlueConfig().getConfigurationProperties());
+      HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
       // TODO PD make sure healthchecks either work or skip glue
       try {
-        // TODO PD need to set:
-        // String regionStr = getProperty(AWS_REGION, conf);
-        // String glueEndpoint = getProperty(AWS_GLUE_ENDPOINT, conf);
-        // see AWSGlueClientFactory and com.amazonaws.glue.catalog.util.AWSGlueConfig
-        // getConfigurationProperties() need to find some way to configure this per metastore.
-        // glue.us-east-1.amazonaws.com
         AWSCatalogMetastoreClient client = new AWSCatalogMetastoreClient(confFactory.newInstance(), null);
         return new MetastoreIfaceAdapter(client);
       } catch (MetaException e) {
         throw new WaggleDanceException("Couldn't create Glue client for " + metaStore.getName(), e);
       }
     }
-
+    HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     return defaultMetaStoreClientFactory
         .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
             connectionTimeout);
