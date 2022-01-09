@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,19 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
+    Map<String, String> properties = new HashMap<>();
+    if (waggleDanceConfiguration.getConfigurationProperties() != null) {
+      properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
+    }
+    if (metaStore.getGlueConfig() != null) {
+      return newGlueInstance(metaStore, properties);
+    }
+    return newHiveInstance(metaStore, properties);
+  }
+
+  private CloseableThriftHiveMetastoreIface newHiveInstance(
+      AbstractMetaStore metaStore,
+      Map<String, String> properties) {
     String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
     String name = metaStore.getName().toLowerCase(Locale.ROOT);
     // Connection timeout should not be less than 1
@@ -69,25 +82,27 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
           .newInstance(uris, metaStore.getMetastoreTunnel(), name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
               connectionTimeout, waggleDanceConfiguration.getConfigurationProperties());
     }
-    Map<String, String> properties = new HashMap<>();
     properties.put(ConfVars.METASTOREURIS.varname, uris);
     if (waggleDanceConfiguration.getConfigurationProperties() != null) {
       properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
-    }
-    if (metaStore.getGlueConfig() != null) {
-      properties.putAll(metaStore.getGlueConfig().getConfigurationProperties());
-      HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
-      // TODO PD make sure healthchecks either work or skip glue
-      try {
-        AWSCatalogMetastoreClient client = new AWSCatalogMetastoreClient(confFactory.newInstance(), null);
-        return new MetastoreIfaceAdapter(client);
-      } catch (MetaException e) {
-        throw new WaggleDanceException("Couldn't create Glue client for " + metaStore.getName(), e);
-      }
     }
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     return defaultMetaStoreClientFactory
         .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
             connectionTimeout);
+  }
+
+  private CloseableThriftHiveMetastoreIface newGlueInstance(
+      AbstractMetaStore metaStore,
+      Map<String, String> properties) {
+    properties.putAll(metaStore.getGlueConfig().getConfigurationProperties());
+    HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
+    // TODO PD make sure healthchecks either work or skip for glue
+    try {
+      AWSCatalogMetastoreClient client = new AWSCatalogMetastoreClient(confFactory.newInstance(), null);
+      return new MetastoreIfaceAdapter(client);
+    } catch (MetaException e) {
+      throw new WaggleDanceException("Couldn't create Glue client for " + metaStore.getName(), e);
+    }
   }
 }

@@ -236,7 +236,7 @@
     <dependency>
       <groupId>com.amazonaws.glue</groupId>
       <artifactId>aws-glue-datacatalog-hive2-client</artifactId>
-      <version>1.10.0-WD-SNAPSHOT</version>
+      <version>1.10.0-WD</version>
     </dependency>
 
     <!-- Test -->

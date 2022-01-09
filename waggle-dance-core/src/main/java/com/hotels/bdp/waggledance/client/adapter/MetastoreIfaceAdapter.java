@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -650,13 +650,21 @@ public class MetastoreIfaceAdapter implements CloseableThriftHiveMetastoreIface 
   @Override
   public PrimaryKeysResponse get_primary_keys(PrimaryKeysRequest request)
     throws MetaException, NoSuchObjectException, TException {
-    return new PrimaryKeysResponse(client.getPrimaryKeys(request));
+    List<SQLPrimaryKey> primaryKeys = client.getPrimaryKeys(request);
+    if (primaryKeys == null) {
+      primaryKeys = Collections.emptyList();
+    }
+    return new PrimaryKeysResponse(primaryKeys);
   }
 
   @Override
   public ForeignKeysResponse get_foreign_keys(ForeignKeysRequest request)
     throws MetaException, NoSuchObjectException, TException {
-    return new ForeignKeysResponse(client.getForeignKeys(request));
+    List<SQLForeignKey> foreignKeys = client.getForeignKeys(request);
+    if (foreignKeys == null) {
+      foreignKeys = Collections.emptyList();
+    }
+    return new ForeignKeysResponse(foreignKeys);
   }
 
   @Override
