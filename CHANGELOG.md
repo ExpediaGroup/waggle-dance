@@ -1,3 +1,7 @@
+## [3.9.9] - 2022-01-19
+### Changed
+* `log4j2` updated to `2.17.1` (was `2.17.0`) - log4shell vulnerability fix
+
 ## [3.9.8] - 2021-12-20
 ### Changed
 * `log4j2` updated to `2.17.0` (was `2.16.0`) - log4j vulnerability fix see https://logging.apache.org/log4j/2.x/security.html
