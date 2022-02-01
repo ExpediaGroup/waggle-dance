@@ -9,7 +9,7 @@
 
   <groupId>com.hotels</groupId>
   <artifactId>waggle-dance-parent</artifactId>
-  <version>3.9.7-SNAPSHOT</version>
+  <version>3.9.10-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
@@ -47,7 +47,7 @@
     <beeju.version>4.0.0</beeju.version>
     <guava.version>23.0</guava.version>
     <guice.version>4.0</guice.version>
-    <log4j2.version>2.16.0</log4j2.version>
+    <log4j2.version>2.17.1</log4j2.version>
     <hcommon-hive-metastore.version>1.2.3</hcommon-hive-metastore.version>
   </properties>
 
