@@ -83,9 +83,6 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
               connectionTimeout, waggleDanceConfiguration.getConfigurationProperties());
     }
     properties.put(ConfVars.METASTOREURIS.varname, uris);
-    if (waggleDanceConfiguration.getConfigurationProperties() != null) {
-      properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
-    }
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     return defaultMetaStoreClientFactory
         .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
