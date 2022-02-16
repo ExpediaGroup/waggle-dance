@@ -231,8 +231,9 @@
       <version>${jcabi-aspects.version}</version>
     </dependency>
 
-    <!-- Glue -->
+    <!-- Glue dependency -->
     <!-- Forked https://github.com/patduin/aws-glue-data-catalog-client-for-apache-hive-metastore -->
+    <!-- See waggle-dance/lib/ for installing locally -->
     <dependency>
       <groupId>com.amazonaws.glue</groupId>
       <artifactId>aws-glue-datacatalog-hive2-client</artifactId>
@@ -242,7 +243,6 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-aws</artifactId>
       <version>${hadoop.version}</version>
-      <!-- <version>3.2.1</version> -->
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
