@@ -41,8 +41,9 @@ jobs:
         git config user.name "eg-oss-ci"
 
     - name: Install Local Dependencies
-      run: mvn install:install-file -Dfile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.pom
-      run: mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.pom
+      run: |
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.pom
 
     - name: Run Maven Targets
       # we are skipping the tests for releases, run a build step first.

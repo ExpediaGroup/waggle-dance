@@ -23,7 +23,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 8
-    
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
@@ -33,6 +33,9 @@ jobs:
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
+      run: |
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.pom
       uses: github/codeql-action/autobuild@v1
 
     # ℹ️ Command-line programs to run using the OS shell.
