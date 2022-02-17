@@ -163,8 +163,9 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store.latency`                            | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
 | `primary-meta-store.mapped-databases`                   | No       | List of databases to federate from the primary metastore; all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
 | `primary-meta-store.mapped-tables`                      | No       | List of mappings from databases to tables to federate from the primary metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
-| `primary-meta-stores.hive-metastore-filter-hook`        | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
-| `primary-meta-stores.database-name-mapping`             | No       | BiDirectional Map of database names and mapped name, where key=`<database name as known in the primary metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
+| `primary-meta-store.hive-metastore-filter-hook`        | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
+| `primary-meta-store.database-name-mapping`             | No       | BiDirectional Map of database names and mapped name, where key=`<database name as known in the primary metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
+| `primary-meta-store.glueConfig`             | No       | Can be used instead of `remote-meta-store-uris` to federate to an AWS Glue Catalog ([AWS Glue](https://docs.aws.amazon.com/glue/index.html). See the [Federate to AWS Glue Catalog](#federate-to-aws-glue-catalog) section.|
 | `federated-meta-stores`                                 | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`       | Yes      | Thrift URIs of the federated read-only metastore. |
 | `federated-meta-stores[n].name`                         | Yes      | Name that uniquely identifies this metastore. Used internally. Cannot be empty. |
@@ -244,6 +245,39 @@ The following properties are configured in the server configuration file(waggle-
 | Property                          | Required   | Description |
 |:----|:----:|:----|
 | `overwrite-config-on-shutdown`    | No         | Controls whether the federations configuration must be overwritten when the server is stopped. Settings this to `false` will cause any federations dynamically added at runtime to be lost when the server is stopped. This is also the case of databases created at runtime when `database-resolution` is set to `MANUAL`. Default is `true`. |
+
+#### Federate to AWS Glue Catalog
+
+Waggle Dance supports federation to AWS Glue Catalog. The federation only works as read-only. Write (Create/Alter/Drop) operations are not supported very well as the Glue APIS don't expose all Hive Metastore functions for instance lock/transactions and other functions are not supported so clients might get exceptions when using certain operations (this can depend on a client (Hive, Spark, etc...). Some research has been done to allow write operations and it is not impossible with a bit more work but out of scope at the moment. 
+The GlueConfig configuration should be used if federation to Glue is needed.
+
+
+| Property        | Required | Description |
+|:----|:----:|:----|
+| `glueAccountId`  | Yes (if glueConfig used)   | The AWS account number.|
+| `glueEndpoint`   | Yes (if glueConfig used)   | The AWS glue endpoint. Is the same for all accounts key, is the region as Glue catalogs are per account and per region.|
+  
+ Example,:
+  
+    glueConfig:
+    	  glueAccountId: 1234566789012
+      glueEndpoint: glue.us-east-1.amazonaws.com
+      
+As with Hive federation the permission need to be setup to read underlying data, that's not part of Waggle Dance. If federating across AWS accounts the correct (cross account federation}[https://docs.aws.amazon.com/glue/latest/dg/cross-account-access.html] needs to be setup as well.       
+The policy giving access to the role running Waggle Dance will need at least these IAM Glue actions:
+     
+     actions = [
+    "glue:GetDatabase",
+    "glue:GetDatabases",
+    "glue:GetTable",
+    "glue:GetTables",
+    "glue:GetTableVersions",
+    "glue:GetPartition",
+    "glue:GetPartitions",
+    "glue:BatchGetPartition",
+    "glue:GetUserDefinedFunction",
+    "glue:GetUserDefinedFunctions"
+    ]
 
 #### Configuring a SSH tunnel
 

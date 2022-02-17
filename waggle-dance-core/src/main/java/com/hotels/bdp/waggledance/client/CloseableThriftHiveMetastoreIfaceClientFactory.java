@@ -25,8 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.MetaException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.amazonaws.glue.catalog.metastore.AWSCatalogMetastoreClient;
 
@@ -40,20 +38,21 @@ import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
 public class CloseableThriftHiveMetastoreIfaceClientFactory {
 
-  private final static Logger log = LoggerFactory.getLogger(CloseableThriftHiveMetastoreIfaceClientFactory.class);
-
   private static final int DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY = 3;
   private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private final DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
   private final int defaultConnectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L);
   private final WaggleDanceConfiguration waggleDanceConfiguration;
+  private final GlueClientFactory glueClientFactory;
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(
       TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
       DefaultMetaStoreClientFactory defaultMetaStoreClientFactory,
+      GlueClientFactory glueClientFactory,
       WaggleDanceConfiguration waggleDanceConfiguration) {
     this.tunnelingMetaStoreClientFactory = tunnelingMetaStoreClientFactory;
     this.defaultMetaStoreClientFactory = defaultMetaStoreClientFactory;
+    this.glueClientFactory = glueClientFactory;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
   }
 
@@ -94,9 +93,8 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
       Map<String, String> properties) {
     properties.putAll(metaStore.getGlueConfig().getConfigurationProperties());
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
-    // TODO PD make sure healthchecks either work or skip for glue
     try {
-      AWSCatalogMetastoreClient client = new AWSCatalogMetastoreClient(confFactory.newInstance(), null);
+      AWSCatalogMetastoreClient client = glueClientFactory.newInstance(confFactory.newInstance(), null);
       return new MetastoreIfaceAdapter(client);
     } catch (MetaException e) {
       throw new WaggleDanceException("Couldn't create Glue client for " + metaStore.getName(), e);

@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.client.GlueClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
@@ -55,9 +56,10 @@ public class CommonBeans {
   }
 
   @Bean
-  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory(WaggleDanceConfiguration waggleDanceConfiguration) {
+  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory(
+      WaggleDanceConfiguration waggleDanceConfiguration) {
     return new CloseableThriftHiveMetastoreIfaceClientFactory(new TunnelingMetaStoreClientFactory(),
-        new DefaultMetaStoreClientFactory(), waggleDanceConfiguration);
+        new DefaultMetaStoreClientFactory(), new GlueClientFactory(), waggleDanceConfiguration);
   }
 
   @Bean
