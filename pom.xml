@@ -221,6 +221,8 @@
         <artifactId>hcommon-hive-metastore</artifactId>
         <version>${hcommon-hive-metastore.version}</version>
       </dependency>
+      <!-- Jackson dependencies come transitively from different projects,
+      listing them all here so we get one version deployed -->
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>

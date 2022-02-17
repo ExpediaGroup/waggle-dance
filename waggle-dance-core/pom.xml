@@ -245,6 +245,7 @@
       <version>${hadoop.version}</version>
       <exclusions>
         <exclusion>
+          <!-- best to exclude as it comes bundled with jackon dependencies and we get conflicts. -->
           <groupId>com.amazonaws</groupId>
           <artifactId>aws-java-sdk-bundle</artifactId>
         </exclusion>
