@@ -42,7 +42,7 @@ jobs:
         # this creates a settings.xml on build server
         settings-path: ${{ github.workspace }}
 
-    - name: Run Maven Targets
+    - name: Install Local Dependencies
       run: |
         mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive-client-1.10.0-WD.pom -DpomFile=lib/aws-glue-datacatalog-hive-client-1.10.0-WD.pom
         mvn install:install-file -Dfile=lib/shims-1.10.0-WD.pom -DpomFile=lib/shims-1.10.0-WD.pom
@@ -52,7 +52,9 @@ jobs:
         mvn install:install-file -Dfile=lib/shims-loader-1.10.0-WD.jar -DpomFile=lib/shims-loader-1.10.0-WD.pom
         mvn install:install-file -Dfile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.pom
         mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.pom
-        mvn deploy jacoco:report coveralls:report --settings $GITHUB_WORKSPACE/settings.xml --batch-mode --show-version --activate-profiles coveralls,sonatype-oss-release-github-actions -Dcoveralls.skip=$COVERALLS_SKIP -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
+
+    - name: Run Maven Targets
+      run: mvn deploy jacoco:report coveralls:report --settings $GITHUB_WORKSPACE/settings.xml --batch-mode --show-version --activate-profiles coveralls,sonatype-oss-release-github-actions -Dcoveralls.skip=$COVERALLS_SKIP -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
       env:
         SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
