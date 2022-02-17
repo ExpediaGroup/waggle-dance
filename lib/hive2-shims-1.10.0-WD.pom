@@ -1,0 +1,31 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.amazonaws.glue</groupId>
+        <artifactId>shims</artifactId>
+        <version>1.10.0-WD</version>
+        <relativePath>../</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>hive2-shims</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Hive2Shims</name>
+    <description>Shims for Hive-2.x compatibility</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
+            <version>${hive2.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws.glue</groupId>
+            <artifactId>shims-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>
