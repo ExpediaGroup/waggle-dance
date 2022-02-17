@@ -248,7 +248,7 @@ The following properties are configured in the server configuration file(waggle-
 
 #### Federate to AWS Glue Catalog
 
-Waggle Dance supports federation to AWS Glue Catalog. The federation only works as read-only. Write (Create/Alter/Drop) operations are not supported very well as the Glue APIS don't expose all Hive Metastore functions for instance lock/transactions and other functions are not supported so clients might get exceptions when using certain operations (this can depend on a client (Hive, Spark, etc...). Some research has been done to allow write operations and it is not impossible with a bit more work but out of scope at the moment. 
+Waggle Dance supports federation to AWS Glue Catalog. The federation only works as read-only. Write (Create/Alter/Drop) operations are not supported very well as the Glue APIS don't expose all Hive Metastore functions for instance lock/transactions and other functions are not supported so clients might get exceptions when using certain operations (this can depend on a client like Hive, Spark, etc...). Some research has been done to allow write operations and it is not impossible with a bit more work but out of scope at the moment. 
 The GlueConfig configuration should be used if federation to Glue is needed.
 
 
