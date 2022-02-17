@@ -1,3 +1,7 @@
+## [3.4.0] - unreleased
+### Added
+* Support for Glue catalog (read only) federation.
+
 ## [3.9.9] - 2022-01-19
 ### Changed
 * `log4j2` updated to `2.17.1` (was `2.17.0`) - log4shell vulnerability fix
