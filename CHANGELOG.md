@@ -1,4 +1,4 @@
-## [3.4.0] - unreleased
+## [3.10.0] - unreleased
 ### Added
 * Support for Glue catalog (read only) federation.
 
