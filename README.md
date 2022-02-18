@@ -255,7 +255,7 @@ The GlueConfig configuration should be used if federation to Glue is needed.
 
 | Property        | Required | Description |
 |:----|:----:|:----|
-| `glue-account-id` | Yes (if glueConfig used)   | The AWS account number.|
+| `glue-account-id` | Yes (if `glueConfig` used)   | The AWS account number.|
 | `glue-endpoint`   | Yes (if glueConfig used)   | The AWS glue endpoint. Is the same for all accounts key, is the region as Glue catalogs are per account and per region.|
 
  Example,:
