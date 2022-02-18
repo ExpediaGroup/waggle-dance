@@ -264,7 +264,9 @@ The GlueConfig configuration should be used if federation to Glue is needed.
     	glue-account-id: 1234566789012
       glue-endpoint: glue.us-east-1.amazonaws.com
 
-As with Hive federation the permission need to be setup to read underlying data, that's not part of Waggle Dance. If federating across AWS accounts the correct (cross account federation}[https://docs.aws.amazon.com/glue/latest/dg/cross-account-access.html] needs to be setup as well.       
+As with Hive federation, the IAM permissions need to be setup to read underlying data. IAM permissions are not setup by this code, but are usually setup by the Terraform code that deploys WaggleDance, such as (apiary-federation)[https://github.com/ExpediaGroup/apiary-federation].
+
+If federating across AWS accounts, the correct (cross account federation permissions)[https://docs.aws.amazon.com/glue/latest/dg/cross-account-access.html] needs to be setup as well.       
 The policy giving access to the role running Waggle Dance will need at least these IAM Glue actions:
 
      actions = [
