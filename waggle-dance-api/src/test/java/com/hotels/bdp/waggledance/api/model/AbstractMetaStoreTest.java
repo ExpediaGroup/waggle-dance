@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,20 +73,6 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   public void typical() {
     Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
     assertThat(violations.size(), is(0));
-  }
-
-  @Test
-  public void nullRemoteMetaStoreUris() {
-    metaStore.setRemoteMetaStoreUris(null);
-    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
-    assertThat(violations.size(), is(1));
-  }
-
-  @Test
-  public void emptyRemoteMetaStoreUris() {
-    metaStore.setRemoteMetaStoreUris(" ");
-    Set<ConstraintViolation<T>> violations = validator.validate(metaStore);
-    assertThat(violations.size(), is(1));
   }
 
   @Test

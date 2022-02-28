@@ -50,12 +50,13 @@ public abstract class AbstractMetaStore {
   private @Valid List<MappedTables> mappedTables;
   private Map<String, String> databaseNameMapping = Collections.emptyMap();
   private @NotBlank String name;
-  private @NotBlank String remoteMetaStoreUris;
+  private String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
+  private GlueConfig glueConfig;
 
   public AbstractMetaStore() {}
 
@@ -193,6 +194,14 @@ public abstract class AbstractMetaStore {
     }
     this.databaseNameMapping = Collections.unmodifiableMap(databaseNameMapping);
     databaseNameBiMapping = HashBiMap.create(databaseNameMapping);
+  }
+
+  public GlueConfig getGlueConfig() {
+    return glueConfig;
+  }
+
+  public void setGlueConfig(GlueConfig glueConfig) {
+    this.glueConfig = glueConfig;
   }
 
   @Transient

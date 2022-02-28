@@ -23,7 +23,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 8
-    
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
@@ -33,7 +33,16 @@ jobs:
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v1
+      run: |
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive-client-1.10.0-WD.pom -DpomFile=lib/aws-glue-datacatalog-hive-client-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/shims-1.10.0-WD.pom -DpomFile=lib/shims-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/shims-common-1.10.0-WD.jar -DpomFile=lib/shims-common-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/hive2-shims-1.10.0-WD.jar -DpomFile=lib/hive2-shims-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/spark-hive-shims-1.10.0-WD.jar -DpomFile=lib/spark-hive-shims-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/shims-loader-1.10.0-WD.jar -DpomFile=lib/shims-loader-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.pom
+        mvn install -DskipTests
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl

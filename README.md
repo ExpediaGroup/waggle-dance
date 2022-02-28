@@ -151,31 +151,33 @@ Example:
 
 The table below describes all the available configuration values for Waggle Dance federations:
 
-| Property                                              | Required | Description |
+| Property                                            | Required | Description |
 |:----|:----:|:----|
-| `primary-meta-store`                                    | No       | Primary MetaStore config. Can be empty but it is advised to configure it. |
+| `primary-meta-store`                                  | No       | Primary MetaStore config. Can be empty but it is advised to configure it. |
 | `primary-meta-store.remote-meta-store-uris`             | Yes      | Thrift URIs of the federated read-only metastore. |
-| `primary-meta-store.name`                               | Yes      | Database name that uniquely identifies this metastore. Used internally. Cannot be empty. |
-| `primary-meta-store.database-prefix`                    | No       | Prefix used to access the primary metastore and differentiate databases in it from databases in another metastore. The default prefix (i.e. if this value isn't explicitly set) is empty string.|
-| `primary-meta-store.access-control-type`                | No       | Sets how the client access controls should be handled. Default is `READ_ONLY` Other options `READ_AND_WRITE_AND_CREATE`, `READ_AND_WRITE_ON_DATABASE_WHITELIST` and `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST` see Access Control section below. |
+| `primary-meta-store.name`                             | Yes      | Database name that uniquely identifies this metastore. Used internally. Cannot be empty. |
+| `primary-meta-store.database-prefix`                   | No       | Prefix used to access the primary metastore and differentiate databases in it from databases in another metastore. The default prefix (i.e. if this value isn't explicitly set) is empty string.|
+| `primary-meta-store.access-control-type`               | No       | Sets how the client access controls should be handled. Default is `READ_ONLY` Other options `READ_AND_WRITE_AND_CREATE`, `READ_AND_WRITE_ON_DATABASE_WHITELIST` and `READ_AND_WRITE_AND_CREATE_ON_DATABASE_WHITELIST` see Access Control section below. |
 | `primary-meta-store.writable-database-white-list`       | No       | White-list of databases used to verify write access used in conjunction with `primary-meta-store.access-control-type`. The list of databases should be listed without any `primary-meta-store.database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).|
-| `primary-meta-store.metastore-tunnel`                   | No       | See metastore tunnel configuration values below. |
-| `primary-meta-store.latency`                            | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
-| `primary-meta-store.mapped-databases`                   | No       | List of databases to federate from the primary metastore; all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
-| `primary-meta-store.mapped-tables`                      | No       | List of mappings from databases to tables to federate from the primary metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
-| `primary-meta-stores.hive-metastore-filter-hook`        | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
-| `primary-meta-stores.database-name-mapping`             | No       | BiDirectional Map of database names and mapped name, where key=`<database name as known in the primary metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
-| `federated-meta-stores`                                 | No       | Possible empty list of read only federated metastores. |
+| `primary-meta-store.metastore-tunnel`                  | No       | See metastore tunnel configuration values below. |
+| `primary-meta-store.latency`                          | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
+| `primary-meta-store.mapped-databases`                  | No       | List of databases to federate from the primary metastore; all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
+| `primary-meta-store.mapped-tables`                     | No       | List of mappings from databases to tables to federate from the primary metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
+| `primary-meta-store.hive-metastore-filter-hook`         | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
+| `primary-meta-store.database-name-mapping`              | No       | BiDirectional Map of database names and mapped name, where key=`<database name as known in the primary metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
+| `primary-meta-store.glue-config`                       | No       | Can be used instead of `remote-meta-store-uris` to federate to an AWS Glue Catalog ([AWS Glue](https://docs.aws.amazon.com/glue/index.html). See the [Federate to AWS Glue Catalog](#federate-to-aws-glue-catalog) section.|
+| `federated-meta-stores`                               | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`       | Yes      | Thrift URIs of the federated read-only metastore. |
-| `federated-meta-stores[n].name`                         | Yes      | Name that uniquely identifies this metastore. Used internally. Cannot be empty. |
+| `federated-meta-stores[n].name`                        | Yes      | Name that uniquely identifies this metastore. Used internally. Cannot be empty. |
 | `federated-meta-stores[n].database-prefix`              | No       | Prefix used to access this particular metastore and differentiate databases in it from databases in another metastore. Typically used if databases have the same name across metastores but federated access to them is still needed. The default prefix (i.e. if this value isn't explicitly set) is {federated-meta-stores[n].name} lowercased and postfixed with an underscore. For example if the metastore name was configured as "waggle" and no database prefix was provided but `PREFIXED` database resolution was used then the value of `database-prefix` would be "waggle_". |
 | `federated-meta-stores[n].metastore-tunnel`             | No       | See metastore tunnel configuration values below. |
-| `federated-meta-stores[n].latency`                      | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
+| `federated-meta-stores[n].latency`                     | No       | Indicates the acceptable slowness of the metastore in **milliseconds** for increasing the default connection timeout. Default latency is `0` and should be changed if the metastore is particularly slow. If you get an error saying that results were omitted because the metastore was slow, consider changing the latency to a higher number.|
 | `federated-meta-stores[n].mapped-databases`             | No       | List of databases to federate from this federated metastore, all other databases will be ignored. This property supports both full database names and [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html) (both being case-insensitive). By default, all databases from the metastore are federated. |
-| `federated-meta-stores[n].mapped-tables`                | No       | List of mappings from databases to tables to federate from this federated metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
+| `federated-meta-stores[n].mapped-tables`               | No       | List of mappings from databases to tables to federate from this federated metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
 | `federated-meta-stores[n].hive-metastore-filter-hook`   | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
 | `federated-meta-stores[n].database-name-mapping`        | No       | BiDirectional Map of database names and mapped names where key=`<database name as known in the federated metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
 | `federated-meta-stores[n].writable-database-white-list` | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).|
+| `federated-meta-stores[n].glue-config`             | No       | Can be used instead of `remote-meta-store-uris` to federate to an AWS Glue Catalog ([AWS Glue](https://docs.aws.amazon.com/glue/index.html). See the [Federate to AWS Glue Catalog](#federate-to-aws-glue-catalog) section.|
 
 #### Metastore tunnel
 The table below describes the metastore tunnel configuration values:
@@ -188,7 +190,7 @@ The table below describes the metastore tunnel configuration values:
 | `*.metastore-tunnel.known-hosts`                        | No       | Path to a known hosts file. |
 | `*.metastore-tunnel.private-keys`                       | No       | A comma-separated list of paths to any SSH keys required in order to set up the SSH tunnel. |
 | `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds, `0` means no timeout. Default is `60000` milliseconds, i.e. 1 minute. |
-| `*.metastore-tunnel.strict-host-key-checking`           | No       | Whether the SSH tunnel should be created with strict host key checking. Can be set to `yes` or `no`. The default is `yes`. |
+| `*.metastore-tunnel.strict-host-key-checking`            | No       | Whether the SSH tunnel should be created with strict host key checking. Can be set to `yes` or `no`. The default is `yes`. |
 
 #### Mapped tables
 The table below describes the `mapped-tables` configuration. For each entry in the list, a database name and the corresponding list of table names/patterns must be mentioned.
@@ -244,6 +246,41 @@ The following properties are configured in the server configuration file(waggle-
 | Property                          | Required   | Description |
 |:----|:----:|:----|
 | `overwrite-config-on-shutdown`    | No         | Controls whether the federations configuration must be overwritten when the server is stopped. Settings this to `false` will cause any federations dynamically added at runtime to be lost when the server is stopped. This is also the case of databases created at runtime when `database-resolution` is set to `MANUAL`. Default is `true`. |
+
+#### Federate to AWS Glue Catalog
+
+Waggle Dance supports federation to AWS Glue Catalog. The federation only works as read-only. Write (Create/Alter/Drop) operations are not supported very well as the Glue APIS don't expose all Hive Metastore functions for instance lock/transactions and other functions are not supported so clients might get exceptions when using certain operations (this can depend on a client like Hive, Spark, etc...). Some research has been done to allow write operations and it is not impossible with a bit more work but out of scope at the moment.
+The GlueConfig configuration should be used if federation to Glue is needed.
+
+
+| Property        | Required | Description |
+|:----|:----:|:----|
+| `glue-account-id` | Yes (if `glueConfig` used)   | The AWS account number.|
+| `glue-endpoint`   | Yes (if `glueConfig` used)   | The AWS glue endpoint example: glue.us-east-1.amazonaws.com. The value is the same for all AWS accounts per region.|
+
+ Example,:
+
+    glue-config:
+      glue-account-id: 1234566789012
+      glue-endpoint: glue.us-east-1.amazonaws.com
+
+As with Hive federation, the IAM permissions need to be setup to read underlying data. IAM permissions are not setup by this code, but are usually setup by the Terraform code that deploys WaggleDance, such as (apiary-federation)[https://github.com/ExpediaGroup/apiary-federation].
+
+If federating across AWS accounts, the correct (cross account federation permissions)[https://docs.aws.amazon.com/glue/latest/dg/cross-account-access.html] needs to be setup as well.       
+The policy giving access to the role running Waggle Dance will need at least these IAM Glue actions:
+
+     actions = [
+    "glue:GetDatabase",
+    "glue:GetDatabases",
+    "glue:GetTable",
+    "glue:GetTables",
+    "glue:GetTableVersions",
+    "glue:GetPartition",
+    "glue:GetPartitions",
+    "glue:BatchGetPartition",
+    "glue:GetUserDefinedFunction",
+    "glue:GetUserDefinedFunctions"
+    ]
 
 #### Configuring a SSH tunnel
 
