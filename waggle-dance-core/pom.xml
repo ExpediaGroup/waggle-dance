@@ -232,7 +232,7 @@
     </dependency>
 
     <!-- Glue dependency -->
-    <!-- Forked https://github.com/patduin/aws-glue-data-catalog-client-for-apache-hive-metastore -->
+    <!-- Fork https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore -->
     <!-- See waggle-dance/lib/ for installing locally -->
     <dependency>
       <groupId>com.amazonaws.glue</groupId>
