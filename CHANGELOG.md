@@ -1,4 +1,4 @@
-## [3.10.0] - unreleased
+## [3.10.0] - 2022-03-01
 ### Added
 * Support for Glue catalog (read only) federation.
 
