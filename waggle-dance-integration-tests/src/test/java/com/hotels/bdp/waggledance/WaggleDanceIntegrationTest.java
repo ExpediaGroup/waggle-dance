@@ -22,6 +22,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.newPartition;
@@ -270,6 +272,42 @@ public class WaggleDanceIntegrationTest {
     // Remote table
     String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
     assertTypicalRemoteTable(proxy, waggledRemoteDbName);
+  }
+
+  @Test
+  public void manyFederatedMetastores() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri())
+        .federate("fed1", remoteServer.getThriftConnectionUri())
+        .federate("fed2", remoteServer.getThriftConnectionUri())
+        .federate("fed3", remoteServer.getThriftConnectionUri())
+        .federate("fed4", remoteServer.getThriftConnectionUri())
+        .federate("fed5", remoteServer.getThriftConnectionUri())
+        .federate("fed6", remoteServer.getThriftConnectionUri())
+        .federate("fed7", remoteServer.getThriftConnectionUri())
+        .federate("fed8", remoteServer.getThriftConnectionUri())
+        .federate("fed9", remoteServer.getThriftConnectionUri())
+        .federate("fed10", remoteServer.getThriftConnectionUri())
+        .federate("fed11", remoteServer.getThriftConnectionUri())
+        .federate("fed12", remoteServer.getThriftConnectionUri())
+        .federate("fed13", remoteServer.getThriftConnectionUri())
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> dbs = proxy.getAllDatabases();
+    List<String> expected = newArrayList("default", "local_database", "waggle_remote_default",
+        "waggle_remote_remote_database", "fed1_default", "fed1_remote_database", "fed2_default", "fed2_remote_database",
+        "fed3_default", "fed3_remote_database", "fed4_default", "fed4_remote_database", "fed5_default",
+        "fed5_remote_database", "fed6_default", "fed6_remote_database", "fed7_default", "fed7_remote_database",
+        "fed8_default", "fed8_remote_database", "fed9_default", "fed9_remote_database", "fed10_default",
+        "fed10_remote_database", "fed11_default", "fed11_remote_database", "fed12_default", "fed12_remote_database",
+        "fed13_default", "fed13_remote_database");
+    assertThat(dbs, is(expected));
   }
 
   @Test

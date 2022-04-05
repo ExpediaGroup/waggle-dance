@@ -26,6 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 
 import javax.validation.constraints.NotNull;
@@ -254,17 +258,47 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     return tblAllowList.contains(table);
   }
 
+  /**
+   * This run in parallel because includeInResults could potentially be slow (wait/retries) for certain slow responding
+   * metastores. Using ExecutorService + Futures to maintain the order. Order is important for example when doing calls
+   * like show databases, we return that grouped/ordered per metastore.
+   */
   @Override
   public List<DatabaseMapping> getDatabaseMappings() {
+    // TODO PD refactor/add same logic for StaticDatabaseMappingService.
     Builder<DatabaseMapping> builder = ImmutableList.builder();
-    synchronized (mappingsByPrefix) {
-      for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
-        if (includeInResults(databaseMapping)) {
-          builder.add(databaseMapping);
+    ExecutorService executorService = Executors.newFixedThreadPool(mappingsByPrefix.size());
+    try {
+      synchronized (mappingsByPrefix) {
+        List<Future<DatabaseMapping>> futures = new ArrayList<>();
+        for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
+          futures.add(executorService.submit(() -> {
+            if (includeInResults(databaseMapping)) {
+              return databaseMapping;
+            }
+            return null;
+          }));
+
+        }
+
+        for (Future<DatabaseMapping> future : futures) {
+          try {
+            DatabaseMapping mapping = future.get();
+            if (mapping != null) {
+              builder.add(mapping);
+            }
+          } catch (InterruptedException e) {
+            // ignore mapping
+          } catch (ExecutionException e) {
+            LOG.error("Can't include mapping ", e);
+          }
         }
       }
+    } finally {
+      executorService.shutdownNow();
     }
-    return builder.build();
+    List<DatabaseMapping> result = builder.build();
+    return result;
   }
 
   private Map<DatabaseMapping, String> databaseMappingsByDbPattern(@NotNull String databasePatterns) {

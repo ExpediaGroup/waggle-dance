@@ -62,11 +62,11 @@ public class PopulateStatusFederationService implements FederationService {
   @Override
   public List<AbstractMetaStore> getAll() {
     List<AbstractMetaStore> metaStores = federationService.getAll();
-    List<AbstractMetaStore> populatedMetaStores = new ArrayList<>(metaStores.size());
-    for (AbstractMetaStore metaStore : metaStores) {
-      populatedMetaStores.add(populate(metaStore));
-    }
-    return populatedMetaStores;
+    // We don't care about order here we just want all the statuses.
+    metaStores.parallelStream().forEach(metaStore -> {
+      populate(metaStore);
+    });
+    return new ArrayList<>(metaStores);
   }
 
   private AbstractMetaStore populate(AbstractMetaStore metaStore) {

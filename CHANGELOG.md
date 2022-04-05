@@ -1,6 +1,11 @@
-## [3.10.0] - 2022-03-01
+## [3.10.1] - 2022-04-07
 ### Added
+* Converted `metastore.isAvailable` loops to parallel execution to mitigate slow responding metastores.
+
+## [3.10.0] - 2022-03-01
+### Changed
 * Support for Glue catalog (read only) federation.
+* converted some log statements to debug to get less chatty logs.
 
 ## [3.9.9] - 2022-01-19
 ### Changed

@@ -116,7 +116,7 @@ class ThriftMetastoreClientManager implements Closeable {
 
     for (int attempt = 0; !isConnected && (attempt < retries); ++attempt) {
       for (URI store : metastoreUris) {
-        LOG.info("Trying to connect to metastore with URI " + store);
+        LOG.debug("Trying to connect to metastore with URI " + store);
         try {
           transport = new TSocket(store.getHost(), store.getPort(), clientSocketTimeout, connectionTimeout);
           if (useSasl) {
@@ -195,7 +195,7 @@ class ThriftMetastoreClientManager implements Closeable {
       throw new RuntimeException("Could not connect to meta store using any of the URIs provided. Most recent failure: "
           + StringUtils.stringifyException(te));
     }
-    LOG.info("Connected to metastore.");
+    LOG.debug("Connected to metastore.");
   }
 
   void reconnect() {
