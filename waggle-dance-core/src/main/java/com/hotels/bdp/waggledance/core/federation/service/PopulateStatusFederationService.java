@@ -17,7 +17,11 @@ package com.hotels.bdp.waggledance.core.federation.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +32,8 @@ import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 
 @Service
 public class PopulateStatusFederationService implements FederationService {
+
+  private final static Logger log = LoggerFactory.getLogger(PopulateStatusFederationService.class);
 
   private final FederationService federationService;
   private final FederationStatusService federationStatusService;
@@ -62,11 +68,20 @@ public class PopulateStatusFederationService implements FederationService {
   @Override
   public List<AbstractMetaStore> getAll() {
     List<AbstractMetaStore> metaStores = federationService.getAll();
-    List<AbstractMetaStore> populatedMetaStores = new ArrayList<>(metaStores.size());
-    for (AbstractMetaStore metaStore : metaStores) {
-      populatedMetaStores.add(populate(metaStore));
+    // We don't care about order here we just want all the statuses.
+    // Custom Thread pool so we get optimal parallelism we want for firing our requests
+    ForkJoinPool customThreadPool = new ForkJoinPool(metaStores.size());
+    try {
+      customThreadPool.submit(() -> metaStores.parallelStream().forEach(metaStore -> {
+        populate(metaStore);
+      }));
+      customThreadPool.shutdown();
+      // wait at most 1 minute otherwise just return what we got thus far.
+      customThreadPool.awaitTermination(1L, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      log.error("Can't get status for metastores", e);
     }
-    return populatedMetaStores;
+    return new ArrayList<>(metaStores);
   }
 
   private AbstractMetaStore populate(AbstractMetaStore metaStore) {
