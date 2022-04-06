@@ -50,7 +50,7 @@
     <log4j2.version>2.17.1</log4j2.version>
     <hcommon-hive-metastore.version>1.2.3</hcommon-hive-metastore.version>
     <jackson.version>2.9.8</jackson.version>
-    <jackson.databind.version>2.12.6.1</jackson.databind.version>
+    <jackson.databind.version>2.9.10.8</jackson.databind.version>
   </properties>
 
   <dependencyManagement>
