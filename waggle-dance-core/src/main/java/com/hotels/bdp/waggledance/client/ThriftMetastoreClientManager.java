@@ -60,6 +60,7 @@ class ThriftMetastoreClientManager implements Closeable {
   private long retryDelaySeconds = 0;
 
   private final int connectionTimeout;
+  private final String msUri;
 
   ThriftMetastoreClientManager(
       HiveConf conf,
@@ -68,7 +69,7 @@ class ThriftMetastoreClientManager implements Closeable {
     this.conf = conf;
     this.hiveCompatibleThriftHiveMetastoreIfaceFactory = hiveCompatibleThriftHiveMetastoreIfaceFactory;
     this.connectionTimeout = connectionTimeout;
-    String msUri = conf.getVar(ConfVars.METASTOREURIS);
+    msUri = conf.getVar(ConfVars.METASTOREURIS);
 
     if (HiveConfUtil.isEmbeddedMetaStore(msUri)) {
       throw new RuntimeException("You can't waggle an embedded metastore");
@@ -116,7 +117,7 @@ class ThriftMetastoreClientManager implements Closeable {
 
     for (int attempt = 0; !isConnected && (attempt < retries); ++attempt) {
       for (URI store : metastoreUris) {
-        LOG.debug("Trying to connect to metastore with URI " + store);
+        LOG.info("Trying to connect to metastore with URI " + store);
         try {
           transport = new TSocket(store.getHost(), store.getPort(), clientSocketTimeout, connectionTimeout);
           if (useSasl) {
@@ -144,7 +145,7 @@ class ThriftMetastoreClientManager implements Closeable {
                         MetaStoreUtils.getMetaStoreSaslProperties(conf));
               }
             } catch (IOException ioe) {
-              LOG.error("Couldn't create client transport", ioe);
+              LOG.error("Couldn't create client transport, URI " + store, ioe);
               throw new MetaException(ioe.toString());
             }
           } else if (useFramedTransport) {
@@ -169,10 +170,10 @@ class ThriftMetastoreClientManager implements Closeable {
           } catch (TException e) {
             te = e;
             if (LOG.isDebugEnabled()) {
-              LOG.warn("Failed to connect to the MetaStore Server...", e);
+              LOG.warn("Failed to connect to the MetaStore Server, URI " + store, e);
             } else {
               // Don't print full exception trace if DEBUG is not on.
-              LOG.warn("Failed to connect to the MetaStore Server...");
+              LOG.warn("Failed to connect to the MetaStore Server, URI " + store);
             }
           }
         } catch (MetaException e) {
@@ -192,7 +193,9 @@ class ThriftMetastoreClientManager implements Closeable {
     }
 
     if (!isConnected) {
-      throw new RuntimeException("Could not connect to meta store using any of the URIs provided. Most recent failure: "
+      throw new RuntimeException("Could not connect to meta store using any of the URIs ["
+          + msUri
+          + "] provided. Most recent failure: "
           + StringUtils.stringifyException(te));
     }
     LOG.debug("Connected to metastore.");

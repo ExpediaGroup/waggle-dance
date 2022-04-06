@@ -27,8 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 
@@ -267,12 +266,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   public List<DatabaseMapping> getDatabaseMappings() {
     // TODO PD refactor/add same logic for StaticDatabaseMappingService.
     Builder<DatabaseMapping> builder = ImmutableList.builder();
-    ExecutorService executorService = Executors.newFixedThreadPool(mappingsByPrefix.size());
+    ForkJoinPool customThreadPool = new ForkJoinPool(mappingsByPrefix.size());
     try {
       synchronized (mappingsByPrefix) {
         List<Future<DatabaseMapping>> futures = new ArrayList<>();
         for (DatabaseMapping databaseMapping : mappingsByPrefix.values()) {
-          futures.add(executorService.submit(() -> {
+          futures.add(customThreadPool.submit(() -> {
             if (includeInResults(databaseMapping)) {
               return databaseMapping;
             }
@@ -295,7 +294,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         }
       }
     } finally {
-      executorService.shutdownNow();
+      customThreadPool.shutdownNow();
     }
     List<DatabaseMapping> result = builder.build();
     return result;
