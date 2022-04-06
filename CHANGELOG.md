@@ -1,4 +1,4 @@
-## [3.10.1] - 2022-04-07
+## [3.10.1] - 2022-04-06
 ### Added
 * Converted `metastore.isAvailable` loops to parallel execution to mitigate slow responding metastores.
 
