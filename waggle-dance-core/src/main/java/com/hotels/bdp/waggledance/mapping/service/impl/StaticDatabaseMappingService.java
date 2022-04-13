@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -306,8 +306,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public void checkTableAllowed(String databaseName, String tableName,
-      DatabaseMapping mapping) throws NoSuchObjectException {
+  public void checkTableAllowed(String databaseName, String tableName, DatabaseMapping mapping)
+    throws NoSuchObjectException {
     if (!isTableAllowed(databaseName, tableName)) {
       throw new NoSuchObjectException(String.format("%s.%s table not found in any mappings", databaseName, tableName));
     }
@@ -317,10 +317,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   public List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping) {
     List<String> allowedTables = new ArrayList<>();
     String db = databaseName.toLowerCase(Locale.ROOT);
-    for (String table: tableNames)
+    for (String table : tableNames) {
       if (isTableAllowed(db, table)) {
         allowedTables.add(table);
       }
+    }
     return allowedTables;
   }
 
@@ -334,7 +335,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public List<DatabaseMapping> getDatabaseMappings() {
+  public List<DatabaseMapping> getAvailableDatabaseMappings() {
     Builder<DatabaseMapping> builder = ImmutableList.builder();
     synchronized (mappingsByMetaStoreName) {
       for (DatabaseMapping databaseMapping : mappingsByMetaStoreName.values()) {
@@ -344,6 +345,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       }
     }
     return builder.build();
+  }
+
+  @Override
+  public List<DatabaseMapping> getAllDatabaseMappings() {
+    return new ArrayList<>(mappingsByMetaStoreName.values());
   }
 
   private boolean databaseAndTableAllowed(String database, String table, DatabaseMapping mapping) {
@@ -361,11 +367,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       @Override
       public List<TableMeta> getTableMeta(String db_patterns, String tbl_patterns, List<String> tbl_types) {
 
-        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) ->
-            databaseAndTableAllowed(tableMeta.getDbName(), tableMeta.getTableName(), mapping);
+        BiFunction<TableMeta, DatabaseMapping, Boolean> filter = (tableMeta, mapping) -> databaseAndTableAllowed(
+            tableMeta.getDbName(), tableMeta.getTableName(), mapping);
 
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
-        for (DatabaseMapping mapping : getDatabaseMappings()) {
+        for (DatabaseMapping mapping : getAvailableDatabaseMappings()) {
           mappingsForPattern.put(mapping, db_patterns);
         }
         return super.getTableMeta(tbl_patterns, tbl_types, mappingsForPattern, filter);
@@ -377,7 +383,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
             .containsKey(database);
 
         Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
-        for (DatabaseMapping mapping : getDatabaseMappings()) {
+        for (DatabaseMapping mapping : getAvailableDatabaseMappings()) {
           mappingsForPattern.put(mapping, pattern);
         }
 

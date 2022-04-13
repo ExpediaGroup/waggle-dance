@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.hotels.bdp.waggledance.client;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
+
+import static com.hotels.bdp.waggledance.client.HiveUgiArgsStub.TEST_ARGS;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -51,14 +53,14 @@ public class ThriftMetastoreClientManagerIntegrationTest {
 
   @Test
   public void open() throws Exception {
-    manager.open();
+    manager.open(TEST_ARGS);
     Database database = manager.getClient().get_database(databaseName);
     assertNotNull(database);
   }
 
   @Test
   public void reconnect() throws Exception {
-    manager.reconnect();
+    manager.reconnect(TEST_ARGS);
     Database database = manager.getClient().get_database(databaseName);
     assertNotNull(database);
   }
@@ -70,7 +72,7 @@ public class ThriftMetastoreClientManagerIntegrationTest {
         connectionTimeout);
 
     try {
-      manager.open();
+      manager.open(TEST_ARGS);
     } catch (RuntimeException e) {
       assertThat(e.getMessage(), containsString("java.net.ConnectException: Connection refused"));
     }

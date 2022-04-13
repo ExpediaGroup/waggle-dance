@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.List;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.thrift.transport.TTransportException;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
 import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
@@ -41,6 +43,8 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private final String name;
     private final int maxRetries;
 
+    private HiveUgiArgs cachedUgi;
+
     private ReconnectingMetastoreClientInvocationHandler(
         String name,
         int maxRetries,
@@ -50,6 +54,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       this.base = base;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       int attempt = 0;
@@ -68,8 +73,13 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
           base.close();
         }
         return null;
+      case "set_ugi":
+        String user = (String) args[0];
+        List<String> groups = (List<String>) args[1];
+        cachedUgi = new HiveUgiArgs(user, groups);
+        return Lists.newArrayList(user);
       default:
-        base.open();
+        base.open(cachedUgi);
         do {
           try {
             return method.invoke(base.getClient(), args);
@@ -78,7 +88,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
             if (TTransportException.class.isAssignableFrom(realException.getClass())) {
               if (attempt < maxRetries && shouldRetry(method)) {
                 LOG.debug("TTransportException captured in client {}. Reconnecting... ", name);
-                base.reconnect();
+                base.reconnect(cachedUgi);
                 continue;
               }
               throw new MetastoreUnavailableException("Client " + name + " is not available", realException);
@@ -104,7 +114,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private void reconnectIfDisconnected() {
       try {
         if (!base.isOpen()) {
-          base.reconnect();
+          base.reconnect(cachedUgi);
         }
       } catch (Exception e) {
         throw new MetastoreUnavailableException("Client " + name + " is not available", e);
