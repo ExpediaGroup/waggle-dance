@@ -66,7 +66,7 @@ public class DefaultMetaStoreClientFactoryTest {
 
     boolean result = iface.isOpen();
     assertThat(result, is(true));
-    verify(base).reconnect(null);
+    verify(base).reconnect(HiveUgiArgs.WAGGLE_DANCE_DEFAULT);
   }
 
   @Test
@@ -107,7 +107,7 @@ public class DefaultMetaStoreClientFactoryTest {
 
     String result = iface.getName();
     assertThat(result, is("ourName"));
-    verify(base).reconnect(null);
+    verify(base).reconnect(HiveUgiArgs.WAGGLE_DANCE_DEFAULT);
   }
 
   @Test
