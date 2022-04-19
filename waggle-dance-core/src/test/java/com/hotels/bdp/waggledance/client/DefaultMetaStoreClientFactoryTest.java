@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import static com.hotels.bdp.waggledance.client.HiveUgiArgs.WAGGLE_DANCE_DEFAULT;
+import static com.hotels.bdp.waggledance.client.HiveUgiArgsStub.TEST_ARGS;
+
+import java.util.List;
+
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
@@ -29,6 +34,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import com.google.common.collect.Lists;
 
 import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
 
@@ -49,7 +56,7 @@ public class DefaultMetaStoreClientFactoryTest {
 
     boolean result = iface.isOpen();
     assertThat(result, is(true));
-    verify(base, never()).reconnect();
+    verify(base, never()).reconnect(TEST_ARGS);
   }
 
   @Test
@@ -60,7 +67,7 @@ public class DefaultMetaStoreClientFactoryTest {
 
     boolean result = iface.isOpen();
     assertThat(result, is(true));
-    verify(base).reconnect();
+    verify(base).reconnect(WAGGLE_DANCE_DEFAULT);
   }
 
   @Test
@@ -101,7 +108,23 @@ public class DefaultMetaStoreClientFactoryTest {
 
     String result = iface.getName();
     assertThat(result, is("ourName"));
-    verify(base).reconnect();
+    verify(base).open(WAGGLE_DANCE_DEFAULT);
+    verify(base).reconnect(WAGGLE_DANCE_DEFAULT);
+  }
+
+  @Test
+  public void set_ugi_before_call() throws Exception {
+    when(base.getClient()).thenReturn(client);
+    when(client.getName()).thenThrow(new TTransportException()).thenReturn("ourName");
+
+    CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);
+    List<String> setUgiResult = iface.set_ugi(TEST_ARGS.getUser(), TEST_ARGS.getGroups());
+    assertThat(setUgiResult, is(Lists.newArrayList(TEST_ARGS.getUser())));
+    String name = iface.getName();
+
+    assertThat(name, is("ourName"));
+    verify(base).open(TEST_ARGS);
+    verify(base).reconnect(TEST_ARGS);
   }
 
   @Test(expected = MetastoreUnavailableException.class)

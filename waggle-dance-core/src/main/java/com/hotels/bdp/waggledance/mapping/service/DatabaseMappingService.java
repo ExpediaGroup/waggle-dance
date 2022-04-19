@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,7 @@ public interface DatabaseMappingService extends Closeable {
   /**
    * Checks that the table from the specified database is allowed and throws a {@link NoSuchObjectException} if not.
    */
-  void checkTableAllowed(String databaseName, String tableName,
-      DatabaseMapping mapping) throws NoSuchObjectException;
+  void checkTableAllowed(String databaseName, String tableName, DatabaseMapping mapping) throws NoSuchObjectException;
 
   /**
    * Filters out the tables which are not allowed and returns the rest.
@@ -50,5 +49,8 @@ public interface DatabaseMappingService extends Closeable {
 
   PanopticOperationHandler getPanopticOperationHandler();
 
-  List<DatabaseMapping> getDatabaseMappings();
+  List<DatabaseMapping> getAvailableDatabaseMappings();
+
+  List<DatabaseMapping> getAllDatabaseMappings();
+
 }

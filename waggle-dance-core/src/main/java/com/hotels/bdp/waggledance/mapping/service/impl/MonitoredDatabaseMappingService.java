@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,10 +51,10 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public void checkTableAllowed(String databaseName, String tableName,
-      DatabaseMapping mapping) throws NoSuchObjectException {
-      wrapped.checkTableAllowed(databaseName, tableName, mapping);
-    }
+  public void checkTableAllowed(String databaseName, String tableName, DatabaseMapping mapping)
+    throws NoSuchObjectException {
+    wrapped.checkTableAllowed(databaseName, tableName, mapping);
+  }
 
   @Override
   public List<String> filterTables(String databaseName, List<String> tableNames, DatabaseMapping mapping) {
@@ -69,8 +69,13 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public List<DatabaseMapping> getDatabaseMappings() {
-    return wrapped.getDatabaseMappings();
+  public List<DatabaseMapping> getAvailableDatabaseMappings() {
+    return wrapped.getAvailableDatabaseMappings();
+  }
+
+  @Override
+  public List<DatabaseMapping> getAllDatabaseMappings() {
+    return wrapped.getAllDatabaseMappings();
   }
 
   @Override
@@ -92,4 +97,5 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   public void onUpdate(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore) {
     wrapped.onUpdate(oldMetaStore, newMetaStore);
   }
+
 }

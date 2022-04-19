@@ -1,3 +1,7 @@
+## [3.10.2] - 2022-04-19
+### Changed
+* Caching `set_ugi` call in clients to prevent unnecessary calls to metastores.
+
 ## [3.10.1] - 2022-04-06
 ### Added
 * Converted `metastore.isAvailable` loops to parallel execution to mitigate slow responding metastores.

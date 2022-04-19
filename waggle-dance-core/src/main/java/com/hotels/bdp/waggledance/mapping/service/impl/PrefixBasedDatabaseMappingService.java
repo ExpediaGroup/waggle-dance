@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -263,7 +263,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
    * like show databases, we return that grouped/ordered per metastore.
    */
   @Override
-  public List<DatabaseMapping> getDatabaseMappings() {
+  public List<DatabaseMapping> getAvailableDatabaseMappings() {
     // TODO PD refactor/add same logic for StaticDatabaseMappingService.
     Builder<DatabaseMapping> builder = ImmutableList.builder();
     ForkJoinPool customThreadPool = new ForkJoinPool(mappingsByPrefix.size());
@@ -298,6 +298,11 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     }
     List<DatabaseMapping> result = builder.build();
     return result;
+  }
+
+  @Override
+  public List<DatabaseMapping> getAllDatabaseMappings() {
+    return new ArrayList<>(mappingsByPrefix.values());
   }
 
   private Map<DatabaseMapping, String> databaseMappingsByDbPattern(@NotNull String databasePatterns) {
@@ -368,7 +373,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases() {
-        List<DatabaseMapping> databaseMappings = getDatabaseMappings();
+        List<DatabaseMapping> databaseMappings = getAvailableDatabaseMappings();
         List<GetAllDatabasesRequest> allRequests = new ArrayList<>();
 
         BiFunction<List<String>, DatabaseMapping, List<String>> filter = (

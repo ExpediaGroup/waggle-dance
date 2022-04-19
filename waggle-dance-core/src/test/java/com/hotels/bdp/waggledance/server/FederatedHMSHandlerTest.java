@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,7 +160,7 @@ public class FederatedHMSHandlerTest {
   public void setUp() throws NoSuchObjectException {
     handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService);
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
-    when(databaseMappingService.getDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
+    when(databaseMappingService.getAvailableDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
     when(primaryMapping.getClient()).thenReturn(primaryClient);
     when(primaryMapping.getMetastoreFilter()).thenReturn(new DefaultMetaStoreFilterHookImpl(new HiveConf()));
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn(DB_P);
@@ -553,7 +553,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient
         .append_partition_by_name_with_environment_context("inbound", "table1", "partName", environmentContext))
-        .thenReturn(inbound);
+            .thenReturn(inbound);
     when(primaryMapping.transformOutboundPartition(inbound)).thenReturn(outbound);
     Partition result = handler
         .append_partition_by_name_with_environment_context(DB_P, "table1", "partName", environmentContext);
@@ -578,7 +578,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(
         primaryClient.drop_partition_with_environment_context("inbound", "table1", partVals, false, environmentContext))
-        .thenReturn(true);
+            .thenReturn(true);
     boolean result = handler
         .drop_partition_with_environment_context(DB_P, "table1", partVals, false, environmentContext);
     assertThat(result, is(true));
@@ -600,7 +600,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient
         .drop_partition_by_name_with_environment_context("inbound", "table1", "partName", false, environmentContext))
-        .thenReturn(true);
+            .thenReturn(true);
     boolean result = handler
         .drop_partition_by_name_with_environment_context(DB_P, "table1", "partName", false, environmentContext);
     assertThat(result, is(true));
@@ -830,7 +830,7 @@ public class FederatedHMSHandlerTest {
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
     DatabaseMapping mapping = Mockito.mock(DatabaseMapping.class);
     List<DatabaseMapping> mappings = Lists.newArrayList(mapping);
-    when(databaseMappingService.getDatabaseMappings()).thenReturn(mappings);
+    when(databaseMappingService.getAvailableDatabaseMappings()).thenReturn(mappings);
     GetAllFunctionsResponse getAllFunctionsResponse = Mockito.mock(GetAllFunctionsResponse.class);
     when(panopticHandler.getAllFunctions(mappings)).thenReturn(getAllFunctionsResponse);
     GetAllFunctionsResponse result = handler.get_all_functions();
@@ -841,6 +841,7 @@ public class FederatedHMSHandlerTest {
   public void set_ugi() throws TException {
     PanopticOperationHandler panopticHandler = Mockito.mock(PanopticOperationHandler.class);
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
+    when(databaseMappingService.getAllDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
     String user_name = "user";
     List<String> group_names = Lists.newArrayList("group");
     when(panopticHandler.setUgi(user_name, group_names, Collections.singletonList(primaryMapping)))
@@ -1620,8 +1621,8 @@ public class FederatedHMSHandlerTest {
     EnvironmentContext environmentContext = new EnvironmentContext();
     handler.alter_partitions_with_environment_context(DB_P, "table", Collections.emptyList(), environmentContext);
     verify(primaryMapping).checkWritePermissions(DB_P);
-    verify(primaryClient).alter_partitions_with_environment_context(DB_P, "table", Collections.emptyList(),
-        environmentContext);
+    verify(primaryClient)
+        .alter_partitions_with_environment_context(DB_P, "table", Collections.emptyList(), environmentContext);
   }
 
   @Test
@@ -1682,8 +1683,8 @@ public class FederatedHMSHandlerTest {
     List<Partition> expected = Collections.emptyList();
     when(primaryMapping.transformInboundDatabaseName("dest_db")).thenReturn("dest_db");
     when(primaryMapping.transformOutboundPartitions(partitions)).thenReturn(expected);
-    when(primaryClient.exchange_partitions(partitionSpecs, DB_P, "source", "dest_db", "dest_table")).thenReturn(
-        partitions);
+    when(primaryClient.exchange_partitions(partitionSpecs, DB_P, "source", "dest_db", "dest_table"))
+        .thenReturn(partitions);
     List<Partition> result = handler.exchange_partitions(partitionSpecs, DB_P, "source", "dest_db", "dest_table");
     verify(primaryMapping).checkWritePermissions(DB_P);
     verify(primaryMapping).checkWritePermissions("dest_db");
@@ -1719,8 +1720,8 @@ public class FederatedHMSHandlerTest {
   @Test
   public void get_fields_with_environment_context() throws TException {
     EnvironmentContext context = new EnvironmentContext();
-    List<FieldSchema> expected = Arrays.asList(new FieldSchema("name1", "type1", ""),
-        new FieldSchema("name2", "type2", ""));
+    List<FieldSchema> expected = Arrays
+        .asList(new FieldSchema("name1", "type1", ""), new FieldSchema("name2", "type2", ""));
     when(primaryClient.get_fields_with_environment_context(DB_P, "table", context)).thenReturn(expected);
     List<FieldSchema> result = handler.get_fields_with_environment_context(DB_P, "table", context);
     assertThat(result, is(expected));
@@ -1784,7 +1785,8 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_partition_values() throws TException {
-    PartitionValuesRequest request = new PartitionValuesRequest(DB_P, "table", Collections.singletonList(new FieldSchema()));
+    PartitionValuesRequest request = new PartitionValuesRequest(DB_P, "table",
+        Collections.singletonList(new FieldSchema()));
     List<PartitionValuesRow> partitionValues = Collections.singletonList(new PartitionValuesRow());
     PartitionValuesResponse response = new PartitionValuesResponse(partitionValues);
     when(primaryClient.get_partition_values(request)).thenReturn(response);

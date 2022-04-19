@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ class ThriftMetastoreClientManager implements Closeable {
     }
   }
 
-  void open() {
+  void open(HiveUgiArgs ugiArgs) {
     if (isConnected) {
       return;
     }
@@ -167,6 +167,8 @@ class ThriftMetastoreClientManager implements Closeable {
                     + CONN_COUNT.incrementAndGet());
 
             isConnected = true;
+            LOG.info("calling #set_ugi for user '{}',  on URI {}", ugiArgs.getUser(), store);
+            client.set_ugi(ugiArgs.getUser(), ugiArgs.getGroups());
           } catch (TException e) {
             te = e;
             if (LOG.isDebugEnabled()) {
@@ -201,13 +203,13 @@ class ThriftMetastoreClientManager implements Closeable {
     LOG.debug("Connected to metastore.");
   }
 
-  void reconnect() {
+  void reconnect(HiveUgiArgs ugiArgs) {
     close();
     // Swap the first element of the metastoreUris[] with a random element from the rest
     // of the array. Rationale being that this method will generally be called when the default
     // connection has died and the default connection is likely to be the first array element.
     promoteRandomMetaStoreURI();
-    open();
+    open(ugiArgs);
   }
 
   @Override
