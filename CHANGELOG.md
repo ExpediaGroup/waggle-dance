@@ -1,4 +1,4 @@
-## [3.10.2] - 2022-04-15
+## [3.10.2] - 2022-04-19
 ### Changed
 * Caching `set_ugi` call in clients to prevent unnecessary calls to metastores.
 
