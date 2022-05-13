@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
@@ -38,12 +41,15 @@ import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederati
 public class PollingFederationServiceTest {
 
   private @Mock PopulateStatusFederationService populateStatusFederationService;
+  private MeterRegistry meterRegistry;
 
   private PollingFederationService service;
 
   @Before
   public void setUp() {
     service = new PollingFederationService(populateStatusFederationService);
+    meterRegistry = new SimpleMeterRegistry();
+    service.setMeterRegistry(meterRegistry);
   }
 
   @Test
