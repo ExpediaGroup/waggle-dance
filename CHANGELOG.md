@@ -1,3 +1,7 @@
+## [3.10.3] - 2022-04-16
+### Fixes
+* Potential exception when `set_ugi` has immutable list or null-value groups argument.
+
 ## [3.10.2] - 2022-04-19
 ### Changed
 * Caching `set_ugi` call in clients to prevent unnecessary calls to metastores.
