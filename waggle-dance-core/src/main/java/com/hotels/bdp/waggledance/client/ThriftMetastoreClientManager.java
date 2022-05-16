@@ -167,9 +167,7 @@ class ThriftMetastoreClientManager implements Closeable {
                     + CONN_COUNT.incrementAndGet());
 
             isConnected = true;
-            LOG
-                .info("calling #set_ugi for user '{}' group '{}',  on URI {}", ugiArgs.getUser(), ugiArgs.getGroups(),
-                    store);
+            LOG.info("calling #set_ugi for user '{}',  on URI {}", ugiArgs.getUser(), store);
             client.set_ugi(ugiArgs.getUser(), ugiArgs.getGroups());
           } catch (TException e) {
             te = e;
