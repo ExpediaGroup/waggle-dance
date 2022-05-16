@@ -15,8 +15,12 @@ public class HiveUgiArgsTest {
   public void groups() throws Exception {
     HiveUgiArgs args = new HiveUgiArgs("user", new ArrayList<>());
     assertThat("user", is(args.getUser()));
+    asssertThatListIsMutatable(args);
+  }
+
+  private void asssertThatListIsMutatable(HiveUgiArgs args) {
     assertThat(args.getGroups().size(), is(0));
-    // List should be mutable, Hive code mutates potentially mutates it.
+    // List should be mutable, Hive code potentially mutates it.
     args.getGroups().add("user");
     assertThat(args.getGroups().size(), is(1));
   }
@@ -25,20 +29,14 @@ public class HiveUgiArgsTest {
   public void groupDefaults() throws Exception {
     HiveUgiArgs args = HiveUgiArgs.WAGGLE_DANCE_DEFAULT;
     assertThat("waggledance", is(args.getUser()));
-    assertThat(args.getGroups().size(), is(0));
-    // List should be mutable, Hive code mutates potentially mutates it.
-    args.getGroups().add("user");
-    assertThat(args.getGroups().size(), is(1));
+    asssertThatListIsMutatable(args);
   }
 
   @Test
   public void groupsImmutable() throws Exception {
     HiveUgiArgs args = new HiveUgiArgs("user", Collections.emptyList());
     assertThat("user", is(args.getUser()));
-    assertThat(args.getGroups().size(), is(0));
-    // List should be mutable, Hive code mutates potentially mutates it.
-    args.getGroups().add("user");
-    assertThat(args.getGroups().size(), is(1));
+    asssertThatListIsMutatable(args);
   }
 
   @Test
