@@ -15,19 +15,23 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HiveUgiArgs {
 
-  public static final HiveUgiArgs WAGGLE_DANCE_DEFAULT = new HiveUgiArgs("waggledance", Collections.emptyList());
+  public static final HiveUgiArgs WAGGLE_DANCE_DEFAULT = new HiveUgiArgs("waggledance", null);
 
   private final String user;
   private final List<String> groups;
 
   public HiveUgiArgs(String user, List<String> groups) {
     this.user = user;
-    this.groups = groups;
+    if (groups == null) {
+      this.groups = new ArrayList<>();
+    } else {
+      this.groups = new ArrayList<>(groups);
+    }
   }
 
   public String getUser() {
