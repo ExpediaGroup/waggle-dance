@@ -43,7 +43,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private final String name;
     private final int maxRetries;
 
-    private HiveUgiArgs cachedUgi = HiveUgiArgs.WAGGLE_DANCE_DEFAULT;
+    private HiveUgiArgs cachedUgi = null;
 
     private ReconnectingMetastoreClientInvocationHandler(
         String name,
