@@ -77,29 +77,40 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
         String user = (String) args[0];
         List<String> groups = (List<String>) args[1];
         cachedUgi = new HiveUgiArgs(user, groups);
-        return Lists.newArrayList(user);
+        if (base.isOpen()) {
+          LOG
+              .info("calling #set_ugi (on already open client) for user '{}',  on metastore {}", cachedUgi.getUser(),
+                  name);
+          return doRealCall(method, args, attempt);
+        } else {
+          // delay call until we get the next non set_ugi call, this helps doing unnecessary calls to Federated
+          // Metastores.
+          return Lists.newArrayList(user);
+        }
       default:
         base.open(cachedUgi);
-        do {
-          try {
-            return method.invoke(base.getClient(), args);
-          } catch (InvocationTargetException e) {
-            Throwable realException = e.getTargetException();
-            if (TTransportException.class.isAssignableFrom(realException.getClass())) {
-              if (attempt < maxRetries && shouldRetry(method)) {
-                LOG.debug("TTransportException captured in client {}. Reconnecting... ", name);
-                base.reconnect(cachedUgi);
-                continue;
-              }
-              throw new MetastoreUnavailableException("Client " + name + " is not available", realException);
-            }
-            throw realException;
-          }
-        } while (++attempt <= maxRetries);
-        break;
+        return doRealCall(method, args, attempt);
       }
-      throw new RuntimeException("Unreachable code");
+    }
 
+    private Object doRealCall(Method method, Object[] args, int attempt) throws IllegalAccessException, Throwable {
+      do {
+        try {
+          return method.invoke(base.getClient(), args);
+        } catch (InvocationTargetException e) {
+          Throwable realException = e.getTargetException();
+          if (TTransportException.class.isAssignableFrom(realException.getClass())) {
+            if (attempt < maxRetries && shouldRetry(method)) {
+              LOG.debug("TTransportException captured in client {}. Reconnecting... ", name);
+              base.reconnect(cachedUgi);
+              continue;
+            }
+            throw new MetastoreUnavailableException("Client " + name + " is not available", realException);
+          }
+          throw realException;
+        }
+      } while (++attempt <= maxRetries);
+      throw new RuntimeException("Unreachable code");
     }
 
     private boolean shouldRetry(Method method) {

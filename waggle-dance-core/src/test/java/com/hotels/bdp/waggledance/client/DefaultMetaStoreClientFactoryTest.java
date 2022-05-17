@@ -127,6 +127,29 @@ public class DefaultMetaStoreClientFactoryTest {
     verify(base).reconnect(TEST_ARGS);
   }
 
+  @Test
+  public void set_ugi_CachedWhenClosed() throws Exception {
+    when(base.isOpen()).thenReturn(false);
+
+    CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);
+    List<String> setUgiResult = iface.set_ugi(TEST_ARGS.getUser(), TEST_ARGS.getGroups());
+    assertThat(setUgiResult, is(Lists.newArrayList(TEST_ARGS.getUser())));
+
+    verify(base, never()).open(TEST_ARGS);
+    verify(base, never()).reconnect(TEST_ARGS);
+  }
+
+  @Test
+  public void set_ugi_CalledWhenOpen() throws Exception {
+    when(base.getClient()).thenReturn(client);
+    when(base.isOpen()).thenReturn(true);
+    when(client.set_ugi(TEST_ARGS.getUser(), TEST_ARGS.getGroups())).thenReturn(Lists.newArrayList("users!"));
+
+    CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);
+    List<String> setUgiResult = iface.set_ugi(TEST_ARGS.getUser(), TEST_ARGS.getGroups());
+    assertThat(setUgiResult, is(Lists.newArrayList("users!")));
+  }
+
   @Test(expected = MetastoreUnavailableException.class)
   public void shutdownThrowsTransportExceptionNoRetry() throws TException {
     when(base.getClient()).thenReturn(client);
