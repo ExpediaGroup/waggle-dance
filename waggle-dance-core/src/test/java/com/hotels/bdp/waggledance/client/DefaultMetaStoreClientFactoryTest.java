@@ -22,7 +22,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import static com.hotels.bdp.waggledance.client.HiveUgiArgs.WAGGLE_DANCE_DEFAULT;
 import static com.hotels.bdp.waggledance.client.HiveUgiArgsStub.TEST_ARGS;
 
 import java.util.List;
@@ -67,7 +66,7 @@ public class DefaultMetaStoreClientFactoryTest {
 
     boolean result = iface.isOpen();
     assertThat(result, is(true));
-    verify(base).reconnect(WAGGLE_DANCE_DEFAULT);
+    verify(base).reconnect(null);
   }
 
   @Test
@@ -108,8 +107,8 @@ public class DefaultMetaStoreClientFactoryTest {
 
     String result = iface.getName();
     assertThat(result, is("ourName"));
-    verify(base).open(WAGGLE_DANCE_DEFAULT);
-    verify(base).reconnect(WAGGLE_DANCE_DEFAULT);
+    verify(base).open(null);
+    verify(base).reconnect(null);
   }
 
   @Test
@@ -125,6 +124,29 @@ public class DefaultMetaStoreClientFactoryTest {
     assertThat(name, is("ourName"));
     verify(base).open(TEST_ARGS);
     verify(base).reconnect(TEST_ARGS);
+  }
+
+  @Test
+  public void set_ugi_CachedWhenClosed() throws Exception {
+    when(base.isOpen()).thenReturn(false);
+
+    CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);
+    List<String> setUgiResult = iface.set_ugi(TEST_ARGS.getUser(), TEST_ARGS.getGroups());
+    assertThat(setUgiResult, is(Lists.newArrayList(TEST_ARGS.getUser())));
+
+    verify(base, never()).open(TEST_ARGS);
+    verify(base, never()).reconnect(TEST_ARGS);
+  }
+
+  @Test
+  public void set_ugi_CalledWhenOpen() throws Exception {
+    when(base.getClient()).thenReturn(client);
+    when(base.isOpen()).thenReturn(true);
+    when(client.set_ugi(TEST_ARGS.getUser(), TEST_ARGS.getGroups())).thenReturn(Lists.newArrayList("users!"));
+
+    CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);
+    List<String> setUgiResult = iface.set_ugi(TEST_ARGS.getUser(), TEST_ARGS.getGroups());
+    assertThat(setUgiResult, is(Lists.newArrayList("users!")));
   }
 
   @Test(expected = MetastoreUnavailableException.class)
