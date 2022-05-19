@@ -17,6 +17,9 @@ package com.hotels.bdp.waggledance.mapping.service.impl;
 
 import static com.hotels.bdp.waggledance.api.model.MetaStoreStatus.AVAILABLE;
 import static com.hotels.bdp.waggledance.api.model.MetaStoreStatus.UNAVAILABLE;
+import static com.hotels.bdp.waggledance.metrics.MetastoreAvailabilityMetric.IS_AVAILABLE;
+import static com.hotels.bdp.waggledance.metrics.MetastoreAvailabilityMetric.IS_UNAVAILABLE;
+import static com.hotels.bdp.waggledance.metrics.MetastoreAvailabilityMetric.IS_UNKNOWN;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +39,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
+import com.hotels.bdp.waggledance.metrics.MetastoreAvailabilityMetric;
 
 @Service
 public class PollingFederationService {
@@ -81,11 +85,11 @@ public class PollingFederationService {
 
   private int statusToInt(MetaStoreStatus status) {
     if (status == AVAILABLE) {
-      return 0;
+      return IS_AVAILABLE.getValue();
     } else if (status == UNAVAILABLE) {
-      return 1;
+      return IS_UNAVAILABLE.getValue();
     }
-    return 3;
+    return IS_UNKNOWN.getValue();
   }
 
   @VisibleForTesting

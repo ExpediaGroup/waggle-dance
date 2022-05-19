@@ -30,7 +30,7 @@ public class ScheduledBeans implements SchedulingConfigurer {
 
   private final WaggleDanceConfiguration waggleDanceConfiguration;
 
-  private PollingFederationService pollingFederationService;
+  private final PollingFederationService pollingFederationService;
 
   @Autowired
   public ScheduledBeans(
