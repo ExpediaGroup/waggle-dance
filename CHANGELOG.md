@@ -1,3 +1,7 @@
+## [Unreleased]
+### Added
+* Metrics to track metastore availability. 
+
 ## [3.10.4] - 2022-04-17
 ### Fixes
 * More tuning of delayed `set_ugi` calls.
