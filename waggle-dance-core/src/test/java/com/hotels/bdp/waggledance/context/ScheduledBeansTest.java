@@ -37,7 +37,7 @@ import com.hotels.bdp.waggledance.metrics.MonitoringConfiguration;
 import com.hotels.bdp.waggledance.metrics.MonitoringConfigurationTestContext;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { ScheduledBeansTestContext.class, MonitoringConfiguration.class, MonitoringConfigurationTestContext.class, ScheduledBeans.class })
+@ContextConfiguration(classes = { MonitoringConfiguration.class, MonitoringConfigurationTestContext.class, ScheduledBeansTestContext.class, ScheduledBeans.class })
 public class ScheduledBeansTest {
 
   private final static Logger log = LoggerFactory.getLogger(ScheduledBeansTest.class);
