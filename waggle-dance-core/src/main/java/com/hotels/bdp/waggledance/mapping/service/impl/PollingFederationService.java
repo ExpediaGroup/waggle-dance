@@ -15,12 +15,6 @@
  */
 package com.hotels.bdp.waggledance.mapping.service.impl;
 
-import static com.hotels.bdp.waggledance.api.model.MetaStoreStatus.AVAILABLE;
-import static com.hotels.bdp.waggledance.api.model.MetaStoreStatus.UNAVAILABLE;
-import static com.hotels.bdp.waggledance.metrics.MetastoreAvailabilityMetric.IS_AVAILABLE;
-import static com.hotels.bdp.waggledance.metrics.MetastoreAvailabilityMetric.IS_UNAVAILABLE;
-import static com.hotels.bdp.waggledance.metrics.MetastoreAvailabilityMetric.IS_UNKNOWN;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +33,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
-import com.hotels.bdp.waggledance.metrics.MetastoreAvailabilityMetric;
 
 @Service
 public class PollingFederationService {
@@ -80,16 +73,7 @@ public class PollingFederationService {
     Counter counter = Counter.builder(METASTORE_STATUS_METRIC_NAME)
         .tag(tag.getKey(), tag.getValue())
         .register(meterRegistry);
-    counter.increment(statusToInt(status));
-  }
-
-  private int statusToInt(MetaStoreStatus status) {
-    if (status == AVAILABLE) {
-      return IS_AVAILABLE.getValue();
-    } else if (status == UNAVAILABLE) {
-      return IS_UNAVAILABLE.getValue();
-    }
-    return IS_UNKNOWN.getValue();
+    counter.increment(status.getIntValue());
   }
 
   @VisibleForTesting

@@ -17,8 +17,18 @@ package com.hotels.bdp.waggledance.api.model;
 
 public enum MetaStoreStatus {
 
-  AVAILABLE,
-  UNAVAILABLE,
-  UNKNOWN
+  AVAILABLE(0),
+  UNAVAILABLE(1),
+  UNKNOWN(2);
+
+  private final int intValue;
+
+  MetaStoreStatus(int intValue) {
+    this.intValue = intValue;
+  }
+
+  public int getIntValue() {
+    return intValue;
+  }
 
 }
