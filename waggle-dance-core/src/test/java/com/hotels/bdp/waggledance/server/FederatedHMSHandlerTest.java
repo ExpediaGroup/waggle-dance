@@ -138,6 +138,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import com.facebook.fb303.fb_status;
 import com.google.common.collect.Lists;
 
+import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
@@ -153,12 +154,13 @@ public class FederatedHMSHandlerTest {
   private @Mock NotifyingFederationService notifyingFederationService;
   private @Mock DatabaseMapping primaryMapping;
   private @Mock Iface primaryClient;
+  private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
 
   private FederatedHMSHandler handler;
 
   @Before
   public void setUp() throws NoSuchObjectException {
-    handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService);
+    handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService, waggleDanceConfiguration);
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
     when(databaseMappingService.getAvailableDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
     when(primaryMapping.getClient()).thenReturn(primaryClient);
@@ -826,6 +828,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_all_functions() throws TException {
+    when(waggleDanceConfiguration.isQueryFunctionsAcrossAllMetastores()).thenReturn(true);
     PanopticOperationHandler panopticHandler = Mockito.mock(PanopticOperationHandler.class);
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
     DatabaseMapping mapping = Mockito.mock(DatabaseMapping.class);
@@ -833,6 +836,16 @@ public class FederatedHMSHandlerTest {
     when(databaseMappingService.getAvailableDatabaseMappings()).thenReturn(mappings);
     GetAllFunctionsResponse getAllFunctionsResponse = Mockito.mock(GetAllFunctionsResponse.class);
     when(panopticHandler.getAllFunctions(mappings)).thenReturn(getAllFunctionsResponse);
+    GetAllFunctionsResponse result = handler.get_all_functions();
+    assertThat(result, is(getAllFunctionsResponse));
+  }
+
+  @Test
+  public void get_all_functionsViaPrimary() throws TException {
+    when(waggleDanceConfiguration.isQueryFunctionsAcrossAllMetastores()).thenReturn(false);
+    GetAllFunctionsResponse getAllFunctionsResponse = Mockito.mock(GetAllFunctionsResponse.class);
+    when(primaryClient.get_all_functions()).thenReturn(getAllFunctionsResponse);
+
     GetAllFunctionsResponse result = handler.get_all_functions();
     assertThat(result, is(getAllFunctionsResponse));
   }
