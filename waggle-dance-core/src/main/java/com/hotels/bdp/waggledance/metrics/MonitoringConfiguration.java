@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class MonitoringConfiguration {
     }
   }
 
-  @Bean
+  @Bean("meterRegistry")
   public GraphiteMeterRegistry graphiteMeterRegistry(GraphiteConfiguration graphiteConfiguration) {
     GraphiteConfig graphiteConfig = new DisabledGraphiteConfig();
 
@@ -125,5 +125,4 @@ public class MonitoringConfiguration {
       }
     };
   }
-
 }

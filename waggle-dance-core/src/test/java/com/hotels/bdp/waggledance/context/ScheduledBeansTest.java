@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.hotels.bdp.waggledance.mapping.service.impl.PollingFederationService;
+import com.hotels.bdp.waggledance.metrics.MonitoringConfiguration;
+import com.hotels.bdp.waggledance.metrics.MonitoringConfigurationTestContext;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { ScheduledBeans.class, ScheduledBeansTestContext.class })
+@ContextConfiguration(classes = { MonitoringConfiguration.class, MonitoringConfigurationTestContext.class, ScheduledBeansTestContext.class, ScheduledBeans.class })
 public class ScheduledBeansTest {
 
   private final static Logger log = LoggerFactory.getLogger(ScheduledBeansTest.class);
