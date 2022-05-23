@@ -1,4 +1,7 @@
-## [Unreleased]
+
+## [3.10.5] - 2022-05-23
+### Changed
+* Added `queryFunctionsAcrossAllMetastores` configuration for optimising `getAllFunctions` calls.
 ### Added
 * Metrics to track metastore availability. 
 

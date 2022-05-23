@@ -47,6 +47,8 @@ public class WaggleDanceConfiguration {
   private TimeUnit thriftServerRequestTimeoutUnit = TimeUnit.SECONDS;
   private int statusPollingDelay = 5;
   private TimeUnit statusPollingDelayTimeUnit = TimeUnit.MINUTES;
+  // default to be backward compatible but recommended to be overwritten to false.
+  private boolean queryFunctionsAcrossAllMetastores = true;
 
   public Integer getPort() {
     return port;
@@ -134,6 +136,14 @@ public class WaggleDanceConfiguration {
 
   public void setStatusPollingDelayTimeUnit(TimeUnit statusPollingDelayTimeUnit) {
     this.statusPollingDelayTimeUnit = statusPollingDelayTimeUnit;
+  }
+
+  public boolean isQueryFunctionsAcrossAllMetastores() {
+    return queryFunctionsAcrossAllMetastores;
+  }
+
+  public void setQueryFunctionsAcrossAllMetastores(boolean queryFunctionsAcrossAllMetastores) {
+    this.queryFunctionsAcrossAllMetastores = queryFunctionsAcrossAllMetastores;
   }
 
 }

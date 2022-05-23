@@ -111,6 +111,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `status-polling-delay`            | No         | Controls the delay that checks metastore availability and updates long running connections of any status change. Default is `5` (every 5 minutes). |
 | `status-polling-delay-time-unit`  | No         | Controls the delay time unit. Default is `MINUTES` . |
 | `configuration-properties`        | No         | Map of Hive properties that will be added to the HiveConf used when creating the Thrift clients (they will be shared among all the clients). |
+| `queryFunctionsAcrossAllMetastores` | No | Controls if the Thrift `getAllFunctions` should be fired to all configured metastores or only the primary metastore. The advice is to set this to false. Executing `getAllFunctions` can have an unwanted performance impact when a metastore is slow to respond. The function call is typically only called when a client is initialized and is largely irrelevant. Default is `true` (to be backward compatible) |
 
 ### Federation
 
