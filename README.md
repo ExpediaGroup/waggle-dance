@@ -585,7 +585,7 @@ Note: The database calls `getDatabases` and `getAllDatabases`, as well as `getTa
 ## Building Waggle Dance
 
 ### Prerequisites
-In order to build Waggle Dance, AWS Glue libraries will need to be installed locally. Please follow [this installation](lib/HOW_TO_INSTALL.MD) guide to install those libraries.
+In order to build Waggle Dance, AWS Glue libraries will need to be installed locally. Please follow [this installation guide](lib/HOW_TO_INSTALL.MD) to install those libraries.
 
 ### Building
 Waggle Dance can be built from source using Maven:
