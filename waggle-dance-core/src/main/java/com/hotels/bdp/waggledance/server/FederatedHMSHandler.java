@@ -1365,10 +1365,13 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       EnvironmentContext environment_context)
     throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(db_name, tbl_name);
+    for (Partition newPart : new_parts) {
+      checkWritePermissionsAndCheckTableAllowed(newPart.getDbName(), newPart.getTableName(), mapping);
+    }
     mapping
         .getClient()
-        .alter_partitions_with_environment_context(mapping.transformInboundDatabaseName(db_name), tbl_name, new_parts,
-            environment_context);
+        .alter_partitions_with_environment_context(mapping.transformInboundDatabaseName(db_name), tbl_name,
+                mapping.transformInboundPartitions(new_parts), environment_context);
   }
 
   @Override
@@ -1376,9 +1379,11 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public void alter_table_with_cascade(String dbname, String tbl_name, Table new_tbl, boolean cascade)
     throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(dbname, tbl_name);
+    checkWritePermissionsAndCheckTableAllowed(new_tbl.getDbName(), new_tbl.getTableName(), mapping);
     mapping
         .getClient()
-        .alter_table_with_cascade(mapping.transformInboundDatabaseName(dbname), tbl_name, new_tbl, cascade);
+        .alter_table_with_cascade(mapping.transformInboundDatabaseName(dbname), tbl_name,
+                mapping.transformInboundTable(new_tbl), cascade);
   }
 
   @Override
