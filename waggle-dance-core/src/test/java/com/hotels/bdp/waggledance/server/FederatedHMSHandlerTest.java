@@ -1632,18 +1632,29 @@ public class FederatedHMSHandlerTest {
   @Test
   public void alter_partitions_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
-    handler.alter_partitions_with_environment_context(DB_P, "table", Collections.emptyList(), environmentContext);
-    verify(primaryMapping).checkWritePermissions(DB_P);
+    Partition newPartition1 = new Partition();
+    newPartition1.setDbName(DB_P);
+    Partition newPartition2 = new Partition();
+    newPartition2.setDbName(DB_P);
+    List<Partition> inbound = Lists.newArrayList(new Partition(), new Partition());
+    List<Partition> partitions = Lists.newArrayList(newPartition1, newPartition2);
+    when(primaryMapping.transformInboundPartitions(partitions)).thenReturn(inbound);
+    handler.alter_partitions_with_environment_context(DB_P, "table", partitions, environmentContext);
+    verify(primaryMapping, times(3)).checkWritePermissions(DB_P);
     verify(primaryClient)
-        .alter_partitions_with_environment_context(DB_P, "table", Collections.emptyList(), environmentContext);
+        .alter_partitions_with_environment_context(DB_P, "table", inbound, environmentContext);
   }
 
   @Test
   public void alter_table_with_cascade() throws TException {
     Table table = new Table();
+    table.setDbName(DB_P);
+    Table inbound = new Table();
+    when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
+    when(primaryMapping.transformInboundTable(table)).thenReturn(inbound);
     handler.alter_table_with_cascade(DB_P, "table", table, true);
-    verify(primaryMapping).checkWritePermissions(DB_P);
-    verify(primaryClient).alter_table_with_cascade(DB_P, "table", table, true);
+    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
+    verify(primaryClient).alter_table_with_cascade("inbound", "table", inbound, true);
   }
 
   @Test

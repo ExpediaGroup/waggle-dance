@@ -1,4 +1,10 @@
 
+## [3.10.6] - 2022-06-07
+### Fixed
+- Fixed database name translation for:
+  - `alter_partitions_with_environment_context`
+  - `alter_table_with_cascade`
+
 ## [3.10.5] - 2022-05-23
 ### Changed
 * Added `queryFunctionsAcrossAllMetastores` configuration for optimising `getAllFunctions` calls.

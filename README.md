@@ -582,8 +582,12 @@ This class needs to be on the classpath and can be an external jar. If so the co
 Note: The database calls `getDatabases` and `getAllDatabases`, as well as `getTableMeta` do not support having the provided filter applied at the moment, so their result will not be modified by the filter.
 
 
-## Building
+## Building Waggle Dance
 
+### Prerequisites
+In order to build Waggle Dance, AWS Glue libraries will need to be installed locally. Please follow [this installation](lib/HOW_TO_INSTALL.MD) guide to install those libraries.
+
+### Building
 Waggle Dance can be built from source using Maven:
 
     mvn clean package
