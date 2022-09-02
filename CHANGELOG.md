@@ -1,4 +1,8 @@
-
+## [3.10.7] - 2022-08-19
+### Fixed     
+- Fixed get objectname null pointer for:
+    - `transformInboundHiveObjectRef`
+    
 ## [3.10.6] - 2022-06-07
 ### Fixed
 - Fixed database name translation for:

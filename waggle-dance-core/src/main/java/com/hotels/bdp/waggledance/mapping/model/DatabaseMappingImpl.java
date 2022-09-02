@@ -166,7 +166,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public HiveObjectRef transformInboundHiveObjectRef(HiveObjectRef obj) {
     obj.setDbName(metaStoreMapping.transformInboundDatabaseName(obj.getDbName()));
-    if (obj.getObjectType() == HiveObjectType.DATABASE) {
+    if (obj.getObjectName()!=null && obj.getObjectType() == HiveObjectType.DATABASE) {
       obj.setObjectName(metaStoreMapping.transformInboundDatabaseName(obj.getObjectName()));
     }
     return obj;
