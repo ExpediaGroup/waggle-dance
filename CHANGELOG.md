@@ -1,5 +1,5 @@
 
-## [3.10.7] - 2022-08-19
+## [3.10.7] - 2022-09-02
 ### Fixed     
 - Fixed get objectname null pointer for:
     - `transformInboundHiveObjectRef`
