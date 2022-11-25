@@ -22,7 +22,7 @@
     <guava.version>14.0.1</guava.version>
     <hive2.version>2.3.3</hive2.version>
     <spark-hive.version>1.2.1.spark2</spark-hive.version>
-    <aws.sdk.version>1.11.267</aws.sdk.version>
+    <aws.sdk.version>1.12.276</aws.sdk.version>
     <junit.version>4.11</junit.version>
     <mockito.version>1.10.19</mockito.version>
     <surefire.version>2.15</surefire.version>

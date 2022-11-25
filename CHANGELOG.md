@@ -1,4 +1,9 @@
 
+## [3.10.8] - 2022-10-24
+### Changed     
+- Upgraded `aws-sdk` version to `1.12.276` (was `1.11.267`).
+- Enabled support to use AWS STS tokens when using Glue sync.
+
 ## [3.10.7] - 2022-09-02
 ### Fixed     
 - Fixed get objectname null pointer for:
