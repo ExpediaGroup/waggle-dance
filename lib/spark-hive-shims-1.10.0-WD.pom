@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.amazonaws.glue</groupId>
         <artifactId>shims</artifactId>
-        <version>1.10.0-WD-1-SNAPSHOT</version>
+        <version>1.10.0-WD</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
