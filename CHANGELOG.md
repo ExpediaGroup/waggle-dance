@@ -1,3 +1,7 @@
+## [3.10.9] - 2022-10-29
+### Changed     
+- Uploaded Glue JARs with all changes from release `3.10.8` in `/lib` folder.
+- Excluded `pentaho-aggdesigner-algorithm` dependency from `hive-exec` (provided) due to problems when building the project locally.
 
 ## [3.10.8] - 2022-10-24
 ### Changed     
