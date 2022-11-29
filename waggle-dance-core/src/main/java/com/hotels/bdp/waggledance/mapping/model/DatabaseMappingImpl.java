@@ -15,6 +15,8 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -24,6 +26,8 @@ import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.CacheFileMetadataRequest;
+import org.apache.hadoop.hive.metastore.api.ClientCapabilities;
+import org.apache.hadoop.hive.metastore.api.ClientCapability;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -480,6 +484,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public GetTableRequest transformInboundGetTableRequest(GetTableRequest request) {
     request.setDbName(metaStoreMapping.transformInboundDatabaseName(request.getDbName()));
+    request.setCapabilities(new ClientCapabilities(ImmutableList.of(ClientCapability.TEST_CAPABILITY)));
     return request;
   }
 
