@@ -10,6 +10,7 @@
   <artifactId>waggle-dance-core</artifactId>
 
   <properties>
+    <aws.sdk.version>1.12.276</aws.sdk.version>
     <powermock.version>2.0.7</powermock.version>
     <jcabi-aspects.version>0.22.6</jcabi-aspects.version>
   </properties>
@@ -253,17 +254,22 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-core</artifactId>
-      <version>1.11.271</version>
+      <version>${aws.sdk.version}</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-glue</artifactId>
-      <version>1.11.271</version>
+      <version>${aws.sdk.version}</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
-      <version>1.11.271</version>
+      <version>${aws.sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-sts</artifactId>
+      <version>${aws.sdk.version}</version>
     </dependency>
 
 
