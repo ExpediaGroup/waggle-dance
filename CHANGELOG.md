@@ -8,7 +8,7 @@
 - Uploaded Glue JARs with all changes from release `3.10.8` in `/lib` folder.
 - Excluded `pentaho-aggdesigner-algorithm` dependency from `hive-exec` (provided) due to problems when building the project locally.
 
-## [3.10.8] - 2022-10-24
+## [3.10.8] - 2022-11-24
 ### Changed     
 - Upgraded `aws-sdk` version to `1.12.276` (was `1.11.267`) in `aws-glue-datacatalog-client-common`.
 - Enabled support to use AWS STS tokens when using Glue sync in `aws-glue-datacatalog-client-common`.
