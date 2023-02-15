@@ -227,7 +227,7 @@ These include:
 * Keys foreign/primary
 * Locks
 * Transactions / compact
-* Security management: roles, prinicpals, grant/revoke
+* Security management: roles, principals, grant/revoke
 * Delegation tokens
 * Notifications
 * Config management
