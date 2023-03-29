@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ public class WaggleDance {
       SpringApplication application = new SpringApplicationBuilder(WaggleDance.class)
           .properties("spring.config.location:${server-config:null},${federation-config:null}")
           .properties("server.port:${endpoint.port:18000}")
+          .properties("spring.main.allow-bean-definition-overriding:${waggledance.allow-bean-definition-overriding:true}")
           .registerShutdownHook(true)
           .build();
       exitCode = SpringApplication.exit(registerListeners(application).run(args));
