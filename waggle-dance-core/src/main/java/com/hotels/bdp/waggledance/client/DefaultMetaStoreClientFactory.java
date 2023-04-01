@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,6 +23,10 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
+import org.apache.hadoop.hive.shims.Utils;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +47,9 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private final ThriftMetastoreClientManager base;
     private final String name;
     private final int maxRetries;
+    private final String tokenSignature = "WAGGLEDANCETOKEN";
 
+    private String delegationToken;
     private HiveUgiArgs cachedUgi = null;
 
     private ReconnectingMetastoreClientInvocationHandler(
@@ -87,8 +94,24 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
           // Metastores.
           return Lists.newArrayList(user);
         }
+      case "get_delegation_token":
+        try {
+          base.open(cachedUgi);
+          Object token = doRealCall(method, args, attempt);
+          this.delegationToken = (String) token;
+          base.close();
+          String newTokenSignature = base.getHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+                  tokenSignature);
+          base.setHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+                  newTokenSignature);
+          Utils.setTokenStr(UserGroupInformation.getCurrentUser(), (String) token, newTokenSignature);
+          base.open(cachedUgi);
+          return token;
+        } catch (IOException | TException e) {
+          throw new MetastoreUnavailableException("Couldn't setup delegation token in the ugi: ", e);
+        }
       default:
-        base.open(cachedUgi);
+        genDelegationToken();
         return doRealCall(method, args, attempt);
       }
     }
@@ -130,6 +153,34 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       } catch (Exception e) {
         throw new MetastoreUnavailableException("Client " + name + " is not available", e);
       }
+    }
+
+    private String genDelegationToken() throws Throwable {
+      UserGroupInformation currUser = UserGroupInformation.getCurrentUser();
+
+      base.open(cachedUgi);
+
+      if (delegationToken == null && currUser != UserGroupInformation.getLoginUser()) {
+        String currShortName = currUser.getShortUserName();
+        Method getTokenMethod =
+                ThriftHiveMetastore.Iface.class.getMethod("get_delegation_token",
+                        String.class, String.class);
+        Object[] args = new Object[2];
+        args[0] = currShortName;
+        args[1] = currShortName;
+        String token = (String) doRealCall(getTokenMethod, args, 0);
+        base.close();
+        String newTokenSignature = base.getHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+                tokenSignature);
+        base.setHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+                newTokenSignature);
+        Utils.setTokenStr(currUser, token, newTokenSignature);
+        this.delegationToken = token;
+      }
+      if (!base.isOpen()) {
+        base.open(cachedUgi);
+      }
+      return delegationToken;
     }
 
   }

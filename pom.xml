@@ -51,10 +51,32 @@
     <hcommon-hive-metastore.version>1.2.3</hcommon-hive-metastore.version>
     <jackson.version>2.9.8</jackson.version>
     <jackson.databind.version>2.9.10.8</jackson.databind.version>
+    <curator.version>2.13.0</curator.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
+      <!-- zookeeper -->
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-client</artifactId>
+        <version>${curator.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-framework</artifactId>
+        <version>${curator.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-recipes</artifactId>
+        <version>${curator.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-x-discovery</artifactId>
+        <version>${curator.version}</version>
+      </dependency>
       <!-- Log4j v2 -->
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>

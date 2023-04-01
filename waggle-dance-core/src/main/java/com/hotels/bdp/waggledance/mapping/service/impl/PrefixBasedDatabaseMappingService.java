@@ -92,6 +92,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
+    // connect metastore first
+    if (!metaStoreMapping.isAvailable()) {
+      throw new WaggleDanceException(
+              String.format("Could not get databases for metastore {}", metaStore.getRemoteMetaStoreUris())
+      );
+    }
     DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
 
     if (metaStore.getFederationType() == PRIMARY) {
