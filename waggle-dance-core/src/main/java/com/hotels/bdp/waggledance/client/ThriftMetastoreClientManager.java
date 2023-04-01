@@ -224,6 +224,10 @@ class ThriftMetastoreClientManager implements Closeable {
     conf.set(key, value);
   }
 
+  public Boolean getHiveConfBool(ConfVars key) {
+    return conf.getBoolVar(key);
+  }
+
   @Override
   public void close() {
     if (!isConnected) {

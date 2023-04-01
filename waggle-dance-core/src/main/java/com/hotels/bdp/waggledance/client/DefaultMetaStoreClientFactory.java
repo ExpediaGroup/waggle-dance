@@ -48,6 +48,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private final String name;
     private final int maxRetries;
     private final String tokenSignature = "WAGGLEDANCETOKEN";
+    private final boolean useSasl;
 
     private String delegationToken;
     private HiveUgiArgs cachedUgi = null;
@@ -59,6 +60,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       this.name = name;
       this.maxRetries = maxRetries;
       this.base = base;
+      this.useSasl = base.getHiveConfBool(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
     }
 
     @SuppressWarnings("unchecked")
@@ -98,14 +100,16 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
         try {
           base.open(cachedUgi);
           Object token = doRealCall(method, args, attempt);
-          this.delegationToken = (String) token;
-          base.close();
-          String newTokenSignature = base.getHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-                  tokenSignature);
-          base.setHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-                  newTokenSignature);
-          Utils.setTokenStr(UserGroupInformation.getCurrentUser(), (String) token, newTokenSignature);
-          base.open(cachedUgi);
+          if (useSasl) {
+            this.delegationToken = (String) token;
+            base.close();
+            String newTokenSignature = base.getHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+                    tokenSignature);
+            base.setHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+                    newTokenSignature);
+            Utils.setTokenStr(UserGroupInformation.getCurrentUser(), (String) token, newTokenSignature);
+            base.open(cachedUgi);
+          }
           return token;
         } catch (IOException | TException e) {
           throw new MetastoreUnavailableException("Couldn't setup delegation token in the ugi: ", e);
@@ -156,11 +160,10 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     }
 
     private String genDelegationToken() throws Throwable {
-      UserGroupInformation currUser = UserGroupInformation.getCurrentUser();
-
       base.open(cachedUgi);
 
-      if (delegationToken == null && currUser != UserGroupInformation.getLoginUser()) {
+      UserGroupInformation currUser = UserGroupInformation.getCurrentUser();
+      if (delegationToken == null && currUser != UserGroupInformation.getLoginUser() && useSasl) {
         String currShortName = currUser.getShortUserName();
         Method getTokenMethod =
                 ThriftHiveMetastore.Iface.class.getMethod("get_delegation_token",
