@@ -60,7 +60,10 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       this.name = name;
       this.maxRetries = maxRetries;
       this.base = base;
-      this.useSasl = base.getHiveConfBool(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
+      if (base != null)
+        this.useSasl = base.getHiveConfBool(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
+      else
+        this.useSasl = false;
     }
 
     @SuppressWarnings("unchecked")

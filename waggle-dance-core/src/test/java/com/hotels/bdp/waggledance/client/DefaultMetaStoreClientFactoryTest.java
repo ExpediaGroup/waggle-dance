@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.collect.Lists;
@@ -107,7 +108,7 @@ public class DefaultMetaStoreClientFactoryTest {
 
     String result = iface.getName();
     assertThat(result, is("ourName"));
-    verify(base).open(null);
+    verify(base, Mockito.times(2)).open(null);
     verify(base).reconnect(null);
   }
 
@@ -122,7 +123,7 @@ public class DefaultMetaStoreClientFactoryTest {
     String name = iface.getName();
 
     assertThat(name, is("ourName"));
-    verify(base).open(TEST_ARGS);
+    verify(base, Mockito.times(2)).open(TEST_ARGS);
     verify(base).reconnect(TEST_ARGS);
   }
 
