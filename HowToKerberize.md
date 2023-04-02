@@ -3,13 +3,25 @@
 # Additional instruction to use Waggle Dance in kerberized environment
 
 
+### Process
+
+In a kerberos environment, after a client requests waggle-dance, waggle-dance requests the proxy user's token from the metastore and then uses that token to communicate with the metastore.
+
+This is necessary in some scenarios that require permission authentication. Such as the `create_table` API that requires the proxy user to create hdfs directories.
+
+![image](https://user-images.githubusercontent.com/13965087/229339323-260f3c17-46c0-4471-81d2-cdbcfa0fe3ce.png)
+
+In addition, because kerberos authentication requires a delegation-token to proxy as other users. The proxy user of the session is shared globally, which means we need to make all Hive Metastores share a set of delegation-token storage so that a single delegation-token can be authenticated by multiple Metastores.
+
+**One solution is to use zookeeper to store tokens for all Hive Metastores, which is essential.**
+
 ### Prerequisites
 
 * Kerberized claster:
   active KDC,
   some required properties in configuration files of hadoop services
 * User account with privileges in ipa
-
+* Zookeeper to store delegation-token (Recommend)
 
 ### Configuration
 
@@ -38,6 +50,22 @@ Besides Waggle Dance needs a keytab file to communicate with the Metastore so fo
   <name>hive.metastore.kerberos.keytab.file</name>
   <value>/etc/hive.keytab</value>
 </property>
+```
+
+In addition, all metastores need to use the zk shared token:
+```
+  <property>
+    <name>hive.cluster.delegation.token.store.class</name>
+    <value>org.apache.hadoop.hive.thrift.ZooKeeperTokenStore</value>
+  </property>
+  <property>
+    <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
+    <value>zk1:2181,zk2:2181,zk3:2181</value>
+  </property>
+  <property>
+    <name>hive.cluster.delegation.token.store.zookeeper.znode</name>
+    <value>/hive/token</value>
+  </property>
 ```
 
 If you are intending to use a beeline client, following properties may be valuable:
