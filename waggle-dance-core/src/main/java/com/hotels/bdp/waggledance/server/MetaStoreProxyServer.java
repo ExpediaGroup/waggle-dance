@@ -216,16 +216,14 @@ public class MetaStoreProxyServer implements ApplicationRunner {
   private TTransportFactory createTTransportFactory(boolean useFramedTransport, boolean useSASL,
                                                     HadoopThriftAuthBridge.Server server)
           throws LoginException {
-    TTransportFactory transFactory;
-    if (useFramedTransport) {
-      transFactory = new TFramedTransport.Factory();
-    } else {
-      transFactory = new TTransportFactory();
-    }
     if (useSASL) {
-      transFactory = SaslHelper.getAuthTransFactory(server, hiveConf);
+      return SaslHelper.getAuthTransFactory(server, hiveConf);
     }
-    return transFactory;
+    if (useFramedTransport) {
+      return new TFramedTransport.Factory();
+    }
+    return new TTransportFactory();
+
   }
 
 

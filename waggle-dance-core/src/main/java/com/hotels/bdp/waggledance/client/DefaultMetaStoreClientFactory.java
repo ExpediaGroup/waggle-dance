@@ -106,11 +106,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
           if (useSasl) {
             this.delegationToken = (String) token;
             base.close();
-            String newTokenSignature = base.getHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-                    tokenSignature);
-            base.setHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-                    newTokenSignature);
-            Utils.setTokenStr(UserGroupInformation.getCurrentUser(), (String) token, newTokenSignature);
+            setTokenStrtoUGI(UserGroupInformation.getCurrentUser(), (String) token);
             base.open(cachedUgi);
           }
           return token;
@@ -176,19 +172,22 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
         args[1] = currShortName;
         String token = (String) doRealCall(getTokenMethod, args, 0);
         base.close();
-        String newTokenSignature = base.getHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-                tokenSignature);
-        base.setHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-                newTokenSignature);
-        Utils.setTokenStr(currUser, token, newTokenSignature);
+        setTokenStrtoUGI(currUser, token);
         this.delegationToken = token;
-      }
-      if (!base.isOpen()) {
-        base.open(cachedUgi);
+        if (!base.isOpen()) {
+          base.open(cachedUgi);
+        }
       }
       return delegationToken;
     }
 
+    private void setTokenStrtoUGI(UserGroupInformation currUser, String token) throws IOException {
+      String newTokenSignature = base.getHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+              tokenSignature);
+      base.setHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+              newTokenSignature);
+      Utils.setTokenStr(currUser, token, newTokenSignature);
+    }
   }
 
   /*

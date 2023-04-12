@@ -39,7 +39,7 @@ import org.apache.thrift.transport.TTransportFactory;
 
 public class SaslHelper {
   public static HadoopThriftAuthBridge.Server createSaslServer(HiveConf conf) throws TTransportException {
-    HadoopThriftAuthBridge.Server saslServer = saslServer = null;
+    HadoopThriftAuthBridge.Server saslServer = null;
     if (SaslHelper.isSASLWithKerberizedHadoop(conf)) {
       saslServer =
               ShimLoader.getHadoopThriftAuthBridge().createServer(
