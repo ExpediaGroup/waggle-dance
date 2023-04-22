@@ -224,8 +224,16 @@ class ThriftMetastoreClientManager implements Closeable {
     conf.set(key, value);
   }
 
-  public Boolean getHiveConfBool(ConfVars key) {
-    return conf.getBoolVar(key);
+  public String generateNewTokenSignature(String defaultTokenSignature) {
+    String tokenSignature = conf.get(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+            defaultTokenSignature);
+    conf.set(ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
+            tokenSignature);
+    return tokenSignature;
+  }
+
+  public Boolean isSaslEnabled() {
+    return conf.getBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
   }
 
   @Override

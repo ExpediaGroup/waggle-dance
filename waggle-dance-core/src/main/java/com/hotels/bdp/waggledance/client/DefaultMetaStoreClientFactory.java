@@ -61,7 +61,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       this.maxRetries = maxRetries;
       this.base = base;
       if (base != null)
-        this.useSasl = base.getHiveConfBool(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
+        this.useSasl = base.isSaslEnabled();
       else
         this.useSasl = false;
     }
@@ -182,10 +182,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     }
 
     private void setTokenStr2Ugi(UserGroupInformation currUser, String token) throws IOException {
-      String newTokenSignature = base.getHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-              tokenSignature);
-      base.setHiveConfValue(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-              newTokenSignature);
+      String newTokenSignature = base.generateNewTokenSignature(tokenSignature);
       Utils.setTokenStr(currUser, token, newTokenSignature);
     }
   }

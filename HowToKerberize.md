@@ -1,32 +1,32 @@
 ![Bee waggle-dancing on a hive.](logo.png "Federating Hive Meta Stores.")
 
-# Additional instruction to use Waggle Dance in kerberized environment
+# Additional instructions to use Waggle Dance in a Kerberized environment
 
 
 ### Process
 
-In a kerberos environment, after a client requests waggle-dance, waggle-dance requests the proxy user's token from the metastore and then uses that token to communicate with the metastore.
+In a Kerberos environment a client make a request to Waggle Dance which in turn requests the proxy user's token from the metastore and then uses this token to communicate with the metastore.
 
-This is necessary in some scenarios that require permission authentication. Such as the `create_table` API that requires the proxy user to create hdfs directories.
+This is necessary in certain scenarios that need authentication - for example the `create_table` API that requires the proxy user to create HDFS directories.
 
 ![image](https://user-images.githubusercontent.com/13965087/229339323-260f3c17-46c0-4471-81d2-cdbcfa0fe3ce.png)
 
-In addition, because kerberos authentication requires a delegation-token to proxy as other users. The proxy user of the session is shared globally, which means we need to make all Hive Metastores share a set of delegation-token storage so that a single delegation-token can be authenticated by multiple Metastores.
+In addition, because Kerberos authentication requires a delegation-token to proxy as other users, the proxy user of the session is shared globally. This means we need to make all Hive Metastores share a set of delegation-token storage so that a single delegation-token can be authenticated by multiple Metastores.
 
-**One solution is to use zookeeper to store tokens for all Hive Metastores, which is essential.**
+**One solution is to use Zookeeper to store tokens for all Hive Metastores**
 
 ### Prerequisites
 
-* Kerberized claster:
+* Kerberized cluster:
   active KDC,
-  some required properties in configuration files of hadoop services
+  some required properties in configuration files of Hadoop services
 * User account with privileges in ipa
-* Zookeeper to store delegation-token (Recommend)
+* Zookeeper to store delegation-token (Recommended)
 
 ### Configuration
 
-Waggle Dance does not read hadoop's *core-site.xml* so a general property providing kerberos auth should be added to
-the Hive configuration file *hive-site.xml*:
+Waggle Dance does not read Hadoop's `core-site.xml` so a general property providing Kerberos auth should be added to
+the Hive configuration file `hive-site.xml`:
 
 ```
 <property>
@@ -36,7 +36,7 @@ the Hive configuration file *hive-site.xml*:
 ```
 
 
-Besides Waggle Dance needs a keytab file to communicate with the Metastore so following properties should be present:
+Waggle Dance also needs a keytab file to communicate with the Metastore so the following properties should be present:
 ```
 <property>
   <name>hive.metastore.sasl.enabled</name>
@@ -52,7 +52,7 @@ Besides Waggle Dance needs a keytab file to communicate with the Metastore so fo
 </property>
 ```
 
-In addition, all metastores need to use the zk shared token:
+In addition, all metastores need to use the Zookeeper shared token:
 ```
   <property>
     <name>hive.cluster.delegation.token.store.class</name>
@@ -68,7 +68,7 @@ In addition, all metastores need to use the zk shared token:
   </property>
 ```
 
-If you are intending to use a beeline client, following properties may be valuable:
+If you are intending to use a Beeline client, the following properties may be valuable:
 ```
 <property>
   <name>hive.server2.transport.mode</name>
@@ -95,12 +95,12 @@ If you are intending to use a beeline client, following properties may be valuab
 
 ### Running
 
-The Waggle Dance should be starting as privileged user with a fresh keytab.
+Waggle Dance should be started by a privileged user with a fresh keytab.
 
 If Waggle Dance throws a GSS exception, you have problem with the keytab file.
-Try to perform `kdestroy` and `kinit` operations and check for a keytab file ownership.
+Try to perform `kdestroy` and `kinit` operations and check the keytab file ownership flags.
 
-If the Metastore throws an exception with code -127, Waggle Dance uses wrong authentication policy.
-Check hive-conf.xml for a correct configuration and make sure that HIVE_HOME and HIVE_CONF_DIR are defined.
+If the Metastore throws an exception with code -127, Waggle Dance is probably using the wrong authentication policy.
+Check the values in `hive-conf.xml` and make sure that HIVE_HOME and HIVE_CONF_DIR are defined.
 
 Don't forget to restart hive services!

@@ -37,7 +37,10 @@ import org.apache.thrift.transport.TSaslServerTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 
-public class SaslHelper {
+public final class SaslHelper {
+
+  private SaslHelper() {}
+
   public static HadoopThriftAuthBridge.Server createSaslServer(HiveConf conf) throws TTransportException {
     HadoopThriftAuthBridge.Server saslServer = null;
     if (SaslHelper.isSASLWithKerberizedHadoop(conf)) {
@@ -114,4 +117,5 @@ public class SaslHelper {
     saslProps.put(Sasl.SERVER_AUTH, "true");
     return saslProps;
   }
+
 }
