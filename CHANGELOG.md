@@ -3,9 +3,9 @@
 - Functionality to get tables from a database using a Glue federation. Code pulled from original AWS master branch.
   - [Code](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/commit/7f8f13681b09d07dafb57e6efdae457a5c6f6d7b) 
 
-## [3.10.11] - 2023-04-01
+## [3.10.11] - 2023-05-02
 ### Changed
-- Upgraded `springboot` version to `2.1.18-RELEASE` (was `2.0.4-RELEASE`).
+- Upgraded `springboot` version to `2.7.11` (was `2.0.4.RELEASE`).
 - Added `spring-boot-starter-validation`.
 - Added `waggledance.allow-bean-definition-overriding` property to configuration.
 
