@@ -1,4 +1,4 @@
-## [3.10.12] - 2023-05-03
+## [3.10.12] - 2023-05-04
 ### Changed
 - Upgraded `springboot` version to `2.7.11` (was `2.0.4.RELEASE`).
 - Added `spring-boot-starter-validation`.
