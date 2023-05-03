@@ -61,6 +61,7 @@ import com.hotels.bdp.waggledance.mapping.service.PanopticOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesRequest;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
+import com.hotels.bdp.waggledance.server.TokenWrappingHMSHandler;
 import com.hotels.bdp.waggledance.util.AllowList;
 
 public class PrefixBasedDatabaseMappingService implements MappingEventListener {
@@ -92,16 +93,16 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
-    // connect metastore first
-    if (!metaStoreMapping.isAvailable()) {
-      LOG.warn(
-              String.format("Could not get databases for metastore {}", metaStore.getRemoteMetaStoreUris())
-      );
-    }
+
     DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
 
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = databaseMapping;
+      if (!metaStoreMapping.isAvailable()) {
+        throw new WaggleDanceException(
+                String.format("Primary metastore is unavailable {}", metaStore.getRemoteMetaStoreUris())
+        );
+      }
     }
 
     mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), databaseMapping);
@@ -436,6 +437,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       for (MetaStoreMapping metaStoreMapping : mappingsByPrefix.values()) {
         metaStoreMapping.close();
       }
+      TokenWrappingHMSHandler.removeToken();
     }
   }
 

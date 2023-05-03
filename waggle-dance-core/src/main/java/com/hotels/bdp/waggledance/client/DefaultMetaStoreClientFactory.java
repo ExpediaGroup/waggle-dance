@@ -23,7 +23,6 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.shims.Utils;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.thrift.TException;
@@ -35,6 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
+import com.hotels.bdp.waggledance.server.TokenWrappingHMSHandler;
 import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
 
 public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
@@ -74,6 +74,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       switch (method.getName()) {
       case "isOpen":
         try {
+          genToken();
           reconnectIfDisconnected();
           return base.isOpen();
         } catch (Exception e) {
@@ -114,7 +115,8 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
           throw new MetastoreUnavailableException("Couldn't setup delegation token in the ugi: ", e);
         }
       default:
-        genDelegationToken();
+        genToken();
+        base.open(cachedUgi);
         return doRealCall(method, args, attempt);
       }
     }
@@ -158,27 +160,16 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       }
     }
 
-    private String genDelegationToken() throws Throwable {
-      base.open(cachedUgi);
+    private void genToken() throws Throwable {
+      UserGroupInformation currUser = null;
+      if (delegationToken == null && (currUser = UserGroupInformation.getCurrentUser())
+              != UserGroupInformation.getLoginUser()) {
 
-      UserGroupInformation currUser = UserGroupInformation.getCurrentUser();
-      if (delegationToken == null && currUser != UserGroupInformation.getLoginUser() && useSasl) {
-        String currShortName = currUser.getShortUserName();
-        Method getTokenMethod =
-                ThriftHiveMetastore.Iface.class.getMethod("get_delegation_token",
-                        String.class, String.class);
-        Object[] args = new Object[2];
-        args[0] = currShortName;
-        args[1] = currShortName;
-        String token = (String) doRealCall(getTokenMethod, args, 0);
-        base.close();
+        String token = TokenWrappingHMSHandler.getToken();
         setTokenStr2Ugi(currUser, token);
-        this.delegationToken = token;
-        if (!base.isOpen()) {
-          base.open(cachedUgi);
-        }
+        delegationToken = token;
+        base.close();
       }
-      return delegationToken;
     }
 
     private void setTokenStr2Ugi(UserGroupInformation currUser, String token) throws IOException {

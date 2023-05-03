@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ import com.hotels.bdp.waggledance.mapping.service.PanopticConcurrentOperationExe
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
+import com.hotels.bdp.waggledance.server.TokenWrappingHMSHandler;
 import com.hotels.bdp.waggledance.util.AllowList;
 
 public class StaticDatabaseMappingService implements MappingEventListener {
@@ -408,6 +409,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       for (MetaStoreMapping metaStoreMapping : mappingsByMetaStoreName.values()) {
         metaStoreMapping.close();
       }
+      TokenWrappingHMSHandler.removeToken();
     }
   }
 
