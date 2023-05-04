@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,15 +41,13 @@ import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederati
 public class PollingFederationServiceTest {
 
   private @Mock PopulateStatusFederationService populateStatusFederationService;
-  private MeterRegistry meterRegistry;
 
   private PollingFederationService service;
 
   @Before
   public void setUp() {
-    service = new PollingFederationService(populateStatusFederationService);
-    meterRegistry = new SimpleMeterRegistry();
-    service.setMeterRegistry(meterRegistry);
+    MeterRegistry meterRegistry = new SimpleMeterRegistry();
+    service = new PollingFederationService(populateStatusFederationService, meterRegistry);
   }
 
   @Test
