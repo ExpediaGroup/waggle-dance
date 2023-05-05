@@ -22,6 +22,12 @@ jobs:
         # a pull request then we can checkout the head.
         fetch-depth: 2
 
+   # WD requires Java 8 to build
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: 8
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
