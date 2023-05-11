@@ -67,7 +67,6 @@ public class WaggleDance {
       SpringApplication application = new SpringApplicationBuilder(WaggleDance.class)
           .properties("spring.config.location:${server-config:null},${federation-config:null}")
           .properties("server.port:${endpoint.port:18000}")
-          .properties("spring.main.allow-bean-definition-overriding:${waggledance.allow-bean-definition-overriding:true}")
           .registerShutdownHook(true)
           .build();
       exitCode = SpringApplication.exit(registerListeners(application).run(args));

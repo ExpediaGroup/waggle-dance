@@ -1,4 +1,10 @@
-## [3.10.12] - 2023-05-04
+## [3.10.14] - 2023-05-11
+### Changed
+- Remove `waggledance.allow-bean-definition-overriding` property to configuration to favor single bean creation.
+
+## [3.10.13] - Not released [YANKED]
+
+## [3.10.12] - 2023-05-04 - [YANKED]
 ### Changed
 - Upgraded `springboot` version to `2.7.11` (was `2.0.4.RELEASE`).
 - Added `spring-boot-starter-validation`.
