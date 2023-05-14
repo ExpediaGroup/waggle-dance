@@ -191,6 +191,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       if (delegationToken == null && (currUser = UserGroupInformation.getCurrentUser())
               != UserGroupInformation.getLoginUser()) {
 
+        LOG.info(String.format("set %s delegation token", currUser.getShortUserName()));
         String token = TokenWrappingHMSHandler.getToken();
         setTokenStr2Ugi(currUser, token);
         delegationToken = token;
@@ -229,6 +230,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     if (base.isSaslEnabled()) {
       CloseableThriftHiveMetastoreIface ifaceReconnectingHandler = (CloseableThriftHiveMetastoreIface) Proxy
               .newProxyInstance(getClass().getClassLoader(), INTERFACES, reconnectingHandler);
+      // Warpping the SaslMetastoreClientHander to handle delegation token if using sasl
       return SaslMetastoreClientHander.newProxyInstance(ifaceReconnectingHandler, base);
     } else {
       return (CloseableThriftHiveMetastoreIface) Proxy
