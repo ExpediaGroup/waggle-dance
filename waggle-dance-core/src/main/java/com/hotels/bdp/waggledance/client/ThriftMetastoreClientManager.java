@@ -105,6 +105,10 @@ class ThriftMetastoreClientManager implements Closeable {
     }
   }
 
+  void open() {
+    open(null);
+  }
+
   void open(HiveUgiArgs ugiArgs) {
     if (isConnected) {
       return;

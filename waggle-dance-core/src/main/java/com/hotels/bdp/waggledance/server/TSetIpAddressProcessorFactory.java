@@ -58,13 +58,19 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
         log.debug("Received a connection from ip: {}", socket.getInetAddress().getHostAddress());
       }
       CloseableIHMSHandler baseHandler = federatedHMSHandlerFactory.create();
-      IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
-          false);
+
       boolean useSASL = hiveConf.getBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
-      IHMSHandler tokenHandler = newRetryingHMSHandler(TokenWrappingHMSHandler.newProxyInstance(handler, useSASL), hiveConf,
-              false);
-      transportMonitor.monitor(transport, baseHandler);
-      return new TSetIpAddressProcessor<>(tokenHandler);
+      if (useSASL) {
+        IHMSHandler tokenHandler = TokenWrappingHMSHandler.newProxyInstance(baseHandler, useSASL);
+        IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(tokenHandler), hiveConf,
+                false);
+        return new TSetIpAddressProcessor<>(handler);
+      } else {
+        IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
+                false);
+        transportMonitor.monitor(transport, baseHandler);
+        return new TSetIpAddressProcessor<>(handler);
+      }
     } catch (MetaException | ReflectiveOperationException | RuntimeException e) {
       throw new RuntimeException("Error creating TProcessor", e);
     }

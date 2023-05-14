@@ -15,9 +15,7 @@
  */
 package com.hotels.bdp.waggledance.server;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 
 import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -47,7 +45,6 @@ public class TokenWrappingHMSHandler implements InvocationHandler {
   }
 
   public static IHMSHandler newProxyInstance(IHMSHandler baseHandler, boolean useSasl) {
-
     return (IHMSHandler) Proxy.newProxyInstance(TokenWrappingHMSHandler.class.getClassLoader(),
             new Class[] { IHMSHandler.class }, new TokenWrappingHMSHandler(baseHandler, useSasl));
   }
@@ -59,35 +56,44 @@ public class TokenWrappingHMSHandler implements InvocationHandler {
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    // We will get the token when proxy user call in the first time.
-    // Login user must open connect in `TProcessorFactorySaslDecorator#getProcessor`
-    // so we can reuse this connect to get proxy user delegation token
-    if (useSasl) {
-      UserGroupInformation currUser = null;
-      String token = null;
-      // if call get_delegation_token , will call it directly and set token to threadlocal
+    try {
+      // We will get the token when proxy user call in the first time.
+      // Login user must open connect in `TProcessorFactorySaslDecorator#getProcessor`
+      // so we can reuse this connect to get proxy user delegation token
+      if (useSasl) {
+        UserGroupInformation currUser = null;
+        String token = null;
+        // if call get_delegation_token , will call it directly and set token to threadlocal
 
-      switch (method.getName()) {
-        case "get_delegation_token" :
-          token = (String) method.invoke(baseHandler, args);
-          tokens.set(token);
-          return token;
-        case "close" :
-          tokens.remove();
-          return method.invoke(baseHandler, args);
-        default:
-          if (tokens.get().isEmpty() && (currUser = UserGroupInformation.getCurrentUser())
-                  != UserGroupInformation.getLoginUser()) {
-
-            String shortName = currUser.getShortUserName();
-            token = baseHandler.get_delegation_token(shortName, shortName);
-            LOG.info(String.format("get delegation token by user %s", shortName));
+        switch (method.getName()) {
+          case "get_delegation_token":
+            token = (String) method.invoke(baseHandler, args);
             tokens.set(token);
-          }
-          return method.invoke(baseHandler, args);
+            return token;
+          case "close":
+            tokens.remove();
+            return method.invoke(baseHandler, args);
+          default:
+            if (tokens.get().isEmpty() && (currUser = UserGroupInformation.getCurrentUser())
+                    != UserGroupInformation.getLoginUser()) {
+
+              String shortName = currUser.getShortUserName();
+              token = baseHandler.get_delegation_token(shortName, shortName);
+              LOG.info(String.format("get delegation token by user %s", shortName));
+              tokens.set(token);
+            }
+            return method.invoke(baseHandler, args);
+        }
       }
+      return method.invoke(baseHandler, args);
+    } catch (InvocationTargetException e) {
+      // Need to unwrap this, so callers get the correct exception thrown by the handler.
+      throw e.getCause();
+    } catch (UndeclaredThrowableException e) {
+      // Need to unwrap this, so callers get the correct exception thrown by the handler.
+      throw e.getCause();
     }
-    return method.invoke(baseHandler, args);
+
   }
 
 }

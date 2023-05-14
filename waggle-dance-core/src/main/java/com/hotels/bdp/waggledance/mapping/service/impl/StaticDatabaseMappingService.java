@@ -64,7 +64,6 @@ import com.hotels.bdp.waggledance.mapping.service.PanopticConcurrentOperationExe
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationExecutor;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
-import com.hotels.bdp.waggledance.server.TokenWrappingHMSHandler;
 import com.hotels.bdp.waggledance.util.AllowList;
 
 public class StaticDatabaseMappingService implements MappingEventListener {
@@ -409,7 +408,6 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       for (MetaStoreMapping metaStoreMapping : mappingsByMetaStoreName.values()) {
         metaStoreMapping.close();
       }
-      TokenWrappingHMSHandler.removeToken();
     }
   }
 
