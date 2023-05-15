@@ -9,7 +9,7 @@ In a Kerberos environment a client make a request to Waggle Dance which in turn 
 
 This is necessary in certain scenarios that need authentication - for example the `create_table` API that requires the proxy user to create HDFS directories.
 
-![image](https://user-images.githubusercontent.com/13965087/229339323-260f3c17-46c0-4471-81d2-cdbcfa0fe3ce.png)
+![Kerberos Process.](kerberos-process.png "Kerberos Process")
 
 In addition, because Kerberos authentication requires a delegation-token to proxy as other users, the proxy user of the session is shared globally. This means we need to make all Hive Metastores share a set of delegation-token storage so that a single delegation-token can be authenticated by multiple Metastores.
 

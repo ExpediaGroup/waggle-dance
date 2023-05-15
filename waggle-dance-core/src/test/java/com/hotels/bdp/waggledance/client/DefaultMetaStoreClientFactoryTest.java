@@ -123,7 +123,7 @@ public class DefaultMetaStoreClientFactoryTest {
     String name = iface.getName();
 
     assertThat(name, is("ourName"));
-    verify(base, Mockito.times(2)).open(TEST_ARGS);
+    verify(base).open(TEST_ARGS);
     verify(base).reconnect(TEST_ARGS);
   }
 

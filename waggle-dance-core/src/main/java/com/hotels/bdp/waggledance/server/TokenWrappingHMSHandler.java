@@ -15,7 +15,11 @@
  */
 package com.hotels.bdp.waggledance.server;
 
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.UndeclaredThrowableException;
 
 import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.security.UserGroupInformation;
