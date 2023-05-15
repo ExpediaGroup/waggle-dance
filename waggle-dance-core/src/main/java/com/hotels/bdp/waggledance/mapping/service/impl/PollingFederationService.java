@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,10 +43,12 @@ public class PollingFederationService {
 
   private final PopulateStatusFederationService populateStatusFederationService;
   private Map<String, MetaStoreStatus> previous = new HashMap<>();
-  private @Autowired MeterRegistry meterRegistry;
+  private MeterRegistry meterRegistry;
 
-  public PollingFederationService(PopulateStatusFederationService populateStatusFederationService) {
+  @Autowired
+  public PollingFederationService(PopulateStatusFederationService populateStatusFederationService, MeterRegistry meterRegistry) {
     this.populateStatusFederationService = populateStatusFederationService;
+    this.meterRegistry = meterRegistry;
   }
 
   public void poll() {

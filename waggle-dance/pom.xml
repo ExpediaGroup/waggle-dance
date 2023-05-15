@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>3.10.12-SNAPSHOT</version>
+    <version>3.10.15-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance</artifactId>

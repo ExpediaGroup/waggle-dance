@@ -9,7 +9,7 @@
 
   <groupId>com.hotels</groupId>
   <artifactId>waggle-dance-parent</artifactId>
-  <version>3.10.12-SNAPSHOT</version>
+  <version>3.10.15-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
@@ -35,7 +35,7 @@
 
   <properties>
     <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
-    <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
+    <spring-boot.version>2.7.11</spring-boot.version>
     <hadoop.version>2.10.1</hadoop.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hive.version>2.3.7</hive.version>
@@ -52,6 +52,7 @@
     <jackson.version>2.9.8</jackson.version>
     <jackson.databind.version>2.9.10.8</jackson.databind.version>
     <curator.version>2.13.0</curator.version>
+    <joda-time.version>2.9.9</joda-time.version>
   </properties>
 
   <dependencyManagement>
@@ -283,6 +284,11 @@
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>joda-time</groupId>
+        <artifactId>joda-time</artifactId>
+        <version>${joda-time.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
