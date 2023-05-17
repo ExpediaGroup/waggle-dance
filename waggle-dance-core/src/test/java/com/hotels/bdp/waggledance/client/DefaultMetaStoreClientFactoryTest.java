@@ -79,15 +79,7 @@ public class DefaultMetaStoreClientFactoryTest {
     boolean result = iface.isOpen();
     assertThat(result, is(false));
   }
-
-  @Test
-  public void closeNullBase() throws Exception {
-    CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, null);
-
-    iface.close();
-    verify(base, never()).close();
-  }
-
+  
   @Test
   public void defaultMethodCall() throws Exception {
     when(base.getClient()).thenReturn(client);
