@@ -20,7 +20,7 @@ In addition, because Kerberos authentication requires a delegation-token to prox
 * Kerberized cluster:
   active KDC,
   some required properties in configuration files of Hadoop services
-* User account with privileges in ipa
+* User account with privileges in kerberos environment
 * Zookeeper to store delegation-token (Recommended)
 
 ### Configuration
@@ -44,7 +44,7 @@ Waggle Dance also needs a keytab file to communicate with the Metastore so the f
 </property>
 <property>
   <name>hive.metastore.kerberos.principal</name>
-  <value>hive/_HOST@DEV.DF.SBRF.RU</value>
+  <value>hive/_HOST@YOUR_REALM.COM</value>
 </property>
 <property>
   <name>hive.metastore.kerberos.keytab.file</name>
@@ -80,7 +80,7 @@ If you are intending to use a Beeline client, the following properties may be va
 </property>
 <property>
   <name>hive.server2.authentication.kerberos.principal</name>
-  <value>hive/_HOST@DEV.DF.SBRF.RU</value>
+  <value>hive/_HOST@YOUR_REALM.COM</value>
 </property>
 <property>
   <name>hive.server2.authentication.kerberos.keytab</name>
