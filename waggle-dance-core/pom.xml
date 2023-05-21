@@ -178,6 +178,10 @@
           <groupId>org.eclipse.jetty</groupId>
           <artifactId>jetty-runner</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.pentaho</groupId>
+          <artifactId>pentaho-aggdesigner-algorithm</artifactId>
+        </exclusion>       
       </exclusions>
     </dependency>
 
