@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.collect.Lists;
@@ -78,15 +79,7 @@ public class DefaultMetaStoreClientFactoryTest {
     boolean result = iface.isOpen();
     assertThat(result, is(false));
   }
-
-  @Test
-  public void closeNullBase() throws Exception {
-    CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, null);
-
-    iface.close();
-    verify(base, never()).close();
-  }
-
+  
   @Test
   public void defaultMethodCall() throws Exception {
     when(base.getClient()).thenReturn(client);

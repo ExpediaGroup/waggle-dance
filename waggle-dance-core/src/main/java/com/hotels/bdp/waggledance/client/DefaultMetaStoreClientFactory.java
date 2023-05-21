@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.io.IOException;
+import java.lang.reflect.*;
 import java.util.List;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.shims.Utils;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
+import com.hotels.bdp.waggledance.server.TokenWrappingHMSHandler;
 import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
 
 public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
@@ -46,9 +47,9 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private HiveUgiArgs cachedUgi = null;
 
     private ReconnectingMetastoreClientInvocationHandler(
-        String name,
-        int maxRetries,
-        ThriftMetastoreClientManager base) {
+            String name,
+            int maxRetries,
+            ThriftMetastoreClientManager base) {
       this.name = name;
       this.maxRetries = maxRetries;
       this.base = base;
@@ -60,36 +61,36 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       int attempt = 0;
       // close() and isOpen() methods delegate to base HiveMetastoreClient
       switch (method.getName()) {
-      case "isOpen":
-        try {
-          reconnectIfDisconnected();
-          return base.isOpen();
-        } catch (Exception e) {
-          LOG.debug("Error re-opening client at isOpen(): {}", e.getMessage());
-          return false;
-        }
-      case "close":
-        if (base != null) {
-          base.close();
-        }
-        return null;
-      case "set_ugi":
-        String user = (String) args[0];
-        List<String> groups = (List<String>) args[1];
-        cachedUgi = new HiveUgiArgs(user, groups);
-        if (base.isOpen()) {
-          LOG
-              .info("calling #set_ugi (on already open client) for user '{}',  on metastore {}", cachedUgi.getUser(),
-                  name);
+        case "isOpen":
+          try {
+            reconnectIfDisconnected();
+            return base.isOpen();
+          } catch (Exception e) {
+            LOG.debug("Error re-opening client at isOpen(): {}", e.getMessage());
+            return false;
+          }
+        case "close":
+          if (base != null) {
+            base.close();
+          }
+          return null;
+        case "set_ugi":
+          String user = (String) args[0];
+          List<String> groups = (List<String>) args[1];
+          cachedUgi = new HiveUgiArgs(user, groups);
+          if (base.isOpen()) {
+            LOG
+                    .info("calling #set_ugi (on already open client) for user '{}',  on metastore {}", cachedUgi.getUser(),
+                            name);
+            return doRealCall(method, args, attempt);
+          } else {
+            // delay call until we get the next non set_ugi call, this helps doing unnecessary calls to Federated
+            // Metastores.
+            return Lists.newArrayList(user);
+          }
+        default:
+          base.open(cachedUgi);
           return doRealCall(method, args, attempt);
-        } else {
-          // delay call until we get the next non set_ugi call, this helps doing unnecessary calls to Federated
-          // Metastores.
-          return Lists.newArrayList(user);
-        }
-      default:
-        base.open(cachedUgi);
-        return doRealCall(method, args, attempt);
       }
     }
 
@@ -115,10 +116,10 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
     private boolean shouldRetry(Method method) {
       switch (method.getName()) {
-      case "shutdown":
-        return false;
-      default:
-        return true;
+        case "shutdown":
+          return false;
+        default:
+          return true;
       }
     }
 
@@ -132,6 +133,76 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       }
     }
 
+  }
+
+  private static class SaslMetastoreClientHander implements InvocationHandler {
+    private static final Logger LOG = LoggerFactory.getLogger(SaslMetastoreClientHander.class);
+
+    private final CloseableThriftHiveMetastoreIface baseHandler;
+    private final ThriftMetastoreClientManager clientManager;
+    private final String tokenSignature = "WAGGLEDANCETOKEN";
+
+    private String delegationToken;
+
+    public static CloseableThriftHiveMetastoreIface newProxyInstance(
+            CloseableThriftHiveMetastoreIface baseHandler,
+            ThriftMetastoreClientManager clientManager) {
+      return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(SaslMetastoreClientHander.class.getClassLoader(),
+              INTERFACES, new SaslMetastoreClientHander(baseHandler, clientManager));
+    }
+
+    private SaslMetastoreClientHander(
+            CloseableThriftHiveMetastoreIface handler,
+            ThriftMetastoreClientManager clientManager) {
+      this.baseHandler = handler;
+      this.clientManager = clientManager;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      try {
+        switch (method.getName()) {
+          case "get_delegation_token":
+            try {
+              clientManager.open();
+              Object token = method.invoke(baseHandler, args);
+              this.delegationToken = (String) token;
+              clientManager.close();
+              setTokenStr2Ugi(UserGroupInformation.getCurrentUser(), (String) token);
+              clientManager.open();
+              return token;
+            } catch (IOException e) {
+              throw new MetastoreUnavailableException("Couldn't setup delegation token in the ugi: ", e);
+            }
+          default:
+            genToken();
+            return method.invoke(baseHandler, args);
+        }
+      } catch (InvocationTargetException e) {
+        throw e.getTargetException();
+      } catch (UndeclaredThrowableException e) {
+        throw e.getCause();
+      }
+    }
+
+    private void genToken() throws Throwable {
+      UserGroupInformation currUser = null;
+      if (delegationToken == null && (currUser = UserGroupInformation.getCurrentUser())
+              != UserGroupInformation.getLoginUser()) {
+
+        LOG.info(String.format("set %s delegation token", currUser.getShortUserName()));
+        String token = TokenWrappingHMSHandler.getToken();
+        setTokenStr2Ugi(currUser, token);
+        delegationToken = token;
+        clientManager.close();
+      }
+    }
+
+    private void setTokenStr2Ugi(UserGroupInformation currUser, String token) throws IOException {
+      String newTokenSignature = clientManager.generateNewTokenSignature(tokenSignature);
+      Utils.setTokenStr(currUser, token, newTokenSignature);
+    }
   }
 
   /*
@@ -155,9 +226,17 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       int reconnectionRetries,
       ThriftMetastoreClientManager base) {
     ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
-        name, reconnectionRetries, base);
-    return (CloseableThriftHiveMetastoreIface) Proxy
-        .newProxyInstance(getClass().getClassLoader(), INTERFACES, reconnectingHandler);
+            name, reconnectionRetries, base);
+    if (base.isSaslEnabled()) {
+      CloseableThriftHiveMetastoreIface ifaceReconnectingHandler = (CloseableThriftHiveMetastoreIface) Proxy
+              .newProxyInstance(getClass().getClassLoader(), INTERFACES, reconnectingHandler);
+      // wrapping the SaslMetastoreClientHander to handle delegation token if using sasl
+      return SaslMetastoreClientHander.newProxyInstance(ifaceReconnectingHandler, base);
+    } else {
+      return (CloseableThriftHiveMetastoreIface) Proxy
+              .newProxyInstance(getClass().getClassLoader(), INTERFACES, reconnectingHandler);
+    }
+
   }
 
 }
