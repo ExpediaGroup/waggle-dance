@@ -90,10 +90,16 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
   private void add(AbstractMetaStore metaStore) {
     MetaStoreMapping metaStoreMapping = metaStoreMappingFactory.newInstance(metaStore);
+
     DatabaseMapping databaseMapping = createDatabaseMapping(metaStoreMapping);
 
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = databaseMapping;
+      if (!metaStoreMapping.isAvailable()) {
+        throw new WaggleDanceException(
+                String.format("Primary metastore is unavailable {}", metaStore.getRemoteMetaStoreUris())
+        );
+      }
     }
 
     mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), databaseMapping);
