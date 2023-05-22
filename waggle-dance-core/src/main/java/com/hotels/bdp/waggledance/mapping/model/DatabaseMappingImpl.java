@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import java.io.IOException;
 import java.util.List;
 
+import com.hotels.bdp.waggledance.util.TrackExecutionTime;
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
@@ -81,11 +82,13 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     this.queryMapping = queryMapping;
   }
 
+  @TrackExecutionTime
   @Override
   public MetaStoreFilterHook getMetastoreFilter() {
     return metaStoreMapping.getMetastoreFilter();
   }
 
+  @TrackExecutionTime
   @Override
   public Table transformOutboundTable(Table table) {
     String originalDatabaseName = table.getDbName();
@@ -127,42 +130,49 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return table;
   }
 
+  @TrackExecutionTime
   @Override
   public Partition transformOutboundPartition(Partition partition) {
     partition.setDbName(metaStoreMapping.transformOutboundDatabaseName(partition.getDbName()));
     return partition;
   }
 
+  @TrackExecutionTime
   @Override
   public Index transformOutboundIndex(Index index) {
     index.setDbName(metaStoreMapping.transformOutboundDatabaseName(index.getDbName()));
     return index;
   }
 
+  @TrackExecutionTime
   @Override
   public Table transformInboundTable(Table table) {
     table.setDbName(metaStoreMapping.transformInboundDatabaseName(table.getDbName()));
     return table;
   }
 
+  @TrackExecutionTime
   @Override
   public Partition transformInboundPartition(Partition partition) {
     partition.setDbName(metaStoreMapping.transformInboundDatabaseName(partition.getDbName()));
     return partition;
   }
 
+  @TrackExecutionTime
   @Override
   public Index transformInboundIndex(Index index) {
     index.setDbName(metaStoreMapping.transformInboundDatabaseName(index.getDbName()));
     return index;
   }
 
+  @TrackExecutionTime
   @Override
   public Function transformOutboundFunction(Function function) {
     function.setDbName(metaStoreMapping.transformOutboundDatabaseName(function.getDbName()));
     return function;
   }
 
+  @TrackExecutionTime
   @Override
   public HiveObjectRef transformInboundHiveObjectRef(HiveObjectRef obj) {
     obj.setDbName(metaStoreMapping.transformInboundDatabaseName(obj.getDbName()));
@@ -172,6 +182,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return obj;
   }
 
+  @TrackExecutionTime
   @Override
   public HiveObjectRef transformOutboundHiveObjectRef(HiveObjectRef obj) {
     obj.setDbName(metaStoreMapping.transformOutboundDatabaseName(obj.getDbName()));
@@ -181,83 +192,98 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return obj;
   }
 
+  @TrackExecutionTime
   @Override
   public PartitionSpec transformOutboundPartitionSpec(PartitionSpec partitionSpec) {
     partitionSpec.setDbName(metaStoreMapping.transformOutboundDatabaseName(partitionSpec.getDbName()));
     return partitionSpec;
   }
 
+  @TrackExecutionTime
   @Override
   public PartitionsStatsRequest transformInboundPartitionsStatsRequest(PartitionsStatsRequest request) {
     request.setDbName(metaStoreMapping.transformInboundDatabaseName(request.getDbName()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public TableStatsRequest transformInboundTableStatsRequest(TableStatsRequest request) {
     request.setDbName(metaStoreMapping.transformInboundDatabaseName(request.getDbName()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public PartitionsByExprRequest transformInboundPartitionsByExprRequest(PartitionsByExprRequest req) {
     req.setDbName(metaStoreMapping.transformInboundDatabaseName(req.getDbName()));
     return req;
   }
 
+  @TrackExecutionTime
   @Override
   public PartitionsByExprResult transformOutboundPartitionsByExprResult(PartitionsByExprResult result) {
     result.setPartitions(transformOutboundPartitions(result.getPartitions()));
     return result;
   }
 
+  @TrackExecutionTime
   @Override
   public Iface getClient() {
     return metaStoreMapping.getClient();
   }
 
+  @TrackExecutionTime
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
     return metaStoreMapping.transformOutboundDatabaseName(databaseName);
   }
 
+  @TrackExecutionTime
   @Override
   public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
     return metaStoreMapping.transformOutboundDatabaseNameMultiple(databaseName);
   }
 
+  @TrackExecutionTime
   @Override
   public Database transformOutboundDatabase(Database database) {
     return metaStoreMapping.transformOutboundDatabase(database);
   }
 
+  @TrackExecutionTime
   @Override
   public String transformInboundDatabaseName(String databaseName) {
     return metaStoreMapping.transformInboundDatabaseName(databaseName);
   }
 
+  @TrackExecutionTime
   @Override
   public String getDatabasePrefix() {
     return metaStoreMapping.getDatabasePrefix();
   }
 
+  @TrackExecutionTime
   @Override
   public String getMetastoreMappingName() {
     return metaStoreMapping.getMetastoreMappingName();
   }
 
+  @TrackExecutionTime
   @Override
   public CacheFileMetadataRequest transformInboundCacheFileMetadataRequest(CacheFileMetadataRequest req) {
     req.setDbName(metaStoreMapping.transformInboundDatabaseName(req.getDbName()));
     return req;
   }
 
+  @TrackExecutionTime
   @Override
   public FireEventRequest transformInboundFireEventRequest(FireEventRequest rqst) {
     rqst.setDbName(metaStoreMapping.transformInboundDatabaseName(rqst.getDbName()));
     return rqst;
   }
 
+  @TrackExecutionTime
   @Override
   public ForeignKeysRequest transformInboundForeignKeysRequest(ForeignKeysRequest request) {
     String parentDbName = request.getParent_db_name() == null ? null
@@ -270,6 +296,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public ForeignKeysResponse transformOutboundForeignKeysResponse(ForeignKeysResponse response) {
     for (SQLForeignKey key : response.getForeignKeys()) {
@@ -279,12 +306,14 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return response;
   }
 
+  @TrackExecutionTime
   @Override
   public PrimaryKeysRequest transformInboundPrimaryKeysRequest(PrimaryKeysRequest request) {
     request.setDb_name(metaStoreMapping.transformInboundDatabaseName(request.getDb_name()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public PrimaryKeysResponse transformOutboundPrimaryKeysResponse(PrimaryKeysResponse response) {
     for (SQLPrimaryKey key : response.getPrimaryKeys()) {
@@ -293,39 +322,46 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return response;
   }
 
+  @TrackExecutionTime
   @Override
   public TableMeta transformOutboundTableMeta(TableMeta tableMeta) {
     tableMeta.setDbName(metaStoreMapping.transformOutboundDatabaseName(tableMeta.getDbName()));
     return tableMeta;
   }
 
+  @TrackExecutionTime
   @Override
   public AddDynamicPartitions transformInboundAddDynamicPartitions(AddDynamicPartitions request) {
     request.setDbname(metaStoreMapping.transformInboundDatabaseName(request.getDbname()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public void close() throws IOException {
     metaStoreMapping.close();
   }
 
+  @TrackExecutionTime
   @Override
   public boolean isAvailable() {
     return metaStoreMapping.isAvailable();
   }
 
+  @TrackExecutionTime
   @Override
   public MetaStoreMapping checkWritePermissions(String databaseName) throws IllegalArgumentException {
     return metaStoreMapping.checkWritePermissions(transformInboundDatabaseName(databaseName));
   }
 
+  @TrackExecutionTime
   @Override
   public DropConstraintRequest transformInboundDropConstraintRequest(DropConstraintRequest request) {
     request.setDbname(metaStoreMapping.transformInboundDatabaseName(request.getDbname()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public AddPartitionsRequest transformInboundAddPartitionsRequest(AddPartitionsRequest request) {
     request.setDbName(metaStoreMapping.transformInboundDatabaseName(request.getDbName()));
@@ -333,24 +369,28 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public AddPartitionsResult transformOutboundAddPartitionsResult(AddPartitionsResult result) {
     result.setPartitions(transformOutboundPartitions(result.getPartitions()));
     return result;
   }
 
+  @TrackExecutionTime
   @Override
   public DropPartitionsRequest transformInboundDropPartitionRequest(DropPartitionsRequest request) {
     request.setDbName(metaStoreMapping.transformInboundDatabaseName(request.getDbName()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public DropPartitionsResult transformOutboundDropPartitionsResult(DropPartitionsResult result) {
     result.setPartitions(transformOutboundPartitions(result.getPartitions()));
     return result;
   }
 
+  @TrackExecutionTime
   @Override
   public List<Partition> transformOutboundPartitions(List<Partition> partitions) {
     for (Partition partition : partitions) {
@@ -359,6 +399,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return partitions;
   }
 
+  @TrackExecutionTime
   @Override
   public List<PartitionSpec> transformOutboundPartitionSpecs(List<PartitionSpec> partitionSpecs) {
     for (PartitionSpec partitionSpec : partitionSpecs) {
@@ -367,6 +408,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return partitionSpecs;
   }
 
+  @TrackExecutionTime
   @Override
   public List<Partition> transformInboundPartitions(List<Partition> partitions) {
     for (Partition partition : partitions) {
@@ -375,6 +417,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return partitions;
   }
 
+  @TrackExecutionTime
   @Override
   public List<Index> transformOutboundIndexes(List<Index> indexes) {
     for (Index index : indexes) {
@@ -383,6 +426,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return indexes;
   }
 
+  @TrackExecutionTime
   @Override
   public ColumnStatistics transformInboundColumnStatistics(ColumnStatistics columnStatistics) {
     columnStatistics
@@ -391,6 +435,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return columnStatistics;
   }
 
+  @TrackExecutionTime
   @Override
   public ColumnStatistics transformOutboundColumnStatistics(ColumnStatistics columnStatistics) {
     columnStatistics
@@ -399,6 +444,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return columnStatistics;
   }
 
+  @TrackExecutionTime
   @Override
   public SetPartitionsStatsRequest transformInboundSetPartitionStatsRequest(SetPartitionsStatsRequest request) {
     if (request.isSetColStats()) {
@@ -409,12 +455,14 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public Function transformInboundFunction(Function function) {
     function.setDbName(metaStoreMapping.transformInboundDatabaseName(function.getDbName()));
     return function;
   }
 
+  @TrackExecutionTime
   @Override
   public List<HiveObjectPrivilege> transformOutboundHiveObjectPrivileges(List<HiveObjectPrivilege> privileges) {
     for (HiveObjectPrivilege privilege : privileges) {
@@ -423,6 +471,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return privileges;
   }
 
+  @TrackExecutionTime
   @Override
   public PrivilegeBag transformInboundPrivilegeBag(PrivilegeBag privilegeBag) {
     if (privilegeBag.isSetPrivileges()) {
@@ -433,6 +482,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return privilegeBag;
   }
 
+  @TrackExecutionTime
   @Override
   public GrantRevokePrivilegeRequest transformInboundGrantRevokePrivilegesRequest(GrantRevokePrivilegeRequest request) {
     if (request.isSetPrivileges()) {
@@ -441,6 +491,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public LockRequest transformInboundLockRequest(LockRequest request) {
     if (request.isSetComponent()) {
@@ -451,24 +502,28 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public CompactionRequest transformInboundCompactionRequest(CompactionRequest request) {
     request.setDbname(metaStoreMapping.transformInboundDatabaseName(request.getDbname()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public void createDatabase(Database database)
     throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
     metaStoreMapping.createDatabase(database);
   }
 
+  @TrackExecutionTime
   @Override
   public Database transformInboundDatabase(Database database) {
     database.setName(metaStoreMapping.transformInboundDatabaseName(database.getName()));
     return database;
   }
 
+  @TrackExecutionTime
   @Override
   public List<PartitionSpec> transformInboundPartitionSpecs(List<PartitionSpec> partitionSpecs) {
     for (PartitionSpec partitionSpec : partitionSpecs) {
@@ -477,24 +532,28 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return partitionSpecs;
   }
 
+  @TrackExecutionTime
   @Override
   public GetTableRequest transformInboundGetTableRequest(GetTableRequest request) {
     request.setDbName(metaStoreMapping.transformInboundDatabaseName(request.getDbName()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public GetTableResult transformOutboundGetTableResult(GetTableResult result) {
     transformOutboundTable(result.getTable());
     return result;
   }
 
+  @TrackExecutionTime
   @Override
   public GetTablesRequest transformInboundGetTablesRequest(GetTablesRequest request) {
     request.setDbName(metaStoreMapping.transformInboundDatabaseName(request.getDbName()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public GetTablesResult transformOutboundGetTablesResult(GetTablesResult result) {
     for (Table table : result.getTables()) {
@@ -503,12 +562,14 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     return result;
   }
 
+  @TrackExecutionTime
   @Override
   public PartitionValuesRequest transformInboundPartitionValuesRequest(PartitionValuesRequest request) {
     request.setDbName(transformInboundDatabaseName(request.getDbName()));
     return request;
   }
 
+  @TrackExecutionTime
   @Override
   public long getLatency() {
     return metaStoreMapping.getLatency();

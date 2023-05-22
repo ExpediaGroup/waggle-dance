@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.hotels.bdp.waggledance.mapping.service.TrackExecutionTimeAspectTest;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
@@ -60,8 +61,12 @@ import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 
 @RunWith(MockitoJUnitRunner.class)
+@SpringBootTest(classes = TrackExecutionTimeAspectTest.class)
+@EnableAutoConfiguration
 public class PrefixBasedDatabaseMappingServiceTest {
 
   private static final String DB_PREFIX = "name_";

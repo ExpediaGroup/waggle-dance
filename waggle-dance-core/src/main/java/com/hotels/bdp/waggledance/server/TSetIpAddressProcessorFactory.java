@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.server;
 
 import java.net.Socket;
 
+import com.hotels.bdp.waggledance.util.TrackExecutionTime;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.hive.metastore.RetryingHMSHandler;
@@ -50,6 +51,7 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
     this.transportMonitor = transportMonitor;
   }
 
+  @TrackExecutionTime
   @Override
   public TProcessor getProcessor(TTransport transport) {
     try {
@@ -76,6 +78,7 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
     }
   }
 
+  @TrackExecutionTime
   private IHMSHandler newRetryingHMSHandler(IHMSHandler baseHandler, HiveConf hiveConf, boolean local)
     throws MetaException {
     return RetryingHMSHandler.getProxy(hiveConf, baseHandler, local);

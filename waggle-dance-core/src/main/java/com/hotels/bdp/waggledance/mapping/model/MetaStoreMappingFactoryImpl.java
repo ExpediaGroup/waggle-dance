@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
+import com.hotels.bdp.waggledance.util.TrackExecutionTime;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
@@ -61,6 +62,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     this.accessControlHandlerFactory = accessControlHandlerFactory;
   }
 
+  @TrackExecutionTime
   private CloseableThriftHiveMetastoreIface createClient(AbstractMetaStore metaStore) {
     try {
       return metaStoreClientFactory.newInstance(metaStore);
@@ -71,6 +73,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   }
 
   @SuppressWarnings("resource")
+  @TrackExecutionTime
   @Override
   public MetaStoreMapping newInstance(AbstractMetaStore metaStore) {
     LOG
@@ -86,17 +89,20 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     }
   }
 
+  @TrackExecutionTime
   @Override
   public String prefixNameFor(AbstractMetaStore federatedMetaStore) {
     return prefixNamingStrategy.apply(federatedMetaStore);
   }
 
+  @TrackExecutionTime
   private CloseableThriftHiveMetastoreIface newUnreachableMetastoreClient(AbstractMetaStore metaStore) {
     return (CloseableThriftHiveMetastoreIface) Proxy
         .newProxyInstance(getClass().getClassLoader(), new Class[] { CloseableThriftHiveMetastoreIface.class },
             new UnreachableMetastoreClientInvocationHandler(metaStore.getName()));
   }
 
+  @TrackExecutionTime
   private MetaStoreFilterHook loadMetastoreFilterHook(AbstractMetaStore metaStore) {
     HiveConf conf = new HiveConf();
     String metaStoreFilterHook = metaStore.getHiveMetastoreFilterHook();
@@ -133,6 +139,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
       this.name = name;
     }
 
+    @TrackExecutionTime
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       switch (method.getName()) {

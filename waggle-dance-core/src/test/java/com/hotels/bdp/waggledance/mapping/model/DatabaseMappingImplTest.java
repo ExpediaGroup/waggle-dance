@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.hotels.bdp.waggledance.mapping.service.TrackExecutionTimeAspectTest;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
@@ -81,8 +82,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 
 @RunWith(MockitoJUnitRunner.class)
+@SpringBootTest(classes = TrackExecutionTimeAspectTest.class)
+@EnableAutoConfiguration
 public class DatabaseMappingImplTest {
 
   private final static String DB_NAME = "db";

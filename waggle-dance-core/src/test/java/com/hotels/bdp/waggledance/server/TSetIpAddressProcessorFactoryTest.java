@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.Closeable;
 
+import com.hotels.bdp.waggledance.mapping.service.TrackExecutionTimeAspectTest;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.TSetIpAddressProcessor;
 import org.apache.thrift.TProcessor;
@@ -33,8 +34,12 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 
 @RunWith(MockitoJUnitRunner.class)
+@SpringBootTest(classes = TrackExecutionTimeAspectTest.class)
+@EnableAutoConfiguration
 public class TSetIpAddressProcessorFactoryTest {
 
   private @Mock FederatedHMSHandler federatedHMSHandler;

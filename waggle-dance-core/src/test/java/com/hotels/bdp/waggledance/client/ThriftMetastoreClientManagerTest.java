@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.client.HiveUgiArgsStub.TEST_ARGS;
 
+import com.hotels.bdp.waggledance.mapping.service.TrackExecutionTimeAspectTest;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.thrift.transport.TSocket;
@@ -30,11 +31,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
 
 @RunWith(MockitoJUnitRunner.class)
+@SpringBootTest(classes = TrackExecutionTimeAspectTest.class)
+@EnableAutoConfiguration
 public class ThriftMetastoreClientManagerTest {
 
   private final int connectionTimeout = 10;

@@ -22,6 +22,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.hotels.bdp.waggledance.util.TrackExecutionTime;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.conf.HiveConfUtil;
@@ -105,10 +106,12 @@ class ThriftMetastoreClientManager implements Closeable {
     }
   }
 
+  @TrackExecutionTime
   void open() {
     open(null);
   }
 
+  @TrackExecutionTime
   void open(HiveUgiArgs ugiArgs) {
     if (isConnected) {
       return;
@@ -211,6 +214,7 @@ class ThriftMetastoreClientManager implements Closeable {
     LOG.debug("Connected to metastore.");
   }
 
+  @TrackExecutionTime
   void reconnect(HiveUgiArgs ugiArgs) {
     close();
     // Swap the first element of the metastoreUris[] with a random element from the rest
@@ -220,14 +224,17 @@ class ThriftMetastoreClientManager implements Closeable {
     open(ugiArgs);
   }
 
+  @TrackExecutionTime
   public String getHiveConfValue(String key, String defaultValue) {
     return conf.get(key, defaultValue);
   }
 
+  @TrackExecutionTime
   public void setHiveConfValue(String key, String value) {
     conf.set(key, value);
   }
 
+  @TrackExecutionTime
   public String generateNewTokenSignature(String defaultTokenSignature) {
     String tokenSignature = conf.get(HiveConf.ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
             defaultTokenSignature);
@@ -236,10 +243,12 @@ class ThriftMetastoreClientManager implements Closeable {
     return tokenSignature;
   }
 
+  @TrackExecutionTime
   public Boolean isSaslEnabled() {
     return conf.getBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
   }
 
+  @TrackExecutionTime
   @Override
   public void close() {
     if (!isConnected) {
@@ -262,10 +271,12 @@ class ThriftMetastoreClientManager implements Closeable {
     LOG.info("Closed a connection to metastore, current connections: " + CONN_COUNT.decrementAndGet());
   }
 
+  @TrackExecutionTime
   boolean isOpen() {
     return (transport != null) && transport.isOpen();
   }
 
+  @TrackExecutionTime
   protected ThriftHiveMetastore.Iface getClient() {
     return client;
   }
@@ -273,6 +284,7 @@ class ThriftMetastoreClientManager implements Closeable {
   /**
    * Swaps the first element of the metastoreUris array with a random element from the remainder of the array.
    */
+  @TrackExecutionTime
   private void promoteRandomMetaStoreURI() {
     if (metastoreUris.length <= 1) {
       return;
