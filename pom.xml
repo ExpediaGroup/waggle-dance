@@ -9,7 +9,7 @@
 
   <groupId>com.hotels</groupId>
   <artifactId>waggle-dance-parent</artifactId>
-  <version>3.10.15-SNAPSHOT</version>
+  <version>3.11.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
@@ -222,7 +222,7 @@
       <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
-        <version>1.26</version>
+        <version>1.32</version>
       </dependency>
       <dependency>
         <groupId>org.apache.derby</groupId>

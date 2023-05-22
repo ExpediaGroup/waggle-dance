@@ -1,3 +1,9 @@
+## [3.11.0] - 2023-05-22
+### Fixed
+- Support kerberos and delegation-token See [#264](https://github.com/ExpediaGroup/waggle-dance/issues/264)
+### Changed
+- Upgrade version of snakeyaml to 1.32 (was 1.26)
+
 ## [3.10.14] - 2023-05-11
 ### Changed
 - Remove `waggledance.allow-bean-definition-overriding` property to configuration to favor single bean creation.

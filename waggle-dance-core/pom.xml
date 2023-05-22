@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>3.10.15-SNAPSHOT</version>
+    <version>3.11.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-core</artifactId>
@@ -178,6 +178,10 @@
           <groupId>org.eclipse.jetty</groupId>
           <artifactId>jetty-runner</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.pentaho</groupId>
+          <artifactId>pentaho-aggdesigner-algorithm</artifactId>
+        </exclusion>       
       </exclusions>
     </dependency>
 
