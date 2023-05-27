@@ -47,10 +47,14 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.server.ServerContext;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TServerEventHandler;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
@@ -188,6 +192,28 @@ public class MetaStoreProxyServer implements ApplicationRunner {
           .requestTimeoutUnit(waggleDanceConfiguration.getThriftServerRequestTimeoutUnit());
 
       tServer = new TThreadPoolServer(args);
+      if (useSASL){
+        TServerEventHandler tServerEventHandler = new TServerEventHandler() {
+          @Override
+          public void preServe() {
+          }
+
+          @Override
+          public ServerContext createContext(TProtocol tProtocol, TProtocol tProtocol1) {
+            return null;
+          }
+
+          @Override
+          public void deleteContext(ServerContext serverContext, TProtocol tProtocol, TProtocol tProtocol1) {
+            TokenWrappingHMSHandler.removeToken();
+          }
+
+          @Override
+          public void processContext(ServerContext serverContext, TTransport tTransport, TTransport tTransport1) {
+          }
+        };
+        tServer.setServerEventHandler(tServerEventHandler);
+      }
       LOG.info("Started the new WaggleDance on port [" + waggleDanceConfiguration.getPort() + "]...");
       LOG.info("Options.minWorkerThreads = " + minWorkerThreads);
       LOG.info("Options.maxWorkerThreads = " + maxWorkerThreads);
