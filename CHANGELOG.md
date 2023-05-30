@@ -1,3 +1,5 @@
+## [3.11.1] - TBD
+
 ## [3.11.0] - 2023-05-22
 ### Fixed
 - Support kerberos and delegation-token See [#264](https://github.com/ExpediaGroup/waggle-dance/issues/264)
