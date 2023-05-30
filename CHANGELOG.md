@@ -1,4 +1,6 @@
 ## [3.11.1] - TBD
+### Fixed
+- Clean up delegation-token set for Kerberos in thread-local.
 
 ## [3.11.0] - 2023-05-22
 ### Fixed
