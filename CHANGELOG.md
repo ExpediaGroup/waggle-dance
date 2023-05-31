@@ -1,4 +1,4 @@
-## [3.11.1] - TBD
+## [3.11.1] - 2023-05-31
 ### Fixed
 - Clean up delegation-token set for Kerberos in thread-local.
 
