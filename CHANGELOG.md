@@ -1,3 +1,7 @@
+## [3.11.2] - 2023-07-04
+### Changed
+- Setting AWSGlueClientFactory log level to `WARN` because it spams this [log](https://github.com/awslabs/aws-glue-data-catalog-client-for-apache-hive-metastore/blob/branch-3.4.0/aws-glue-datacatalog-client-common/src/main/java/com/amazonaws/glue/catalog/metastore/AWSGlueClientFactory.java#L57) every ~200ms. It could be creating unnecessary Glue clients.
+
 ## [3.11.1] - 2023-05-31
 ### Fixed
 - Clean up delegation-token set for Kerberos in thread-local.
