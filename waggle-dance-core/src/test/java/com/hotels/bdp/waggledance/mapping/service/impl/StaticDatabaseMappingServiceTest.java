@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
@@ -100,8 +101,20 @@ public class StaticDatabaseMappingServiceTest {
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
+
+    AbstractMetaStore unavailableMetastore = newFederatedInstance("unavailable", "thrift:host:port");
+    MetaStoreMapping unavailableMapping = mockNewMapping(false, "unavailable");
+    when(metaStoreMappingFactory.newInstance(unavailableMetastore)).thenReturn(unavailableMapping);
+
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
-        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+        Arrays.asList(primaryMetastore, federatedMetastore, unavailableMetastore), queryMapping);
+  }
+
+  private MetaStoreMapping mockNewMapping(boolean isAvailable, String name) {
+    MetaStoreMapping result = Mockito.mock(MetaStoreMapping.class);
+    when(result.isAvailable()).thenReturn(isAvailable);
+    when(result.getMetastoreMappingName()).thenReturn(name);
+    return result;
   }
 
   private MetaStoreMapping mockNewMapping(boolean isAvailable, AbstractMetaStore metaStore) {
@@ -109,8 +122,8 @@ public class StaticDatabaseMappingServiceTest {
     when(result.isAvailable()).thenReturn(isAvailable);
     when(result.getMetastoreMappingName()).thenReturn(metaStore.getName());
     when(result.transformOutboundDatabaseName(anyString())).then(returnsFirstArg());
-    when(result.transformOutboundDatabaseNameMultiple(anyString())).then(
-        (Answer<List<String>>) invocation -> Lists.newArrayList((String) invocation.getArguments()[0]));
+    when(result.transformOutboundDatabaseNameMultiple(anyString()))
+        .then((Answer<List<String>>) invocation -> Lists.newArrayList((String) invocation.getArguments()[0]));
     return result;
   }
 
@@ -341,6 +354,26 @@ public class StaticDatabaseMappingServiceTest {
     service.databaseMapping("db2");
   }
 
+  @Test
+  public void availableDatabaseMappings() {
+    List<DatabaseMapping> databaseMappings = service.getAvailableDatabaseMappings();
+    assertThat(databaseMappings.size(), is(2));
+    assertThat(
+        ImmutableSet
+            .of(databaseMappings.get(0).getMetastoreMappingName(), databaseMappings.get(1).getMetastoreMappingName()),
+        is(ImmutableSet.of(PRIMARY_NAME, FEDERATED_NAME)));
+  }
+
+  @Test
+  public void allDatabaseMappings() {
+    List<DatabaseMapping> databaseMappings = service.getAllDatabaseMappings();
+    assertThat(databaseMappings.size(), is(3));
+    assertThat(
+        ImmutableSet
+            .of(databaseMappings.get(0).getMetastoreMappingName(), databaseMappings.get(1).getMetastoreMappingName(),
+                databaseMappings.get(2).getMetastoreMappingName()),
+        is(ImmutableSet.of(PRIMARY_NAME, FEDERATED_NAME, "unavailable")));
+  }
 
   @Test
   public void checkTableAllowedNoMappedTablesConfig() throws NoSuchObjectException {
@@ -398,8 +431,8 @@ public class StaticDatabaseMappingServiceTest {
     primaryMetastore.setMappedTables(Collections.singletonList(mappedTables));
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
-    List<String> result = service.filterTables(PRIMARY_DB,
-        Lists.newArrayList("table", "table_not_mapped", "another_table"), null);
+    List<String> result = service
+        .filterTables(PRIMARY_DB, Lists.newArrayList("table", "table_not_mapped", "another_table"), null);
     assertThat(result, is(allowedTables));
   }
 
@@ -412,8 +445,7 @@ public class StaticDatabaseMappingServiceTest {
 
   @Test
   public void closeOnEmptyInit() throws Exception {
-    service = new StaticDatabaseMappingService(metaStoreMappingFactory, Collections.emptyList(),
-        queryMapping);
+    service = new StaticDatabaseMappingService(metaStoreMappingFactory, Collections.emptyList(), queryMapping);
     service.close();
     verify(metaStoreMappingPrimary, never()).close();
     verify(metaStoreMappingFederated, never()).close();
@@ -555,7 +587,7 @@ public class StaticDatabaseMappingServiceTest {
     when(federatedDatabaseClient.set_ugi(user, groups)).thenReturn(Lists.newArrayList("ugi", "ugi2"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    List<DatabaseMapping> databaseMappings = service.getDatabaseMappings();
+    List<DatabaseMapping> databaseMappings = service.getAvailableDatabaseMappings();
     List<String> result = handler.setUgi(user, groups, databaseMappings);
     assertThat(result, is(Arrays.asList("ugi", "ugi2")));
   }
@@ -572,10 +604,9 @@ public class StaticDatabaseMappingServiceTest {
     when(federatedDatabaseClient.get_all_functions()).thenReturn(responseFederated);
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
-    GetAllFunctionsResponse result = handler.getAllFunctions(service.getDatabaseMappings());
+    GetAllFunctionsResponse result = handler.getAllFunctions(service.getAvailableDatabaseMappings());
     assertThat(result.getFunctionsSize(), is(2));
     assertThat(result.getFunctions().get(0).getFunctionName(), is("fn1"));
     assertThat(result.getFunctions().get(1).getFunctionName(), is("fn2"));
   }
-
 }

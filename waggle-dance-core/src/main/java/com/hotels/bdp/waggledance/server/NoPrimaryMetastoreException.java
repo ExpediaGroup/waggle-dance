@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,11 @@
  */
 package com.hotels.bdp.waggledance.server;
 
+import lombok.experimental.StandardException;
+
+@StandardException
 public class NoPrimaryMetastoreException extends WaggleDanceServerException {
 
   private static final long serialVersionUID = 1L;
-
-  public NoPrimaryMetastoreException(String message) {
-    super(message);
-  }
 
 }

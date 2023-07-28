@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,43 +27,26 @@ import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.api.model.ConnectionType;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
+@AllArgsConstructor
+@Log4j2
 class MetaStoreMappingImpl implements MetaStoreMapping {
 
-  private final static Logger log = LoggerFactory.getLogger(MetaStoreMappingImpl.class);
-
   private final String databasePrefix;
+  private final String name;
   private final CloseableThriftHiveMetastoreIface client;
   private final AccessControlHandler accessControlHandler;
-  private final String name;
+  private final ConnectionType connectionType;
   private final long latency;
   private final MetaStoreFilterHook metastoreFilter;
-
-  private final ConnectionType connectionType;
-
-  MetaStoreMappingImpl(
-      String databasePrefix,
-      String name,
-      CloseableThriftHiveMetastoreIface client,
-      AccessControlHandler accessControlHandler,
-      ConnectionType connectionType,
-      long latency,
-      MetaStoreFilterHook metastoreFilter) {
-    this.databasePrefix = databasePrefix;
-    this.name = name;
-    this.client = client;
-    this.accessControlHandler = accessControlHandler;
-    this.connectionType = connectionType;
-    this.latency = latency;
-    this.metastoreFilter = metastoreFilter;
-  }
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,38 +21,65 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.metastore.HiveMetaStore;
+import org.apache.hadoop.hive.metastore.MetaStoreEventListener;
+import org.apache.hadoop.hive.metastore.RawStore;
+import org.apache.hadoop.hive.metastore.TransactionalMetaStoreEventListener;
+import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.AbortTxnRequest;
 import org.apache.hadoop.hive.metastore.api.AbortTxnsRequest;
+import org.apache.hadoop.hive.metastore.api.AddCheckConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.AddDefaultConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddForeignKeyRequest;
+import org.apache.hadoop.hive.metastore.api.AddNotNullConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.AddPrimaryKeyRequest;
+import org.apache.hadoop.hive.metastore.api.AddUniqueConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AggrStats;
+import org.apache.hadoop.hive.metastore.api.AllocateTableWriteIdsRequest;
+import org.apache.hadoop.hive.metastore.api.AllocateTableWriteIdsResponse;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.AlterCatalogRequest;
+import org.apache.hadoop.hive.metastore.api.AlterISchemaRequest;
 import org.apache.hadoop.hive.metastore.api.CacheFileMetadataRequest;
 import org.apache.hadoop.hive.metastore.api.CacheFileMetadataResult;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.CheckLockRequest;
 import org.apache.hadoop.hive.metastore.api.ClearFileMetadataRequest;
 import org.apache.hadoop.hive.metastore.api.ClearFileMetadataResult;
+import org.apache.hadoop.hive.metastore.api.CmRecycleRequest;
+import org.apache.hadoop.hive.metastore.api.CmRecycleResponse;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.CommitTxnRequest;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
 import org.apache.hadoop.hive.metastore.api.CompactionResponse;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
+import org.apache.hadoop.hive.metastore.api.CreateCatalogRequest;
+import org.apache.hadoop.hive.metastore.api.CreationMetadata;
 import org.apache.hadoop.hive.metastore.api.CurrentNotificationEventId;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsResponse;
+import org.apache.hadoop.hive.metastore.api.DropCatalogRequest;
 import org.apache.hadoop.hive.metastore.api.DropConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.FindSchemasByColsResp;
+import org.apache.hadoop.hive.metastore.api.FindSchemasByColsRqst;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.FireEventResponse;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.GetCatalogRequest;
+import org.apache.hadoop.hive.metastore.api.GetCatalogResponse;
+import org.apache.hadoop.hive.metastore.api.GetCatalogsResponse;
 import org.apache.hadoop.hive.metastore.api.GetFileMetadataByExprRequest;
 import org.apache.hadoop.hive.metastore.api.GetFileMetadataByExprResult;
 import org.apache.hadoop.hive.metastore.api.GetFileMetadataRequest;
@@ -63,10 +90,14 @@ import org.apache.hadoop.hive.metastore.api.GetPrincipalsInRoleRequest;
 import org.apache.hadoop.hive.metastore.api.GetPrincipalsInRoleResponse;
 import org.apache.hadoop.hive.metastore.api.GetRoleGrantsForPrincipalRequest;
 import org.apache.hadoop.hive.metastore.api.GetRoleGrantsForPrincipalResponse;
+import org.apache.hadoop.hive.metastore.api.GetRuntimeStatsRequest;
+import org.apache.hadoop.hive.metastore.api.GetSerdeRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
 import org.apache.hadoop.hive.metastore.api.GetTablesResult;
+import org.apache.hadoop.hive.metastore.api.GetValidWriteIdsRequest;
+import org.apache.hadoop.hive.metastore.api.GetValidWriteIdsResponse;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeResponse;
 import org.apache.hadoop.hive.metastore.api.GrantRevokeRoleRequest;
@@ -77,7 +108,8 @@ import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeResponse;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
-import org.apache.hadoop.hive.metastore.api.Index;
+import org.apache.hadoop.hive.metastore.api.ISchema;
+import org.apache.hadoop.hive.metastore.api.ISchemaName;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
@@ -85,12 +117,18 @@ import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.LockResponse;
+import org.apache.hadoop.hive.metastore.api.MapSchemaVersionToSerdeRequest;
+import org.apache.hadoop.hive.metastore.api.Materialization;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchLockException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.NoSuchTxnException;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.NotificationEventRequest;
 import org.apache.hadoop.hive.metastore.api.NotificationEventResponse;
+import org.apache.hadoop.hive.metastore.api.NotificationEventsCountRequest;
+import org.apache.hadoop.hive.metastore.api.NotificationEventsCountResponse;
 import org.apache.hadoop.hive.metastore.api.OpenTxnRequest;
 import org.apache.hadoop.hive.metastore.api.OpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.Partition;
@@ -109,10 +147,20 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PutFileMetadataRequest;
 import org.apache.hadoop.hive.metastore.api.PutFileMetadataResult;
+import org.apache.hadoop.hive.metastore.api.ReplTblWriteIdStateRequest;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.RuntimeStat;
+import org.apache.hadoop.hive.metastore.api.SQLCheckConstraint;
+import org.apache.hadoop.hive.metastore.api.SQLDefaultConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
+import org.apache.hadoop.hive.metastore.api.SQLNotNullConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
+import org.apache.hadoop.hive.metastore.api.SQLUniqueConstraint;
+import org.apache.hadoop.hive.metastore.api.SchemaVersion;
+import org.apache.hadoop.hive.metastore.api.SchemaVersionDescriptor;
+import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
+import org.apache.hadoop.hive.metastore.api.SetSchemaVersionStateRequest;
 import org.apache.hadoop.hive.metastore.api.ShowCompactRequest;
 import org.apache.hadoop.hive.metastore.api.ShowCompactResponse;
 import org.apache.hadoop.hive.metastore.api.ShowLocksRequest;
@@ -125,21 +173,62 @@ import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.TxnAbortedException;
 import org.apache.hadoop.hive.metastore.api.TxnOpenException;
 import org.apache.hadoop.hive.metastore.api.Type;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.UnlockRequest;
+import org.apache.hadoop.hive.metastore.api.WMAlterPoolRequest;
+import org.apache.hadoop.hive.metastore.api.WMAlterPoolResponse;
+import org.apache.hadoop.hive.metastore.api.WMAlterResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMAlterResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMAlterTriggerRequest;
+import org.apache.hadoop.hive.metastore.api.WMAlterTriggerResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreateOrDropTriggerToPoolMappingRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreateOrDropTriggerToPoolMappingResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreateOrUpdateMappingRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreateOrUpdateMappingResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreatePoolRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreatePoolResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreateResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreateResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreateTriggerRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreateTriggerResponse;
+import org.apache.hadoop.hive.metastore.api.WMDropMappingRequest;
+import org.apache.hadoop.hive.metastore.api.WMDropMappingResponse;
+import org.apache.hadoop.hive.metastore.api.WMDropPoolRequest;
+import org.apache.hadoop.hive.metastore.api.WMDropPoolResponse;
+import org.apache.hadoop.hive.metastore.api.WMDropResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMDropResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMDropTriggerRequest;
+import org.apache.hadoop.hive.metastore.api.WMDropTriggerResponse;
+import org.apache.hadoop.hive.metastore.api.WMGetActiveResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMGetActiveResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMGetAllResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMGetAllResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMGetResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMGetResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMGetTriggersForResourePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMGetTriggersForResourePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.conf.MetastoreConf;
+import org.apache.hadoop.hive.metastore.txn.TxnStore;
+import org.apache.hadoop.hive.metastore.txn.TxnUtils;
+import org.apache.hadoop.hive.metastore.utils.MetaStoreUtils;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.log4j.Log4j2;
 
 import com.facebook.fb303.FacebookBase;
 import com.facebook.fb303.fb_status;
 import com.jcabi.aspects.Loggable;
 
+import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
@@ -148,21 +237,23 @@ import com.hotels.bdp.waggledance.metrics.Monitored;
 @Monitored
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Log4j2
 class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
-
-  private static final Logger LOG = LoggerFactory.getLogger(FederatedHMSHandler.class);
 
   private static final String INVOCATION_LOG_NAME = "com.hotels.bdp.waggledance.server.invocation-log";
   private final MappingEventListener databaseMappingService;
   private final NotifyingFederationService notifyingFederationService;
+  private final WaggleDanceConfiguration waggleDanceConfiguration;
   private Configuration conf;
 
   FederatedHMSHandler(
       MappingEventListener databaseMappingService,
-      NotifyingFederationService notifyingFederationService) {
+      NotifyingFederationService notifyingFederationService,
+      WaggleDanceConfiguration waggleDanceConfiguration) {
     super("waggle-dance-handler");
     this.databaseMappingService = databaseMappingService;
     this.notifyingFederationService = notifyingFederationService;
+    this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.notifyingFederationService.subscribe(databaseMappingService);
   }
 
@@ -206,7 +297,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       notifyingFederationService.unsubscribe(databaseMappingService);
       databaseMappingService.close();
     } catch (IOException e) {
-      LOG.warn("Error shutting down federated handler", e);
+      log.warn("Error shutting down federated handler", e);
     }
   }
 
@@ -226,6 +317,42 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void create_catalog(CreateCatalogRequest createCatalogRequest) throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    databaseMapping.getClient().create_catalog(createCatalogRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void alter_catalog(AlterCatalogRequest alterCatalogRequest) throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    databaseMapping.getClient().alter_catalog(alterCatalogRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public GetCatalogResponse get_catalog(GetCatalogRequest getCatalogRequest) throws NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    return databaseMapping.getClient().get_catalog(getCatalogRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public GetCatalogsResponse get_catalogs() throws MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    return databaseMapping.getClient().get_catalogs();
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void drop_catalog(DropCatalogRequest dropCatalogRequest) throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    databaseMapping.getClient().drop_catalog(dropCatalogRequest);
+  }
+
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void create_database(Database database)
       throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.primaryDatabaseMapping();
@@ -235,9 +362,9 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public Database get_database(String name) throws NoSuchObjectException, MetaException, TException {
-    LOG.info("Fetching database {}", name);
+    log.info("Fetching database {}", name);
     DatabaseMapping mapping = databaseMappingService.databaseMapping(name);
-    LOG.info("Mapping is '{}'", mapping.getDatabasePrefix());
+    log.info("Mapping is '{}'", mapping.getDatabasePrefix());
     Database result = mapping.getClient().get_database(mapping.transformInboundDatabaseName(name));
     return mapping.transformOutboundDatabase(mapping.getMetastoreFilter().filterDatabase(result));
   }
@@ -331,6 +458,17 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void create_table_with_constraints(Table tbl, List<SQLPrimaryKey> primaryKeys, List<SQLForeignKey> foreignKeys,
+                                            List<SQLUniqueConstraint> uniqueConstraints, List<SQLNotNullConstraint> notNullConstraints,
+                                            List<SQLDefaultConstraint> defaultConstraints, List<SQLCheckConstraint> checkConstraints)
+          throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException {
+    DatabaseMapping mapping = checkWritePermissions(tbl.getDbName());
+    mapping.getClient().create_table_with_constraints(mapping.transformInboundTable(tbl), primaryKeys, foreignKeys,
+            uniqueConstraints, notNullConstraints, defaultConstraints, checkConstraints);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void drop_table(String dbname, String name, boolean deleteData)
       throws NoSuchObjectException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(dbname, name);
@@ -354,11 +492,18 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void truncate_table(String dbName, String tableName, List<String> partNames) throws MetaException, TException {
+    DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(dbName, tableName);
+    mapping.getClient().truncate_table(dbName, tableName, partNames);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public List<String> get_tables(String db_name, String pattern) throws MetaException, TException {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
     List<String> resultTables = mapping.getClient().get_tables(mapping.transformInboundDatabaseName(db_name), pattern);
     resultTables = databaseMappingService.filterTables(db_name, resultTables, mapping);
-    return mapping.getMetastoreFilter().filterTableNames(db_name, resultTables);
+    return mapping.getMetastoreFilter().filterTableNames(null, db_name, resultTables);
   }
 
   @Override
@@ -367,7 +512,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
     List<String> resultTables =  mapping.getClient().get_all_tables(mapping.transformInboundDatabaseName(db_name));
     resultTables = databaseMappingService.filterTables(db_name, resultTables, mapping);
-    return mapping.getMetastoreFilter().filterTableNames(db_name, resultTables);
+    return mapping.getMetastoreFilter().filterTableNames(null, db_name, resultTables);
   }
 
   @Override
@@ -404,7 +549,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     List<String> resultTables = mapping.getClient()
         .get_table_names_by_filter(mapping.transformInboundDatabaseName(dbname), filter, max_tables);
     List<String> result = databaseMappingService.filterTables(dbname, resultTables, mapping);
-    return mapping.getMetastoreFilter().filterTableNames(dbname, result);
+    return mapping.getMetastoreFilter().filterTableNames(null, dbname, result);
   }
 
   @Override
@@ -721,7 +866,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(db_name, tbl_name);
     List<String> result = mapping.getClient()
         .get_partition_names(mapping.transformInboundDatabaseName(db_name), tbl_name, max_parts);
-    return mapping.getMetastoreFilter().filterPartitionNames(db_name, tbl_name, result);
+    return mapping.getMetastoreFilter().filterPartitionNames(null, db_name, tbl_name, result);
   }
 
   @Override
@@ -761,7 +906,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     List<String> result = mapping
         .getClient()
         .get_partition_names_ps(mapping.transformInboundDatabaseName(db_name), tbl_name, part_vals, max_parts);
-    return mapping.getMetastoreFilter().filterPartitionNames(db_name, tbl_name, result);
+    return mapping.getMetastoreFilter().filterPartitionNames(null, db_name, tbl_name, result);
   }
 
   @Override
@@ -913,70 +1058,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     return mapping
         .getClient()
         .isPartitionMarkedForEvent(mapping.transformInboundDatabaseName(db_name), tbl_name, part_vals, eventType);
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public Index add_index(Index new_index, Table index_table)
-      throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
-    DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(new_index.getDbName(), new_index.getOrigTableName());
-    checkWritePermissionsAndCheckTableAllowed(index_table.getDbName(), index_table.getTableName(), mapping);
-    Index result = mapping
-        .getClient()
-        .add_index(mapping.transformInboundIndex(new_index), mapping.transformInboundTable(index_table));
-    return mapping.transformOutboundIndex(result);
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public void alter_index(String dbname, String base_tbl_name, String idx_name, Index new_idx)
-      throws InvalidOperationException, MetaException, TException {
-    DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(dbname, base_tbl_name);
-    checkWritePermissionsAndCheckTableAllowed(new_idx.getDbName(), new_idx.getOrigTableName(), mapping);
-    mapping
-        .getClient()
-        .alter_index(mapping.transformInboundDatabaseName(dbname), base_tbl_name, idx_name,
-            mapping.transformInboundIndex(new_idx));
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public boolean drop_index_by_name(String db_name, String tbl_name, String index_name, boolean deleteData)
-      throws NoSuchObjectException, MetaException, TException {
-    DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(db_name, tbl_name);
-    return mapping
-        .getClient()
-        .drop_index_by_name(mapping.transformInboundDatabaseName(db_name), tbl_name, index_name, deleteData);
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public Index get_index_by_name(String db_name, String tbl_name, String index_name)
-      throws MetaException, NoSuchObjectException, TException {
-    DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(db_name, tbl_name);
-    Index result = mapping.getClient().get_index_by_name(mapping.transformInboundDatabaseName(db_name), tbl_name, index_name);
-    return mapping.transformOutboundIndex(mapping.getMetastoreFilter().filterIndex(result));
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public List<Index> get_indexes(String db_name, String tbl_name, short max_indexes)
-      throws NoSuchObjectException, MetaException, TException {
-    DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(db_name, tbl_name);
-    List<Index> indexes = mapping
-        .getClient()
-        .get_indexes(mapping.transformInboundDatabaseName(db_name), tbl_name, max_indexes);
-    return mapping.transformOutboundIndexes(mapping.getMetastoreFilter().filterIndexes(indexes));
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public List<String> get_index_names(String db_name, String tbl_name, short max_indexes)
-      throws MetaException, TException {
-    DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(db_name, tbl_name);
-    List<String> result = mapping.getClient()
-        .get_index_names(mapping.transformInboundDatabaseName(db_name), tbl_name, max_indexes);
-    return mapping.getMetastoreFilter().filterIndexNames(db_name, tbl_name, result);
   }
 
   @Override
@@ -1250,6 +1331,14 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     return getPrimaryClient().grant_revoke_privileges(request);
   }
 
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public GrantRevokePrivilegeResponse refresh_privileges(HiveObjectRef hiveObjectRef, String authorizer,
+                                                         GrantRevokePrivilegeRequest grantRevokePrivilegeRequest) throws MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(hiveObjectRef.getDbName());
+    return databaseMapping.getClient().refresh_privileges(hiveObjectRef, authorizer, grantRevokePrivilegeRequest);
+  }
+
   private DatabaseMapping checkWritePermissionsForPrivileges(PrivilegeBag privileges) throws NoSuchObjectException {
     DatabaseMapping mapping = databaseMappingService
         .databaseMapping(privileges.getPrivileges().get(0).getHiveObject().getDbName());
@@ -1266,7 +1355,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public List<String> set_ugi(String user_name, List<String> group_names) throws MetaException, TException {
-    List<DatabaseMapping> mappings = databaseMappingService.getDatabaseMappings();
+    List<DatabaseMapping> mappings = databaseMappingService.getAllDatabaseMappings();
     return databaseMappingService.getPanopticOperationHandler().setUgi(user_name, group_names, mappings);
   }
 
@@ -1317,6 +1406,26 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void commit_txn(CommitTxnRequest rqst) throws NoSuchTxnException, TxnAbortedException, TException {
     getPrimaryClient().commit_txn(rqst);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void repl_tbl_writeid_state(ReplTblWriteIdStateRequest replTblWriteIdStateRequest) throws TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(replTblWriteIdStateRequest.getDbName());
+    databaseMapping.getClient().repl_tbl_writeid_state(replTblWriteIdStateRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public GetValidWriteIdsResponse get_valid_write_ids(GetValidWriteIdsRequest getValidWriteIdsRequest) throws NoSuchTxnException, MetaException, TException {
+    return getPrimaryClient().get_valid_write_ids(getValidWriteIdsRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public AllocateTableWriteIdsResponse allocate_table_write_ids(AllocateTableWriteIdsRequest allocateTableWriteIdsRequest) throws NoSuchTxnException, TxnAbortedException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(allocateTableWriteIdsRequest.getDbName());
+    return databaseMapping.getClient().allocate_table_write_ids(allocateTableWriteIdsRequest);
   }
 
   @Override
@@ -1377,37 +1486,100 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public String getCpuProfile(int arg0) throws TException {
     return getPrimaryClient().getCpuProfile(arg0);
   }
 
   @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public String getVersion() throws TException {
     return getPrimaryClient().getVersion();
   }
 
   @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public fb_status getStatus() {
     try {
       return getPrimaryClient().getStatus();
     } catch (TException e) {
-      LOG.error("Cannot getStatus() from client: ", e);
+      log.error("Cannot getStatus() from client: ", e);
       return fb_status.DEAD;
     }
   }
 
   @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public Configuration getConf() {
     return conf;
   }
 
   @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void setConf(Configuration conf) {
     this.conf = conf;
   }
 
   @Override
   public void init() throws MetaException {}
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public int getThreadId() {
+    return HiveMetaStore.HMSHandler.get();
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public RawStore getMS() throws MetaException {
+    return HiveMetaStore.HMSHandler.getRawStore();
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public TxnStore getTxnHandler() {
+    return TxnUtils.getTxnStore(conf);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public Warehouse getWh() {
+    return null;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public Database get_database_core(String catalogName, String name) throws NoSuchObjectException, MetaException {
+    return HiveMetaStore.HMSHandler.getRawStore().getDatabase(catalogName, name);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public Table get_table_core(String catName, String dbName, String tableName) throws MetaException, NoSuchObjectException {
+    return HiveMetaStore.HMSHandler.getRawStore().getTable(catName, dbName, tableName);
+  }
+
+  @Override //TODO
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public List<TransactionalMetaStoreEventListener> getTransactionalListeners() {
+    try{
+      return MetaStoreUtils.getMetaStoreListeners(TransactionalMetaStoreEventListener.class, conf,
+              MetastoreConf.getVar(conf, MetastoreConf.ConfVars.TRANSACTIONAL_EVENT_LISTENERS));
+    } catch (MetaException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override //TODO
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public List<MetaStoreEventListener> getListeners() {
+    try{
+      return MetaStoreUtils.getMetaStoreListeners(MetaStoreEventListener.class, conf,
+              MetastoreConf.getVar(conf, MetastoreConf.ConfVars.EVENT_LISTENERS));
+    } catch (MetaException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   // Hive 2.1.0 methods
   @Override
@@ -1428,6 +1600,30 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void add_foreign_key(AddForeignKeyRequest req) throws NoSuchObjectException, MetaException, TException {
     getPrimaryClient().add_foreign_key(req);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void add_unique_constraint(AddUniqueConstraintRequest addUniqueConstraintRequest) throws NoSuchObjectException, MetaException, TException {
+    getPrimaryClient().add_unique_constraint(addUniqueConstraintRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void add_not_null_constraint(AddNotNullConstraintRequest addNotNullConstraintRequest) throws NoSuchObjectException, MetaException, TException {
+    getPrimaryClient().add_not_null_constraint(addNotNullConstraintRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void add_default_constraint(AddDefaultConstraintRequest addDefaultConstraintRequest) throws NoSuchObjectException, MetaException, TException {
+    getPrimaryClient().add_default_constraint(addDefaultConstraintRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void add_check_constraint(AddCheckConstraintRequest addCheckConstraintRequest) throws NoSuchObjectException, MetaException, TException {
+    getPrimaryClient().add_check_constraint(addCheckConstraintRequest);
   }
 
   @Override
@@ -1457,10 +1653,13 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       EnvironmentContext environment_context)
       throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(db_name, tbl_name);
+    for(Partition newPart : new_parts) {
+      checkWritePermissionsAndCheckTableAllowed(newPart.getDbName(), newPart.getTableName(), mapping);
+    }
     mapping
         .getClient()
-        .alter_partitions_with_environment_context(mapping.transformInboundDatabaseName(db_name), tbl_name, new_parts,
-            environment_context);
+        .alter_partitions_with_environment_context(mapping.transformInboundDatabaseName(db_name), tbl_name,
+                mapping.transformInboundPartitions(new_parts), environment_context);
   }
 
   @Override
@@ -1468,9 +1667,11 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public void alter_table_with_cascade(String dbname, String tbl_name, Table new_tbl, boolean cascade)
       throws InvalidOperationException, MetaException, TException {
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(dbname, tbl_name);
+    checkWritePermissionsAndCheckTableAllowed(new_tbl.getDbName(), new_tbl.getTableName(), mapping);
     mapping
         .getClient()
-        .alter_table_with_cascade(mapping.transformInboundDatabaseName(dbname), tbl_name, new_tbl, cascade);
+        .alter_table_with_cascade(mapping.transformInboundDatabaseName(dbname), tbl_name,
+                mapping.transformInboundTable(new_tbl), cascade);
   }
 
   @Override
@@ -1483,16 +1684,253 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public ClearFileMetadataResult clear_file_metadata(ClearFileMetadataRequest req) throws TException {
-    return getPrimaryClient().clear_file_metadata(req);
+  public String get_metastore_db_uuid() throws MetaException, TException {
+    return getPrimaryClient().get_metastore_db_uuid();
   }
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public void create_table_with_constraints(Table tbl, List<SQLPrimaryKey> primaryKeys, List<SQLForeignKey> foreignKeys)
-      throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException {
-    DatabaseMapping mapping = checkWritePermissions(tbl.getDbName());
-    mapping.getClient().create_table_with_constraints(mapping.transformInboundTable(tbl), primaryKeys, foreignKeys);
+  public WMCreateResourcePlanResponse create_resource_plan(WMCreateResourcePlanRequest wmCreateResourcePlanRequest) throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
+    return getPrimaryClient().create_resource_plan(wmCreateResourcePlanRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMGetResourcePlanResponse get_resource_plan(WMGetResourcePlanRequest wmGetResourcePlanRequest) throws NoSuchObjectException, MetaException, TException {
+    return getPrimaryClient().get_resource_plan(wmGetResourcePlanRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMGetActiveResourcePlanResponse get_active_resource_plan(WMGetActiveResourcePlanRequest wmGetActiveResourcePlanRequest) throws MetaException, TException {
+    return getPrimaryClient().get_active_resource_plan(wmGetActiveResourcePlanRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMGetAllResourcePlanResponse get_all_resource_plans(WMGetAllResourcePlanRequest wmGetAllResourcePlanRequest) throws MetaException, TException {
+    return getPrimaryClient().get_all_resource_plans(wmGetAllResourcePlanRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMAlterResourcePlanResponse alter_resource_plan(WMAlterResourcePlanRequest wmAlterResourcePlanRequest) throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    return getPrimaryClient().alter_resource_plan(wmAlterResourcePlanRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMValidateResourcePlanResponse validate_resource_plan(WMValidateResourcePlanRequest wmValidateResourcePlanRequest) throws NoSuchObjectException, MetaException, TException {
+    return getPrimaryClient().validate_resource_plan(wmValidateResourcePlanRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMDropResourcePlanResponse drop_resource_plan(WMDropResourcePlanRequest wmDropResourcePlanRequest) throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    return getPrimaryClient().drop_resource_plan(wmDropResourcePlanRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMCreateTriggerResponse create_wm_trigger(WMCreateTriggerRequest wmCreateTriggerRequest) throws AlreadyExistsException, NoSuchObjectException, InvalidObjectException, MetaException, TException {
+    return getPrimaryClient().create_wm_trigger(wmCreateTriggerRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMAlterTriggerResponse alter_wm_trigger(WMAlterTriggerRequest wmAlterTriggerRequest) throws NoSuchObjectException, InvalidObjectException, MetaException, TException {
+    return getPrimaryClient().alter_wm_trigger(wmAlterTriggerRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMDropTriggerResponse drop_wm_trigger(WMDropTriggerRequest wmDropTriggerRequest) throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    return getPrimaryClient().drop_wm_trigger(wmDropTriggerRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMGetTriggersForResourePlanResponse get_triggers_for_resourceplan(WMGetTriggersForResourePlanRequest wmGetTriggersForResourePlanRequest) throws NoSuchObjectException, MetaException, TException {
+    return getPrimaryClient().get_triggers_for_resourceplan(wmGetTriggersForResourePlanRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMCreatePoolResponse create_wm_pool(WMCreatePoolRequest wmCreatePoolRequest) throws AlreadyExistsException, NoSuchObjectException, InvalidObjectException, MetaException, TException {
+    return getPrimaryClient().create_wm_pool(wmCreatePoolRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMAlterPoolResponse alter_wm_pool(WMAlterPoolRequest wmAlterPoolRequest) throws AlreadyExistsException, NoSuchObjectException, InvalidObjectException, MetaException, TException {
+    return getPrimaryClient().alter_wm_pool(wmAlterPoolRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMDropPoolResponse drop_wm_pool(WMDropPoolRequest wmDropPoolRequest) throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    return getPrimaryClient().drop_wm_pool(wmDropPoolRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMCreateOrUpdateMappingResponse create_or_update_wm_mapping(WMCreateOrUpdateMappingRequest wmCreateOrUpdateMappingRequest) throws AlreadyExistsException, NoSuchObjectException, InvalidObjectException, MetaException, TException {
+    return getPrimaryClient().create_or_update_wm_mapping(wmCreateOrUpdateMappingRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMDropMappingResponse drop_wm_mapping(WMDropMappingRequest wmDropMappingRequest) throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    return getPrimaryClient().drop_wm_mapping(wmDropMappingRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public WMCreateOrDropTriggerToPoolMappingResponse create_or_drop_wm_trigger_to_pool_mapping(WMCreateOrDropTriggerToPoolMappingRequest wmCreateOrDropTriggerToPoolMappingRequest) throws AlreadyExistsException, NoSuchObjectException, InvalidObjectException, MetaException, TException {
+    return getPrimaryClient().create_or_drop_wm_trigger_to_pool_mapping(wmCreateOrDropTriggerToPoolMappingRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void create_ischema(ISchema iSchema) throws AlreadyExistsException, NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(iSchema.getDbName());
+    checkWritePermissions(iSchema.getDbName());
+    databaseMapping.getClient().create_ischema(iSchema);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void alter_ischema(AlterISchemaRequest alterISchemaRequest) throws NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(alterISchemaRequest.getName().getDbName());
+    checkWritePermissions(alterISchemaRequest.getNewSchema().getDbName());
+    databaseMapping.getClient().alter_ischema(alterISchemaRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public ISchema get_ischema(ISchemaName iSchemaName) throws NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(iSchemaName.getDbName());
+    ISchema result = databaseMapping.getClient().get_ischema(iSchemaName);
+    return databaseMapping.transformOutboundISchema(result);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void drop_ischema(ISchemaName iSchemaName) throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(iSchemaName.getDbName());
+    databaseMapping.getClient().drop_ischema(iSchemaName);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void add_schema_version(SchemaVersion schemaVersion) throws AlreadyExistsException, NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(schemaVersion.getSchema().getDbName());
+    databaseMapping.getClient().add_schema_version(schemaVersion);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public SchemaVersion get_schema_version(SchemaVersionDescriptor schemaVersionDescriptor) throws NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(schemaVersionDescriptor.getSchema().getDbName());
+    SchemaVersion result = databaseMapping.getClient().get_schema_version(schemaVersionDescriptor);
+    return databaseMapping.transformOutboundSchemaVersion(result);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public SchemaVersion get_schema_latest_version(ISchemaName iSchemaName) throws NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(iSchemaName.getDbName());
+    SchemaVersion result = databaseMapping.getClient().get_schema_latest_version(iSchemaName);
+    return databaseMapping.transformOutboundSchemaVersion(result);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public List<SchemaVersion> get_schema_all_versions(ISchemaName iSchemaName) throws NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(iSchemaName.getDbName());
+    List<SchemaVersion> result = databaseMapping.getClient().get_schema_all_versions(iSchemaName);
+    return databaseMapping.transformOutboundSchemaVersions(result);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void drop_schema_version(SchemaVersionDescriptor schemaVersionDescriptor) throws NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = checkWritePermissions(schemaVersionDescriptor.getSchema().getDbName());
+    databaseMapping.getClient().drop_schema_version(schemaVersionDescriptor);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public FindSchemasByColsResp get_schemas_by_cols(FindSchemasByColsRqst findSchemasByColsRqst) throws MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    FindSchemasByColsResp result = databaseMapping.getClient().get_schemas_by_cols(findSchemasByColsRqst);
+    return result;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void map_schema_version_to_serde(MapSchemaVersionToSerdeRequest mapSchemaVersionToSerdeRequest) throws NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    databaseMapping.getClient().map_schema_version_to_serde(mapSchemaVersionToSerdeRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void set_schema_version_state(SetSchemaVersionStateRequest setSchemaVersionStateRequest) throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    databaseMapping.getClient().set_schema_version_state(setSchemaVersionStateRequest);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void add_serde(SerDeInfo serDeInfo) throws AlreadyExistsException, MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    databaseMapping.getClient().add_serde(serDeInfo);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public SerDeInfo get_serde(GetSerdeRequest getSerdeRequest) throws NoSuchObjectException, MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    SerDeInfo result = databaseMapping.getClient().get_serde(getSerdeRequest);
+    return result;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public LockResponse get_lock_materialization_rebuild(String dbName, String tableName, long txnId) throws TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    LockResponse result = databaseMapping.getClient().get_lock_materialization_rebuild(dbName, tableName, txnId);
+    return result;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public boolean heartbeat_lock_materialization_rebuild(String dbName, String tableName, long txnId) throws TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    boolean result = databaseMapping.getClient().heartbeat_lock_materialization_rebuild(dbName, tableName, txnId);
+    return result;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void add_runtime_stats(RuntimeStat runtimeStat) throws MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    databaseMapping.getClient().add_runtime_stats(runtimeStat);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public List<RuntimeStat> get_runtime_stats(GetRuntimeStatsRequest getRuntimeStatsRequest) throws MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    List<RuntimeStat> result = databaseMapping.getClient().get_runtime_stats(getRuntimeStatsRequest);
+    return result;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public ClearFileMetadataResult clear_file_metadata(ClearFileMetadataRequest req) throws TException {
+    return getPrimaryClient().clear_file_metadata(req);
   }
 
   @Override
@@ -1535,10 +1973,22 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public CmRecycleResponse cm_recycle(CmRecycleRequest cmRecycleRequest) throws MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.primaryDatabaseMapping();
+    CmRecycleResponse result = databaseMapping.getClient().cm_recycle(cmRecycleRequest);
+    return result;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public GetAllFunctionsResponse get_all_functions() throws TException {
-    return databaseMappingService
-        .getPanopticOperationHandler()
-        .getAllFunctions(databaseMappingService.getDatabaseMappings());
+    if(waggleDanceConfiguration.isQueryFunctionsAcrossAllMetastores()) {
+      return databaseMappingService
+          .getPanopticOperationHandler()
+          .getAllFunctions(databaseMappingService.getAvailableDatabaseMappings());
+    } else {
+      return getPrimaryClient().get_all_functions();
+    }
   }
 
   @Override
@@ -1551,6 +2001,14 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public CurrentNotificationEventId get_current_notificationEventId() throws TException {
     return getPrimaryClient().get_current_notificationEventId();
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public NotificationEventsCountResponse get_notification_events_count(NotificationEventsCountRequest notificationEventsCountRequest) throws TException {
+    DatabaseMapping databaseMapping = getDbMappingAndCheckTableAllowed(notificationEventsCountRequest.getDbName(), notificationEventsCountRequest.getCatName());
+    NotificationEventsCountResponse result = databaseMapping.getClient().get_notification_events_count(notificationEventsCountRequest);
+    return result;
   }
 
   @Override
@@ -1587,6 +2045,38 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     return mapping
         .transformOutboundForeignKeysResponse(
             mapping.getClient().get_foreign_keys(mapping.transformInboundForeignKeysRequest(request)));
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public UniqueConstraintsResponse get_unique_constraints(UniqueConstraintsRequest uniqueConstraintsRequest) throws MetaException, NoSuchObjectException, TException {
+    DatabaseMapping databaseMapping = getDbMappingAndCheckTableAllowed(uniqueConstraintsRequest.getDb_name(), uniqueConstraintsRequest.getTbl_name());
+    UniqueConstraintsResponse result = databaseMapping.getClient().get_unique_constraints(uniqueConstraintsRequest);
+    return result;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public NotNullConstraintsResponse get_not_null_constraints(NotNullConstraintsRequest notNullConstraintsRequest) throws MetaException, NoSuchObjectException, TException {
+    DatabaseMapping databaseMapping = getDbMappingAndCheckTableAllowed(notNullConstraintsRequest.getDb_name(), notNullConstraintsRequest.getTbl_name());
+    NotNullConstraintsResponse result = databaseMapping.getClient().get_not_null_constraints(notNullConstraintsRequest);
+    return result;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public DefaultConstraintsResponse get_default_constraints(DefaultConstraintsRequest defaultConstraintsRequest) throws MetaException, NoSuchObjectException, TException {
+    DatabaseMapping databaseMapping = getDbMappingAndCheckTableAllowed(defaultConstraintsRequest.getDb_name(), defaultConstraintsRequest.getTbl_name());
+    DefaultConstraintsResponse result = databaseMapping.getClient().get_default_constraints(defaultConstraintsRequest);
+    return result;
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public CheckConstraintsResponse get_check_constraints(CheckConstraintsRequest checkConstraintsRequest) throws MetaException, NoSuchObjectException, TException {
+    DatabaseMapping databaseMapping = getDbMappingAndCheckTableAllowed(checkConstraintsRequest.getDb_name(), checkConstraintsRequest.getTbl_name());
+    CheckConstraintsResponse result = databaseMapping.getClient().get_check_constraints(checkConstraintsRequest);
+    return result;
   }
 
   @Override
@@ -1681,7 +2171,13 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
     List<String> resultTables = mapping.getClient().get_tables_by_type(mapping.transformInboundDatabaseName(db_name), pattern, tableType);
     List<String> result = databaseMappingService.filterTables(db_name, resultTables, mapping);
-    return mapping.getMetastoreFilter().filterTableNames(db_name, result);
+    return mapping.getMetastoreFilter().filterTableNames(null, db_name, result);
+  }
+
+  @Override
+  public List<String> get_materialized_views_for_rewriting(String dbName) throws MetaException, TException {
+    DatabaseMapping databaseMapping = databaseMappingService.databaseMapping(dbName);
+    return databaseMapping.getClient().get_materialized_views_for_rewriting(dbName);
   }
 
   @Override
@@ -1705,6 +2201,20 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
         .get_table_objects_by_name_req(mapping.transformInboundGetTablesRequest(req));
     result.setTables(mapping.getMetastoreFilter().filterTables(result.getTables()));
     return mapping.transformOutboundGetTablesResult(result);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public Materialization get_materialization_invalidation_info(CreationMetadata creationMetadata, String validTxnList) throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    DatabaseMapping databaseMapping = getDbMappingAndCheckTableAllowed(creationMetadata.getDbName(), creationMetadata.getTblName());
+    return databaseMapping.getClient().get_materialization_invalidation_info(creationMetadata, validTxnList);
+  }
+
+  @Override
+  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
+  public void update_creation_metadata(String catName, String dbName, String tableName, CreationMetadata creationMetadata) throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    DatabaseMapping databaseMapping = getDbMappingAndCheckTableAllowed(dbName, tableName);
+    databaseMapping.getClient().update_creation_metadata(catName, dbName, tableName, creationMetadata);
   }
 
   @Override

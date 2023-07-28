@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,24 +26,22 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.requests.RequestCallable;
 
+@Log4j2
 public class PanopticConcurrentOperationExecutor implements PanopticOperationExecutor {
 
   private static final String INTERRUPTED_MESSAGE = "Execution was interrupted: ";
   private static final String SLOW_METASTORE_MESSAGE = "Metastore {} was slow to respond so results are omitted";
 
-  private final static Logger LOG = LoggerFactory.getLogger(PanopticConcurrentOperationExecutor.class);
-
   @Override
   public <T> List<T> executeRequests(
-      List<? extends RequestCallable<List<T>>> allRequests,
-      long requestTimeout,
-      String errorMessage) {
+          List<? extends RequestCallable<List<T>>> allRequests,
+          long requestTimeout,
+          String errorMessage) {
     List<T> allResults = new ArrayList<>();
     if (allRequests.isEmpty()) {
       return allResults;
@@ -57,7 +55,7 @@ public class PanopticConcurrentOperationExecutor implements PanopticOperationExe
         long totalTimeout = getTotalTimeout(requestTimeout, allRequests);
         futures = executorService.invokeAll(allRequests, totalTimeout, TimeUnit.MILLISECONDS);
       } catch (InterruptedException e) {
-        LOG.warn("Execution was interrupted", e);
+        log.warn("Execution was interrupted", e);
       }
 
       for (Future<List<T>> future : futures) {
@@ -75,11 +73,11 @@ public class PanopticConcurrentOperationExecutor implements PanopticOperationExe
     try {
       return future.get();
     } catch (InterruptedException e) {
-      LOG.warn(INTERRUPTED_MESSAGE, e);
+      log.warn(INTERRUPTED_MESSAGE, e);
     } catch (ExecutionException e) {
-      LOG.warn(errorMessage, e.getCause().getMessage());
+      log.warn(errorMessage, e.getCause().getMessage());
     } catch (CancellationException e) {
-      LOG.warn(SLOW_METASTORE_MESSAGE, metastoreMappingName);
+      log.warn(SLOW_METASTORE_MESSAGE, metastoreMappingName);
     }
     return Collections.emptyList();
   }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,12 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.yaml.snakeyaml.Yaml;
+
+import lombok.extern.log4j.Log4j2;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -55,8 +55,8 @@ import com.hotels.bdp.waggledance.mapping.service.FederatedMetaStoreStorage;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 
 @Repository
+@Log4j2
 public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage {
-  private static final Logger LOG = LoggerFactory.getLogger(YamlFederatedMetaStoreStorage.class);
 
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
@@ -120,7 +120,7 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
       throw new IllegalArgumentException(
           "Prefix '" + federatedMetaStore.getDatabasePrefix() + "' is already registered");
     }
-    LOG.info("Adding federation {}", federatedMetaStore);
+    log.info("Adding federation {}", federatedMetaStore);
     federationsMap.put(federatedMetaStore.getName(), federatedMetaStore);
   }
 
@@ -159,7 +159,7 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
 
   @PostConstruct
   public void loadFederation() {
-    LOG.info("Loading federations from {}", federationConfigLocation);
+    log.info("Loading federations from {}", federationConfigLocation);
     Map<String, AbstractMetaStore> newFederationsMap = new LinkedHashMap<>();
     Federations federations = yamlMarshaller.unmarshall(federationConfigLocation);
     if (federations != null && federations.getPrimaryMetaStore() != null) {
@@ -178,7 +178,7 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
     synchronized (federationsMapLock) {
       federationsMap = newFederationsMap;
     }
-    LOG.info("Loaded {} federations", federationsMap.size());
+    log.info("Loaded {} federations", federationsMap.size());
   }
 
   @PreDestroy
@@ -204,7 +204,7 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
   public void update(AbstractMetaStore oldMetaStore, AbstractMetaStore newMetaStore) {
     validate(newMetaStore);
     synchronized (federationsMapLock) {
-      LOG.debug("Updating federation {} to {}", oldMetaStore, newMetaStore);
+      log.debug("Updating federation {} to {}", oldMetaStore, newMetaStore);
       if (newMetaStore.getFederationType() == FederationType.PRIMARY) {
         primaryMetaStore = (PrimaryMetaStore) newMetaStore;
       }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,13 @@ package com.hotels.bdp.waggledance.core.federation.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.federation.service.FederationStatusService;
@@ -27,6 +31,7 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 
 @Service
+@Log4j2
 public class PopulateStatusFederationService implements FederationService {
 
   private final FederationService federationService;
@@ -62,11 +67,20 @@ public class PopulateStatusFederationService implements FederationService {
   @Override
   public List<AbstractMetaStore> getAll() {
     List<AbstractMetaStore> metaStores = federationService.getAll();
-    List<AbstractMetaStore> populatedMetaStores = new ArrayList<>(metaStores.size());
-    for (AbstractMetaStore metaStore : metaStores) {
-      populatedMetaStores.add(populate(metaStore));
+    // We don't care about order here we just want all the statuses.
+    // Custom Thread pool so we get optimal parallelism we want for firing our requests
+    ForkJoinPool customThreadPool = new ForkJoinPool(metaStores.size());
+    try {
+      customThreadPool.submit(() -> metaStores.parallelStream().forEach(metaStore -> {
+        populate(metaStore);
+      }));
+      customThreadPool.shutdown();
+      // wait at most 1 minute otherwise just return what we got thus far.
+      customThreadPool.awaitTermination(1L, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      log.error("Can't get status for metastores", e);
     }
-    return populatedMetaStores;
+    return new ArrayList<>(metaStores);
   }
 
   private AbstractMetaStore populate(AbstractMetaStore metaStore) {

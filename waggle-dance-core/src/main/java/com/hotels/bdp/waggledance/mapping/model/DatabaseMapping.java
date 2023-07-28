@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
-import org.apache.hadoop.hive.metastore.api.Index;
+import org.apache.hadoop.hive.metastore.api.ISchema;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
@@ -49,6 +49,7 @@ import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
+import org.apache.hadoop.hive.metastore.api.SchemaVersion;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
@@ -56,7 +57,7 @@ import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 
 public interface DatabaseMapping extends MetaStoreMapping {
 
-  Index transformInboundIndex(Index index);
+  ISchema transformInboundISchema(ISchema iSchema);
 
   Partition transformInboundPartition(Partition partition);
 
@@ -64,7 +65,7 @@ public interface DatabaseMapping extends MetaStoreMapping {
 
   HiveObjectRef transformInboundHiveObjectRef(HiveObjectRef function);
 
-  Index transformOutboundIndex(Index index);
+  ISchema transformOutboundISchema(ISchema iSchema);
 
   Partition transformOutboundPartition(Partition partition);
 
@@ -116,7 +117,7 @@ public interface DatabaseMapping extends MetaStoreMapping {
 
   List<Partition> transformInboundPartitions(List<Partition> partitions);
 
-  List<Index> transformOutboundIndexes(List<Index> indexes);
+  List<ISchema> transformOutboundISchemas(List<ISchema> iSchemas);
 
   ColumnStatistics transformInboundColumnStatistics(ColumnStatistics columnStatistics);
 
@@ -149,6 +150,10 @@ public interface DatabaseMapping extends MetaStoreMapping {
   GetTablesResult transformOutboundGetTablesResult(GetTablesResult result);
 
   PartitionValuesRequest transformInboundPartitionValuesRequest(PartitionValuesRequest req);
+
+  SchemaVersion transformOutboundSchemaVersion(SchemaVersion schemaVersion);
+
+  List<SchemaVersion> transformOutboundSchemaVersions(List<SchemaVersion> schemaVersions);
 
   @Override
   long getLatency();

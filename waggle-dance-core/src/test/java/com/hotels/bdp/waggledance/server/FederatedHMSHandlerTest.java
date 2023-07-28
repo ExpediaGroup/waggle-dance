@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,20 @@
  */
 package com.hotels.bdp.waggledance.server;
 
+import static org.apache.hadoop.hive.metastore.api.CmRecycleRequest._Fields.DATA_PATH;
+import static org.apache.hadoop.hive.metastore.api.GetRuntimeStatsRequest._Fields.MAX_WEIGHT;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,35 +42,58 @@ import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.AbortTxnRequest;
 import org.apache.hadoop.hive.metastore.api.AbortTxnsRequest;
+import org.apache.hadoop.hive.metastore.api.AddCheckConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.AddDefaultConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddForeignKeyRequest;
+import org.apache.hadoop.hive.metastore.api.AddNotNullConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.AddPrimaryKeyRequest;
+import org.apache.hadoop.hive.metastore.api.AddUniqueConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AggrStats;
+import org.apache.hadoop.hive.metastore.api.AllocateTableWriteIdsRequest;
+import org.apache.hadoop.hive.metastore.api.AllocateTableWriteIdsResponse;
+import org.apache.hadoop.hive.metastore.api.AlterCatalogRequest;
+import org.apache.hadoop.hive.metastore.api.AlterISchemaRequest;
 import org.apache.hadoop.hive.metastore.api.CacheFileMetadataRequest;
 import org.apache.hadoop.hive.metastore.api.CacheFileMetadataResult;
+import org.apache.hadoop.hive.metastore.api.Catalog;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.CheckLockRequest;
 import org.apache.hadoop.hive.metastore.api.ClearFileMetadataRequest;
 import org.apache.hadoop.hive.metastore.api.ClearFileMetadataResult;
+import org.apache.hadoop.hive.metastore.api.CmRecycleRequest;
+import org.apache.hadoop.hive.metastore.api.CmRecycleResponse;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.CommitTxnRequest;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
 import org.apache.hadoop.hive.metastore.api.CompactionResponse;
 import org.apache.hadoop.hive.metastore.api.CompactionType;
+import org.apache.hadoop.hive.metastore.api.CreateCatalogRequest;
+import org.apache.hadoop.hive.metastore.api.CreationMetadata;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsResponse;
+import org.apache.hadoop.hive.metastore.api.DropCatalogRequest;
 import org.apache.hadoop.hive.metastore.api.DropConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.FindSchemasByColsResp;
+import org.apache.hadoop.hive.metastore.api.FindSchemasByColsRqst;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.FireEventResponse;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.GetCatalogRequest;
+import org.apache.hadoop.hive.metastore.api.GetCatalogResponse;
+import org.apache.hadoop.hive.metastore.api.GetCatalogsResponse;
 import org.apache.hadoop.hive.metastore.api.GetFileMetadataByExprRequest;
 import org.apache.hadoop.hive.metastore.api.GetFileMetadataByExprResult;
 import org.apache.hadoop.hive.metastore.api.GetFileMetadataRequest;
@@ -74,10 +102,14 @@ import org.apache.hadoop.hive.metastore.api.GetOpenTxnsInfoResponse;
 import org.apache.hadoop.hive.metastore.api.GetOpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.GetPrincipalsInRoleRequest;
 import org.apache.hadoop.hive.metastore.api.GetRoleGrantsForPrincipalRequest;
+import org.apache.hadoop.hive.metastore.api.GetRuntimeStatsRequest;
+import org.apache.hadoop.hive.metastore.api.GetSerdeRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
 import org.apache.hadoop.hive.metastore.api.GetTablesResult;
+import org.apache.hadoop.hive.metastore.api.GetValidWriteIdsRequest;
+import org.apache.hadoop.hive.metastore.api.GetValidWriteIdsResponse;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeResponse;
 import org.apache.hadoop.hive.metastore.api.GrantRevokeRoleRequest;
@@ -87,15 +119,21 @@ import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeRequest;
 import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeResponse;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
-import org.apache.hadoop.hive.metastore.api.Index;
+import org.apache.hadoop.hive.metastore.api.ISchema;
+import org.apache.hadoop.hive.metastore.api.ISchemaName;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockLevel;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.LockResponse;
 import org.apache.hadoop.hive.metastore.api.LockType;
+import org.apache.hadoop.hive.metastore.api.MapSchemaVersionToSerdeRequest;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.NotificationEventRequest;
 import org.apache.hadoop.hive.metastore.api.NotificationEventResponse;
+import org.apache.hadoop.hive.metastore.api.NotificationEventsCountRequest;
+import org.apache.hadoop.hive.metastore.api.NotificationEventsCountResponse;
 import org.apache.hadoop.hive.metastore.api.OpenTxnRequest;
 import org.apache.hadoop.hive.metastore.api.OpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.Partition;
@@ -113,10 +151,20 @@ import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
+import org.apache.hadoop.hive.metastore.api.ReplTblWriteIdStateRequest;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.RuntimeStat;
+import org.apache.hadoop.hive.metastore.api.SQLCheckConstraint;
+import org.apache.hadoop.hive.metastore.api.SQLDefaultConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
+import org.apache.hadoop.hive.metastore.api.SQLNotNullConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
+import org.apache.hadoop.hive.metastore.api.SQLUniqueConstraint;
+import org.apache.hadoop.hive.metastore.api.SchemaVersion;
+import org.apache.hadoop.hive.metastore.api.SchemaVersionDescriptor;
+import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
+import org.apache.hadoop.hive.metastore.api.SetSchemaVersionStateRequest;
 import org.apache.hadoop.hive.metastore.api.ShowCompactRequest;
 import org.apache.hadoop.hive.metastore.api.ShowCompactResponse;
 import org.apache.hadoop.hive.metastore.api.ShowLocksRequest;
@@ -126,7 +174,43 @@ import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.TableStatsResult;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.hadoop.hive.metastore.api.Type;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.UnlockRequest;
+import org.apache.hadoop.hive.metastore.api.WMAlterPoolRequest;
+import org.apache.hadoop.hive.metastore.api.WMAlterPoolResponse;
+import org.apache.hadoop.hive.metastore.api.WMAlterResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMAlterResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMAlterTriggerRequest;
+import org.apache.hadoop.hive.metastore.api.WMAlterTriggerResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreateOrDropTriggerToPoolMappingRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreateOrDropTriggerToPoolMappingResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreateOrUpdateMappingRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreateOrUpdateMappingResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreatePoolRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreatePoolResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreateResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreateResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMCreateTriggerRequest;
+import org.apache.hadoop.hive.metastore.api.WMCreateTriggerResponse;
+import org.apache.hadoop.hive.metastore.api.WMDropMappingRequest;
+import org.apache.hadoop.hive.metastore.api.WMDropMappingResponse;
+import org.apache.hadoop.hive.metastore.api.WMDropPoolRequest;
+import org.apache.hadoop.hive.metastore.api.WMDropPoolResponse;
+import org.apache.hadoop.hive.metastore.api.WMDropResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMDropResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMDropTriggerRequest;
+import org.apache.hadoop.hive.metastore.api.WMDropTriggerResponse;
+import org.apache.hadoop.hive.metastore.api.WMGetActiveResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMGetActiveResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMGetAllResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMGetAllResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMGetResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMGetResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMGetTriggersForResourePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMGetTriggersForResourePlanResponse;
+import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanRequest;
+import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanResponse;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
@@ -138,6 +222,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import com.facebook.fb303.fb_status;
 import com.google.common.collect.Lists;
 
+import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
@@ -148,19 +233,25 @@ public class FederatedHMSHandlerTest {
 
   private final static String DB_P = "db_primary";
   private final static String DB_S = "db_second";
+  private final static String TBL_1 = "table1";
+  private final static String TBL_2 = "table2";
+  private final static String CAT_1 = "cat1";
+  private final static String CAT_2 = "cat2";
+  private final static String SCH_1 = "sch1";
 
   private @Mock MappingEventListener databaseMappingService;
   private @Mock NotifyingFederationService notifyingFederationService;
   private @Mock DatabaseMapping primaryMapping;
   private @Mock Iface primaryClient;
+  private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
 
   private FederatedHMSHandler handler;
 
   @Before
   public void setUp() throws NoSuchObjectException {
-    handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService);
+    handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService, waggleDanceConfiguration);
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
-    when(databaseMappingService.getDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
+    when(databaseMappingService.getAvailableDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
     when(primaryMapping.getClient()).thenReturn(primaryClient);
     when(primaryMapping.getMetastoreFilter()).thenReturn(new DefaultMetaStoreFilterHookImpl(new HiveConf()));
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn(DB_P);
@@ -553,7 +644,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient
         .append_partition_by_name_with_environment_context("inbound", "table1", "partName", environmentContext))
-        .thenReturn(inbound);
+            .thenReturn(inbound);
     when(primaryMapping.transformOutboundPartition(inbound)).thenReturn(outbound);
     Partition result = handler
         .append_partition_by_name_with_environment_context(DB_P, "table1", "partName", environmentContext);
@@ -578,7 +669,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(
         primaryClient.drop_partition_with_environment_context("inbound", "table1", partVals, false, environmentContext))
-        .thenReturn(true);
+            .thenReturn(true);
     boolean result = handler
         .drop_partition_with_environment_context(DB_P, "table1", partVals, false, environmentContext);
     assertThat(result, is(true));
@@ -600,7 +691,7 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
     when(primaryClient
         .drop_partition_by_name_with_environment_context("inbound", "table1", "partName", false, environmentContext))
-        .thenReturn(true);
+            .thenReturn(true);
     boolean result = handler
         .drop_partition_by_name_with_environment_context(DB_P, "table1", "partName", false, environmentContext);
     assertThat(result, is(true));
@@ -826,13 +917,24 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_all_functions() throws TException {
+    when(waggleDanceConfiguration.isQueryFunctionsAcrossAllMetastores()).thenReturn(true);
     PanopticOperationHandler panopticHandler = Mockito.mock(PanopticOperationHandler.class);
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
     DatabaseMapping mapping = Mockito.mock(DatabaseMapping.class);
     List<DatabaseMapping> mappings = Lists.newArrayList(mapping);
-    when(databaseMappingService.getDatabaseMappings()).thenReturn(mappings);
+    when(databaseMappingService.getAvailableDatabaseMappings()).thenReturn(mappings);
     GetAllFunctionsResponse getAllFunctionsResponse = Mockito.mock(GetAllFunctionsResponse.class);
     when(panopticHandler.getAllFunctions(mappings)).thenReturn(getAllFunctionsResponse);
+    GetAllFunctionsResponse result = handler.get_all_functions();
+    assertThat(result, is(getAllFunctionsResponse));
+  }
+
+  @Test
+  public void get_all_functionsViaPrimary() throws TException {
+    when(waggleDanceConfiguration.isQueryFunctionsAcrossAllMetastores()).thenReturn(false);
+    GetAllFunctionsResponse getAllFunctionsResponse = Mockito.mock(GetAllFunctionsResponse.class);
+    when(primaryClient.get_all_functions()).thenReturn(getAllFunctionsResponse);
+
     GetAllFunctionsResponse result = handler.get_all_functions();
     assertThat(result, is(getAllFunctionsResponse));
   }
@@ -841,6 +943,7 @@ public class FederatedHMSHandlerTest {
   public void set_ugi() throws TException {
     PanopticOperationHandler panopticHandler = Mockito.mock(PanopticOperationHandler.class);
     when(databaseMappingService.getPanopticOperationHandler()).thenReturn(panopticHandler);
+    when(databaseMappingService.getAllDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
     String user_name = "user";
     List<String> group_names = Lists.newArrayList("group");
     when(panopticHandler.setUgi(user_name, group_names, Collections.singletonList(primaryMapping)))
@@ -1058,72 +1161,73 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void add_index() throws TException {
-    Index newIndex = new Index();
-    newIndex.setDbName(DB_P);
-    Index inboundIndex = new Index();
-    Index outboundIndex = new Index();
-    Table newTable = new Table();
-    newTable.setDbName(DB_P);
-    Table inboundTable = new Table();
+  public void create_ischema() throws TException {
+    ISchema newISchema = new ISchema();
+    newISchema.setDbName(DB_P);
+    ISchema inboundISchema = new ISchema();
+    inboundISchema.setDbName(DB_P);
 
-    when(primaryMapping.transformInboundIndex(newIndex)).thenReturn(inboundIndex);
-    when(primaryMapping.transformInboundTable(newTable)).thenReturn(inboundTable);
-    when(primaryMapping.transformOutboundIndex(outboundIndex)).thenReturn(newIndex);
-    when(primaryClient.add_index(inboundIndex, inboundTable)).thenReturn(outboundIndex);
+    handler.create_ischema(newISchema);
 
-    Index result = handler.add_index(newIndex, newTable);
+    verify(primaryClient).create_ischema(inboundISchema);
     verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
-    assertThat(result, is(newIndex));
   }
 
   @Test
-  public void alter_index() throws TException {
-    Index newIndex = new Index();
-    newIndex.setDbName(DB_P);
-    Index inboundIndex = new Index();
-    when(primaryMapping.transformInboundIndex(newIndex)).thenReturn(inboundIndex);
+  public void alter_ischema() throws TException {
+    AlterISchemaRequest alterISchemaRequest = new AlterISchemaRequest();
+    ISchemaName oldISchema = new ISchemaName();
+    oldISchema.setDbName(DB_P);
+    oldISchema.setCatName(CAT_1);
+    oldISchema.setSchemaName("oldSchema");
 
-    handler.alter_index(DB_P, "table", "index", newIndex);
+    ISchema newISchema = new ISchema();
+    newISchema.setDbName(DB_P);
+    newISchema.setCatName(CAT_1);
+    newISchema.setName("newSchema");
+
+    alterISchemaRequest.setName(oldISchema);
+    alterISchemaRequest.setNewSchema(newISchema);
+
+    handler.alter_ischema(alterISchemaRequest);
     verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
-    verify(primaryClient).alter_index(DB_P, "table", "index", inboundIndex);
+    verify(primaryClient).alter_ischema(alterISchemaRequest);
   }
 
   @Test
-  public void drop_index_by_name() throws TException {
-    when(primaryClient.drop_index_by_name(DB_P, "table", "index", true)).thenReturn(true);
-    boolean result = handler.drop_index_by_name(DB_P, "table", "index", true);
+  public void drop_ischema() throws TException {
+    ISchemaName iSchemaName = new ISchemaName();
+    iSchemaName.setDbName(DB_P);
+    iSchemaName.setCatName(CAT_1);
+    iSchemaName.setSchemaName(SCH_1);
+
+    handler.drop_ischema(iSchemaName);
     verify(primaryMapping).checkWritePermissions(DB_P);
-    assertThat(result, is(true));
+    verify(primaryClient).drop_ischema(iSchemaName);
   }
 
   @Test
-  public void get_index_by_name() throws TException {
-    Index index = new Index();
-    Index outboundIndex = new Index();
-    when(primaryClient.get_index_by_name(DB_P, "table", "index")).thenReturn(index);
-    when(primaryMapping.transformOutboundIndex(index)).thenReturn(outboundIndex);
-    Index result = handler.get_index_by_name(DB_P, "table", "index");
-    assertThat(result, is(outboundIndex));
-  }
+  public void get_ischema() throws TException {
+    ISchemaName iSchemaName = new ISchemaName();
+    iSchemaName.setDbName(DB_P);
+    iSchemaName.setCatName(CAT_1);
+    iSchemaName.setSchemaName(SCH_1);
 
-  @Test
-  public void get_indexes() throws TException {
-    List<Index> indexList = Collections.singletonList(new Index());
-    List<Index> outboundIndexList = Collections.singletonList(new Index());
-    when(primaryMapping.transformOutboundIndexes(indexList)).thenReturn(outboundIndexList);
-    when(primaryClient.get_indexes(DB_P, "table", (short) 2)).thenReturn(indexList);
+    ISchema outboundISchema = new ISchema();
+    outboundISchema.setDbName(DB_P);
+    outboundISchema.setCatName(CAT_1);
+    outboundISchema.setName(SCH_1);
 
-    List<Index> result = handler.get_indexes(DB_P, "table", (short) 2);
-    assertThat(result, is(outboundIndexList));
-  }
+    ISchema finalISchema = new ISchema();
+    finalISchema.setDbName(DB_P);
+    finalISchema.setCatName(CAT_1);
+    finalISchema.setName(SCH_1);
 
-  @Test
-  public void get_index_names() throws TException {
-    List<String> indexNames = Arrays.asList("name1", "name2");
-    when(primaryClient.get_index_names(DB_P, "table", (short) 2)).thenReturn(indexNames);
-    List<String> result = handler.get_index_names(DB_P, "table", (short) 2);
-    assertThat(result, is(indexNames));
+
+    when(primaryClient.get_ischema(iSchemaName)).thenReturn(new ISchema());
+    when(primaryMapping.transformOutboundISchema(new ISchema())).thenReturn(outboundISchema);
+    ISchema result = handler.get_ischema(iSchemaName);
+    assertThat(result, is(finalISchema));
   }
 
   @Test
@@ -1578,7 +1682,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void add_dynamic_partitions() throws TException {
-    AddDynamicPartitions request = new AddDynamicPartitions(1, DB_P, "table", Collections.emptyList());
+    AddDynamicPartitions request = new AddDynamicPartitions(1, 1, DB_P, "table", Collections.emptyList());
     AddDynamicPartitions inboundRequest = new AddDynamicPartitions();
     when(primaryMapping.transformInboundAddDynamicPartitions(request)).thenReturn(inboundRequest);
     handler.add_dynamic_partitions(request);
@@ -1618,18 +1722,29 @@ public class FederatedHMSHandlerTest {
   @Test
   public void alter_partitions_with_environment_context() throws TException {
     EnvironmentContext environmentContext = new EnvironmentContext();
-    handler.alter_partitions_with_environment_context(DB_P, "table", Collections.emptyList(), environmentContext);
-    verify(primaryMapping).checkWritePermissions(DB_P);
-    verify(primaryClient).alter_partitions_with_environment_context(DB_P, "table", Collections.emptyList(),
-        environmentContext);
+    Partition newPartition1 = new Partition();
+    newPartition1.setDbName(DB_P);
+    Partition newPartition2 = new Partition();
+    newPartition2.setDbName(DB_P);
+    List<Partition> inbound = Lists.newArrayList(new Partition(), new Partition());
+    List<Partition> partitions = Lists.newArrayList(newPartition1, newPartition2);
+    when(primaryMapping.transformInboundPartitions(partitions)).thenReturn(inbound);
+    handler.alter_partitions_with_environment_context(DB_P, "table", partitions, environmentContext);
+    verify(primaryMapping, times(3)).checkWritePermissions(DB_P);
+    verify(primaryClient)
+        .alter_partitions_with_environment_context(DB_P, "table", inbound, environmentContext);
   }
 
   @Test
   public void alter_table_with_cascade() throws TException {
     Table table = new Table();
+    table.setDbName(DB_P);
+    Table inbound = new Table();
+    when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
+    when(primaryMapping.transformInboundTable(table)).thenReturn(inbound);
     handler.alter_table_with_cascade(DB_P, "table", table, true);
-    verify(primaryMapping).checkWritePermissions(DB_P);
-    verify(primaryClient).alter_table_with_cascade(DB_P, "table", table, true);
+    verify(primaryMapping, times(2)).checkWritePermissions(DB_P);
+    verify(primaryClient).alter_table_with_cascade("inbound", "table", inbound, true);
   }
 
   @Test
@@ -1657,12 +1772,19 @@ public class FederatedHMSHandlerTest {
     Table table = new Table();
     table.setDbName(DB_P);
     Table inboundTable = new Table();
+    inboundTable.setDbName(DB_P);
     List<SQLPrimaryKey> primaryKeys = Collections.emptyList();
     List<SQLForeignKey> foreignKeys = Collections.emptyList();
+    List<SQLUniqueConstraint> uniqueConstraints = Collections.emptyList();
+    List<SQLNotNullConstraint> notNullConstraints = Collections.emptyList();
+    List<SQLDefaultConstraint> defaultConstraints = Collections.emptyList();
+    List<SQLCheckConstraint> checkConstraints = Collections.emptyList();
     when(primaryMapping.transformInboundTable(table)).thenReturn(inboundTable);
-    handler.create_table_with_constraints(table, primaryKeys, foreignKeys);
+    handler.create_table_with_constraints(table, primaryKeys, foreignKeys, uniqueConstraints, notNullConstraints,
+            defaultConstraints, checkConstraints);
     verify(primaryMapping).checkWritePermissions(DB_P);
-    verify(primaryClient).create_table_with_constraints(inboundTable, primaryKeys, foreignKeys);
+    verify(primaryClient).create_table_with_constraints(table, primaryKeys, foreignKeys, uniqueConstraints, notNullConstraints,
+            defaultConstraints, checkConstraints);
   }
 
   @Test
@@ -1682,8 +1804,8 @@ public class FederatedHMSHandlerTest {
     List<Partition> expected = Collections.emptyList();
     when(primaryMapping.transformInboundDatabaseName("dest_db")).thenReturn("dest_db");
     when(primaryMapping.transformOutboundPartitions(partitions)).thenReturn(expected);
-    when(primaryClient.exchange_partitions(partitionSpecs, DB_P, "source", "dest_db", "dest_table")).thenReturn(
-        partitions);
+    when(primaryClient.exchange_partitions(partitionSpecs, DB_P, "source", "dest_db", "dest_table"))
+        .thenReturn(partitions);
     List<Partition> result = handler.exchange_partitions(partitionSpecs, DB_P, "source", "dest_db", "dest_table");
     verify(primaryMapping).checkWritePermissions(DB_P);
     verify(primaryMapping).checkWritePermissions("dest_db");
@@ -1719,8 +1841,8 @@ public class FederatedHMSHandlerTest {
   @Test
   public void get_fields_with_environment_context() throws TException {
     EnvironmentContext context = new EnvironmentContext();
-    List<FieldSchema> expected = Arrays.asList(new FieldSchema("name1", "type1", ""),
-        new FieldSchema("name2", "type2", ""));
+    List<FieldSchema> expected = Arrays
+        .asList(new FieldSchema("name1", "type1", ""), new FieldSchema("name2", "type2", ""));
     when(primaryClient.get_fields_with_environment_context(DB_P, "table", context)).thenReturn(expected);
     List<FieldSchema> result = handler.get_fields_with_environment_context(DB_P, "table", context);
     assertThat(result, is(expected));
@@ -1784,7 +1906,8 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void get_partition_values() throws TException {
-    PartitionValuesRequest request = new PartitionValuesRequest(DB_P, "table", Collections.singletonList(new FieldSchema()));
+    PartitionValuesRequest request = new PartitionValuesRequest(DB_P, "table",
+        Collections.singletonList(new FieldSchema()));
     List<PartitionValuesRow> partitionValues = Collections.singletonList(new PartitionValuesRow());
     PartitionValuesResponse response = new PartitionValuesResponse(partitionValues);
     when(primaryClient.get_partition_values(request)).thenReturn(response);
@@ -1794,4 +1917,607 @@ public class FederatedHMSHandlerTest {
     assertThat(result.getPartitionValues(), is(sameInstance(partitionValues)));
   }
 
+  @Test
+  public void create_catalog() throws TException {
+    CreateCatalogRequest createCatalogRequest = new CreateCatalogRequest();
+    createCatalogRequest.setCatalog(new Catalog(CAT_1, ""));
+
+    doNothing().when(primaryClient).create_catalog(isA(CreateCatalogRequest.class));
+    handler.create_catalog(createCatalogRequest);
+    verify(primaryClient, times(1)).create_catalog(createCatalogRequest);
+  }
+
+  @Test
+  public void alter_catalog() throws TException {
+    AlterCatalogRequest alterCatalogRequest = new AlterCatalogRequest();
+    alterCatalogRequest.setName(CAT_1);
+    alterCatalogRequest.setNewCat(new Catalog(CAT_2, ""));
+
+    doNothing().when(primaryClient).alter_catalog(isA(AlterCatalogRequest.class));
+    handler.alter_catalog(alterCatalogRequest);
+    verify(primaryClient, times(1)).alter_catalog(alterCatalogRequest);
+  }
+
+
+  @Test
+  public void get_catalog() throws TException {
+    GetCatalogRequest getCatalogRequest = new GetCatalogRequest();
+    GetCatalogResponse getCatalogResponse = new GetCatalogResponse();
+
+    when(primaryClient.get_catalog(getCatalogRequest)).thenReturn(getCatalogResponse);
+    GetCatalogResponse result = handler.get_catalog(getCatalogRequest);
+    assertThat(result, is(getCatalogResponse));
+    verify(primaryClient, times(1)).get_catalog(getCatalogRequest);
+  }
+
+  @Test
+  public void get_catalogs() throws TException {
+    GetCatalogsResponse getCatalogsResponse = new GetCatalogsResponse();
+
+    when(primaryClient.get_catalogs()).thenReturn(getCatalogsResponse);
+    GetCatalogsResponse result = handler.get_catalogs();
+    verify(primaryClient, times(1)).get_catalogs();
+  }
+
+  @Test
+  public void drop_catalog() throws TException {
+    DropCatalogRequest dropCatalogRequest = new DropCatalogRequest();
+    doNothing().when(primaryClient).drop_catalog(isA(DropCatalogRequest.class));
+    handler.drop_catalog(dropCatalogRequest);
+    verify(primaryClient, times(1)).drop_catalog(dropCatalogRequest);
+  }
+
+  @Test
+  public void truncate_table() throws TException {
+    List<String>partNames = Lists.newArrayList();
+    handler.truncate_table(DB_P, TBL_1, partNames);
+    verify(primaryClient, times(1)).truncate_table(DB_P, TBL_1, partNames);
+  }
+
+  @Test
+  public void refresh_privileges() throws TException {
+    GrantRevokePrivilegeRequest grantRevokePrivilegeRequest = new GrantRevokePrivilegeRequest();
+    HiveObjectRef hiveObjectRef = new HiveObjectRef();
+    hiveObjectRef.setDbName(DB_P);
+    GrantRevokePrivilegeResponse grantRevokePrivilegeResponse = new GrantRevokePrivilegeResponse();
+
+    when(primaryClient.refresh_privileges(hiveObjectRef, "dummy", grantRevokePrivilegeRequest)).thenReturn(grantRevokePrivilegeResponse);
+    GrantRevokePrivilegeResponse result = handler.refresh_privileges(hiveObjectRef, "dummy", grantRevokePrivilegeRequest);
+    assertThat(result, is(grantRevokePrivilegeResponse));
+    verify(primaryClient, times(1)).refresh_privileges(hiveObjectRef, "dummy", grantRevokePrivilegeRequest);
+  }
+
+  @Test
+  public void repl_tbl_writeid_state() throws TException {
+    ReplTblWriteIdStateRequest replTblWriteIdStateRequest = new ReplTblWriteIdStateRequest();
+    replTblWriteIdStateRequest.setDbName(DB_P);
+
+    doNothing().when(primaryClient).repl_tbl_writeid_state(isA(ReplTblWriteIdStateRequest.class));
+    handler.repl_tbl_writeid_state(replTblWriteIdStateRequest);
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient, times(1)).repl_tbl_writeid_state(replTblWriteIdStateRequest);
+  }
+
+  @Test
+  public void get_valid_write_ids() throws TException {
+    GetValidWriteIdsRequest getValidWriteIdsRequest = new GetValidWriteIdsRequest();
+    GetValidWriteIdsResponse getValidWriteIdsResponse = new GetValidWriteIdsResponse();
+
+    when(primaryClient.get_valid_write_ids(getValidWriteIdsRequest)).thenReturn(getValidWriteIdsResponse);
+    GetValidWriteIdsResponse result = handler.get_valid_write_ids(getValidWriteIdsRequest);
+    assertThat(result, is(getValidWriteIdsResponse));
+    verify(primaryClient, times(1)).get_valid_write_ids(getValidWriteIdsRequest);
+  }
+
+  @Test
+  public void allocate_table_write_ids() throws TException {
+    AllocateTableWriteIdsRequest allocateTableWriteIdsRequest = new AllocateTableWriteIdsRequest();
+    allocateTableWriteIdsRequest.setDbName(DB_P);
+    AllocateTableWriteIdsResponse allocateTableWriteIdsResponse = new AllocateTableWriteIdsResponse();
+
+    when(primaryClient.allocate_table_write_ids(allocateTableWriteIdsRequest)).thenReturn(allocateTableWriteIdsResponse);
+    AllocateTableWriteIdsResponse result = handler.allocate_table_write_ids(allocateTableWriteIdsRequest);
+    assertThat(result, is(allocateTableWriteIdsResponse));
+    verify(primaryMapping).checkWritePermissions(DB_P);
+    verify(primaryClient, times(1)).allocate_table_write_ids(allocateTableWriteIdsRequest);
+  }
+
+  @Test
+  public void add_unique_constraint() throws TException {
+    AddUniqueConstraintRequest addNotNullConstraintRequest = new AddUniqueConstraintRequest();
+    addNotNullConstraintRequest.setUniqueConstraintCols(Lists.newArrayList(new SQLUniqueConstraint()));
+
+    doNothing().when(primaryClient).add_unique_constraint(isA(AddUniqueConstraintRequest.class));
+    handler.add_unique_constraint(addNotNullConstraintRequest);
+    verify(primaryClient, times(1)).add_unique_constraint(addNotNullConstraintRequest);
+  }
+
+  @Test
+  public void add_not_null_constraint() throws TException {
+    AddNotNullConstraintRequest addNotNullConstraintRequest = new AddNotNullConstraintRequest();
+    addNotNullConstraintRequest.setNotNullConstraintCols(Lists.newArrayList(new SQLNotNullConstraint()));
+
+    doNothing().when(primaryClient).add_not_null_constraint(isA(AddNotNullConstraintRequest.class));
+    handler.add_not_null_constraint(addNotNullConstraintRequest);
+    verify(primaryClient, times(1)).add_not_null_constraint(addNotNullConstraintRequest);
+  }
+
+  @Test
+  public void add_default_constraint() throws TException {
+    AddDefaultConstraintRequest addDefaultConstraintRequest = new AddDefaultConstraintRequest();
+    addDefaultConstraintRequest.setDefaultConstraintCols(Lists.newArrayList(new SQLDefaultConstraint()));
+
+    doNothing().when(primaryClient).add_default_constraint(isA(AddDefaultConstraintRequest.class));
+    handler.add_default_constraint(addDefaultConstraintRequest);
+    verify(primaryClient, times(1)).add_default_constraint(addDefaultConstraintRequest);
+  }
+
+  @Test
+  public void add_check_constraint() throws TException {
+    AddCheckConstraintRequest addCheckConstraintRequest = new AddCheckConstraintRequest();
+    addCheckConstraintRequest.setCheckConstraintCols(Lists.newArrayList(new SQLCheckConstraint()));
+
+    doNothing().when(primaryClient).add_check_constraint(isA(AddCheckConstraintRequest.class));
+    handler.add_check_constraint(addCheckConstraintRequest);
+    verify(primaryClient, times(1)).add_check_constraint(addCheckConstraintRequest);
+  }
+
+  @Test
+  public void get_metastore_db_uuid() throws TException {
+    when(primaryClient.get_metastore_db_uuid()).thenReturn("uuid");
+    String result = handler.get_metastore_db_uuid();
+    assertThat(result, is("uuid"));
+    verify(primaryClient, times(1)).get_metastore_db_uuid();
+  }
+
+  @Test
+  public void create_resource_plan() throws TException {
+    WMCreateResourcePlanRequest wmCreateResourcePlanRequest = new WMCreateResourcePlanRequest();
+    WMCreateResourcePlanResponse wmCreateResourcePlanResponse = new WMCreateResourcePlanResponse();
+
+    when(primaryClient.create_resource_plan(wmCreateResourcePlanRequest)).thenReturn(wmCreateResourcePlanResponse);
+    WMCreateResourcePlanResponse result = handler.create_resource_plan(wmCreateResourcePlanRequest);
+    assertThat(result, is(wmCreateResourcePlanResponse));
+    verify(primaryClient, times(1)).create_resource_plan(wmCreateResourcePlanRequest);
+  }
+
+  @Test
+  public void get_resource_plan() throws TException {
+    WMGetResourcePlanRequest wmGetResourcePlanRequest = new WMGetResourcePlanRequest();
+    WMGetResourcePlanResponse wmGetResourcePlanResponse = new WMGetResourcePlanResponse();
+
+    when(primaryClient.get_resource_plan(wmGetResourcePlanRequest)).thenReturn(wmGetResourcePlanResponse);
+    WMGetResourcePlanResponse result = handler.get_resource_plan(wmGetResourcePlanRequest);
+    assertThat(result, is(wmGetResourcePlanResponse));
+    verify(primaryClient, times(1)).get_resource_plan(wmGetResourcePlanRequest);
+  }
+
+  @Test
+  public void get_active_resource_plan() throws TException {
+    WMGetActiveResourcePlanRequest wmGetActiveResourcePlanRequest = new WMGetActiveResourcePlanRequest();
+    WMGetActiveResourcePlanResponse wmGetActiveResourcePlanResponse = new WMGetActiveResourcePlanResponse();
+
+    when(primaryClient.get_active_resource_plan(wmGetActiveResourcePlanRequest)).thenReturn(wmGetActiveResourcePlanResponse);
+    WMGetActiveResourcePlanResponse result = handler.get_active_resource_plan(wmGetActiveResourcePlanRequest);
+    assertThat(result, is(wmGetActiveResourcePlanResponse));
+    verify(primaryClient, times(1)).get_active_resource_plan(wmGetActiveResourcePlanRequest);
+  }
+
+  @Test
+  public void get_all_resource_plans() throws TException {
+    WMGetAllResourcePlanRequest wmGetAllResourcePlanRequest = new WMGetAllResourcePlanRequest();
+    WMGetAllResourcePlanResponse wmGetAllResourcePlanResponse = new WMGetAllResourcePlanResponse();
+
+    when(primaryClient.get_all_resource_plans(wmGetAllResourcePlanRequest)).thenReturn(wmGetAllResourcePlanResponse);
+    WMGetAllResourcePlanResponse result = handler.get_all_resource_plans(wmGetAllResourcePlanRequest);
+    assertThat(result, is(wmGetAllResourcePlanResponse));
+    verify(primaryClient, times(1)).get_all_resource_plans(wmGetAllResourcePlanRequest);
+  }
+
+  @Test
+  public void alter_resource_plan() throws TException {
+    WMAlterResourcePlanRequest wmAlterResourcePlanRequest = new WMAlterResourcePlanRequest();
+    WMAlterResourcePlanResponse wmAlterResourcePlanResponse = new WMAlterResourcePlanResponse();
+
+    when(primaryClient.alter_resource_plan(wmAlterResourcePlanRequest)).thenReturn(wmAlterResourcePlanResponse);
+    WMAlterResourcePlanResponse result = handler.alter_resource_plan(wmAlterResourcePlanRequest);
+    assertThat(result, is(wmAlterResourcePlanResponse));
+    verify(primaryClient, times(1)).alter_resource_plan(wmAlterResourcePlanRequest);
+  }
+
+  @Test
+  public void validate_resource_plan() throws TException {
+    WMValidateResourcePlanRequest wmValidateResourcePlanRequest = new WMValidateResourcePlanRequest();
+    WMValidateResourcePlanResponse wmValidateResourcePlanResponse = new WMValidateResourcePlanResponse();
+
+    when(primaryClient.validate_resource_plan(wmValidateResourcePlanRequest)).thenReturn(wmValidateResourcePlanResponse);
+    WMValidateResourcePlanResponse result = handler.validate_resource_plan(wmValidateResourcePlanRequest);
+    assertThat(result, is(wmValidateResourcePlanResponse));
+    verify(primaryClient, times(1)).validate_resource_plan(wmValidateResourcePlanRequest);
+  }
+
+  @Test
+  public void drop_resource_plan() throws TException {
+    WMDropResourcePlanRequest wmDropResourcePlanRequest = new WMDropResourcePlanRequest();
+    WMDropResourcePlanResponse wmDropResourcePlanResponse = new WMDropResourcePlanResponse();
+
+    when(primaryClient.drop_resource_plan(wmDropResourcePlanRequest)).thenReturn(wmDropResourcePlanResponse);
+    WMDropResourcePlanResponse result = handler.drop_resource_plan(wmDropResourcePlanRequest);
+    assertThat(result, is(wmDropResourcePlanResponse));
+    verify(primaryClient, times(1)).drop_resource_plan(wmDropResourcePlanRequest);
+  }
+
+  @Test
+  public void create_wm_trigger() throws TException {
+    WMCreateTriggerRequest wmCreateTriggerRequest = new WMCreateTriggerRequest();
+    WMCreateTriggerResponse wmCreateTriggerResponse = new WMCreateTriggerResponse();
+
+    when(primaryClient.create_wm_trigger(wmCreateTriggerRequest)).thenReturn(wmCreateTriggerResponse);
+    WMCreateTriggerResponse result = handler.create_wm_trigger(wmCreateTriggerRequest);
+    assertThat(result, is(wmCreateTriggerResponse));
+    verify(primaryClient, times(1)).create_wm_trigger(wmCreateTriggerRequest);
+  }
+
+  @Test
+  public void alter_wm_trigger() throws TException {
+    WMAlterTriggerRequest wmAlterTriggerRequest = new WMAlterTriggerRequest();
+    WMAlterTriggerResponse wmAlterTriggerResponse = new WMAlterTriggerResponse();
+
+    when(primaryClient.alter_wm_trigger(wmAlterTriggerRequest)).thenReturn(wmAlterTriggerResponse);
+    WMAlterTriggerResponse result = handler.alter_wm_trigger(wmAlterTriggerRequest);
+    assertThat(result, is(wmAlterTriggerResponse));
+    verify(primaryClient, times(1)).alter_wm_trigger(wmAlterTriggerRequest);
+  }
+
+  @Test
+  public void drop_wm_trigger() throws TException {
+    WMDropTriggerRequest wmDropTriggerRequest = new WMDropTriggerRequest();
+    WMDropTriggerResponse wmDropTriggerResponse = new WMDropTriggerResponse();
+
+    when(primaryClient.drop_wm_trigger(wmDropTriggerRequest)).thenReturn(wmDropTriggerResponse);
+    WMDropTriggerResponse result = handler.drop_wm_trigger(wmDropTriggerRequest);
+    assertThat(result, is(wmDropTriggerResponse));
+    verify(primaryClient, times(1)).drop_wm_trigger(wmDropTriggerRequest);
+  }
+
+  @Test
+  public void get_triggers_for_resourceplan() throws TException {
+    WMGetTriggersForResourePlanRequest wmGetTriggersForResourePlanRequest = new WMGetTriggersForResourePlanRequest();
+    WMGetTriggersForResourePlanResponse wmGetTriggersForResourePlanResponse = new WMGetTriggersForResourePlanResponse();
+
+    when(primaryClient.get_triggers_for_resourceplan(wmGetTriggersForResourePlanRequest)).thenReturn(wmGetTriggersForResourePlanResponse);
+    WMGetTriggersForResourePlanResponse result = handler.get_triggers_for_resourceplan(wmGetTriggersForResourePlanRequest);
+    assertThat(result, is(wmGetTriggersForResourePlanResponse));
+    verify(primaryClient, times(1)).get_triggers_for_resourceplan(wmGetTriggersForResourePlanRequest);
+  }
+
+  @Test
+  public void create_wm_pool() throws TException {
+    WMCreatePoolRequest wmCreatePoolRequest = new WMCreatePoolRequest();
+    WMCreatePoolResponse wmCreatePoolResponse = new WMCreatePoolResponse();
+
+    when(primaryClient.create_wm_pool(wmCreatePoolRequest)).thenReturn(wmCreatePoolResponse);
+    WMCreatePoolResponse result = handler.create_wm_pool(wmCreatePoolRequest);
+    assertThat(result, is(wmCreatePoolResponse));
+    verify(primaryClient, times(1)).create_wm_pool(wmCreatePoolRequest);
+  }
+
+  @Test
+  public void alter_wm_pool() throws TException {
+    WMAlterPoolRequest wmAlterPoolRequest = new WMAlterPoolRequest();
+    WMAlterPoolResponse wmAlterPoolResponse = new WMAlterPoolResponse();
+
+    when(primaryClient.alter_wm_pool(wmAlterPoolRequest)).thenReturn(wmAlterPoolResponse);
+    WMAlterPoolResponse result = handler.alter_wm_pool(wmAlterPoolRequest);
+    assertThat(result, is(wmAlterPoolResponse));
+    verify(primaryClient, times(1)).alter_wm_pool(wmAlterPoolRequest);
+  }
+
+  @Test
+  public void drop_wm_pool() throws TException {
+    WMDropPoolRequest wmDropPoolRequest = new WMDropPoolRequest();
+    WMDropPoolResponse wmDropPoolResponse = new WMDropPoolResponse();
+
+    when(primaryClient.drop_wm_pool(wmDropPoolRequest)).thenReturn(wmDropPoolResponse);
+    WMDropPoolResponse result = handler.drop_wm_pool(wmDropPoolRequest);
+    assertThat(result, is(wmDropPoolResponse));
+    verify(primaryClient, times(1)).drop_wm_pool(wmDropPoolRequest);
+  }
+
+  @Test
+  public void create_or_update_wm_mapping() throws TException {
+    WMCreateOrUpdateMappingRequest wmCreateOrUpdateMappingRequest = new WMCreateOrUpdateMappingRequest();
+    WMCreateOrUpdateMappingResponse wmCreateOrUpdateMappingResponse = new WMCreateOrUpdateMappingResponse();
+
+    when(primaryClient.create_or_update_wm_mapping(wmCreateOrUpdateMappingRequest)).thenReturn(wmCreateOrUpdateMappingResponse);
+    WMCreateOrUpdateMappingResponse result = handler.create_or_update_wm_mapping(wmCreateOrUpdateMappingRequest);
+    assertThat(result, is(wmCreateOrUpdateMappingResponse));
+    verify(primaryClient, times(1)).create_or_update_wm_mapping(wmCreateOrUpdateMappingRequest);
+  }
+
+  @Test
+  public void drop_wm_mapping() throws TException {
+    WMDropMappingRequest wmDropMappingRequest = new WMDropMappingRequest();
+    WMDropMappingResponse wmDropMappingResponse = new WMDropMappingResponse();
+
+    when(primaryClient.drop_wm_mapping(wmDropMappingRequest)).thenReturn(wmDropMappingResponse);
+    WMDropMappingResponse result = handler.drop_wm_mapping(wmDropMappingRequest);
+    assertThat(result, is(wmDropMappingResponse));
+    verify(primaryClient, times(1)).drop_wm_mapping(wmDropMappingRequest);
+  }
+
+  @Test
+  public void create_or_drop_wm_trigger_to_pool_mapping() throws TException {
+    WMCreateOrDropTriggerToPoolMappingRequest wmCreateOrDropTriggerToPoolMappingRequest = new WMCreateOrDropTriggerToPoolMappingRequest();
+    WMCreateOrDropTriggerToPoolMappingResponse wmCreateOrDropTriggerToPoolMappingResponse = new WMCreateOrDropTriggerToPoolMappingResponse();
+
+    when(primaryClient.create_or_drop_wm_trigger_to_pool_mapping(wmCreateOrDropTriggerToPoolMappingRequest)).thenReturn(wmCreateOrDropTriggerToPoolMappingResponse);
+    WMCreateOrDropTriggerToPoolMappingResponse result = handler.create_or_drop_wm_trigger_to_pool_mapping(wmCreateOrDropTriggerToPoolMappingRequest);
+    assertThat(result, is(wmCreateOrDropTriggerToPoolMappingResponse));
+    verify(primaryClient, times(1)).create_or_drop_wm_trigger_to_pool_mapping(wmCreateOrDropTriggerToPoolMappingRequest);
+  }
+
+  @Test
+  public void add_schema_version() throws TException {
+    ISchemaName iSchemaName = new ISchemaName();
+    iSchemaName.setDbName(DB_P);
+    iSchemaName.setCatName(CAT_1);
+    iSchemaName.setSchemaName(SCH_1);
+
+    SchemaVersion schemaVersion = new SchemaVersion();
+    schemaVersion.setSchema(iSchemaName);
+
+    doNothing().when(primaryClient).add_schema_version(isA(SchemaVersion.class));
+    handler.add_schema_version(schemaVersion);
+    verify(primaryClient, times(1)).add_schema_version(schemaVersion);
+  }
+
+  @Test
+  public void get_schema_latest_version() throws TException {
+    ISchemaName iSchemaName = new ISchemaName();
+    iSchemaName.setDbName(DB_P);
+    iSchemaName.setCatName(CAT_1);
+    iSchemaName.setSchemaName(SCH_1);
+
+    SchemaVersion schemaVersion = new SchemaVersion();
+    schemaVersion.setSchema(iSchemaName);
+
+    SchemaVersion outboundSchemaVersion = new SchemaVersion();
+    outboundSchemaVersion.setSchema(iSchemaName);
+
+    when(primaryClient.get_schema_latest_version(iSchemaName)).thenReturn(schemaVersion);
+    when(primaryMapping.transformOutboundSchemaVersion(schemaVersion)).thenReturn(outboundSchemaVersion);
+    SchemaVersion result = handler.get_schema_latest_version(iSchemaName);
+    assertThat(result, is(outboundSchemaVersion));
+    verify(primaryClient, times(1)).get_schema_latest_version(iSchemaName);
+  }
+
+  @Test
+  public void get_schema_all_versions() throws TException {
+    ISchemaName iSchemaName = new ISchemaName();
+    iSchemaName.setDbName(DB_P);
+    iSchemaName.setCatName(CAT_1);
+    iSchemaName.setSchemaName(SCH_1);
+
+    SchemaVersion schemaVersion = new SchemaVersion();
+    schemaVersion.setSchema(iSchemaName);
+
+    SchemaVersion outboundSchemaVersion = new SchemaVersion();
+    outboundSchemaVersion.setSchema(iSchemaName);
+
+    when(primaryClient.get_schema_all_versions(iSchemaName)).thenReturn(Lists.newArrayList(schemaVersion));
+    when(primaryMapping.transformOutboundSchemaVersions(Lists.newArrayList(schemaVersion))).thenReturn(Lists.newArrayList(outboundSchemaVersion));
+    List<SchemaVersion> result = handler.get_schema_all_versions(iSchemaName);
+    assertThat(result, is(Lists.newArrayList(Lists.newArrayList(schemaVersion))));
+    verify(primaryClient, times(1)).get_schema_all_versions(iSchemaName);
+  }
+
+  @Test
+  public void drop_schema_version() throws TException {
+    SchemaVersionDescriptor schemaVersionDescriptor = new SchemaVersionDescriptor();
+    ISchemaName iSchemaName = new ISchemaName();
+    iSchemaName.setDbName(DB_P);
+    iSchemaName.setCatName(CAT_1);
+    iSchemaName.setSchemaName(SCH_1);
+    schemaVersionDescriptor.setSchema(iSchemaName);
+    doNothing().when(primaryClient).drop_schema_version(isA(SchemaVersionDescriptor.class));
+    handler.drop_schema_version(schemaVersionDescriptor);
+    verify(primaryClient, times(1)).drop_schema_version(schemaVersionDescriptor);
+  }
+
+  @Test
+  public void get_schemas_by_cols() throws TException {
+    FindSchemasByColsRqst findSchemasByColsRqst = new FindSchemasByColsRqst();
+    FindSchemasByColsResp findSchemasByColsResp = new FindSchemasByColsResp();
+
+    when(primaryClient.get_schemas_by_cols(findSchemasByColsRqst)).thenReturn(findSchemasByColsResp);
+    FindSchemasByColsResp result = handler.get_schemas_by_cols(findSchemasByColsRqst);
+    assertThat(result, is(findSchemasByColsResp));
+    verify(primaryClient, times(1)).get_schemas_by_cols(findSchemasByColsRqst);
+  }
+
+  @Test
+  public void map_schema_version_to_serde() throws TException {
+    MapSchemaVersionToSerdeRequest mapSchemaVersionToSerdeRequest = new MapSchemaVersionToSerdeRequest();
+    doNothing().when(primaryClient).map_schema_version_to_serde(isA(MapSchemaVersionToSerdeRequest.class));
+    handler.map_schema_version_to_serde(mapSchemaVersionToSerdeRequest);
+    verify(primaryClient, times(1)).map_schema_version_to_serde(mapSchemaVersionToSerdeRequest);
+  }
+
+  @Test
+  public void set_schema_version_state() throws TException {
+    SetSchemaVersionStateRequest setSchemaVersionStateRequest = new SetSchemaVersionStateRequest();
+    doNothing().when(primaryClient).set_schema_version_state(isA(SetSchemaVersionStateRequest.class));
+    handler.set_schema_version_state(setSchemaVersionStateRequest);
+    verify(primaryClient, times(1)).set_schema_version_state(setSchemaVersionStateRequest);
+  }
+
+  @Test
+  public void add_serde() throws TException {
+    SerDeInfo serDeInfo = new SerDeInfo();
+    doNothing().when(primaryClient).add_serde(isA(SerDeInfo.class));
+    handler.add_serde(serDeInfo);
+    verify(primaryClient, times(1)).add_serde(serDeInfo);
+  }
+
+  @Test
+  public void get_serde() throws TException {
+    GetSerdeRequest serdeRequest = new GetSerdeRequest();
+    serdeRequest.setSerdeName("serdeName");
+    serdeRequest.setFieldValue(GetSerdeRequest._Fields.SERDE_NAME, "serdeName");
+
+    SerDeInfo serDeInfo = new SerDeInfo();
+
+    when(primaryClient.get_serde(serdeRequest)).thenReturn(serDeInfo);
+    SerDeInfo result = handler.get_serde(serdeRequest);
+    assertThat(result, is(serDeInfo));
+  }
+
+  @Test
+  public void get_lock_materialization_rebuild() throws TException {
+    LockResponse lockResponse = new LockResponse();
+    lockResponse.setFieldValue(LockResponse._Fields.LOCKID, 1000L);
+
+    when(primaryClient.get_lock_materialization_rebuild(DB_S, CAT_1, 1000L)).thenReturn(lockResponse);
+    LockResponse result = handler.get_lock_materialization_rebuild(DB_S, CAT_1, 1000L);
+    assertThat(result, is(lockResponse));
+  }
+
+  @Test
+  public void heartbeat_lock_materialization_rebuild() throws TException {
+    when(primaryClient.heartbeat_lock_materialization_rebuild(DB_S, CAT_1, 1000L)).thenReturn(true);
+    boolean result = handler.heartbeat_lock_materialization_rebuild(DB_S, CAT_1, 1000L);
+    assertThat(result, is(true));
+  }
+
+  @Test
+  public void add_runtime_stats() throws TException {
+    RuntimeStat runtimeStat = new RuntimeStat();
+    runtimeStat.setFieldValue( RuntimeStat._Fields.PAYLOAD, ByteBuffer.allocate(10));
+
+    handler.add_runtime_stats(runtimeStat);
+    verify(primaryClient).add_runtime_stats(runtimeStat);
+  }
+
+  @Test
+  public void get_runtime_stats() throws TException {
+    GetRuntimeStatsRequest getRuntimeStatsRequest = new GetRuntimeStatsRequest();
+    getRuntimeStatsRequest.setFieldValue( MAX_WEIGHT, 1);
+
+    List<RuntimeStat> runtimeStatList = Lists.newArrayList(new RuntimeStat());
+
+    when(primaryClient.get_runtime_stats(getRuntimeStatsRequest)).thenReturn(runtimeStatList);
+    List<RuntimeStat> result = handler.get_runtime_stats(getRuntimeStatsRequest);
+    assertThat(result, is(runtimeStatList));
+  }
+
+  @Test
+  public void cm_recycle() throws TException {
+    CmRecycleRequest cmRecycleRequest = new CmRecycleRequest();
+    cmRecycleRequest.setFieldValue( DATA_PATH, "test");
+
+    CmRecycleResponse cmRecycleResponse = new CmRecycleResponse();
+
+    when(primaryClient.cm_recycle(cmRecycleRequest)).thenReturn(cmRecycleResponse);
+    CmRecycleResponse result = handler.cm_recycle(cmRecycleRequest);
+    assertThat(result, is(cmRecycleResponse));
+  }
+
+  @Test
+  public void get_notification_events_count() throws TException {
+    NotificationEventsCountRequest notificationEventsCountRequest = new NotificationEventsCountRequest();
+    notificationEventsCountRequest.setDbName(DB_P);
+    notificationEventsCountRequest.setCatName(CAT_1);
+
+    NotificationEventsCountResponse notificationEventsCountResponse = new NotificationEventsCountResponse();
+    notificationEventsCountResponse.setEventsCount(10);
+
+    when(primaryClient.get_notification_events_count(notificationEventsCountRequest)).thenReturn(notificationEventsCountResponse);
+    NotificationEventsCountResponse result = handler.get_notification_events_count(notificationEventsCountRequest);
+    assertThat(result, is(notificationEventsCountResponse));
+  }
+
+  @Test
+  public void get_unique_constraints() throws TException {
+    UniqueConstraintsRequest uniqueConstraintsRequest = new UniqueConstraintsRequest();
+    uniqueConstraintsRequest.setDb_name(DB_P);
+    uniqueConstraintsRequest.setTbl_name(TBL_1);
+    uniqueConstraintsRequest.setCatName(CAT_1);
+
+    UniqueConstraintsResponse uniqueConstraintsResponse = new UniqueConstraintsResponse();
+    uniqueConstraintsResponse.setUniqueConstraints(Lists.newArrayList(new SQLUniqueConstraint()));
+
+    when(primaryClient.get_unique_constraints(uniqueConstraintsRequest)).thenReturn(uniqueConstraintsResponse);
+    UniqueConstraintsResponse result = handler.get_unique_constraints(uniqueConstraintsRequest);
+    assertThat(result, is(uniqueConstraintsResponse));
+  }
+
+  @Test
+  public void get_not_null_constraints() throws TException {
+    NotNullConstraintsRequest notNullConstraintsRequest = new NotNullConstraintsRequest();
+    notNullConstraintsRequest.setDb_name(DB_P);
+    notNullConstraintsRequest.setTbl_name(TBL_1);
+    notNullConstraintsRequest.setCatName(CAT_1);
+
+    NotNullConstraintsResponse notNullConstraintsResponse = new NotNullConstraintsResponse();
+    notNullConstraintsResponse.setNotNullConstraints(Lists.newArrayList(new SQLNotNullConstraint()));
+
+    when(primaryClient.get_not_null_constraints(notNullConstraintsRequest)).thenReturn(notNullConstraintsResponse);
+    NotNullConstraintsResponse result = handler.get_not_null_constraints(notNullConstraintsRequest);
+    assertThat(result, is(notNullConstraintsResponse));
+  }
+
+  @Test
+  public void get_default_constraints() throws TException {
+    DefaultConstraintsRequest defaultConstraintsRequest = new DefaultConstraintsRequest();
+    defaultConstraintsRequest.setDb_name(DB_P);
+    defaultConstraintsRequest.setTbl_name(TBL_1);
+    defaultConstraintsRequest.setCatName(CAT_1);
+
+    DefaultConstraintsResponse defaultConstraintsResponse = new DefaultConstraintsResponse();
+    defaultConstraintsResponse.setDefaultConstraints(Lists.newArrayList(new SQLDefaultConstraint()));
+
+    when(primaryClient.get_default_constraints(defaultConstraintsRequest)).thenReturn(defaultConstraintsResponse);
+    DefaultConstraintsResponse result = handler.get_default_constraints(defaultConstraintsRequest);
+    assertThat(result, is(defaultConstraintsResponse));
+  }
+
+  @Test
+  public void get_check_constraints() throws TException {
+    CheckConstraintsRequest checkConstraintsRequest = new CheckConstraintsRequest();
+    checkConstraintsRequest.setDb_name(DB_P);
+    checkConstraintsRequest.setTbl_name(TBL_1);
+    checkConstraintsRequest.setCatName(CAT_1);
+
+    CheckConstraintsResponse checkConstraintsResponse = new CheckConstraintsResponse();
+    checkConstraintsResponse.setCheckConstraints(Lists.newArrayList(new SQLCheckConstraint()));
+
+    when(primaryClient.get_check_constraints(checkConstraintsRequest)).thenReturn(checkConstraintsResponse);
+    CheckConstraintsResponse result = handler.get_check_constraints(checkConstraintsRequest);
+    assertThat(result, is(checkConstraintsResponse));
+  }
+
+  @Test
+  public void get_materialized_views_for_rewriting() throws TException {
+    String dbName = DB_P;
+    List<String> expected = Arrays.asList("view1", "view2");
+    when(primaryClient.get_materialized_views_for_rewriting(dbName)).thenReturn(expected);
+    List<String> result = handler.get_materialized_views_for_rewriting(dbName);
+    assertThat(result, is(expected));
+  }
+
+  @Test
+  public void get_materialization_invalidation_info() throws TException {
+    CreationMetadata request = new CreationMetadata();
+    request.setDbName(DB_P);
+    handler.get_materialization_invalidation_info(request, "dummy");
+    verify(primaryClient).get_materialization_invalidation_info(request, "dummy");
+  }
+
+  @Test
+  public void update_creation_metadata() throws TException {
+    CreationMetadata request = new CreationMetadata();
+    handler.update_creation_metadata(CAT_1, DB_P, TBL_1, request);
+    verify(primaryClient).update_creation_metadata(CAT_1, DB_P, TBL_1, request);
+  }
 }

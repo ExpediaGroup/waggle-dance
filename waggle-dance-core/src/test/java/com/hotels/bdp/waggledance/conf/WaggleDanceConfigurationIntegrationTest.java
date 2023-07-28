@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.google.common.collect.ImmutableMap;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@TestPropertySource(properties = { "port: 123", "verbose: true", "reserved-prefix: my_prefix_",
-    "disconnect-connection-delay: 15", "disconnect-time-unit: seconds", "configuration-properties.prop1: val1" })
+@TestPropertySource(properties = {
+    "port: 123",
+    "verbose: true",
+    "reserved-prefix: my_prefix_",
+    "disconnect-connection-delay: 15",
+    "disconnect-time-unit: seconds",
+    "configuration-properties.prop1: val1",
+    "queryFunctionsAcrossAllMetastores: false" })
 @ContextConfiguration(classes = { WaggleDanceConfiguration.class })
 public class WaggleDanceConfigurationIntegrationTest {
 
@@ -47,6 +53,7 @@ public class WaggleDanceConfigurationIntegrationTest {
 
     Map<String, String> props = ImmutableMap.<String, String>builder().put("prop1", "val1").build();
     assertThat(waggleDanceConfiguration.getConfigurationProperties(), is(props));
+    assertThat(waggleDanceConfiguration.isQueryFunctionsAcrossAllMetastores(), is(false));
   }
 
 }

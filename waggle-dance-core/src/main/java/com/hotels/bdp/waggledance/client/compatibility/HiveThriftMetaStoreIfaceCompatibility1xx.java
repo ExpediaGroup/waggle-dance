@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,13 +34,12 @@ import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.thrift.TException;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public class HiveThriftMetaStoreIfaceCompatibility1xx implements HiveThriftMetaStoreIfaceCompatibility {
 
   private final ThriftHiveMetastore.Client client;
-
-  public HiveThriftMetaStoreIfaceCompatibility1xx(ThriftHiveMetastore.Client client) {
-    this.client = client;
-  }
 
   /*
    * (non-Javadoc)

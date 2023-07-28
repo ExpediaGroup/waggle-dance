@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 
 import com.google.common.collect.BiMap;
 
+@Log4j2
 public class DatabaseNameMapping extends MetaStoreMappingDecorator {
-
-  private final static Logger log = LoggerFactory.getLogger(DatabaseNameMapping.class);
 
   private final Map<String, String> inbound;
   private final Map<String, String> outbound;
@@ -56,7 +54,7 @@ public class DatabaseNameMapping extends MetaStoreMappingDecorator {
     if (outbound.containsKey(databaseName)) {
       String result = outbound.get(databaseName);
       List<String> databases = super.transformOutboundDatabaseNameMultiple(result);
-      log.debug("transformOutboundDatabaseName '" + databaseName + "' to '" + databases + "'");
+      log.debug("transformOutboundDatabaseName '{}' to '{}'", databaseName, databases);
       results.addAll(databases);
     }
     return results;
@@ -66,7 +64,7 @@ public class DatabaseNameMapping extends MetaStoreMappingDecorator {
   public String transformInboundDatabaseName(String databaseName) {
     String newDatabaseName = super.transformInboundDatabaseName(databaseName);
     String result = inbound.getOrDefault(newDatabaseName, newDatabaseName);
-    log.debug("transformInboundDatabaseName '" + databaseName + "' to '" + result + "'");
+    log.debug("transformInboundDatabaseName '{}' to '{}'", databaseName, result);
     return result;
   }
 

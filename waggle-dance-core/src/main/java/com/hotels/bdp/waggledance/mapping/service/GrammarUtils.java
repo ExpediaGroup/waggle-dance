@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,18 @@
  */
 package com.hotels.bdp.waggledance.mapping.service;
 
+import static org.apache.hadoop.hive.metastore.utils.MetaStoreUtils.CATALOG_DB_SEPARATOR;
+import static org.apache.hadoop.hive.metastore.utils.MetaStoreUtils.CATALOG_DB_THRIFT_NAME_MARKER;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.hive.metastore.Warehouse;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -31,6 +37,10 @@ public final class GrammarUtils {
   private static final String OR_SEPARATOR = "|";
   private static final Splitter OR_SPLITTER = Splitter.on(OR_SEPARATOR);
   private static final Joiner OR_JOINER = Joiner.on(OR_SEPARATOR);
+  private final static String MATCH_ALL = "*";
+
+  private static String DEFAULT_CAT_NAME = StringUtils.join(String.valueOf(CATALOG_DB_THRIFT_NAME_MARKER),
+          Warehouse.DEFAULT_CATALOG_NAME, CATALOG_DB_SEPARATOR);
 
   private GrammarUtils() {}
 
@@ -90,12 +100,14 @@ public final class GrammarUtils {
    */
   public static Map<String, String> selectMatchingPrefixes(Set<String> prefixes, String dbPatterns) {
     Map<String, String> matchingPrefixes = new HashMap<>();
-    if ((dbPatterns == null) || "*".equals(dbPatterns)) {
+    if ((dbPatterns == null) || MATCH_ALL.equals(dbPatterns) || StringUtils.equalsIgnoreCase(DEFAULT_CAT_NAME, dbPatterns)) {
       for (String prefix : prefixes) {
         matchingPrefixes.put(prefix, dbPatterns);
       }
       return matchingPrefixes;
     }
+
+    dbPatterns = removeCatName(dbPatterns);
 
     Map<String, List<String>> prefixPatterns = new HashMap<>();
     for (String subPattern : OR_SPLITTER.split(dbPatterns)) {
@@ -114,5 +126,18 @@ public final class GrammarUtils {
     }
     return matchingPrefixes;
   }
+
+  public static String removeCatName(String dbPatterns) {
+    if(StringUtils.containsIgnoreCase(dbPatterns, DEFAULT_CAT_NAME)) {
+      dbPatterns = StringUtils.removeIgnoreCase(dbPatterns, DEFAULT_CAT_NAME);
+    }
+    if(StringUtils.startsWithIgnoreCase(dbPatterns, String.valueOf(CATALOG_DB_THRIFT_NAME_MARKER))) {
+      dbPatterns = StringUtils.removeIgnoreCase(dbPatterns, String.valueOf(CATALOG_DB_THRIFT_NAME_MARKER));
+    }
+    if(StringUtils.endsWithIgnoreCase(dbPatterns, CATALOG_DB_SEPARATOR)) {
+      dbPatterns = StringUtils.removeIgnoreCase(dbPatterns, CATALOG_DB_SEPARATOR);
+    }
+    return StringUtils.isNotBlank(dbPatterns) ? dbPatterns : DEFAULT_CAT_NAME;
+   }
 
 }

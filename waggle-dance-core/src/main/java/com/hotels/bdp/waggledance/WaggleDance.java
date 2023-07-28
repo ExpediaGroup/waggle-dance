@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import java.util.List;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -38,6 +36,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.validation.BindException;
 import org.springframework.validation.ObjectError;
 
+import lombok.extern.log4j.Log4j2;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.manifest.ManifestAttributes;
@@ -46,8 +46,8 @@ import com.hotels.bdp.waggledance.manifest.ManifestAttributes;
 @EnableConfigurationProperties
 @EnableSpringConfigured
 @EnableAspectJAutoProxy(proxyTargetClass = true)
+@Log4j2
 public class WaggleDance {
-  private static final Logger LOG = LoggerFactory.getLogger(WaggleDance.class);
 
   public interface ContextListener {
     void onStart(ApplicationContext context);
@@ -118,9 +118,9 @@ public class WaggleDance {
   }
 
   private static void logConstraintErrors(ConstraintViolationException constraintViolationException) {
-    LOG.error("Validation errors:");
+    log.error("Validation errors:");
     for (ConstraintViolation<?> violation : constraintViolationException.getConstraintViolations()) {
-      LOG.error(violation.toString());
+      log.error(violation.toString());
     }
   }
 
@@ -131,6 +131,6 @@ public class WaggleDance {
 
   private static void logVersionInfo() {
     ManifestAttributes manifestAttributes = new ManifestAttributes(WaggleDance.class);
-    LOG.info("{}", manifestAttributes);
+    log.info("{}", manifestAttributes);
   }
 }

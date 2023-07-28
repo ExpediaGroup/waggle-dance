@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.conf;
+package com.hotels.bdp.waggledance.client;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-import lombok.Data;
+import com.google.common.collect.Lists;
 
-@Configuration
-@ConfigurationProperties(prefix = "prometheus")
-@Data
-public class PrometheusConfiguration {
-  private String prefix = "waggle-dance";
+public final class HiveUgiArgsStub {
+
+  public static final HiveUgiArgs TEST_ARGS = new HiveUgiArgs("test", Lists.newArrayList("my_group"));
 
 }

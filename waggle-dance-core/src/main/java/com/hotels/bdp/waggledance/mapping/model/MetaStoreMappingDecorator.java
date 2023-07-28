@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,12 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public abstract class MetaStoreMappingDecorator implements MetaStoreMapping {
 
   private final MetaStoreMapping metaStoreMapping;
-
-  public MetaStoreMappingDecorator(MetaStoreMapping metaStoreMapping) {
-    this.metaStoreMapping = metaStoreMapping;
-  }
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {

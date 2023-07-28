@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,13 @@ import java.util.Arrays;
 
 import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.hive.metastore.api.MetaException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
+@Log4j2
 public class ExceptionWrappingHMSHandler implements InvocationHandler {
-
-  private final static Logger LOG = LoggerFactory.getLogger(ExceptionWrappingHMSHandler.class);
 
   private final IHMSHandler baseHandler;
 
@@ -55,7 +54,7 @@ public class ExceptionWrappingHMSHandler implements InvocationHandler {
         // the thrift exception.
         throw new MetaException("Waggle Dance: " + cause.getMessage());
       } else if (cause instanceof WaggleDanceServerException) {
-        LOG.debug("Got error processing '{}' with args '{}'", method, Arrays.toString(args), cause);
+        log.debug("Got error processing '{}' with args '{}'", method, Arrays.toString(args), cause);
         throw new MetaException("Waggle Dance: " + cause.getMessage());
       } else {
         // Need to unwrap this, so callers get the correct exception thrown by the handler.

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,28 +25,24 @@ import javax.annotation.PreDestroy;
 import javax.annotation.WillClose;
 
 import org.apache.thrift.transport.TTransport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 
 @Component
+@Log4j2
 public class TTransportMonitor {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TTransportMonitor.class);
-
+  @AllArgsConstructor
   private static class ActionContainer {
     private final TTransport transport;
     private final Closeable action;
-
-    private ActionContainer(TTransport transport, Closeable action) {
-      this.transport = transport;
-      this.action = action;
-    }
   }
 
   private final ScheduledExecutorService scheduler;
@@ -61,7 +57,7 @@ public class TTransportMonitor {
   TTransportMonitor(WaggleDanceConfiguration waggleDanceConfiguration, ScheduledExecutorService scheduler) {
     this.scheduler = scheduler;
     Runnable monitor = () -> {
-      LOG.debug("Releasing disconnected sessions");
+      log.debug("Releasing disconnected sessions");
       Iterator<ActionContainer> iterator = transports.iterator();
       while (iterator.hasNext()) {
         ActionContainer actionContainer = iterator.next();
@@ -71,12 +67,12 @@ public class TTransportMonitor {
         try {
           actionContainer.action.close();
         } catch (Exception e) {
-          LOG.warn("Error closing action", e);
+          log.warn("Error closing action", e);
         }
         try {
           actionContainer.transport.close();
         } catch (Exception e) {
-          LOG.warn("Error closing transport", e);
+          log.warn("Error closing transport", e);
         }
         iterator.remove();
       }

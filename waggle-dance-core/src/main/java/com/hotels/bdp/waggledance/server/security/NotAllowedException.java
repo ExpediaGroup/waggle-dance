@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
  */
 package com.hotels.bdp.waggledance.server.security;
 
+import lombok.experimental.StandardException;
+
 import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
 
 /**
  * Thrown when Waggle Dance encounters and operation that is not allowed by configured {@link AccessControlHandler}
  */
+
+@StandardException
 public class NotAllowedException extends WaggleDanceServerException {
   private static final long serialVersionUID = 1L;
-
-  public NotAllowedException(String message) {
-    super(message);
-  }
 
 }

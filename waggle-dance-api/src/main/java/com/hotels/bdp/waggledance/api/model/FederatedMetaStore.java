@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ package com.hotels.bdp.waggledance.api.model;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.NoArgsConstructor;
 
+
+@NoArgsConstructor
 public class FederatedMetaStore extends AbstractMetaStore {
-
-  public FederatedMetaStore() {}
 
   public FederatedMetaStore(String name, String remoteMetaStoreUris) {
     this(name, remoteMetaStoreUris, AccessControlType.READ_ONLY);

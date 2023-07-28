@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
 import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
@@ -60,13 +62,12 @@ import org.apache.hadoop.hive.metastore.api.ResourceUri;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.thrift.TException;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 
@@ -76,6 +77,7 @@ import feign.jackson.JacksonEncoder;
 import feign.jaxrs.JAXRSContract;
 import fm.last.commons.test.file.ClassDataFolder;
 import fm.last.commons.test.file.DataFolder;
+import lombok.extern.log4j.Log4j2;
 
 import com.google.common.collect.Lists;
 
@@ -93,9 +95,8 @@ import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
+@Log4j2
 public class WaggleDanceIntegrationTest {
-
-  private static final Logger LOG = LoggerFactory.getLogger(WaggleDanceIntegrationTest.class);
 
   private static final String LOCAL_DATABASE = "local_database";
   private static final String LOCAL_TABLE = "local_table";
@@ -125,10 +126,10 @@ public class WaggleDanceIntegrationTest {
     remoteWarehouseUri = temporaryFolder.newFolder("remote-warehouse");
 
     createLocalTable(new File(localWarehouseUri, LOCAL_DATABASE + "/" + LOCAL_TABLE), LOCAL_TABLE);
-    LOG.info(">>>> Table {} ", localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE));
+    log.info(">>>> Table {} ", localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE));
 
     createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + REMOTE_TABLE), REMOTE_TABLE);
-    LOG.info(">>>> Table {} ", remoteServer.client().getTable(REMOTE_DATABASE, REMOTE_TABLE));
+    log.info(">>>> Table {} ", remoteServer.client().getTable(REMOTE_DATABASE, REMOTE_TABLE));
 
     executor = Executors.newSingleThreadExecutor();
   }
@@ -138,7 +139,9 @@ public class WaggleDanceIntegrationTest {
     if (runner != null) {
       runner.stop();
     }
-    executor.shutdownNow();
+    if(executor != null) {
+      executor.shutdownNow();
+    }
   }
 
   private void createLocalTable(File tableUri, String table) throws Exception {
@@ -156,7 +159,7 @@ public class WaggleDanceIntegrationTest {
     File partitionAsia = new File(tableUri, "continent=Asia");
     File partitionChina = new File(partitionAsia, "country=China");
 
-    LOG
+    log
         .info(">>>> Partitions added: {}",
             client
                 .add_partitions(Arrays
@@ -273,6 +276,43 @@ public class WaggleDanceIntegrationTest {
   }
 
   @Test
+  public void manyFederatedMetastores() throws Exception {
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(SECONDARY_METASTORE_NAME, remoteServer.getThriftConnectionUri())
+        .federate("fed1", remoteServer.getThriftConnectionUri())
+        .federate("fed2", remoteServer.getThriftConnectionUri())
+        .federate("fed3", remoteServer.getThriftConnectionUri())
+        .federate("fed4", remoteServer.getThriftConnectionUri())
+        .federate("fed5", remoteServer.getThriftConnectionUri())
+        .federate("fed6", remoteServer.getThriftConnectionUri())
+        .federate("fed7", remoteServer.getThriftConnectionUri())
+        .federate("fed8", remoteServer.getThriftConnectionUri())
+        .federate("fed9", remoteServer.getThriftConnectionUri())
+        .federate("fed10", remoteServer.getThriftConnectionUri())
+        .federate("fed11", remoteServer.getThriftConnectionUri())
+        .federate("fed12", remoteServer.getThriftConnectionUri())
+        .federate("fed13", remoteServer.getThriftConnectionUri())
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = getWaggleDanceClient();
+
+    List<String> dbs = proxy.getAllDatabases();
+    List<String> expected = newArrayList("default", "local_database", "waggle_remote_default",
+        "waggle_remote_remote_database", "fed1_default", "fed1_remote_database", "fed2_default", "fed2_remote_database",
+        "fed3_default", "fed3_remote_database", "fed4_default", "fed4_remote_database", "fed5_default",
+        "fed5_remote_database", "fed6_default", "fed6_remote_database", "fed7_default", "fed7_remote_database",
+        "fed8_default", "fed8_remote_database", "fed9_default", "fed9_remote_database", "fed10_default",
+        "fed10_remote_database", "fed11_default", "fed11_remote_database", "fed12_default", "fed12_remote_database",
+        "fed13_default", "fed13_remote_database");
+    assertThat(dbs.size(), is(expected.size()));
+    assertThat(dbs, Matchers.containsInAnyOrder(expected.toArray()));
+  }
+
+  @Test
   public void usePrimaryPrefix() throws Exception {
     String primaryPrefix = "primary_";
     runner = WaggleDanceRunner
@@ -352,17 +392,17 @@ public class WaggleDanceIntegrationTest {
 
     Set<String> metrics = new TreeSet<>(Arrays.asList(new String(graphite.getOutput()).split("\n")));
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.calls.count 2");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_databases.all.calls;metricattribute=count 2");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.success.count 2");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_databases.all.success;metricattribute=count 2");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.primary.calls.count 1");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.primary.calls;metricattribute=count 1");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.primary.success.count 1");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.primary.success;metricattribute=count 1");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.calls.count 1");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.calls;metricattribute=count 1");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success.count 1");
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success;metricattribute=count 1");
   }
 
   private void assertMetric(Set<String> metrics, String partialMetric) {

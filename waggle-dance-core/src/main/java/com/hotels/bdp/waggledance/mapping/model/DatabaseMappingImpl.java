@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
-import org.apache.hadoop.hive.metastore.api.Index;
+import org.apache.hadoop.hive.metastore.api.ISchema;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
@@ -58,28 +58,26 @@ import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
 import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
+import org.apache.hadoop.hive.metastore.api.SchemaVersion;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import com.hotels.bdp.waggledance.mapping.service.GrammarUtils;
 
+@AllArgsConstructor
+@Log4j2
 public class DatabaseMappingImpl implements DatabaseMapping {
-
-  private final static Logger log = LoggerFactory.getLogger(DatabaseMappingImpl.class);
 
   private final MetaStoreMapping metaStoreMapping;
   private final QueryMapping queryMapping;
-
-  public DatabaseMappingImpl(MetaStoreMapping metaStoreMapping, QueryMapping queryMapping) {
-    this.metaStoreMapping = metaStoreMapping;
-    this.queryMapping = queryMapping;
-  }
 
   @Override
   public MetaStoreFilterHook getMetastoreFilter() {
@@ -134,9 +132,9 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
-  public Index transformOutboundIndex(Index index) {
-    index.setDbName(metaStoreMapping.transformOutboundDatabaseName(index.getDbName()));
-    return index;
+  public ISchema transformOutboundISchema(ISchema iSchema) {
+    iSchema.setDbName(metaStoreMapping.transformOutboundDatabaseName(iSchema.getDbName()));
+    return iSchema;
   }
 
   @Override
@@ -152,9 +150,9 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
-  public Index transformInboundIndex(Index index) {
-    index.setDbName(metaStoreMapping.transformInboundDatabaseName(index.getDbName()));
-    return index;
+  public ISchema transformInboundISchema(ISchema iSchema) {
+    iSchema.setDbName(metaStoreMapping.transformInboundDatabaseName(iSchema.getDbName()));
+    return iSchema;
   }
 
   @Override
@@ -218,11 +216,13 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
+    databaseName = GrammarUtils.removeCatName(databaseName);
     return metaStoreMapping.transformOutboundDatabaseName(databaseName);
   }
 
   @Override
   public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    databaseName = GrammarUtils.removeCatName(databaseName);
     return metaStoreMapping.transformOutboundDatabaseNameMultiple(databaseName);
   }
 
@@ -233,6 +233,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public String transformInboundDatabaseName(String databaseName) {
+    databaseName = GrammarUtils.removeCatName(databaseName);
     return metaStoreMapping.transformInboundDatabaseName(databaseName);
   }
 
@@ -317,6 +318,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public MetaStoreMapping checkWritePermissions(String databaseName) throws IllegalArgumentException {
+    databaseName = GrammarUtils.removeCatName(databaseName);
     return metaStoreMapping.checkWritePermissions(transformInboundDatabaseName(databaseName));
   }
 
@@ -376,11 +378,11 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
-  public List<Index> transformOutboundIndexes(List<Index> indexes) {
-    for (Index index : indexes) {
-      transformOutboundIndex(index);
+  public List<ISchema> transformOutboundISchemas(List<ISchema> iSchemaList) {
+    for (ISchema iSchema : iSchemaList) {
+      transformOutboundISchema(iSchema);
     }
-    return indexes;
+    return iSchemaList;
   }
 
   @Override
@@ -507,6 +509,20 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   public PartitionValuesRequest transformInboundPartitionValuesRequest(PartitionValuesRequest request) {
     request.setDbName(transformInboundDatabaseName(request.getDbName()));
     return request;
+  }
+
+  @Override
+  public SchemaVersion transformOutboundSchemaVersion(SchemaVersion schemaVersion) {
+    schemaVersion.getSchema().setDbName(metaStoreMapping.transformOutboundDatabaseName(schemaVersion.getSchema().getDbName()));
+    return schemaVersion;
+  }
+
+  @Override
+  public List<SchemaVersion> transformOutboundSchemaVersions(List<SchemaVersion> schemaVersions) {
+    for(SchemaVersion schemaVersion: schemaVersions) {
+      transformOutboundSchemaVersion(schemaVersion);
+    }
+    return schemaVersions;
   }
 
   @Override

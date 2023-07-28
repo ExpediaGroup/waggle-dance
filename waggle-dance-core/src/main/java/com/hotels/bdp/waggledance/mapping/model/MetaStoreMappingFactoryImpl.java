@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
@@ -41,9 +41,8 @@ import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 
 @Component
+@Log4j2
 public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(MetaStoreMappingFactoryImpl.class);
-
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final PrefixNamingStrategy prefixNamingStrategy;
   private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
@@ -51,10 +50,10 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
 
   @Autowired
   public MetaStoreMappingFactoryImpl(
-      WaggleDanceConfiguration waggleDanceConfiguration,
-      PrefixNamingStrategy prefixNamingStrategy,
-      CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory,
-      AccessControlHandlerFactory accessControlHandlerFactory) {
+          WaggleDanceConfiguration waggleDanceConfiguration,
+          PrefixNamingStrategy prefixNamingStrategy,
+          CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory,
+          AccessControlHandlerFactory accessControlHandlerFactory) {
     this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.prefixNamingStrategy = prefixNamingStrategy;
     this.metaStoreClientFactory = metaStoreClientFactory;
@@ -65,7 +64,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
     try {
       return metaStoreClientFactory.newInstance(metaStore);
     } catch (Exception e) {
-      LOG.error("Can't create a client for metastore '{}':", metaStore.getName(), e);
+      log.error("Can't create a client for metastore '{}':", metaStore.getName(), e);
       return newUnreachableMetastoreClient(metaStore);
     }
   }
@@ -73,7 +72,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   @SuppressWarnings("resource")
   @Override
   public MetaStoreMapping newInstance(AbstractMetaStore metaStore) {
-    LOG
+    log
         .info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
             metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),

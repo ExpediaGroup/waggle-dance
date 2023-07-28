@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@ package com.hotels.bdp.waggledance.metrics;
 
 import org.apache.commons.lang3.StringUtils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CurrentMonitoredMetaStoreHolder {
-
-  private CurrentMonitoredMetaStoreHolder() {
-  }
-
   private static final String ALL_METASTORES = "all";
   private static final ThreadLocal<String> MONITORED_METASTORE = new ThreadLocal<>();
 

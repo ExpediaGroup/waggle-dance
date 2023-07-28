@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,20 @@
  */
 package com.hotels.bdp.waggledance.api.model;
 
+
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public enum MetaStoreStatus {
 
-  AVAILABLE,
-  UNAVAILABLE,
-  UNKNOWN
+  AVAILABLE(0),
+  UNAVAILABLE(1),
+  UNKNOWN(2);
+
+  private final int intValue;
+
+  public int getIntValue() {
+    return intValue;
+  }
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,8 @@ public class WaggleDanceConfiguration {
   private TimeUnit thriftServerRequestTimeoutUnit = TimeUnit.SECONDS;
   private int statusPollingDelay = 5;
   private TimeUnit statusPollingDelayTimeUnit = TimeUnit.MINUTES;
+  // default to be backward compatible but recommended to be overwritten to false.
+  private boolean queryFunctionsAcrossAllMetastores = true;
 
   public Integer getPort() {
     return port;
@@ -136,4 +138,11 @@ public class WaggleDanceConfiguration {
     this.statusPollingDelayTimeUnit = statusPollingDelayTimeUnit;
   }
 
+  public boolean isQueryFunctionsAcrossAllMetastores() {
+    return queryFunctionsAcrossAllMetastores;
+  }
+
+  public void setQueryFunctionsAcrossAllMetastores(boolean queryFunctionsAcrossAllMetastores) {
+    this.queryFunctionsAcrossAllMetastores = queryFunctionsAcrossAllMetastores;
+  }
 }

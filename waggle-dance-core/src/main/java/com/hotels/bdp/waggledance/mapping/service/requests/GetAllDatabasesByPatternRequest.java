@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,18 @@ import java.util.function.BiFunction;
 
 import org.apache.thrift.TException;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
+@AllArgsConstructor
 public class GetAllDatabasesByPatternRequest implements RequestCallable<List<String>> {
 
-  private final String pattern;
+  @Getter
   private final DatabaseMapping mapping;
+  private final String pattern;
   private final BiFunction<String, DatabaseMapping, Boolean> filter;
-
-  public GetAllDatabasesByPatternRequest(
-      DatabaseMapping mapping,
-      String pattern,
-      BiFunction<String, DatabaseMapping, Boolean> filter) {
-    this.mapping = mapping;
-    this.pattern = pattern;
-    this.filter = filter;
-  }
 
   @Override
   public List<String> call() throws TException {
@@ -48,10 +44,5 @@ public class GetAllDatabasesByPatternRequest implements RequestCallable<List<Str
       }
     }
     return mappedDatabases;
-  }
-
-  @Override
-  public DatabaseMapping getMapping() {
-    return mapping;
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
 public class PrimaryMetaStore extends AbstractMetaStore {
 
   private static final String EMPTY_PREFIX = "";
-
-  public PrimaryMetaStore() {}
 
   public PrimaryMetaStore(
       String name,

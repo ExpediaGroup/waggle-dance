@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,19 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 
+import lombok.AllArgsConstructor;
+
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
+import com.hotels.bdp.waggledance.mapping.service.GrammarUtils;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.metrics.CurrentMonitoredMetaStoreHolder;
 
+@AllArgsConstructor
 public class MonitoredDatabaseMappingService implements MappingEventListener {
 
   private final MappingEventListener wrapped;
-
-  public MonitoredDatabaseMappingService(MappingEventListener wrapped) {
-    this.wrapped = wrapped;
-  }
 
   @Override
   public DatabaseMapping primaryDatabaseMapping() {
@@ -45,6 +45,7 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
 
   @Override
   public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
+    databaseName = GrammarUtils.removeCatName(databaseName);
     DatabaseMapping databaseMapping = wrapped.databaseMapping(databaseName);
     CurrentMonitoredMetaStoreHolder.monitorMetastore(databaseMapping.getMetastoreMappingName());
     return databaseMapping;
@@ -53,6 +54,7 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   @Override
   public void checkTableAllowed(String databaseName, String tableName,
       DatabaseMapping mapping) throws NoSuchObjectException {
+    databaseName = GrammarUtils.removeCatName(databaseName);
       wrapped.checkTableAllowed(databaseName, tableName, mapping);
     }
 
@@ -69,8 +71,13 @@ public class MonitoredDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public List<DatabaseMapping> getDatabaseMappings() {
-    return wrapped.getDatabaseMappings();
+  public List<DatabaseMapping> getAvailableDatabaseMappings() {
+    return wrapped.getAvailableDatabaseMappings();
+  }
+
+  @Override
+  public List<DatabaseMapping> getAllDatabaseMappings() {
+    return wrapped.getAllDatabaseMappings();
   }
 
   @Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,19 @@ package com.hotels.bdp.waggledance.client.tunnelling;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 
+import lombok.AllArgsConstructor;
+
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.MetaStoreClientFactory;
 import com.hotels.hcommon.ssh.TunnelableSupplier;
 
+@AllArgsConstructor
 class HiveMetaStoreClientSupplier implements TunnelableSupplier<CloseableThriftHiveMetastoreIface> {
   private final MetaStoreClientFactory factory;
   private final HiveConf hiveConf;
   private final String name;
   private final int reconnectionRetries;
   private final int connectionTimeout;
-
-  HiveMetaStoreClientSupplier(MetaStoreClientFactory factory, HiveConf hiveConf, String name, int reconnectionRetries, int connectionTimeout) {
-    this.factory = factory;
-    this.hiveConf = hiveConf;
-    this.name = name;
-    this.reconnectionRetries = reconnectionRetries;
-    this.connectionTimeout = connectionTimeout;
-  }
 
   @Override
   public CloseableThriftHiveMetastoreIface get() {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,14 @@ import org.apache.thrift.TProcessor;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
-class TSetIpAddressProcessorFactory extends TProcessorFactory {
+import lombok.extern.log4j.Log4j2;
 
-  private final static Logger log = LoggerFactory.getLogger(TSetIpAddressProcessorFactory.class);
+@Component
+@Log4j2
+class TSetIpAddressProcessorFactory extends TProcessorFactory {
   private final HiveConf hiveConf;
   private final FederatedHMSHandlerFactory federatedHMSHandlerFactory;
   private final TTransportMonitor transportMonitor;
@@ -58,10 +57,19 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
         log.debug("Received a connection from ip: {}", socket.getInetAddress().getHostAddress());
       }
       CloseableIHMSHandler baseHandler = federatedHMSHandlerFactory.create();
-      IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
-          false);
-      transportMonitor.monitor(transport, baseHandler);
-      return new TSetIpAddressProcessor<>(handler);
+
+      boolean useSASL = hiveConf.getBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
+      if (useSASL) {
+        IHMSHandler tokenHandler = TokenWrappingHMSHandler.newProxyInstance(baseHandler, useSASL);
+        IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(tokenHandler), hiveConf,
+                false);
+        return new TSetIpAddressProcessor<>(handler);
+      } else {
+        IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
+                false);
+        transportMonitor.monitor(transport, baseHandler);
+        return new TSetIpAddressProcessor<>(handler);
+      }
     } catch (MetaException | ReflectiveOperationException | RuntimeException e) {
       throw new RuntimeException("Error creating TProcessor", e);
     }

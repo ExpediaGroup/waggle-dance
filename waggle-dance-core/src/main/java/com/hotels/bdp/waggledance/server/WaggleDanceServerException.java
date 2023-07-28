@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,16 @@
  */
 package com.hotels.bdp.waggledance.server;
 
+import lombok.experimental.StandardException;
+
 /**
  * Generic Waggle Dance Server Exception that is thrown whenever the server can't process an incoming hive thrift
  * request
  */
+
+@StandardException
 public class WaggleDanceServerException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
-
-  public WaggleDanceServerException(String message) {
-    super(message);
-  }
-
-  public WaggleDanceServerException(String message, Throwable cause) {
-    super(message, cause);
-  }
 
 }

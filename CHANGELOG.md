@@ -1,3 +1,23 @@
+## [4.0.0] - 2023-07-28
+### Updated Dependency
+* `hive` updated to `3.1.3.` (was `3.1.2`).
+* `hadoop` updated to `3.3.6.` (was `3.1.0`).
+* `spring` updated to `2.7.13.` (was `2.0.4-RELEASE`).
+* `guava` updated to `31.1-jre.` (was `23.0`).
+* `guice` updated to `4.13.2.` (was `4.13.1`).
+* `junit` updated to `5.1.0.` (was `4.0`).
+* `aspectj` updated to `1.9.7.` (was `1.8.9`).
+* `hcommon-hive-metastore` updated to `1.4.2.` (was `1.2.3`).
+
+### Newly Added Dependency
+* `lombok` - `1.18.24`.
+* `jakarta` - `6.0.0`.
+* `apache-commons` - `3.12.0`.
+
+### Fixed
+* Added lombok
+* Fixed test cases
+
 ## [3.9.5] - TBD
 ### Changed
 * `commons-io` updated to `2.7.` (was `2.6`).
