@@ -1544,7 +1544,12 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public Warehouse getWh() {
-    return null;
+    try {
+      return new Warehouse(conf);
+    } catch (MetaException e) {
+      log.error("Error Instantiating Warehouse", e);
+      return null;
+    }
   }
 
   @Override
