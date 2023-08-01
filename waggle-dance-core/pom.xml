@@ -179,6 +179,10 @@
           <artifactId>jetty-runner</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.pentaho</groupId>
           <artifactId>pentaho-aggdesigner-algorithm</artifactId>
         </exclusion>       

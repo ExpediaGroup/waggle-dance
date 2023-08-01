@@ -1,3 +1,7 @@
+## [3.11.3] - 2023-08-02
+### Changed
+- Exclude jetty-all from hive-service in pom.xml of core module, because it makes spring start fail and makes `WaggleDanceIntegrationTest` fail.
+
 ## [3.11.2] - 2023-07-04
 ### Changed
 - Setting AWSGlueClientFactory log level to `WARN` because it spams this [log](https://github.com/awslabs/aws-glue-data-catalog-client-for-apache-hive-metastore/blob/branch-3.4.0/aws-glue-datacatalog-client-common/src/main/java/com/amazonaws/glue/catalog/metastore/AWSGlueClientFactory.java#L57) every ~200ms. It could be creating unnecessary Glue clients.
