@@ -1,4 +1,4 @@
-## [3.11.3] - 2023-08-02
+## [3.11.3] - TBD
 ### Changed
 - Exclude jetty-all from hive-service in pom.xml of core module, because it makes spring start fail and makes `WaggleDanceIntegrationTest` fail.
 
