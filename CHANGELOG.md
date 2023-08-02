@@ -1,4 +1,4 @@
-## [4.0.0] - 2023-07-28
+## [4.0.0] - TBD
 ### Updated Dependency
 * `hive` updated to `3.1.3` (was `3.1.2`).
 * `hadoop` updated to `3.3.6` (was `3.1.0`).
