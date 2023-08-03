@@ -646,8 +646,8 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public AddForeignKeyRequest transformInboundAddForeignKeyRequest(AddForeignKeyRequest request) {
     for(SQLForeignKey sqlForeignKey: request.getForeignKeyCols()) {
-      sqlForeignKey.setPktable_db(transformOutboundDatabaseName(sqlForeignKey.getPktable_db()));
-      sqlForeignKey.setFktable_db(transformOutboundDatabaseName(sqlForeignKey.getFktable_db()));
+      sqlForeignKey.setPktable_db(transformInboundDatabaseName(sqlForeignKey.getPktable_db()));
+      sqlForeignKey.setFktable_db(transformInboundDatabaseName(sqlForeignKey.getFktable_db()));
     }
     return request;
   }
@@ -656,7 +656,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public AddUniqueConstraintRequest transformInboundAddUniqueConstraintRequest(AddUniqueConstraintRequest request) {
     for(SQLUniqueConstraint sqlUniqueConstraint: request.getUniqueConstraintCols()) {
-      sqlUniqueConstraint.setTable_db(transformOutboundDatabaseName(sqlUniqueConstraint.getTable_db()));
+      sqlUniqueConstraint.setTable_db(transformInboundDatabaseName(sqlUniqueConstraint.getTable_db()));
     }
     return request;
   }
@@ -665,7 +665,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public AddNotNullConstraintRequest transformInboundAddNotNullConstraintRequest(AddNotNullConstraintRequest request) {
     for(SQLNotNullConstraint sqlNotNullConstraint: request.getNotNullConstraintCols()) {
-      sqlNotNullConstraint.setTable_db(transformOutboundDatabaseName(sqlNotNullConstraint.getTable_db()));
+      sqlNotNullConstraint.setTable_db(transformInboundDatabaseName(sqlNotNullConstraint.getTable_db()));
     }
     return request;
   }
@@ -674,7 +674,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public AddDefaultConstraintRequest transformInboundAddDefaultConstraintRequest(AddDefaultConstraintRequest request) {
     for(SQLDefaultConstraint sqlDefaultConstraint: request.getDefaultConstraintCols()) {
-      sqlDefaultConstraint.setTable_db(transformOutboundDatabaseName(sqlDefaultConstraint.getTable_db()));
+      sqlDefaultConstraint.setTable_db(transformInboundDatabaseName(sqlDefaultConstraint.getTable_db()));
     }
     return request;
   }
@@ -683,7 +683,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public AddCheckConstraintRequest transformInboundAddCheckConstraintRequest(AddCheckConstraintRequest request) {
     for(SQLCheckConstraint sqlCheckConstraint: request.getCheckConstraintCols()) {
-      sqlCheckConstraint.setTable_db(transformOutboundDatabaseName(sqlCheckConstraint.getTable_db()));
+      sqlCheckConstraint.setTable_db(transformInboundDatabaseName(sqlCheckConstraint.getTable_db()));
     }
     return request;
   }
@@ -700,23 +700,29 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public SchemaVersionDescriptor transformInboundSchemaVersionDescriptor(SchemaVersionDescriptor request) {
-    request.getSchema().setDbName(transformInboundDatabaseName(request.getSchema().getDbName()));
+    if(request.getSchema() !=null) {
+      request.getSchema().setDbName(transformInboundDatabaseName(request.getSchema().getDbName()));
+    }
     return request;
   }
 
 
   @Override
   public MapSchemaVersionToSerdeRequest transformInboundMapSchemaVersionToSerdeRequest(MapSchemaVersionToSerdeRequest request) {
-    request.getSchemaVersion().getSchema().setDbName(transformInboundDatabaseName(
-            request.getSchemaVersion().getSchema().getDbName()));
+    if(request.getSchemaVersion() != null && request.getSchemaVersion().getSchema() !=null) {
+      request.getSchemaVersion().getSchema().setDbName(transformInboundDatabaseName(
+              request.getSchemaVersion().getSchema().getDbName()));
+    }
     return request;
   }
 
 
   @Override
   public SetSchemaVersionStateRequest transformInboundSetSchemaVersionStateRequest(SetSchemaVersionStateRequest request) {
-    request.getSchemaVersion().getSchema().setDbName(transformInboundDatabaseName(
-            request.getSchemaVersion().getSchema().getDbName()));
+    if(request.getSchemaVersion() != null && request.getSchemaVersion().getSchema() !=null) {
+      request.getSchemaVersion().getSchema().setDbName(transformInboundDatabaseName(
+              request.getSchemaVersion().getSchema().getDbName()));
+    }
     return request;
   }
 
