@@ -604,22 +604,31 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public AlterISchemaRequest transformInboundAlterISchemaRequest(AlterISchemaRequest request) {
-    request.setName(transformInboundISchemaName(request.getName()));
-    request.setNewSchema(transformInboundISchema(request.getNewSchema()));
+    if(request.getName() !=null) {
+      request.setName(transformInboundISchemaName(request.getName()));
+    }
+    if(request.getNewSchema() != null) {
+      request.setNewSchema(transformInboundISchema(request.getNewSchema()));
+    }
     return request;
   }
 
 
   @Override
   public SchemaVersion transformInboundSchemaVersion(SchemaVersion schemaVersion) {
-    schemaVersion.getSchema().setDbName(transformInboundDatabaseName(schemaVersion.getSchema().getDbName()));
+    if(schemaVersion.getSchema() !=null ) {
+      schemaVersion.getSchema().setDbName(transformInboundDatabaseName(schemaVersion.getSchema().getDbName()));
+    }
     return schemaVersion;
   }
 
 
   @Override
   public SchemaVersion transformOutboundSchemaVersion(SchemaVersion schemaVersion) {
-    schemaVersion.getSchema().setDbName(metaStoreMapping.transformOutboundDatabaseName(schemaVersion.getSchema().getDbName()));
+    if(schemaVersion.getSchema() !=null ) {
+      schemaVersion.getSchema().setDbName(metaStoreMapping.transformOutboundDatabaseName(
+              schemaVersion.getSchema().getDbName()));
+    }
     return schemaVersion;
   }
 
@@ -692,7 +701,9 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public FindSchemasByColsResp transformOutboundFindSchemasByColsResp(FindSchemasByColsResp response) {
     for(SchemaVersionDescriptor schemaVersionDescriptor: response.getSchemaVersions()) {
-      schemaVersionDescriptor.setSchema(transformOutboundISchemaName(schemaVersionDescriptor.getSchema()));
+      if(schemaVersionDescriptor.getSchema() != null) {
+        schemaVersionDescriptor.setSchema(transformOutboundISchemaName(schemaVersionDescriptor.getSchema()));
+      }
     }
     return response;
   }
