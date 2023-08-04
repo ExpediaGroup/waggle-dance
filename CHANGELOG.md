@@ -1,6 +1,11 @@
 ## [3.11.3] - TBD
+### Fixed
+- Exclude Junit5 dependencies as they clashed with Junit4 and caused maven to stop running the tests.
+- Fixed metric(graphite) integration test (was broken since 3.10.12 (spring-boot upgrade).
 ### Changed
 - Exclude jetty-all from core module, because it makes spring start fail and makes `WaggleDanceIntegrationTest` fail.
+- Upgrade maven.surefire.plugin.version to 3.1.2 (was 3.0.0-m5).
+- Exclude jdk.tools clashes with > java8 JDK.
 
 ## [3.11.2] - 2023-07-04
 ### Changed
