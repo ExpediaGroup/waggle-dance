@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.util.Map;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.extern.log4j.Log4j2;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -36,8 +36,8 @@ import com.hotels.hcommon.ssh.MethodChecker;
 import com.hotels.hcommon.ssh.SshException;
 import com.hotels.hcommon.ssh.TunnelableFactory;
 
+@Log4j2
 public class TunnelingMetaStoreClientFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(TunnelingMetaStoreClientFactory.class);
 
   @VisibleForTesting
   final MethodChecker METHOD_CHECKER = new MetastoreClientMethodChecker();
@@ -71,7 +71,7 @@ public class TunnelingMetaStoreClientFactory {
     String[] urisSplit = uri.split(",");
     if (urisSplit.length > 1) {
       uri = urisSplit[0];
-      LOG.debug("Can't support multiple uris '{}' for tunneling endpoint, using first '{}'", uris, uri);
+      log.debug("Can't support multiple uris '{}' for tunneling endpoint, using first '{}'", uris, uri);
     }
     String localHost = metastoreTunnel.getLocalhost();
     int localPort = getLocalPort();
@@ -87,7 +87,7 @@ public class TunnelingMetaStoreClientFactory {
     TunnelableFactory<CloseableThriftHiveMetastoreIface> tunnelableFactory = tunnelableFactorySupplier
         .get(metastoreTunnel);
 
-    LOG
+    log
         .info("Metastore URI {} is being proxied through {}", uri,
             localHiveConf.getVar(HiveConf.ConfVars.METASTOREURIS));
 

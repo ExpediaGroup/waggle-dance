@@ -9,31 +9,53 @@ on:
 jobs:
   CodeQL-Build:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
+
+    permissions:
+      security-events: write
+
+    strategy:
+      matrix:
+        maven-version: ['3.9.2']
+        java-version: ['8']
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         # We must fetch at least the immediate parents so that if this is
         # a pull request then we can checkout the head.
         fetch-depth: 2
 
-    - name: Set up JDK
-      uses: actions/setup-java@v1
+   # WD requires Java 8 to build
+    - name: Set up JDK ${{ matrix.java-version }}
+      uses: actions/setup-java@v2
       with:
-        java-version: 8
-    
+        distribution: 'zulu'
+        java-version: ${{ matrix.java-version }}
+        java-package: jdk
+        server-id: sonatype-nexus-snapshots # Value of the distributionManagement/repository/id field of the pom.xml
+        server-username: SONATYPE_USERNAME # env variable for username in deploy
+        server-password: SONATYPE_PASSWORD # env variable for token in deploy
+        # only signed artifacts will be released to maven central. this sets up things for the maven-gpg-plugin
+        gpg-private-key: ${{ secrets.HCOM_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+        gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
+        # this creates a settings.xml on build server
+        settings-path: ${{ github.workspace }}
+        cache: maven
+    - name: Maven Verify
+      run: mvn -B clean verify --file pom.xml
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
       with:
         languages: java
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v1
+      uses: github/codeql-action/autobuild@v2
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
@@ -47,4 +69,4 @@ jobs:
     #   make release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v2

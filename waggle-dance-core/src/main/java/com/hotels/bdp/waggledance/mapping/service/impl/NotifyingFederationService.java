@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,18 @@ import javax.annotation.PreDestroy;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.mapping.service.FederatedMetaStoreStorage;
 
 @Service
+@Log4j2
 public class NotifyingFederationService implements FederationService {
-
-  private static final Logger LOG = LoggerFactory.getLogger(NotifyingFederationService.class);
 
   public interface FederationEventListener {
     void onRegister(AbstractMetaStore federatedMetaStore);
@@ -111,12 +110,12 @@ public class NotifyingFederationService implements FederationService {
     checkNotNull(metaStore, "federatedMetaStore cannot be null");
     boolean metastoreDoesNotExist = federatedMetaStoreStorage.get(metaStore.getName()) == null;
     checkIsTrue(metastoreDoesNotExist, "MetaStore '" + metaStore + "' is already registered");
-    LOG.debug("Registering new federation {}", metaStore);
+    log.debug("Registering new federation {}", metaStore);
     synchronized (federatedMetaStoreStorage) {
       federatedMetaStoreStorage.insert(metaStore);
       onRegister(metaStore);
     }
-    LOG.debug("New federation {} has been registered successfully", metaStore);
+    log.debug("New federation {} has been registered successfully", metaStore);
   }
 
   @Override
@@ -129,24 +128,24 @@ public class NotifyingFederationService implements FederationService {
       boolean newNameDoesNotExist = federatedMetaStoreStorage.get(newMetaStore.getName()) == null;
       checkIsTrue(newNameDoesNotExist, "MetaStore '" + newMetaStore + "' is already registered");
     }
-    LOG.debug("Registering update of existing federation {} to {}", oldMetaStore, newMetaStore);
+    log.debug("Registering update of existing federation {} to {}", oldMetaStore, newMetaStore);
     synchronized (federatedMetaStoreStorage) {
       federatedMetaStoreStorage.update(oldMetaStore, newMetaStore);
       onUpdate(oldMetaStore, newMetaStore);
     }
-    LOG.debug("Update of federation {} to {} has been registered successfully", oldMetaStore, newMetaStore);
+    log.debug("Update of federation {} to {} has been registered successfully", oldMetaStore, newMetaStore);
   }
 
   @Override
   public void unregister(@NotNull String name) {
     checkNotNull(name, "name cannot be null");
     checkNotNull(federatedMetaStoreStorage.get(name), "MeataStore with name '" + name + "' is not registered");
-    LOG.debug("Unregistering federation with name {}", name);
+    log.debug("Unregistering federation with name {}", name);
     synchronized (federatedMetaStoreStorage) {
       AbstractMetaStore federatedMetaStore = federatedMetaStoreStorage.delete(name);
       onUnregister(federatedMetaStore);
     }
-    LOG.debug("Federation with name {} is no longer available", name);
+    log.debug("Federation with name {} is no longer available", name);
   }
 
   @Override

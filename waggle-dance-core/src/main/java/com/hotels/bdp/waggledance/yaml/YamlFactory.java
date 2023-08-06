@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ import org.yaml.snakeyaml.introspector.PropertyUtils;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import com.google.common.collect.Sets;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
@@ -38,9 +41,8 @@ import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class YamlFactory {
-
-  private YamlFactory() {}
 
   public static Yaml newYaml() {
     PropertyUtils propertyUtils = new AdvancedPropertyUtils();

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.hotels.bdp.waggledance;
 
-import static org.apache.directory.api.util.Strings.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

@@ -117,7 +117,7 @@
 
   <profiles>
     <profile>
-      <id>sonatype-oss-release</id>
+      <id>sonatype-oss-release-github-actions</id>
       <build>
         <plugins>
           <plugin>
@@ -127,11 +127,6 @@
             <executions>
               <execution>
                 <id>attach-rpm</id>
-                <configuration>
-                  <keyPassphrase>
-                    <passphrase>${gpg.passphrase}</passphrase>
-                  </keyPassphrase>
-                </configuration>
               </execution>
             </executions>
           </plugin>

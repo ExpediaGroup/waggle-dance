@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,28 +22,20 @@ import java.util.function.BiFunction;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.thrift.TException;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
+@AllArgsConstructor
 public class GetTableMetaRequest implements RequestCallable<List<TableMeta>> {
 
+  @Getter
   private final DatabaseMapping mapping;
   private final String dbPattern;
   private final String tablePattern;
   private final List<String> tableTypes;
   private final BiFunction<TableMeta, DatabaseMapping, Boolean> filter;
-
-  public GetTableMetaRequest(
-      DatabaseMapping mapping,
-      String dbPattern,
-      String tablePattern,
-      List<String> tableTypes,
-      BiFunction<TableMeta, DatabaseMapping, Boolean> filter) {
-    this.mapping = mapping;
-    this.dbPattern = dbPattern;
-    this.tablePattern = tablePattern;
-    this.tableTypes = tableTypes;
-    this.filter = filter;
-  }
 
   @Override
   public List<TableMeta> call() throws TException {
@@ -55,10 +47,5 @@ public class GetTableMetaRequest implements RequestCallable<List<TableMeta>> {
       }
     }
     return mappedTableMeta;
-  }
-
-  @Override
-  public DatabaseMapping getMapping() {
-    return mapping;
   }
 }

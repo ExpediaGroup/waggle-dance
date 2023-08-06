@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import static com.hotels.bdp.waggledance.client.HiveUgiArgsStub.TEST_ARGS;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -103,15 +105,15 @@ public class ThriftMetastoreClientManagerTest {
   }
 
   @Test
-  public void typical() {
-    client.open();
+  public void typical() throws Exception {
+    client.open(TEST_ARGS);
     client.close();
   }
 
   @Test(expected = RuntimeException.class)
   public void openSlowConnection() {
     client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory, 1);
-    client.open();
+    client.open(TEST_ARGS);
   }
 
 }

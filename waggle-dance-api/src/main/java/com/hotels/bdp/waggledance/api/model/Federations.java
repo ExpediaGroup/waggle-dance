@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,32 +19,14 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-public class Federations {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class Federations {
   private @Valid PrimaryMetaStore primaryMetaStore;
   private @Valid List<FederatedMetaStore> federatedMetaStores;
-
-  public Federations() {
-  }
-
-  public Federations(PrimaryMetaStore primaryMetaStore, List<FederatedMetaStore> federatedMetaStores) {
-    this.primaryMetaStore = primaryMetaStore;
-    this.federatedMetaStores = federatedMetaStores;
-  }
-
-  public PrimaryMetaStore getPrimaryMetaStore() {
-    return primaryMetaStore;
-  }
-
-  public void setPrimaryMetaStore(PrimaryMetaStore primaryMetaStore) {
-    this.primaryMetaStore = primaryMetaStore;
-  }
-
-  public List<FederatedMetaStore> getFederatedMetaStores() {
-    return federatedMetaStores;
-  }
-
-  public void setFederatedMetaStores(List<FederatedMetaStore> federatedMetaStores) {
-    this.federatedMetaStores = federatedMetaStores;
-  }
 }

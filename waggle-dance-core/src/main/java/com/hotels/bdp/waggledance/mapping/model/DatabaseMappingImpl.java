@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,30 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
+import org.apache.hadoop.hive.metastore.api.AddCheckConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.AddDefaultConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
+import org.apache.hadoop.hive.metastore.api.AddForeignKeyRequest;
+import org.apache.hadoop.hive.metastore.api.AddNotNullConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
+import org.apache.hadoop.hive.metastore.api.AddUniqueConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.AllocateTableWriteIdsRequest;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.AlterISchemaRequest;
 import org.apache.hadoop.hive.metastore.api.CacheFileMetadataRequest;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
+import org.apache.hadoop.hive.metastore.api.CreationMetadata;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.DropConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
+import org.apache.hadoop.hive.metastore.api.FindSchemasByColsResp;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
@@ -42,11 +55,16 @@ import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
-import org.apache.hadoop.hive.metastore.api.Index;
+import org.apache.hadoop.hive.metastore.api.ISchema;
+import org.apache.hadoop.hive.metastore.api.ISchemaName;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
+import org.apache.hadoop.hive.metastore.api.MapSchemaVersionToSerdeRequest;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsResponse;
+import org.apache.hadoop.hive.metastore.api.NotificationEventsCountRequest;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
 import org.apache.hadoop.hive.metastore.api.PartitionValuesRequest;
@@ -56,30 +74,37 @@ import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
+import org.apache.hadoop.hive.metastore.api.ReplTblWriteIdStateRequest;
+import org.apache.hadoop.hive.metastore.api.SQLCheckConstraint;
+import org.apache.hadoop.hive.metastore.api.SQLDefaultConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
+import org.apache.hadoop.hive.metastore.api.SQLNotNullConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
+import org.apache.hadoop.hive.metastore.api.SQLUniqueConstraint;
+import org.apache.hadoop.hive.metastore.api.SchemaVersion;
+import org.apache.hadoop.hive.metastore.api.SchemaVersionDescriptor;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
+import org.apache.hadoop.hive.metastore.api.SetSchemaVersionStateRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsResponse;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
+import com.hotels.bdp.waggledance.mapping.service.GrammarUtils;
 
+@AllArgsConstructor
+@Log4j2
 public class DatabaseMappingImpl implements DatabaseMapping {
-
-  private final static Logger log = LoggerFactory.getLogger(DatabaseMappingImpl.class);
 
   private final MetaStoreMapping metaStoreMapping;
   private final QueryMapping queryMapping;
-
-  public DatabaseMappingImpl(MetaStoreMapping metaStoreMapping, QueryMapping queryMapping) {
-    this.metaStoreMapping = metaStoreMapping;
-    this.queryMapping = queryMapping;
-  }
 
   @Override
   public MetaStoreFilterHook getMetastoreFilter() {
@@ -134,9 +159,9 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
-  public Index transformOutboundIndex(Index index) {
-    index.setDbName(metaStoreMapping.transformOutboundDatabaseName(index.getDbName()));
-    return index;
+  public ISchema transformOutboundISchema(ISchema iSchema) {
+    iSchema.setDbName(metaStoreMapping.transformOutboundDatabaseName(iSchema.getDbName()));
+    return iSchema;
   }
 
   @Override
@@ -152,9 +177,9 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
-  public Index transformInboundIndex(Index index) {
-    index.setDbName(metaStoreMapping.transformInboundDatabaseName(index.getDbName()));
-    return index;
+  public ISchema transformInboundISchema(ISchema iSchema) {
+    iSchema.setDbName(metaStoreMapping.transformInboundDatabaseName(iSchema.getDbName()));
+    return iSchema;
   }
 
   @Override
@@ -218,11 +243,13 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
+    databaseName = GrammarUtils.removeCatName(databaseName);
     return metaStoreMapping.transformOutboundDatabaseName(databaseName);
   }
 
   @Override
   public List<String> transformOutboundDatabaseNameMultiple(String databaseName) {
+    databaseName = GrammarUtils.removeCatName(databaseName);
     return metaStoreMapping.transformOutboundDatabaseNameMultiple(databaseName);
   }
 
@@ -233,6 +260,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public String transformInboundDatabaseName(String databaseName) {
+    databaseName = GrammarUtils.removeCatName(databaseName);
     return metaStoreMapping.transformInboundDatabaseName(databaseName);
   }
 
@@ -317,6 +345,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
 
   @Override
   public MetaStoreMapping checkWritePermissions(String databaseName) throws IllegalArgumentException {
+    databaseName = GrammarUtils.removeCatName(databaseName);
     return metaStoreMapping.checkWritePermissions(transformInboundDatabaseName(databaseName));
   }
 
@@ -376,11 +405,11 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   }
 
   @Override
-  public List<Index> transformOutboundIndexes(List<Index> indexes) {
-    for (Index index : indexes) {
-      transformOutboundIndex(index);
+  public List<ISchema> transformOutboundISchemas(List<ISchema> iSchemaList) {
+    for (ISchema iSchema : iSchemaList) {
+      transformOutboundISchema(iSchema);
     }
-    return indexes;
+    return iSchemaList;
   }
 
   @Override
@@ -508,6 +537,280 @@ public class DatabaseMappingImpl implements DatabaseMapping {
     request.setDbName(transformInboundDatabaseName(request.getDbName()));
     return request;
   }
+
+  @Override
+  public List<SQLPrimaryKey> transformInboundSQLPrimaryKeys(List<SQLPrimaryKey> sqlPrimaryKeys) {
+    for(SQLPrimaryKey sqlPrimaryKey: sqlPrimaryKeys) {
+      sqlPrimaryKey.setTable_db(transformInboundDatabaseName(sqlPrimaryKey.getTable_db()));
+    }
+    return sqlPrimaryKeys;
+  }
+
+  @Override
+  public List<SQLForeignKey> transformInboundSQLForeignKeys(List<SQLForeignKey> sqlForeignKeys) {
+    for(SQLForeignKey sqlForeignKey: sqlForeignKeys) {
+      sqlForeignKey.setPktable_db(transformInboundDatabaseName(sqlForeignKey.getPktable_db()));
+      sqlForeignKey.setFktable_db(transformInboundDatabaseName(sqlForeignKey.getFktable_db()));
+    }
+    return sqlForeignKeys;
+  }
+
+  @Override
+  public List<SQLUniqueConstraint> transformInboundSQLUniqueConstraints(List<SQLUniqueConstraint> sqlUniqueConstraints) {
+    for(SQLUniqueConstraint sqlUniqueConstraint: sqlUniqueConstraints) {
+      sqlUniqueConstraint.setTable_db(transformInboundDatabaseName(sqlUniqueConstraint.getTable_db()));
+    }
+    return sqlUniqueConstraints;
+  }
+
+  @Override
+  public List<SQLNotNullConstraint> transformInboundSQLNotNullConstraints(List<SQLNotNullConstraint> sqlNotNullConstraints) {
+    for(SQLNotNullConstraint sqlNotNullConstraint: sqlNotNullConstraints) {
+      sqlNotNullConstraint.setTable_db(transformInboundDatabaseName(sqlNotNullConstraint.getTable_db()));
+    }
+    return sqlNotNullConstraints;
+  }
+
+  @Override
+  public List<SQLDefaultConstraint> transformInboundSQLDefaultConstraints(List<SQLDefaultConstraint> sqlDefaultConstraints) {
+    for(SQLDefaultConstraint sqlDefaultConstraint: sqlDefaultConstraints) {
+      sqlDefaultConstraint.setTable_db(transformInboundDatabaseName(sqlDefaultConstraint.getTable_db()));
+    }
+    return sqlDefaultConstraints;
+  }
+
+  @Override
+  public List<SQLCheckConstraint> transformInboundSQLCheckConstraints(List<SQLCheckConstraint> sqlCheckConstraints) {
+    for(SQLCheckConstraint sqlCheckConstraint: sqlCheckConstraints) {
+      sqlCheckConstraint.setTable_db(transformInboundDatabaseName(sqlCheckConstraint.getTable_db()));
+    }
+    return sqlCheckConstraints;
+  }
+
+
+  @Override
+  public ReplTblWriteIdStateRequest transformInboundReplTblWriteIdStateRequest(ReplTblWriteIdStateRequest request) {
+    request.setDbName(transformInboundDatabaseName(request.getDbName()));
+    return request;
+  }
+
+
+  @Override
+  public AllocateTableWriteIdsRequest transformInboundAllocateTableWriteIdsRequest(AllocateTableWriteIdsRequest request) {
+    request.setDbName(transformInboundDatabaseName(request.getDbName()));
+    return request;
+  }
+
+
+  @Override
+  public AlterISchemaRequest transformInboundAlterISchemaRequest(AlterISchemaRequest request) {
+    if(request.getName() !=null) {
+      request.setName(transformInboundISchemaName(request.getName()));
+    }
+    if(request.getNewSchema() != null) {
+      request.setNewSchema(transformInboundISchema(request.getNewSchema()));
+    }
+    return request;
+  }
+
+
+  @Override
+  public SchemaVersion transformInboundSchemaVersion(SchemaVersion schemaVersion) {
+    if(schemaVersion.getSchema() !=null ) {
+      schemaVersion.getSchema().setDbName(transformInboundDatabaseName(schemaVersion.getSchema().getDbName()));
+    }
+    return schemaVersion;
+  }
+
+
+  @Override
+  public SchemaVersion transformOutboundSchemaVersion(SchemaVersion schemaVersion) {
+    if(schemaVersion.getSchema() !=null ) {
+      schemaVersion.getSchema().setDbName(metaStoreMapping.transformOutboundDatabaseName(
+              schemaVersion.getSchema().getDbName()));
+    }
+    return schemaVersion;
+  }
+
+  @Override
+  public List<SchemaVersion> transformOutboundSchemaVersions(List<SchemaVersion> schemaVersions) {
+    for(SchemaVersion schemaVersion: schemaVersions) {
+      transformOutboundSchemaVersion(schemaVersion);
+    }
+    return schemaVersions;
+  }
+
+  @Override
+  public ISchemaName transformInboundISchemaName(ISchemaName iSchemaName) {
+    iSchemaName.setDbName(transformInboundDatabaseName(iSchemaName.getDbName()));
+    return iSchemaName;
+  }
+
+  @Override
+  public ISchemaName transformOutboundISchemaName(ISchemaName iSchemaName) {
+    iSchemaName.setDbName(transformOutboundDatabaseName(iSchemaName.getDbName()));
+    return iSchemaName;
+  }
+
+  @Override
+  public AddForeignKeyRequest transformInboundAddForeignKeyRequest(AddForeignKeyRequest request) {
+    for(SQLForeignKey sqlForeignKey: request.getForeignKeyCols()) {
+      sqlForeignKey.setPktable_db(transformInboundDatabaseName(sqlForeignKey.getPktable_db()));
+      sqlForeignKey.setFktable_db(transformInboundDatabaseName(sqlForeignKey.getFktable_db()));
+    }
+    return request;
+  }
+
+
+  @Override
+  public AddUniqueConstraintRequest transformInboundAddUniqueConstraintRequest(AddUniqueConstraintRequest request) {
+    for(SQLUniqueConstraint sqlUniqueConstraint: request.getUniqueConstraintCols()) {
+      sqlUniqueConstraint.setTable_db(transformInboundDatabaseName(sqlUniqueConstraint.getTable_db()));
+    }
+    return request;
+  }
+
+
+  @Override
+  public AddNotNullConstraintRequest transformInboundAddNotNullConstraintRequest(AddNotNullConstraintRequest request) {
+    for(SQLNotNullConstraint sqlNotNullConstraint: request.getNotNullConstraintCols()) {
+      sqlNotNullConstraint.setTable_db(transformInboundDatabaseName(sqlNotNullConstraint.getTable_db()));
+    }
+    return request;
+  }
+
+
+  @Override
+  public AddDefaultConstraintRequest transformInboundAddDefaultConstraintRequest(AddDefaultConstraintRequest request) {
+    for(SQLDefaultConstraint sqlDefaultConstraint: request.getDefaultConstraintCols()) {
+      sqlDefaultConstraint.setTable_db(transformInboundDatabaseName(sqlDefaultConstraint.getTable_db()));
+    }
+    return request;
+  }
+
+
+  @Override
+  public AddCheckConstraintRequest transformInboundAddCheckConstraintRequest(AddCheckConstraintRequest request) {
+    for(SQLCheckConstraint sqlCheckConstraint: request.getCheckConstraintCols()) {
+      sqlCheckConstraint.setTable_db(transformInboundDatabaseName(sqlCheckConstraint.getTable_db()));
+    }
+    return request;
+  }
+
+
+  @Override
+  public FindSchemasByColsResp transformOutboundFindSchemasByColsResp(FindSchemasByColsResp response) {
+    for(SchemaVersionDescriptor schemaVersionDescriptor: response.getSchemaVersions()) {
+      if(schemaVersionDescriptor.getSchema() != null) {
+        schemaVersionDescriptor.setSchema(transformOutboundISchemaName(schemaVersionDescriptor.getSchema()));
+      }
+    }
+    return response;
+  }
+
+
+  @Override
+  public SchemaVersionDescriptor transformInboundSchemaVersionDescriptor(SchemaVersionDescriptor request) {
+    if(request.getSchema() !=null) {
+      request.getSchema().setDbName(transformInboundDatabaseName(request.getSchema().getDbName()));
+    }
+    return request;
+  }
+
+
+  @Override
+  public MapSchemaVersionToSerdeRequest transformInboundMapSchemaVersionToSerdeRequest(MapSchemaVersionToSerdeRequest request) {
+    if(request.getSchemaVersion() != null && request.getSchemaVersion().getSchema() !=null) {
+      request.getSchemaVersion().getSchema().setDbName(transformInboundDatabaseName(
+              request.getSchemaVersion().getSchema().getDbName()));
+    }
+    return request;
+  }
+
+
+  @Override
+  public SetSchemaVersionStateRequest transformInboundSetSchemaVersionStateRequest(SetSchemaVersionStateRequest request) {
+    if(request.getSchemaVersion() != null && request.getSchemaVersion().getSchema() !=null) {
+      request.getSchemaVersion().getSchema().setDbName(transformInboundDatabaseName(
+              request.getSchemaVersion().getSchema().getDbName()));
+    }
+    return request;
+  }
+
+
+  @Override
+  public NotificationEventsCountRequest transformInboundNotificationEventsCountRequest(NotificationEventsCountRequest request) {
+    request.setDbName(transformInboundDatabaseName(request.getDbName()));
+    return request;
+  }
+
+
+  @Override
+  public UniqueConstraintsRequest transformInboundUniqueConstraintsRequest(UniqueConstraintsRequest request) {
+    request.setDb_name(transformInboundDatabaseName(request.getDb_name()));
+    return request;
+  }
+
+  @Override
+  public UniqueConstraintsResponse transformOutboundUniqueConstraintsResponse(UniqueConstraintsResponse response) {
+    for(SQLUniqueConstraint sqlUniqueConstraint: response.getUniqueConstraints()) {
+      sqlUniqueConstraint.setTable_db(transformOutboundDatabaseName(sqlUniqueConstraint.getTable_db()));
+    }
+    return response;
+  }
+
+
+  @Override
+  public NotNullConstraintsRequest transformInboundNotNullConstraintsRequest(NotNullConstraintsRequest request) {
+    request.setDb_name(transformInboundDatabaseName(request.getDb_name()));
+    return request;
+  }
+
+  @Override
+  public NotNullConstraintsResponse transformOutboundNotNullConstraintsResponse(NotNullConstraintsResponse response) {
+    for(SQLNotNullConstraint sqlNotNullConstraint: response.getNotNullConstraints()) {
+      sqlNotNullConstraint.setTable_db(transformOutboundDatabaseName(sqlNotNullConstraint.getTable_db()));
+    }
+    return response;
+  }
+
+
+  @Override
+  public DefaultConstraintsRequest transformInboundDefaultConstraintsRequest(DefaultConstraintsRequest request) {
+    request.setDb_name(transformInboundDatabaseName(request.getDb_name()));
+    return request;
+  }
+
+  @Override
+  public DefaultConstraintsResponse transformOutboundDefaultConstraintsResponse(DefaultConstraintsResponse response) {
+    for(SQLDefaultConstraint sqlDefaultConstraint: response.getDefaultConstraints()) {
+      sqlDefaultConstraint.setTable_db(transformOutboundDatabaseName(sqlDefaultConstraint.getTable_db()));
+    }
+    return response;
+  }
+
+
+  @Override
+  public CheckConstraintsRequest transformInboundCheckConstraintsRequest(CheckConstraintsRequest request) {
+    request.setDb_name(transformInboundDatabaseName(request.getDb_name()));
+    return request;
+  }
+
+  @Override
+  public CheckConstraintsResponse transformOutboundCheckConstraintsResponse(CheckConstraintsResponse response) {
+    for(SQLCheckConstraint sqlCheckConstraint: response.getCheckConstraints()) {
+      sqlCheckConstraint.setTable_db(transformOutboundDatabaseName(sqlCheckConstraint.getTable_db()));
+    }
+    return response;
+  }
+
+
+  @Override
+  public CreationMetadata transformInboundCreationMetadata(CreationMetadata request) {
+    request.setDbName(transformInboundDatabaseName(request.getDbName()));
+    return request;
+  }
+
 
   @Override
   public long getLatency() {

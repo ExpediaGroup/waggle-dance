@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,10 @@ import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClient
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
-import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
-import com.hotels.bdp.waggledance.mapping.service.impl.PollingFederationService;
 
 @org.springframework.context.annotation.Configuration
 public class CommonBeans {
@@ -65,10 +63,10 @@ public class CommonBeans {
     return ASTQueryMapping.INSTANCE;
   }
 
-  @Bean
+ /* @Bean
   public PollingFederationService pollingFederationService(
       PopulateStatusFederationService populateStatusFederationService) {
     return new PollingFederationService(populateStatusFederationService);
-  }
+  }*/
 
 }

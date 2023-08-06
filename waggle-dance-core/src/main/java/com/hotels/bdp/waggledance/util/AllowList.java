@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,13 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
 public class AllowList {
 
   private final static String MATCH_ALL = ".*";
   private final Set<Pattern> allowList = new HashSet<>();
-
-  public AllowList() {}
 
   public AllowList(List<String> allowList) {
     if (allowList == null) {

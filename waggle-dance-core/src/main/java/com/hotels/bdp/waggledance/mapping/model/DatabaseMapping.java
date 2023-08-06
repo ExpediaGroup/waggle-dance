@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,29 @@ package com.hotels.bdp.waggledance.mapping.model;
 
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.api.AddCheckConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.AddDefaultConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
+import org.apache.hadoop.hive.metastore.api.AddForeignKeyRequest;
+import org.apache.hadoop.hive.metastore.api.AddNotNullConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
+import org.apache.hadoop.hive.metastore.api.AddUniqueConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.AllocateTableWriteIdsRequest;
+import org.apache.hadoop.hive.metastore.api.AlterISchemaRequest;
 import org.apache.hadoop.hive.metastore.api.CacheFileMetadataRequest;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
+import org.apache.hadoop.hive.metastore.api.CreationMetadata;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.DropConstraintRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.DropPartitionsResult;
+import org.apache.hadoop.hive.metastore.api.FindSchemasByColsResp;
 import org.apache.hadoop.hive.metastore.api.FireEventRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
@@ -38,8 +51,13 @@ import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
-import org.apache.hadoop.hive.metastore.api.Index;
+import org.apache.hadoop.hive.metastore.api.ISchema;
+import org.apache.hadoop.hive.metastore.api.ISchemaName;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
+import org.apache.hadoop.hive.metastore.api.MapSchemaVersionToSerdeRequest;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsResponse;
+import org.apache.hadoop.hive.metastore.api.NotificationEventsCountRequest;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
 import org.apache.hadoop.hive.metastore.api.PartitionValuesRequest;
@@ -49,14 +67,26 @@ import org.apache.hadoop.hive.metastore.api.PartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
+import org.apache.hadoop.hive.metastore.api.ReplTblWriteIdStateRequest;
+import org.apache.hadoop.hive.metastore.api.SQLCheckConstraint;
+import org.apache.hadoop.hive.metastore.api.SQLDefaultConstraint;
+import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
+import org.apache.hadoop.hive.metastore.api.SQLNotNullConstraint;
+import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
+import org.apache.hadoop.hive.metastore.api.SQLUniqueConstraint;
+import org.apache.hadoop.hive.metastore.api.SchemaVersion;
+import org.apache.hadoop.hive.metastore.api.SchemaVersionDescriptor;
 import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
+import org.apache.hadoop.hive.metastore.api.SetSchemaVersionStateRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsResponse;
 
 public interface DatabaseMapping extends MetaStoreMapping {
 
-  Index transformInboundIndex(Index index);
+  ISchema transformInboundISchema(ISchema iSchema);
 
   Partition transformInboundPartition(Partition partition);
 
@@ -64,7 +94,7 @@ public interface DatabaseMapping extends MetaStoreMapping {
 
   HiveObjectRef transformInboundHiveObjectRef(HiveObjectRef function);
 
-  Index transformOutboundIndex(Index index);
+  ISchema transformOutboundISchema(ISchema iSchema);
 
   Partition transformOutboundPartition(Partition partition);
 
@@ -116,7 +146,7 @@ public interface DatabaseMapping extends MetaStoreMapping {
 
   List<Partition> transformInboundPartitions(List<Partition> partitions);
 
-  List<Index> transformOutboundIndexes(List<Index> indexes);
+  List<ISchema> transformOutboundISchemas(List<ISchema> iSchemas);
 
   ColumnStatistics transformInboundColumnStatistics(ColumnStatistics columnStatistics);
 
@@ -149,6 +179,72 @@ public interface DatabaseMapping extends MetaStoreMapping {
   GetTablesResult transformOutboundGetTablesResult(GetTablesResult result);
 
   PartitionValuesRequest transformInboundPartitionValuesRequest(PartitionValuesRequest req);
+
+  List<SQLPrimaryKey> transformInboundSQLPrimaryKeys(List<SQLPrimaryKey> sqlPrimaryKeys);
+
+  List<SQLForeignKey> transformInboundSQLForeignKeys(List<SQLForeignKey> sqlForeignKeys);
+
+  List<SQLUniqueConstraint> transformInboundSQLUniqueConstraints(List<SQLUniqueConstraint> sqlUniqueConstraints);
+
+  List<SQLNotNullConstraint> transformInboundSQLNotNullConstraints(List<SQLNotNullConstraint> sqlNotNullConstraints);
+
+  List<SQLDefaultConstraint> transformInboundSQLDefaultConstraints(List<SQLDefaultConstraint> sqlDefaultConstraints);
+
+  List<SQLCheckConstraint> transformInboundSQLCheckConstraints(List<SQLCheckConstraint> sqlCheckConstraints);
+
+  ReplTblWriteIdStateRequest transformInboundReplTblWriteIdStateRequest(ReplTblWriteIdStateRequest request);
+
+  AllocateTableWriteIdsRequest transformInboundAllocateTableWriteIdsRequest(AllocateTableWriteIdsRequest request);
+
+  AlterISchemaRequest transformInboundAlterISchemaRequest(AlterISchemaRequest request);
+
+  SchemaVersion transformInboundSchemaVersion(SchemaVersion schemaVersion);
+
+  SchemaVersion transformOutboundSchemaVersion(SchemaVersion schemaVersion);
+
+  List<SchemaVersion> transformOutboundSchemaVersions(List<SchemaVersion> schemaVersions);
+
+  ISchemaName transformInboundISchemaName(ISchemaName iSchemaName);
+
+  ISchemaName transformOutboundISchemaName(ISchemaName iSchemaName);
+
+  AddForeignKeyRequest transformInboundAddForeignKeyRequest(AddForeignKeyRequest request);
+
+  AddUniqueConstraintRequest transformInboundAddUniqueConstraintRequest(AddUniqueConstraintRequest request);
+
+  AddNotNullConstraintRequest transformInboundAddNotNullConstraintRequest(AddNotNullConstraintRequest request);
+
+  AddDefaultConstraintRequest transformInboundAddDefaultConstraintRequest(AddDefaultConstraintRequest request);
+
+  AddCheckConstraintRequest transformInboundAddCheckConstraintRequest(AddCheckConstraintRequest request);
+
+  FindSchemasByColsResp transformOutboundFindSchemasByColsResp(FindSchemasByColsResp response);
+
+  SchemaVersionDescriptor transformInboundSchemaVersionDescriptor(SchemaVersionDescriptor request);
+
+  MapSchemaVersionToSerdeRequest transformInboundMapSchemaVersionToSerdeRequest(MapSchemaVersionToSerdeRequest request);
+
+  SetSchemaVersionStateRequest transformInboundSetSchemaVersionStateRequest(SetSchemaVersionStateRequest request);
+
+  NotificationEventsCountRequest transformInboundNotificationEventsCountRequest(NotificationEventsCountRequest request);
+
+  UniqueConstraintsRequest transformInboundUniqueConstraintsRequest(UniqueConstraintsRequest request);
+
+  UniqueConstraintsResponse transformOutboundUniqueConstraintsResponse(UniqueConstraintsResponse response);
+
+  NotNullConstraintsRequest transformInboundNotNullConstraintsRequest(NotNullConstraintsRequest request);
+
+  NotNullConstraintsResponse transformOutboundNotNullConstraintsResponse(NotNullConstraintsResponse response);
+
+  DefaultConstraintsRequest transformInboundDefaultConstraintsRequest(DefaultConstraintsRequest request);
+
+  DefaultConstraintsResponse transformOutboundDefaultConstraintsResponse(DefaultConstraintsResponse response);
+
+  CheckConstraintsRequest transformInboundCheckConstraintsRequest(CheckConstraintsRequest request);
+
+  CheckConstraintsResponse transformOutboundCheckConstraintsResponse(CheckConstraintsResponse response);
+
+  CreationMetadata transformInboundCreationMetadata(CreationMetadata request);
 
   @Override
   long getLatency();

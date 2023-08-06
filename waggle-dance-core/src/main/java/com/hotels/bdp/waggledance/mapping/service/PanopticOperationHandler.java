@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 
+import lombok.extern.log4j.Log4j2;
+
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesByPatternRequest;
 import com.hotels.bdp.waggledance.mapping.service.requests.GetAllFunctionsRequest;
@@ -37,6 +39,8 @@ import com.hotels.bdp.waggledance.mapping.service.requests.SetUgiRequest;
 /**
  * Class responsible for handling the Hive operations that need to combine results from multiple Hive Metastores
  */
+
+@Log4j2
 public abstract class PanopticOperationHandler {
 
   protected static final long GET_DATABASES_TIMEOUT = TimeUnit.MILLISECONDS.toMillis(8000L);
@@ -74,6 +78,7 @@ public abstract class PanopticOperationHandler {
     }
     List<String> result = getPanopticOperationExecutor()
         .executeRequests(allRequests, GET_DATABASES_TIMEOUT, "Can't fetch databases by pattern: {}");
+    log.info("All Databases Result={}", result);
     return result;
   }
 

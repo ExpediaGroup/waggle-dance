@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 import org.junit.rules.ExternalResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.extern.log4j.Log4j2;
 
 import com.google.common.io.ByteStreams;
 
@@ -35,8 +35,9 @@ import com.google.common.io.ByteStreams;
  * This class can be used to emulate a Graphite Carbon relay, for example.
  * </p>
  */
+
+@Log4j2
 public class ServerSocketRule extends ExternalResource {
-  private static final Logger LOG = LoggerFactory.getLogger(ServerSocketRule.class);
 
   private final InetSocketAddress address;
   private final ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -59,7 +60,7 @@ public class ServerSocketRule extends ExternalResource {
 
   @Override
   protected void after() {
-    LOG.info("Socket closing, handled {} requests", requests);
+    log.info("Socket closing, handled {} requests", requests);
     try {
       serverSocketChannel.close();
     } catch (IOException e) {

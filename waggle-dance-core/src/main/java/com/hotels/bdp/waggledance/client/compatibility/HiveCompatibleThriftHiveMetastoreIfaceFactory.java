@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,26 +22,20 @@ import java.lang.reflect.Proxy;
 
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.thrift.TApplicationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 
+@Log4j2
 public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
 
-  private static final Logger log = LoggerFactory.getLogger(HiveCompatibleThriftHiveMetastoreIfaceFactory.class);
-
+  @AllArgsConstructor
   private static class ThriftMetaStoreClientInvocationHandler implements InvocationHandler {
 
     private final ThriftHiveMetastore.Client delegate;
     private final HiveThriftMetaStoreIfaceCompatibility compatibility;
-
-    ThriftMetaStoreClientInvocationHandler(
-        ThriftHiveMetastore.Client delegate,
-        HiveThriftMetaStoreIfaceCompatibility compatibility) {
-      this.delegate = delegate;
-      this.compatibility = compatibility;
-    }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

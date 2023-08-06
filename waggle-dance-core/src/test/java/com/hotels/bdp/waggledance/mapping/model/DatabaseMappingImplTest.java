@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ import org.apache.hadoop.hive.metastore.api.GrantRevokePrivilegeRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
-import org.apache.hadoop.hive.metastore.api.Index;
+import org.apache.hadoop.hive.metastore.api.ISchema;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
 import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.Partition;
@@ -99,7 +99,7 @@ public class DatabaseMappingImplTest {
 
   private DatabaseMappingImpl databaseMapping;
   private Partition partition;
-  private Index index;
+  private ISchema iSchema;
   private HiveObjectRef hiveObjectRef;
   private PartitionSpec partitionSpec;
   private Database database;
@@ -114,8 +114,8 @@ public class DatabaseMappingImplTest {
     partition = new Partition();
     partition.setDbName(DB_NAME);
     partitions = Lists.newArrayList(partition);
-    index = new Index();
-    index.setDbName(DB_NAME);
+    iSchema = new ISchema();
+    iSchema.setDbName(DB_NAME);
     hiveObjectRef = new HiveObjectRef();
     hiveObjectRef.setDbName(DB_NAME);
     hiveObjectRef.setObjectType(HiveObjectType.DATABASE);
@@ -243,15 +243,15 @@ public class DatabaseMappingImplTest {
 
   @Test
   public void transformOutboundIndex() throws Exception {
-    Index result = databaseMapping.transformOutboundIndex(index);
-    assertThat(result, is(sameInstance(index)));
+    ISchema result = databaseMapping.transformOutboundISchema(iSchema);
+    assertThat(result, is(sameInstance(iSchema)));
     assertThat(result.getDbName(), is(OUT_DB_NAME));
   }
 
   @Test
   public void transformInboundIndex() throws Exception {
-    Index result = databaseMapping.transformInboundIndex(index);
-    assertThat(result, is(sameInstance(index)));
+    ISchema result = databaseMapping.transformInboundISchema(iSchema);
+    assertThat(result, is(sameInstance(iSchema)));
     assertThat(result.getDbName(), is(IN_DB_NAME));
   }
 
@@ -563,12 +563,12 @@ public class DatabaseMappingImplTest {
 
   @Test
   public void transformOutboundIndexes() throws Exception {
-    List<Index> indexes = new ArrayList<>();
-    indexes.add(index);
-    List<Index> result = databaseMapping.transformOutboundIndexes(indexes);
+    List<ISchema> indexes = new ArrayList<>();
+    indexes.add(iSchema);
+    List<ISchema> result = databaseMapping.transformOutboundISchemas(indexes);
     assertThat(result, is(sameInstance(indexes)));
-    Index resultIndex = result.get(0);
-    assertThat(resultIndex, is(sameInstance(index)));
+    ISchema resultIndex = result.get(0);
+    assertThat(resultIndex, is(sameInstance(iSchema)));
     assertThat(resultIndex.getDbName(), is(OUT_DB_NAME));
   }
 

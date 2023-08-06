@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
 import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStrategy;
+import com.hotels.bdp.waggledance.metrics.MonitoringConfiguration;
+import com.hotels.bdp.waggledance.metrics.MonitoringConfigurationTestContext;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { CommonBeansTestContext.class, CommonBeans.class })
+@ContextConfiguration(classes = { CommonBeansTestContext.class, MonitoringConfiguration.class, MonitoringConfigurationTestContext.class, CommonBeans.class })
 public class CommonBeansTest {
 
   private @Autowired HiveConf hiveConf;

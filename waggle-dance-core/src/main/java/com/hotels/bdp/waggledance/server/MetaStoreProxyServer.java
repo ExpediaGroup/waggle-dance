@@ -35,23 +35,28 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PreDestroy;
+import javax.security.auth.login.LoginException;
 
 import org.apache.hadoop.hive.common.auth.HiveAuthUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.TServerSocketKeepAlive;
+import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge;
 import org.apache.hadoop.hive.shims.ShimLoader;
-import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
+import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.server.ServerContext;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TServerEventHandler;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -59,13 +64,15 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import lombok.extern.log4j.Log4j2;
+
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.util.SaslHelper;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@Log4j2
 public class MetaStoreProxyServer implements ApplicationRunner {
-
-  private static final Logger LOG = LoggerFactory.getLogger(MetaStoreProxyServer.class);
 
   /**
    * default port on which to start the server (48869)
@@ -76,7 +83,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
 
   private final HiveConf hiveConf;
   private final WaggleDanceConfiguration waggleDanceConfiguration;
-  private final TSetIpAddressProcessorFactory tSetIpAddressProcessorFactory;
+  private final TProcessorFactory tProcessorFactory;
   private final Lock startLock;
   private final Condition startCondition;
   private TServer tServer;
@@ -85,10 +92,10 @@ public class MetaStoreProxyServer implements ApplicationRunner {
   public MetaStoreProxyServer(
       HiveConf hiveConf,
       WaggleDanceConfiguration waggleDanceConfiguration,
-      TSetIpAddressProcessorFactory tSetIpAddressProcessorFactory) {
+      TProcessorFactory tProcessorFactory) {
     this.hiveConf = hiveConf;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
-    this.tSetIpAddressProcessorFactory = tSetIpAddressProcessorFactory;
+    this.tProcessorFactory = tProcessorFactory;
     startLock = new ReentrantLock();
     startCondition = startLock.newCondition();
   }
@@ -110,7 +117,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
 
     try {
       String msg = "Starting WaggleDance on port " + waggleDanceConfiguration.getPort();
-      LOG.info(msg);
+      log.info(msg);
       if (waggleDanceConfiguration.isVerbose()) {
         System.err.println(msg);
       }
@@ -118,17 +125,17 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       // Add shutdown hook.
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
         String shutdownMsg = "Shutting down WaggleDance.";
-        LOG.info(shutdownMsg);
+        log.info(shutdownMsg);
         if (isCliVerbose) {
           System.err.println(shutdownMsg);
         }
       }));
 
       AtomicBoolean startedServing = new AtomicBoolean();
-      startWaggleDance(ShimLoader.getHadoopThriftAuthBridge(), startLock, startCondition, startedServing);
+      startWaggleDance(startLock, startCondition, startedServing);
     } catch (Throwable t) {
       // Catch the exception, log it and rethrow it.
-      LOG.error("WaggleDance Thrift Server threw an exception...", t);
+      log.error("WaggleDance Thrift Server threw an exception...", t);
       throw new Exception(t);
     }
   }
@@ -136,14 +143,12 @@ public class MetaStoreProxyServer implements ApplicationRunner {
   /**
    * Start Metastore based on a passed {@link HadoopThriftAuthBridge}
    *
-   * @param bridge
    * @param startLock
    * @param startCondition
    * @param startedServing
    * @throws Throwable
    */
   private void startWaggleDance(
-      HadoopThriftAuthBridge bridge,
       Lock startLock,
       Condition startCondition,
       AtomicBoolean startedServing)
@@ -157,6 +162,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       boolean tcpKeepAlive = hiveConf.getBoolVar(ConfVars.METASTORE_TCP_KEEP_ALIVE);
       boolean useFramedTransport = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT);
       boolean useSSL = hiveConf.getBoolVar(ConfVars.HIVE_METASTORE_USE_SSL);
+      boolean useSASL = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_SASL);
 
       TServerSocket serverSocket = createServerSocket(useSSL, waggleDanceConfiguration.getPort());
 
@@ -164,11 +170,19 @@ public class MetaStoreProxyServer implements ApplicationRunner {
         serverSocket = new TServerSocketKeepAlive(serverSocket);
       }
 
-      TTransportFactory transFactory = useFramedTransport ? new TFramedTransport.Factory() : new TTransportFactory();
-      LOG.info("Starting WaggleDance Server");
+      HadoopThriftAuthBridge.Server saslServer = null;
+
+      if(useSASL) {
+        UserGroupInformation.setConfiguration(hiveConf);
+        saslServer = SaslHelper.createSaslServer(hiveConf);
+      }
+
+      TTransportFactory transFactory = createTTransportFactory(useFramedTransport, useSASL, saslServer);
+      TProcessorFactory tProcessorFactory = getTProcessorFactory(useSASL, saslServer);
+      log.info("Starting WaggleDance Server");
 
       TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverSocket)
-          .processorFactory(tSetIpAddressProcessorFactory)
+          .processorFactory(tProcessorFactory)
           .transportFactory(transFactory)
           .protocolFactory(new TBinaryProtocol.Factory())
           .minWorkerThreads(minWorkerThreads)
@@ -178,20 +192,64 @@ public class MetaStoreProxyServer implements ApplicationRunner {
           .requestTimeoutUnit(waggleDanceConfiguration.getThriftServerRequestTimeoutUnit());
 
       tServer = new TThreadPoolServer(args);
-      LOG.info("Started the new WaggleDance on port [" + waggleDanceConfiguration.getPort() + "]...");
-      LOG.info("Options.minWorkerThreads = " + minWorkerThreads);
-      LOG.info("Options.maxWorkerThreads = " + maxWorkerThreads);
-      LOG.info("TCP keepalive = " + tcpKeepAlive);
+      if (useSASL){
+        TServerEventHandler tServerEventHandler = new TServerEventHandler() {
+          @Override
+          public void preServe() {
+          }
+
+          @Override
+          public ServerContext createContext(TProtocol tProtocol, TProtocol tProtocol1) {
+            return null;
+          }
+
+          @Override
+          public void deleteContext(ServerContext serverContext, TProtocol tProtocol, TProtocol tProtocol1) {
+            TokenWrappingHMSHandler.removeToken();
+          }
+
+          @Override
+          public void processContext(ServerContext serverContext, TTransport tTransport, TTransport tTransport1) {
+          }
+        };
+        tServer.setServerEventHandler(tServerEventHandler);
+      }
+      log.info("Started the new WaggleDance on port [{}]...", waggleDanceConfiguration.getPort());
+      log.info("Options.minWorkerThreads = {}", minWorkerThreads);
+      log.info("Options.maxWorkerThreads = {}", maxWorkerThreads);
+      log.info("TCP keepalive = {}", tcpKeepAlive);
 
       if (startLock != null) {
         signalOtherThreadsToStart(tServer, startLock, startCondition, startedServing);
       }
       tServer.serve();
     } catch (Throwable x) {
-      LOG.error(StringUtils.stringifyException(x));
+      log.error(StringUtils.stringifyException(x));
       throw x;
     }
-    LOG.info("Waggle Dance has stopped");
+    log.info("Waggle Dance has stopped");
+  }
+
+  private TProcessorFactory getTProcessorFactory(boolean useSASL,
+                                                 HadoopThriftAuthBridge.Server server) throws TTransportException {
+    if (useSASL) {
+      return new TProcessorFactorySaslDecorator(tProcessorFactory, server);
+    } else {
+      return tProcessorFactory;
+    }
+  }
+
+  private TTransportFactory createTTransportFactory(boolean useFramedTransport, boolean useSASL,
+                                                    HadoopThriftAuthBridge.Server server)
+          throws LoginException {
+    if (useSASL) {
+      return SaslHelper.getAuthTransFactory(server, hiveConf);
+    }
+    if (useFramedTransport) {
+      return new TFramedTransport.Factory();
+    }
+    return new TTransportFactory();
+
   }
 
   private TServerSocket createServerSocket(boolean useSSL, int port) throws IOException, TTransportException {
@@ -226,7 +284,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
         try {
           Thread.sleep(1000);
         } catch (InterruptedException e) {
-          LOG.warn("Signalling thread was interuppted: " + e.getMessage());
+          log.warn("Signalling thread was interuppted: {}", e.getMessage());
         }
       } while (!server.isServing());
       startLock.lock();

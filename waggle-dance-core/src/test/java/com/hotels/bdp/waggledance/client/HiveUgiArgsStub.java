@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hotels.bdp.waggledance.server;
+package com.hotels.bdp.waggledance.client;
 
-public class NoPrimaryMetastoreException extends WaggleDanceServerException {
 
-  private static final long serialVersionUID = 1L;
+import com.google.common.collect.Lists;
 
-  public NoPrimaryMetastoreException(String message) {
-    super(message);
-  }
+public final class HiveUgiArgsStub {
+
+  public static final HiveUgiArgs TEST_ARGS = new HiveUgiArgs("test", Lists.newArrayList("my_group"));
 
 }

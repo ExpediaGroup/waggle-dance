@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,18 @@ package com.hotels.bdp.waggledance.server.security;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.federation.service.FederationService;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 
+@AllArgsConstructor
 public class ReadWriteCreateAccessControlHandler implements AccessControlHandler {
 
-  private final FederationService federationService;
   private AbstractMetaStore metaStore;
-
-  ReadWriteCreateAccessControlHandler(AbstractMetaStore metaStore,
-      FederationService federationService) {
-    this.metaStore = metaStore;
-    this.federationService = federationService;
-  }
+  private final FederationService federationService;
 
   @Override
   public boolean hasWritePermission(String databaseName) {

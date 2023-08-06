@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import java.util.List;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionSpec;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.api.TableMeta;
 
 /**
  * For testing purposes
@@ -48,10 +48,20 @@ public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
     return dataBase;
   }
 
-  @Override
-  public List<String> filterTableNames(String dbName, List<String> tableList) throws MetaException {
+  @Override //TODO
+  public List<String> filterTableNames(String catName, String dbName, List<String> tableList) throws MetaException {
     return tableList;
   }
+
+  @Override //TODO
+  public List<TableMeta> filterTableMetas(List<TableMeta> tableMetas) throws MetaException {
+    return tableMetas;
+  }
+
+ /* @Override
+  public List<String> filterTableNames(String dbName, List<String> tableList) throws MetaException {
+    return tableList;
+  }*/
 
   @Override
   public Table filterTable(Table table) throws MetaException, NoSuchObjectException {
@@ -90,16 +100,21 @@ public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
     return partition;
   }
 
-  @Override
+  @Override //TODO
+  public List<String> filterPartitionNames(String catName, String dbName, String tblName, List<String> partitionNames) throws MetaException {
+    return partitionNames;
+  }
+
+/*  @Override
   public List<String> filterPartitionNames(String dbName, String tblName,
       List<String> partitionNames) throws MetaException {
     return partitionNames;
   }
 
   @Override
-  public Index filterIndex(Index index) throws MetaException, NoSuchObjectException {
-    setLocationPrefix(index.getSd());
-    return index;
+  public ISchema filterIndex(ISchema iSchema) throws MetaException, NoSuchObjectException {
+    setLocationPrefix(iSchema.getSd());
+    return iSchema;
   }
 
   @Override
@@ -108,12 +123,12 @@ public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
   }
 
   @Override
-  public List<Index> filterIndexes(List<Index> indexeList) throws MetaException {
-    for (Index index: indexeList) {
-      setLocationPrefix(index.getSd());
+  public List<ISchema> filterIndexes(List<ISchema> iSchemaList) throws MetaException {
+    for (ISchema iSchema: iSchemaList) {
+      setLocationPrefix(iSchema.getSd());
     }
-    return indexeList;
-  }
+    return iSchemaList;
+  }*/
 
   private void setLocationPrefix(Table table) {
     setLocationPrefix(table.getSd());

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,9 +106,17 @@ public class MonitoredDatabaseMappingServiceTest {
   }
 
   @Test
-  public void getDatabaseMappings() {
+  public void getAvailableDatabaseMappings() {
     List<DatabaseMapping> databaseMappings = Arrays.asList(primaryMapping, otherMapping);
-    when(wrapped.getDatabaseMappings()).thenReturn(databaseMappings);
-    assertThat(service.getDatabaseMappings(), is(databaseMappings));
+    when(wrapped.getAvailableDatabaseMappings()).thenReturn(databaseMappings);
+    assertThat(service.getAvailableDatabaseMappings(), is(databaseMappings));
   }
+
+  @Test
+  public void getAllDatabaseMappings() {
+    List<DatabaseMapping> databaseMappings = Arrays.asList(primaryMapping, otherMapping);
+    when(wrapped.getAllDatabaseMappings()).thenReturn(databaseMappings);
+    assertThat(service.getAllDatabaseMappings(), is(databaseMappings));
+  }
+
 }

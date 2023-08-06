@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,16 @@ import java.util.List;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 
+@AllArgsConstructor
 public class GetAllFunctionsRequest implements RequestCallable<List<GetAllFunctionsResponse>> {
 
+  @Getter
   private final DatabaseMapping mapping;
-
-  public GetAllFunctionsRequest(DatabaseMapping mapping) {
-    this.mapping = mapping;
-  }
 
   @Override
   public List<GetAllFunctionsResponse> call() throws Exception {
@@ -40,11 +41,6 @@ public class GetAllFunctionsRequest implements RequestCallable<List<GetAllFuncti
       }
     }
     return Collections.singletonList(response);
-  }
-
-  @Override
-  public DatabaseMapping getMapping() {
-    return mapping;
   }
 
 }
