@@ -15,10 +15,15 @@
  */
 package com.hotels.bdp.waggledance.api;
 
-import lombok.experimental.StandardException;
-
-@StandardException
 public class WaggleDanceException extends RuntimeException {
   private static final long serialVersionUID = 1L;
+
+  public WaggleDanceException(String message) {
+    super(message);
+  }
+
+  public WaggleDanceException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
 }

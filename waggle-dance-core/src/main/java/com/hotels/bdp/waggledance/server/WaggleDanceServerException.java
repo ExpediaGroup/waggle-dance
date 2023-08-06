@@ -15,16 +15,20 @@
  */
 package com.hotels.bdp.waggledance.server;
 
-import lombok.experimental.StandardException;
-
 /**
  * Generic Waggle Dance Server Exception that is thrown whenever the server can't process an incoming hive thrift
  * request
  */
-
-@StandardException
 public class WaggleDanceServerException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
+
+  public WaggleDanceServerException(String message) {
+    super(message);
+  }
+
+  public WaggleDanceServerException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
 }

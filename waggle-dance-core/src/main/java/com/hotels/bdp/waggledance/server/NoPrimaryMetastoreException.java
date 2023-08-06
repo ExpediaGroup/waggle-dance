@@ -15,11 +15,12 @@
  */
 package com.hotels.bdp.waggledance.server;
 
-import lombok.experimental.StandardException;
-
-@StandardException
 public class NoPrimaryMetastoreException extends WaggleDanceServerException {
 
   private static final long serialVersionUID = 1L;
+
+  public NoPrimaryMetastoreException(String message) {
+    super(message);
+  }
 
 }
