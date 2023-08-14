@@ -73,10 +73,10 @@ public class MonitoredAspect {
           stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
       // Sends metrics with Tags: federation_namespace and method_name
-      incrementWithTags(buildMetricPath(COUNTER, newMetricBasePath, "calls"), methodName);
-      incrementWithTags(buildMetricPath(COUNTER, newMetricBasePath, result), methodName);
+      incrementWithTags(buildMetricPath(COUNTER, newMetricBasePath, "calls"), methodName); //counter.Type_Anonymous.calls
+      incrementWithTags(buildMetricPath(COUNTER, newMetricBasePath, result), methodName); //counter.Type_Anonymous.success
       submitWithTags(buildMetricPath(TIMER, newMetricBasePath, "duration"),
-          stopwatch.elapsed(TimeUnit.MILLISECONDS), methodName);
+          stopwatch.elapsed(TimeUnit.MILLISECONDS), methodName); //timer.Type_Anonymous.duration
     }
   }
 

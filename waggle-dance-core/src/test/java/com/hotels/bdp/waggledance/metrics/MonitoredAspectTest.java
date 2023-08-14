@@ -20,6 +20,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.junit.Before;
@@ -28,7 +33,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.cumulative.CumulativeCounter;
 import io.micrometer.core.instrument.search.RequiredSearch;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
@@ -107,6 +114,16 @@ public class MonitoredAspectTest {
 
     rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
     assertThat(rs.timer().count(), is(1L));
+  }
+
+  @Test
+  public void monitorSuccessWithTags() throws Throwable {
+    aspect.monitor(pjp, monitored);
+
+    Collection<Meter> meters = meterRegistry.get("counter.Type_Anonymous.success").meters();
+
+    assertThat(meters.size(), is(1));
+    assertThat(((CumulativeCounter) ((ArrayList) meters).get(0)).count(), is(1.0));
   }
 
   @Test
