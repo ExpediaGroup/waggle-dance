@@ -22,8 +22,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
@@ -36,6 +34,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.cumulative.CumulativeCounter;
+import io.micrometer.core.instrument.cumulative.CumulativeTimer;
 import io.micrometer.core.instrument.search.RequiredSearch;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
@@ -121,9 +120,16 @@ public class MonitoredAspectTest {
     aspect.monitor(pjp, monitored);
 
     Collection<Meter> meters = meterRegistry.get("counter.Type_Anonymous.success").meters();
-
     assertThat(meters.size(), is(1));
     assertThat(((CumulativeCounter) ((ArrayList) meters).get(0)).count(), is(1.0));
+
+    meters = meterRegistry.get("counter.Type_Anonymous.calls").meters();
+    assertThat(meters.size(), is(1));
+    assertThat(((CumulativeCounter) ((ArrayList) meters).get(0)).count(), is(1.0));
+
+    meters = meterRegistry.get("timer.Type_Anonymous.duration").meters();
+    assertThat(meters.size(), is(1));
+    assertThat(((CumulativeTimer) ((ArrayList) meters).get(0)).count(), is(1L));
   }
 
   @Test
