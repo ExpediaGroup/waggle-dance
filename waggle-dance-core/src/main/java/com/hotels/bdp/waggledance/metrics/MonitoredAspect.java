@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -51,6 +53,8 @@ public class MonitoredAspect {
   public Object monitor(ProceedingJoinPoint pjp, Monitored monitored) throws Throwable {
 
     String metricBasePath = buildMetricBasePath(pjp);
+    String newMetricBasePath = buildNewMetricBasePath(pjp);
+    String methodName = getMethodName(pjp);
 
     String result = null;
     Stopwatch stopwatch = Stopwatch.createStarted();
@@ -67,6 +71,12 @@ public class MonitoredAspect {
       increment(buildMetricPath(COUNTER, metricBasePath, getMonitorMetastore(), result));
       submit(buildMetricPath(TIMER, metricBasePath, getMonitorMetastore(), "duration"),
           stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
+      // Sends metrics with Tags: federation_namespace and method_name
+      incrementWithTags(buildMetricPath(COUNTER, newMetricBasePath, "calls"), methodName);
+      incrementWithTags(buildMetricPath(COUNTER, newMetricBasePath, result), methodName);
+      submitWithTags(buildMetricPath(TIMER, newMetricBasePath, "duration"),
+          stopwatch.elapsed(TimeUnit.MILLISECONDS), methodName);
     }
   }
 
@@ -75,9 +85,27 @@ public class MonitoredAspect {
     this.meterRegistry = meterRegistry;
   }
 
+  private void incrementWithTags(String metricName, String methodName) {
+    if (meterRegistry != null) {
+      Tag federationTag = Tag.of("federation_namespace", getMonitorMetastore());
+      Tag methodTag = Tag.of("method_name", methodName);
+      Iterable<Tag> tags = Tags.of(federationTag, methodTag);
+      meterRegistry.counter(metricName, tags).increment();
+    }
+  }
+
   private void increment(String metricName) {
     if (meterRegistry != null) {
       meterRegistry.counter(metricName).increment();
+    }
+  }
+
+  private void submitWithTags(String metricName, long value, String methodName) {
+    if (meterRegistry != null) {
+      Tag federationTag = Tag.of("federation_namespace", getMonitorMetastore());
+      Tag methodTag = Tag.of("method_name", methodName);
+      Iterable<Tag> tags = Tags.of(federationTag).and(methodTag);
+      meterRegistry.timer(metricName, tags).record(Duration.ofMillis(value));
     }
   }
 
@@ -87,9 +115,24 @@ public class MonitoredAspect {
     }
   }
 
-  private String buildMetricBasePath(ProceedingJoinPoint pjp) {
+  private String buildNewMetricBasePath(ProceedingJoinPoint pjp) {
     String className = clean(pjp.getSignature().getDeclaringTypeName());
+    return new StringBuilder(className).toString();
+  }
+
+  private String getMethodName(ProceedingJoinPoint pjp) {
     String methodName = clean(pjp.getSignature().getName());
+    return new StringBuilder(methodName).toString();
+  }
+
+  private String getClassName(ProceedingJoinPoint pjp) {
+    String className = clean(pjp.getSignature().getDeclaringTypeName());
+    return new StringBuilder(className).toString();
+  }
+
+  private String buildMetricBasePath(ProceedingJoinPoint pjp) {
+    String className = getClassName(pjp);
+    String methodName = getMethodName(pjp);
     return new StringBuilder(className).append(".").append(methodName).toString();
   }
 
@@ -101,5 +144,4 @@ public class MonitoredAspect {
   private String buildMetricPath(String... parts) {
     return DOT_JOINER.join(parts);
   }
-
 }
