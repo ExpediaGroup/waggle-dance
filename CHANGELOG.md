@@ -1,3 +1,7 @@
+## [3.11.3] - 2023-08-15
+### Changed
+- Metrics have been incorporated into Waggle Dance with the inclusion of tags, which will facilitate filtering within Datadog.
+
 ## [3.11.3] - TBD
 ### Fixed
 - Exclude Junit5 dependencies as they clashed with Junit4 and caused maven to stop running the tests.
