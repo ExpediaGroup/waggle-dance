@@ -87,9 +87,7 @@ public class MonitoredAspect {
 
   private void incrementWithTags(String metricName, String methodName) {
     if (meterRegistry != null) {
-      Tag federationTag = Tag.of("federation_namespace", getMonitorMetastore());
-      Tag methodTag = Tag.of("method_name", methodName);
-      Iterable<Tag> tags = Tags.of(federationTag, methodTag);
+      Iterable<Tag> tags = getMetricsTags(methodName);
       meterRegistry.counter(metricName, tags).increment();
     }
   }
@@ -102,9 +100,7 @@ public class MonitoredAspect {
 
   private void submitWithTags(String metricName, long value, String methodName) {
     if (meterRegistry != null) {
-      Tag federationTag = Tag.of("federation_namespace", getMonitorMetastore());
-      Tag methodTag = Tag.of("method_name", methodName);
-      Iterable<Tag> tags = Tags.of(federationTag).and(methodTag);
+      Iterable<Tag> tags = getMetricsTags(methodName);
       meterRegistry.timer(metricName, tags).record(Duration.ofMillis(value));
     }
   }
@@ -118,6 +114,12 @@ public class MonitoredAspect {
   private String buildNewMetricBasePath(ProceedingJoinPoint pjp) {
     String className = clean(pjp.getSignature().getDeclaringTypeName());
     return new StringBuilder(className).toString();
+  }
+
+  private Tags getMetricsTags(String methodName) {
+    Tag federationTag = Tag.of("federation_namespace", getMonitorMetastore());
+    Tag methodTag = Tag.of("method_name", methodName);
+    return Tags.of(federationTag).and(methodTag);
   }
 
   private String getMethodName(ProceedingJoinPoint pjp) {
