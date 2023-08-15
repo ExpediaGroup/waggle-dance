@@ -389,9 +389,6 @@ public class WaggleDanceIntegrationTest {
     runner.stop();
 
     Set<String> metrics = new TreeSet<>(Arrays.asList(new String(graphite.getOutput()).split("\n")));
-    /*assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.calls;metricattribute=count 2");
-    */
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.success;metricattribute=count 2");
     assertMetric(metrics,
