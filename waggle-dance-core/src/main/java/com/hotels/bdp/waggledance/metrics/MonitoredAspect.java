@@ -53,7 +53,7 @@ public class MonitoredAspect {
   public Object monitor(ProceedingJoinPoint pjp, Monitored monitored) throws Throwable {
 
     String metricBasePath = buildMetricBasePath(pjp);
-    String newMetricBasePath = buildNewMetricBasePath(pjp);
+    String newMetricBasePath = buildMetricWithTagsBasePath(pjp);
     String methodName = getMethodName(pjp);
 
     String result = null;
@@ -127,7 +127,7 @@ public class MonitoredAspect {
     return new StringBuilder(className).toString();
   }
 
-  private String buildNewMetricBasePath(ProceedingJoinPoint pjp) {
+  private String buildMetricWithTagsBasePath(ProceedingJoinPoint pjp) {
     String className = getClassName(pjp);
     return new StringBuilder(className).toString();
   }
