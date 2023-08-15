@@ -1,4 +1,4 @@
-## [3.11.3] - 2023-08-15
+## [3.11.4] - 2023-08-15
 ### Changed
 - Metrics have been incorporated into Waggle Dance with the inclusion of tags, which will facilitate filtering within Datadog.
 
