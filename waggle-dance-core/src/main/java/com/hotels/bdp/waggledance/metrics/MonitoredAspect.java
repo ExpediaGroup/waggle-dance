@@ -111,11 +111,6 @@ public class MonitoredAspect {
     }
   }
 
-  private String buildNewMetricBasePath(ProceedingJoinPoint pjp) {
-    String className = clean(pjp.getSignature().getDeclaringTypeName());
-    return new StringBuilder(className).toString();
-  }
-
   private Tags getMetricsTags(String methodName) {
     Tag federationTag = Tag.of("federation_namespace", getMonitorMetastore());
     Tag methodTag = Tag.of("method_name", methodName);
@@ -129,6 +124,11 @@ public class MonitoredAspect {
 
   private String getClassName(ProceedingJoinPoint pjp) {
     String className = clean(pjp.getSignature().getDeclaringTypeName());
+    return new StringBuilder(className).toString();
+  }
+
+  private String buildNewMetricBasePath(ProceedingJoinPoint pjp) {
+    String className = getClassName(pjp);
     return new StringBuilder(className).toString();
   }
 
