@@ -53,7 +53,7 @@ public class MonitoredAspect {
   public Object monitor(ProceedingJoinPoint pjp, Monitored monitored) throws Throwable {
 
     String metricBasePath = buildMetricBasePath(pjp);
-    String newMetricBasePath = buildMetricWithTagsBasePath(pjp);
+    String metricWithTagBasePath = buildMetricWithTagsBasePath(pjp);
     String methodName = getMethodName(pjp);
 
     String result = null;
@@ -73,9 +73,9 @@ public class MonitoredAspect {
           stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
       // Sends metrics with Tags: federation_namespace and method_name
-      incrementWithTags(buildMetricPath(COUNTER, newMetricBasePath, "calls"), methodName);
-      incrementWithTags(buildMetricPath(COUNTER, newMetricBasePath, result), methodName);
-      submitWithTags(buildMetricPath(TIMER, newMetricBasePath, "duration"),
+      incrementWithTags(buildMetricPath(COUNTER, metricWithTagBasePath, "calls"), methodName);
+      incrementWithTags(buildMetricPath(COUNTER, metricWithTagBasePath, result), methodName);
+      submitWithTags(buildMetricPath(TIMER, metricWithTagBasePath, "duration"),
           stopwatch.elapsed(TimeUnit.MILLISECONDS), methodName);
     }
   }
