@@ -1,4 +1,4 @@
-## [3.11.4] - 2023-08-15
+## [3.11.4] - 2023-08-16
 ### Changed
 - Metrics have been incorporated into Waggle Dance with the inclusion of tags, which will facilitate filtering within Datadog.
 - Exclude jetty-all from core module, because it makes spring start fail and makes `WaggleDanceIntegrationTest` fail.
