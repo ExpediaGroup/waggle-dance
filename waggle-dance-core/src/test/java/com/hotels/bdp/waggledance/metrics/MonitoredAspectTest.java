@@ -119,18 +119,34 @@ public class MonitoredAspectTest {
   public void monitorSuccessWithTags() throws Throwable {
     aspect.monitor(pjp, monitored);
 
-    Collection<Meter> meters = meterRegistry.get("counter.Type_Anonymous.success").meters();
-    assertThat(meters.size(), is(1));
-    assertThat(((CumulativeCounter) ((ArrayList) meters).get(0)).count(), is(1.0));
+    Collection<Meter> successMeters = meterRegistry.get("counter.Type_Anonymous.success").meters();
+    assertThat(successMeters.size(), is(1));
+    assertThat(((CumulativeCounter) ((ArrayList) successMeters).get(0)).count(), is(1.0));
 
-    meters = meterRegistry.get("counter.Type_Anonymous.calls").meters();
-    assertThat(meters.size(), is(1));
-    assertThat(((CumulativeCounter) ((ArrayList) meters).get(0)).count(), is(1.0));
+    Collection<Meter> callsMeters = meterRegistry.get("counter.Type_Anonymous.calls").meters();
+    assertThat(callsMeters.size(), is(1));
+    assertThat(((CumulativeCounter) ((ArrayList) callsMeters).get(0)).count(), is(1.0));
 
-    meters = meterRegistry.get("timer.Type_Anonymous.duration").meters();
-    assertThat(meters.size(), is(1));
-    assertThat(((CumulativeTimer) ((ArrayList) meters).get(0)).count(), is(1L));
+    Collection<Meter> durationMeters = meterRegistry.get("timer.Type_Anonymous.duration").meters();
+    assertThat(durationMeters.size(), is(1));
+    assertThat(((CumulativeTimer) ((ArrayList) durationMeters).get(0)).count(), is(1L));
+
+    // Verify the tags for successMeters
+    Meter successMeter = successMeters.iterator().next();
+    assertThat(successMeter.getId().getTag("federation_namespace"), is("all"));
+    assertThat(successMeter.getId().getTag("method_name"), is("myMethod"));
+
+    // Verify the tags for callsMeters
+    Meter callsMeter = callsMeters.iterator().next();
+    assertThat(callsMeter.getId().getTag("federation_namespace"), is("all"));
+    assertThat(successMeter.getId().getTag("method_name"), is("myMethod"));
+
+    // Verify the tags for durationMeters
+    Meter durationMeter = durationMeters.iterator().next();
+    assertThat(durationMeter.getId().getTag("federation_namespace"), is("all"));
+    assertThat(successMeter.getId().getTag("method_name"), is("myMethod"));
   }
+
 
   @Test
   public void monitorFailuresForSpecificMetastore() throws Throwable {
