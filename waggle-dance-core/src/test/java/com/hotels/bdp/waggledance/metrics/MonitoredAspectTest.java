@@ -20,7 +20,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -33,8 +32,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.cumulative.CumulativeCounter;
-import io.micrometer.core.instrument.cumulative.CumulativeTimer;
 import io.micrometer.core.instrument.search.RequiredSearch;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
@@ -119,29 +116,29 @@ public class MonitoredAspectTest {
   public void monitorSuccessWithTags() throws Throwable {
     aspect.monitor(pjp, monitored);
 
-    Collection<Meter> successMeters = meterRegistry.get("counter.Type_Anonymous.success").meters();
-    assertThat(successMeters.size(), is(1));
-    assertThat(((CumulativeCounter) ((ArrayList) successMeters).get(0)).count(), is(1.0));
+    RequiredSearch rs = meterRegistry.get("counter.Type_Anonymous.success");
+    assertThat(rs.counter().count(), is(1.0));
 
-    Collection<Meter> callsMeters = meterRegistry.get("counter.Type_Anonymous.calls").meters();
-    assertThat(callsMeters.size(), is(1));
-    assertThat(((CumulativeCounter) ((ArrayList) callsMeters).get(0)).count(), is(1.0));
+    rs = meterRegistry.get("counter.Type_Anonymous.calls");
+    assertThat(rs.counter().count(), is(1.0));
 
-    Collection<Meter> durationMeters = meterRegistry.get("timer.Type_Anonymous.duration").meters();
-    assertThat(durationMeters.size(), is(1));
-    assertThat(((CumulativeTimer) ((ArrayList) durationMeters).get(0)).count(), is(1L));
+    rs = meterRegistry.get("timer.Type_Anonymous.duration");
+    assertThat(rs.timer().count(), is(1L));
 
     // Verify the tags for successMeters
+    Collection<Meter> successMeters = meterRegistry.get("counter.Type_Anonymous.success").meters();
     Meter successMeter = successMeters.iterator().next();
     assertThat(successMeter.getId().getTag("federation_namespace"), is("all"));
     assertThat(successMeter.getId().getTag("method_name"), is("myMethod"));
 
     // Verify the tags for callsMeters
+    Collection<Meter> callsMeters = meterRegistry.get("counter.Type_Anonymous.calls").meters();
     Meter callsMeter = callsMeters.iterator().next();
     assertThat(callsMeter.getId().getTag("federation_namespace"), is("all"));
     assertThat(successMeter.getId().getTag("method_name"), is("myMethod"));
 
     // Verify the tags for durationMeters
+    Collection<Meter> durationMeters = meterRegistry.get("timer.Type_Anonymous.duration").meters();
     Meter durationMeter = durationMeters.iterator().next();
     assertThat(durationMeter.getId().getTag("federation_namespace"), is("all"));
     assertThat(successMeter.getId().getTag("method_name"), is("myMethod"));
