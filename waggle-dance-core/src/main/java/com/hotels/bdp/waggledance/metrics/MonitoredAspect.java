@@ -125,11 +125,6 @@ public class MonitoredAspect {
     return clean(pjp.getSignature().getDeclaringTypeName());
   }
 
-  private String buildMetricWithTagsBasePath(ProceedingJoinPoint pjp) {
-    String className = getClassName(pjp);
-    return new StringBuilder(className).toString();
-  }
-
   private String buildMetricBasePath(ProceedingJoinPoint pjp) {
     String className = getClassName(pjp);
     String methodName = getMethodName(pjp);
