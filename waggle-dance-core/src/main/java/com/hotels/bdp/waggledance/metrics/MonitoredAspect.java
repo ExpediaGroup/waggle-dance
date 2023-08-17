@@ -67,16 +67,12 @@ public class MonitoredAspect {
       throw t;
     } finally {
       stopwatch.stop();
-      increment(buildMetricPath(COUNTER, metricBasePath, getMonitorMetastore(), "calls"));
-      increment(buildMetricPath(COUNTER, metricBasePath, getMonitorMetastore(), result));
-      submit(buildMetricPath(TIMER, metricBasePath, getMonitorMetastore(), "duration"),
-          stopwatch.elapsed(TimeUnit.MILLISECONDS));
-
-      // Sends metrics with Tags: federation_namespace and method_name
-      incrementWithTags(buildMetricPath(COUNTER, className, "calls"), methodName);
-      incrementWithTags(buildMetricPath(COUNTER, className, result), methodName);
-      submitWithTags(buildMetricPath(TIMER, className, "duration"),
-          stopwatch.elapsed(TimeUnit.MILLISECONDS), methodName);
+      increment(buildMetricName(COUNTER, metricBasePath, getMonitorMetastore(), "calls"),methodName,
+          buildMetricName(COUNTER, className, "calls"));
+      increment(buildMetricName(COUNTER, metricBasePath, getMonitorMetastore(), result),methodName,
+          buildMetricName(COUNTER, className, result));
+      submit(buildMetricName(TIMER, metricBasePath, getMonitorMetastore(), "duration"),
+          stopwatch.elapsed(TimeUnit.MILLISECONDS),methodName, buildMetricName(TIMER, className, "duration"));
     }
   }
 
@@ -85,29 +81,19 @@ public class MonitoredAspect {
     this.meterRegistry = meterRegistry;
   }
 
-  private void incrementWithTags(String metricName, String methodName) {
+  private void increment(String metricName, String methodName, String metricWithTag) {
     if (meterRegistry != null) {
       Iterable<Tag> tags = getMetricsTags(methodName);
-      meterRegistry.counter(metricName, tags).increment();
-    }
-  }
-
-  private void increment(String metricName) {
-    if (meterRegistry != null) {
       meterRegistry.counter(metricName).increment();
+      meterRegistry.counter(metricWithTag, tags).increment();
     }
   }
 
-  private void submitWithTags(String metricName, long value, String methodName) {
+  private void submit(String metricName, long value, String methodName, String metricWithTag) {
     if (meterRegistry != null) {
       Iterable<Tag> tags = getMetricsTags(methodName);
-      meterRegistry.timer(metricName, tags).record(Duration.ofMillis(value));
-    }
-  }
-
-  private void submit(String metricName, long value) {
-    if (meterRegistry != null) {
       meterRegistry.timer(metricName).record(Duration.ofMillis(value));
+      meterRegistry.timer(metricWithTag, tags).record(Duration.ofMillis(value));
     }
   }
 
@@ -136,7 +122,7 @@ public class MonitoredAspect {
     return result;
   }
 
-  private String buildMetricPath(String... parts) {
+  private String buildMetricName(String... parts) {
     return DOT_JOINER.join(parts);
   }
 }
