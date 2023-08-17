@@ -402,11 +402,17 @@ public class WaggleDanceIntegrationTest {
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success;metricattribute=count 1");
     assertMetric(metrics,
-        "counter.Type_Anonymous.success{federation_namespace='all',method_name='myMethod'}=count 1");
+        "graphitePrefix.counter.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.success{federation_namespace='get_all_databases',method_name='all'}=count 1");
     assertMetric(metrics,
-        "counter.Type_Anonymous.calls{federation_namespace='all',method_name='myMethod'}=count 1");
+        "graphitePrefix.counter.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls{federation_namespace='get_all_databases',method_name='all'}=count 1");
     assertMetric(metrics,
-        "timer.Type_Anonymous.duration{federation_namespace='all',method_name='myMethod'}=count 1");
+        "graphitePrefix.counter.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.failure{federation_namespace='get_all_databases',method_name='all'}=count 1");
+    assertMetric(metrics,
+        "graphitePrefix.counter.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls{federation_namespace='get_table_req',method_name='primary'}=count 1");
+    assertMetric(metrics,
+        "graphitePrefix.counter.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.success{federation_namespace='get_table_req',method_name='primary'}=count 1");
+    assertMetric(metrics,
+        "graphitePrefix.counter.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.failure{federation_namespace='get_table_req',method_name='primary'}=count 1");
   }
 
   private void assertMetric(Set<String> metrics, String partialMetric) {
