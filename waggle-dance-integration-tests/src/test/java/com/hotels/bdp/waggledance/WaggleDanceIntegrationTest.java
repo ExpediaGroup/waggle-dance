@@ -401,6 +401,12 @@ public class WaggleDanceIntegrationTest {
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.calls;metricattribute=count 1");
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success;metricattribute=count 1");
+    assertMetric(metrics,
+        "counter.Type_Anonymous.success{federation_namespace='all',method_name=''}=count 1");
+    assertMetric(metrics,
+        "counter.Type_Anonymous.calls{federation_namespace='all',method_name=''}=count 1");
+    assertMetric(metrics,
+        "timer.Type_Anonymous.duration{federation_namespace='all',method_name=''}=count 1");
   }
 
   private void assertMetric(Set<String> metrics, String partialMetric) {
