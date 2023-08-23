@@ -422,6 +422,10 @@ public class WaggleDanceIntegrationTest {
   private void assertMetric(Set<String> metrics, String partialMetric) {
     for (String metric : metrics) {
       if (metric.startsWith(partialMetric)) {
+        LOG.info("===================================================================");
+        LOG.info(metric);
+        LOG.info(partialMetric);
+        LOG.info("===================================================================");
         return;
       }
     }
