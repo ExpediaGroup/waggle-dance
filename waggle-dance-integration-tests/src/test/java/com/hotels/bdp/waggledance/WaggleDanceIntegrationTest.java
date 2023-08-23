@@ -389,7 +389,7 @@ public class WaggleDanceIntegrationTest {
     runner.stop();
 
     Set<String> metrics = new TreeSet<>(Arrays.asList(new String(graphite.getOutput()).split("\n")));
-    /*assertMetric(metrics,
+    assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.calls;metricattribute=count 2");
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_all_databases.all.success;metricattribute=count 2");
@@ -400,30 +400,16 @@ public class WaggleDanceIntegrationTest {
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.calls;metricattribute=count 1");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success;metricattribute=count 1");*/
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success;metricattribute=count 1");
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.success");
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls");
-    /*assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls{federation_namespace='get_all_databases',method_name='all'}=count 1");
-    assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.failure{federation_namespace='get_all_databases',method_name='all'}=count 1");
-    assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls{federation_namespace='get_table_req',method_name='primary'}=count 1");
-    assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.success{federation_namespace='get_table_req',method_name='primary'}=count 1");
-    assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.failure{federation_namespace='get_table_req',method_name='primary'}=count 1");
-*/  }
+  }
 
   private void assertMetric(Set<String> metrics, String partialMetric) {
     for (String metric : metrics) {
       if (metric.startsWith(partialMetric)) {
-        LOG.info("===================================================================");
-        LOG.info(metric);
-        LOG.info(partialMetric);
-        LOG.info("===================================================================");
         return;
       }
     }
