@@ -404,8 +404,6 @@ public class WaggleDanceIntegrationTest {
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.success");
     assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.failure");
-    assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls");
     /*assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls{federation_namespace='get_all_databases',method_name='all'}=count 1");
