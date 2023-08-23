@@ -401,9 +401,9 @@ public class WaggleDanceIntegrationTest {
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.calls;metricattribute=count 1");
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success;metricattribute=count 1");
-    /*assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.success{federation_namespace='get_all_databases',method_name='all'}=count 1");
     assertMetric(metrics,
+        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.success");
+    /*assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls{federation_namespace='get_all_databases',method_name='all'}=count 1");
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.failure{federation_namespace='get_all_databases',method_name='all'}=count 1");
