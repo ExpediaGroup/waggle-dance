@@ -1,4 +1,14 @@
-## [3.11.3] - TBD
+## [3.11.4] - 2023-08-23
+### Changed
+- Metrics have been incorporated into Waggle Dance with the inclusion of tags, which will facilitate filtering within Datadog.
+- Exclude jetty-all from core module, because it makes spring start fail and makes `WaggleDanceIntegrationTest` fail.
+- Upgrade maven.surefire.plugin.version to 3.1.2 (was 3.0.0-m5).
+- Exclude jdk.tools clashes with > java8 JDK.
+### Fixed
+- Exclude Junit5 dependencies as they clashed with Junit4 and caused maven to stop running the tests.
+- Fixed metric(graphite) integration test (was broken since 3.10.12 (spring-boot upgrade).
+
+## [3.11.3] - YANKED
 ### Fixed
 - Exclude Junit5 dependencies as they clashed with Junit4 and caused maven to stop running the tests.
 - Fixed metric(graphite) integration test (was broken since 3.10.12 (spring-boot upgrade).
