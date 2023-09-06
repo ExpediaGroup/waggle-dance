@@ -52,6 +52,7 @@ import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.conf.GraphiteConfiguration;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.conf.YamlStorageConfiguration;
+import com.hotels.bdp.waggledance.mapping.service.FederatedMetaStoreStorage;
 import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
@@ -327,6 +328,10 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
     return applicationContext.getBean(MetaStoreProxyServer.class);
   }
 
+  private FederatedMetaStoreStorage getFederatedMetaStoreStorage() {
+    return applicationContext.getBean(FederatedMetaStoreStorage.class);
+  }
+
   public Map<String, String> run() throws Exception {
     Map<String, String> props = populateProperties();
     WaggleDance.register(this);
@@ -348,6 +353,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
   public void stop() throws Exception {
     if (applicationContext != null) {
       getProxy().stop();
+      getFederatedMetaStoreStorage().saveFederation();
       long delay = 1;
       while (applicationContext != null) {
         if (delay >= 15) {

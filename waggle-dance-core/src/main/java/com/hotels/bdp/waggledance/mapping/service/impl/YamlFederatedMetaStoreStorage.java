@@ -182,6 +182,7 @@ public class YamlFederatedMetaStoreStorage implements FederatedMetaStoreStorage 
   }
 
   @PreDestroy
+  @Override
   public void saveFederation() {
     if (writeConfigOnShutdown) {
       yamlMarshaller
