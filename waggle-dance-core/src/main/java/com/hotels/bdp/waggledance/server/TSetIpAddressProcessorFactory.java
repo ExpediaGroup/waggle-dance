@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.hotels.bdp.waggledance.server.security.ranger.RangerAccessControlFactory;
+
 @Component
 class TSetIpAddressProcessorFactory extends TProcessorFactory {
 
@@ -61,7 +63,11 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
 
       boolean useSASL = hiveConf.getBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
       if (useSASL) {
-        IHMSHandler tokenHandler = TokenWrappingHMSHandler.newProxyInstance(baseHandler, useSASL);
+
+        IHMSHandler rangerHandler = RangerWrappingHMSHandler.newProxyInstance(baseHandler,
+                RangerAccessControlFactory.getInstance(hiveConf));
+        IHMSHandler tokenHandler = TokenWrappingHMSHandler.newProxyInstance(rangerHandler, useSASL);
+
         IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(tokenHandler), hiveConf,
                 false);
         return new TSetIpAddressProcessor<>(handler);

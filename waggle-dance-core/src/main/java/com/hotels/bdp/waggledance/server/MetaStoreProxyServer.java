@@ -174,6 +174,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       HadoopThriftAuthBridge.Server saslServer = null;
 
       if (useSASL) {
+        UserGroupInformation.reset();
         UserGroupInformation.setConfiguration(hiveConf);
         saslServer = SaslHelper.createSaslServer(hiveConf);
       }
