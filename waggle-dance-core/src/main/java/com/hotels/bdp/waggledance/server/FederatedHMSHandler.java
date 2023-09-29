@@ -26,6 +26,7 @@ import org.apache.hadoop.hive.metastore.MetaStoreEventListener;
 import org.apache.hadoop.hive.metastore.RawStore;
 import org.apache.hadoop.hive.metastore.TransactionalMetaStoreEventListener;
 import org.apache.hadoop.hive.metastore.Warehouse;
+import org.apache.hadoop.hive.metastore.utils.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.AbortTxnRequest;
 import org.apache.hadoop.hive.metastore.api.AbortTxnsRequest;
 import org.apache.hadoop.hive.metastore.api.AddCheckConstraintRequest;
@@ -362,6 +363,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public Database get_database(String name) throws NoSuchObjectException, MetaException, TException {
+    name = MetaStoreUtils.parseDbName(name, conf)[1];
     log.info("Fetching database {}", name);
     DatabaseMapping mapping = databaseMappingService.databaseMapping(name);
     log.info("Mapping is '{}'", mapping.getDatabasePrefix());
@@ -373,6 +375,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void drop_database(String name, boolean deleteData, boolean cascade)
       throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+    name = MetaStoreUtils.parseDbName(name, conf)[1];
     DatabaseMapping mapping = checkWritePermissions(name);
     mapping.getClient().drop_database(mapping.transformInboundDatabaseName(name), deleteData, cascade);
   }
@@ -488,6 +491,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       boolean deleteData,
       EnvironmentContext environment_context)
       throws NoSuchObjectException, MetaException, TException {
+    dbname = MetaStoreUtils.parseDbName(dbname, conf)[1];
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(dbname, name);
     mapping
         .getClient()
@@ -561,6 +565,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void alter_table(String dbname, String tbl_name, Table new_tbl)
       throws InvalidOperationException, MetaException, TException {
+    dbname = MetaStoreUtils.parseDbName(dbname, conf)[1];
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(dbname, tbl_name);
     mapping.checkWritePermissions(new_tbl.getDbName());
     databaseMappingService.checkTableAllowed(new_tbl.getDbName(), new_tbl.getTableName(), mapping);
@@ -671,6 +676,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       List<String> part_vals,
       EnvironmentContext environment_context)
       throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+    db_name = MetaStoreUtils.parseDbName(db_name, conf)[1];
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(db_name, tbl_name);
     Partition partition = mapping
         .getClient()
@@ -698,6 +704,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       String part_name,
       EnvironmentContext environment_context)
       throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
+    db_name = MetaStoreUtils.parseDbName(db_name, conf)[1];
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(db_name, tbl_name);
     Partition partition = mapping
         .getClient()
@@ -725,6 +732,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       boolean deleteData,
       EnvironmentContext environment_context)
       throws NoSuchObjectException, MetaException, TException {
+    db_name = MetaStoreUtils.parseDbName(db_name, conf)[1];
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(db_name, tbl_name);
     return mapping
         .getClient()
@@ -993,6 +1001,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       Partition new_part,
       EnvironmentContext environment_context)
       throws InvalidOperationException, MetaException, TException {
+    db_name = MetaStoreUtils.parseDbName(db_name, conf)[1];
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(db_name, tbl_name);
     checkWritePermissionsAndCheckTableAllowed(new_part.getDbName(), new_part.getTableName(), mapping);
     mapping
@@ -1180,6 +1189,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void drop_function(String dbName, String funcName) throws NoSuchObjectException, MetaException, TException {
+    dbName = MetaStoreUtils.parseDbName(dbName, conf)[1];
     DatabaseMapping mapping = checkWritePermissions(dbName);
     mapping.getClient().drop_function(mapping.transformInboundDatabaseName(dbName), funcName);
   }
@@ -1669,6 +1679,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
       List<Partition> new_parts,
       EnvironmentContext environment_context)
       throws InvalidOperationException, MetaException, TException {
+    db_name = MetaStoreUtils.parseDbName(db_name, conf)[1];
     DatabaseMapping mapping = checkWritePermissionsAndCheckTableAllowed(db_name, tbl_name);
     for(Partition newPart : new_parts) {
       checkWritePermissionsAndCheckTableAllowed(newPart.getDbName(), newPart.getTableName(), mapping);
@@ -2198,6 +2209,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public List<String> get_tables_by_type(String db_name, String pattern, String tableType)
       throws MetaException, TException {
+    db_name = MetaStoreUtils.parseDbName(db_name, conf)[1];
     DatabaseMapping mapping = databaseMappingService.databaseMapping(db_name);
     List<String> resultTables = mapping.getClient().get_tables_by_type(mapping.transformInboundDatabaseName(db_name), pattern, tableType);
     List<String> result = databaseMappingService.filterTables(db_name, resultTables, mapping);
