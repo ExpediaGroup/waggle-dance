@@ -196,7 +196,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       if (delegationToken == null && (currUser = UserGroupInformation.getCurrentUser())
               != UserGroupInformation.getLoginUser()) {
 
-        log.info(String.format("set %s delegation token", currUser.getShortUserName()));
+        log.info("set {} delegation token", currUser.getShortUserName());
         String token = TokenWrappingHMSHandler.getToken();
         setTokenStr2Ugi(currUser, token);
         delegationToken = token;
