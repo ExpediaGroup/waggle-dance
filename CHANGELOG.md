@@ -1,4 +1,4 @@
-## [3.11.5] - TBD
+## [3.11.5] - 2023-10-23
 ### Fixed
 - Added timeout on `MetastoreMappingImpl.isAvailable()` calls to prevent long waits on unresponsive metastores.
 
