@@ -1,3 +1,7 @@
+## [3.11.5] - TBD
+### Fixed
+- Added timeout on `MetastoreMappingImpl.isAvailable()` calls to prevent long waits on unresponsive metastores.
+
 ## [3.11.4] - 2023-08-23
 ### Changed
 - Metrics have been incorporated into Waggle Dance with the inclusion of tags, which will facilitate filtering within Datadog.

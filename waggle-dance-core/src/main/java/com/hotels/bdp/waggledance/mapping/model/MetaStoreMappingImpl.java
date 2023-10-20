@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,11 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
@@ -38,6 +43,9 @@ import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 class MetaStoreMappingImpl implements MetaStoreMapping {
 
   private final static Logger log = LoggerFactory.getLogger(MetaStoreMappingImpl.class);
+
+  // MilliSeconds
+  static final long DEFAULT_AVAILABILITY_TIMEOUT = 500;
 
   private final String databasePrefix;
   private final CloseableThriftHiveMetastoreIface client;
@@ -106,18 +114,32 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
     client.close();
   }
 
+  /**
+   * This is potentially slow so a best effort is made and false is returned after a timeout.
+   */
   @Override
   public boolean isAvailable() {
-    try {
-      boolean isOpen = client.isOpen();
-      if (isOpen && connectionType == ConnectionType.TUNNELED) {
-        client.getStatus();
+    Future<Boolean> future = CompletableFuture.supplyAsync(() -> {
+      try {
+        boolean isOpen = client.isOpen();
+        if (isOpen && connectionType == ConnectionType.TUNNELED) {
+          client.getStatus();
+        }
+        return isOpen;
+      } catch (Exception e) {
+        log.error("Metastore Mapping {} unavailable", name, e);
+        return false;
       }
-      return isOpen;
-    } catch (Exception e) {
-      log.error("Metastore Mapping {} unavailable", name, e);
-      return false;
+    });
+    try {
+      return future.get(DEFAULT_AVAILABILITY_TIMEOUT + getLatency(), TimeUnit.MILLISECONDS);
+    } catch (TimeoutException e) {
+      log.info("Took too long to check availability of '" + name + "', assuming unavailable");
+      future.cancel(true);
+    } catch (InterruptedException | ExecutionException e) {
+      log.error("Error while checking availability '" + name + "', assuming unavailable");
     }
+    return false;
   }
 
   @Override

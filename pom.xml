@@ -42,7 +42,6 @@
     <hive.version>2.3.7</hive.version>
     <junit.version>4.13.1</junit.version>
     <mockito.version>3.5.15</mockito.version>
-    <dropwizard.metrics.version>3.1.5</dropwizard.metrics.version>
     <aspectj-maven-plugin.version>1.9</aspectj-maven-plugin.version>
     <aspectj.version>1.8.9</aspectj.version>
     <beeju.version>4.0.0</beeju.version>
