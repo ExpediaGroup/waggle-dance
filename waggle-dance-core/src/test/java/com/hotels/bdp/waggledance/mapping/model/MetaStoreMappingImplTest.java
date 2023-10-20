@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.AdditionalAnswers.answersWithDelay;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.DIRECT;
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
+import static com.hotels.bdp.waggledance.mapping.model.MetaStoreMappingImpl.DEFAULT_AVAILABILITY_TIMEOUT;
 
 import java.io.IOException;
 
@@ -112,6 +114,12 @@ public class MetaStoreMappingImplTest {
   @Test
   public void isNotAvailable() {
     when(client.isOpen()).thenReturn(false);
+    assertThat(metaStoreMapping.isAvailable(), is(false));
+  }
+
+  @Test
+  public void isNotAvailableTimeout() throws Exception {
+    when(client.isOpen()).then(answersWithDelay(DEFAULT_AVAILABILITY_TIMEOUT+LATENCY+10, a -> true));
     assertThat(metaStoreMapping.isAvailable(), is(false));
   }
 
