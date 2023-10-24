@@ -1,7 +1,7 @@
 
 ## [3.11.6] - 2023-10-24
 ### Fixed
-- Switch to ExecutorService instead of the default `ForkJoinPool` for `MetastoreMappingImpl.isAvailable()` calls. Using `ForkJoinPool` causes threads to wait on each other.
+- Switch to ExecutorService instead of the default `ForkJoinPool` for `MetastoreMappingImpl.isAvailable()` calls. Using `ForkJoinPool` may caus threads to wait on each other.
 - Increased default `MetastoreMappingImpl.isAvailable()` timeout to `2000ms` (was `500ms`) to set a bit more conservative default.
 
 ## [3.11.5] - 2023-10-23
