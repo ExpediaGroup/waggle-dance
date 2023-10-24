@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -45,7 +47,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final static Logger log = LoggerFactory.getLogger(MetaStoreMappingImpl.class);
 
   // MilliSeconds
-  static final long DEFAULT_AVAILABILITY_TIMEOUT = 500;
+  static final long DEFAULT_AVAILABILITY_TIMEOUT = 2000;
 
   private final String databasePrefix;
   private final CloseableThriftHiveMetastoreIface client;
@@ -53,8 +55,8 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final String name;
   private final long latency;
   private final MetaStoreFilterHook metastoreFilter;
-
   private final ConnectionType connectionType;
+  private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
   MetaStoreMappingImpl(
       String databasePrefix,
@@ -112,6 +114,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   @Override
   public void close() throws IOException {
     client.close();
+    executor.shutdownNow();
   }
 
   /**
@@ -130,11 +133,12 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
         log.error("Metastore Mapping {} unavailable", name, e);
         return false;
       }
-    });
+    }, executor);
+    long timeout = DEFAULT_AVAILABILITY_TIMEOUT + getLatency();
     try {
-      return future.get(DEFAULT_AVAILABILITY_TIMEOUT + getLatency(), TimeUnit.MILLISECONDS);
+      return future.get(timeout, TimeUnit.MILLISECONDS);
     } catch (TimeoutException e) {
-      log.info("Took too long to check availability of '" + name + "', assuming unavailable");
+      log.info("Took too long (>" + timeout + "ms) to check availability of '" + name + "', assuming unavailable");
       future.cancel(true);
     } catch (InterruptedException | ExecutionException e) {
       log.error("Error while checking availability '" + name + "', assuming unavailable");
