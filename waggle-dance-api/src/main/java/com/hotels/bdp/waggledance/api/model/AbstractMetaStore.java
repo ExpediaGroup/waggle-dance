@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -247,6 +247,7 @@ public abstract class AbstractMetaStore {
         .add("metastoreTunnel", metastoreTunnel)
         .add("accessControlType", accessControlType)
         .add("writableDatabaseWhiteList", writableDatabaseWhitelist)
+        .add("latency", latency)
         .add("status", status)
         .toString();
   }

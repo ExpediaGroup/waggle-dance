@@ -196,7 +196,7 @@ class ThriftMetastoreClientManager implements Closeable {
       // Wait before launching the next round of connection retries.
       if (!isConnected && (retryDelaySeconds > 0) && ((attempt + 1) < retries)) {
         try {
-          LOG.info("Waiting " + retryDelaySeconds + " seconds before next connection attempt.");
+          LOG.debug("Waiting " + retryDelaySeconds + " seconds before next connection attempt.");
           Thread.sleep(retryDelaySeconds * 1000);
         } catch (InterruptedException ignore) {}
       }
