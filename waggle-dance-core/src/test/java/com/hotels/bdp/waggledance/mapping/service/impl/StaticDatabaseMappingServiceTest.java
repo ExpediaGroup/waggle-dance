@@ -64,6 +64,7 @@ import com.hotels.bdp.waggledance.mapping.model.MetaStoreMapping;
 import com.hotels.bdp.waggledance.mapping.model.QueryMapping;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
+import com.hotels.bdp.waggledance.mapping.service.impl.StaticDatabaseMappingService.StaticDatabaseMappingPanopticOperationHandler;
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -456,6 +457,25 @@ public class StaticDatabaseMappingServiceTest {
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> allDatabases = Lists.newArrayList(PRIMARY_DB, FEDERATED_DB);
     assertThat(handler.getAllDatabases(), is(allDatabases));
+  }
+
+  @Test
+  public void panopticOperationsHandlerGetPrimaryAllDatabases() throws Exception {
+    String pattern = "*";
+    List<String> allPrimaryDatabases =
+        Lists.newArrayList("primary_db1", "primary_db2", "primary_db3");
+    when(primaryDatabaseClient.get_databases(pattern)).thenReturn(allPrimaryDatabases);
+    when(primaryDatabaseClient.get_all_databases()).thenReturn(allPrimaryDatabases);
+
+    primaryMetastore.setMappedDatabases(Lists.newArrayList("primary_db1"));
+
+    service = new StaticDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+
+
+    StaticDatabaseMappingPanopticOperationHandler handler =
+        (StaticDatabaseMappingPanopticOperationHandler) service.getPanopticOperationHandler();
+    assertThat(handler.getPrimaryAllDatabases(), is(Lists.newArrayList("primary_db1")));
   }
 
   @Test

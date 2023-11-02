@@ -42,6 +42,7 @@ import org.apache.thrift.TException;
 
 import lombok.extern.log4j.Log4j2;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -410,7 +411,8 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       return new ArrayList<>(mappingsByDatabaseName.keySet());
     }
 
-    public List<String> getPrimaryAllDatabases() {
+    @VisibleForTesting
+    List<String> getPrimaryAllDatabases() {
       BiFunction<String, DatabaseMapping, Boolean> filter = getFilter();
 
       Map<DatabaseMapping, String> mappingsForPattern = new LinkedHashMap<>();
