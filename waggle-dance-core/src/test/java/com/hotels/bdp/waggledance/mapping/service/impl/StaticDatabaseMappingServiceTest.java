@@ -479,6 +479,37 @@ public class StaticDatabaseMappingServiceTest {
   }
 
   @Test
+  public void panopticOperationsHandlerStartOkCanFilterPrimaryDatabase() throws Exception {
+    String pattern = "*";
+    List<String> allPrimaryDatabases =
+        Lists.newArrayList("db1", "db2", "db3");
+    when(primaryDatabaseClient.get_databases(pattern)).thenReturn(allPrimaryDatabases);
+    when(primaryDatabaseClient.get_all_databases()).thenReturn(allPrimaryDatabases);
+
+    List<String> allFederatedDatabases =
+        Lists.newArrayList("db2", "db3", "db4");
+    when(federatedDatabaseClient.get_databases(pattern)).thenReturn(allFederatedDatabases);
+    when(federatedDatabaseClient.get_all_databases()).thenReturn(allFederatedDatabases);
+
+    try {
+      primaryMetastore.setMappedDatabases(allPrimaryDatabases);
+      federatedMetastore.setMappedDatabases(allFederatedDatabases);
+      service = new StaticDatabaseMappingService(metaStoreMappingFactory,
+          Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+    } catch (WaggleDanceException exception) {
+      primaryMetastore.setMappedDatabases(Lists.newArrayList("db1"));
+      federatedMetastore.setMappedDatabases(Lists.newArrayList("db2", "db3", "db4"));
+
+      service = new StaticDatabaseMappingService(metaStoreMappingFactory,
+          Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+
+      return;
+    }
+
+    fail("Shouldn't be here");
+  }
+
+  @Test
   public void panopticOperationsHandlerGetAllDatabasesWithEmptyMappedDatabases() {
     federatedMetastore.setMappedDatabases(Collections.emptyList());
     primaryMetastore.setMappedDatabases(Collections.emptyList());
