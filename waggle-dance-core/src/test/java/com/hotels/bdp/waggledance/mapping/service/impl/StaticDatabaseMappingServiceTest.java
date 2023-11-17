@@ -145,7 +145,7 @@ public class StaticDatabaseMappingServiceTest {
     when(federatedDatabaseClient.get_all_databases()).thenReturn(allLowerCased);
     return newMetastore;
   }
-
+  
   @Test
   public void databaseMappingPrimary() throws NoSuchObjectException {
     DatabaseMapping databaseMapping = service.databaseMapping(PRIMARY_DB);
@@ -201,6 +201,35 @@ public class StaticDatabaseMappingServiceTest {
     metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
     when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("db"));
+    when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
+
+    service = new StaticDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(federatedMetastore, primaryMetastore), queryMapping);
+  }
+  
+
+  @Test
+  public void validateNoPrimaryMetaStoreClashWhenMapped() throws TException {
+    federatedMetastore = newFederatedInstanceWithClient(FEDERATED_NAME, URI, Lists.newArrayList("db"), true);
+
+    primaryMetastore.setMappedDatabases(Lists.newArrayList("mapped_db"));
+    metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
+    when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
+    when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("db", "mapped_db"));
+    when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
+
+    service = new StaticDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+  }
+  
+  @Test
+  public void validateNoPrimaryMetaStoreClashWhenMappedPrimarySpecifiedLast() throws TException {
+    federatedMetastore = newFederatedInstanceWithClient(FEDERATED_NAME, URI, Lists.newArrayList("db"), true);
+
+    primaryMetastore.setMappedDatabases(Lists.newArrayList("mapped_db"));
+    metaStoreMappingPrimary = mockNewMapping(true, primaryMetastore);
+    when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
+    when(primaryDatabaseClient.get_all_databases()).thenReturn(Lists.newArrayList("db", "mapped_db"));
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
 
     service = new StaticDatabaseMappingService(metaStoreMappingFactory,

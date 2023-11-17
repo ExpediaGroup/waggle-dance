@@ -17,6 +17,7 @@
 ### Fixed
 * Added lombok
 * Fixed test cases
+* Fixed issue where the primare metastore was not applying the allow filter to validate database clashes from other metastores.
 
 ## [3.9.5] - TBD
 ### Changed
