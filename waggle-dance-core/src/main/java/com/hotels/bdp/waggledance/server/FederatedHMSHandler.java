@@ -1616,32 +1616,34 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public GetTablesResult get_table_objects_by_name_req(GetTablesRequest req)
     throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    long total = System.currentTimeMillis();
     StringBuilder message = new StringBuilder();
     Stopwatch stopWatch = Stopwatch.createStarted();
 
-    message.append("get_table_objects_by_name_req: req=" + req.toString() + "\n");
+    message.append("get_table_objects_by_name_req: req=" + req.toString() + ", ");
     DatabaseMapping mapping = databaseMappingService.databaseMapping(req.getDbName());
-    message.append("    databaseMapping took:" + stopWatch.elapsed().toMillis() + "\n");
+    message.append("DatabaseMapping took:" + stopWatch.elapsed().toMillis() + ", ");
     stopWatch.reset().start();
 
     List<String> filteredTables = databaseMappingService.filterTables(req.getDbName(), req.getTblNames(), mapping);
     req.setTblNames(filteredTables);
-    message.append("    filtered tables 1st call took: " + stopWatch.elapsed().toMillis() + "\n");
+    message.append("Filtered tables 1st call took: " + stopWatch.elapsed().toMillis() + ", ");
     stopWatch.reset().start();
 
     GetTablesResult result = mapping
         .getClient()
         .get_table_objects_by_name_req(mapping.transformInboundGetTablesRequest(req));
-    message.append("    HMS call took: " + stopWatch.elapsed().toMillis() + "\n");
+    message.append("HMS call took: " + stopWatch.elapsed().toMillis() + ", ");
     stopWatch.reset().start();
 
     result.setTables(mapping.getMetastoreFilter().filterTables(result.getTables()));
-    message.append("    filtered tables 2nd call took: " + stopWatch.elapsed().toMillis() + "\n");
+    message.append("Filtered tables 2nd call took: " + stopWatch.elapsed().toMillis() + ", ");
     stopWatch.reset().start();
 
     GetTablesResult getTablesResult = mapping.transformOutboundGetTablesResult(result);
-    message.append("    transform outbound took: " + stopWatch.elapsed().toMillis() + "\n");
+    message.append("Transform outbound took: " + stopWatch.elapsed().toMillis()+", ");
     stopWatch.stop();
+    message.append("Total get_table_objects_by_name_req took: " + (System.currentTimeMillis() - total));
     LOG.error(message.toString());
     return getTablesResult;
   }
