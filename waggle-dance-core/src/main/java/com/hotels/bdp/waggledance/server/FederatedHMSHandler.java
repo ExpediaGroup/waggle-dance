@@ -31,13 +31,13 @@ import org.springframework.stereotype.Component;
 
 import com.facebook.fb303.FacebookBase;
 import com.facebook.fb303.fb_status;
-import com.jcabi.aspects.Loggable;
-
+import com.google.common.base.Stopwatch;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
 import com.hotels.bdp.waggledance.metrics.Monitored;
+import com.jcabi.aspects.Loggable;
 
 @Monitored
 @Component
@@ -1371,7 +1371,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     mapping
         .getClient()
         .alter_partitions_with_environment_context(mapping.transformInboundDatabaseName(db_name), tbl_name,
-                mapping.transformInboundPartitions(new_parts), environment_context);
+            mapping.transformInboundPartitions(new_parts), environment_context);
   }
 
   @Override
@@ -1383,7 +1383,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     mapping
         .getClient()
         .alter_table_with_cascade(mapping.transformInboundDatabaseName(dbname), tbl_name,
-                mapping.transformInboundTable(new_tbl), cascade);
+            mapping.transformInboundTable(new_tbl), cascade);
   }
 
   @Override
@@ -1616,14 +1616,34 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public GetTablesResult get_table_objects_by_name_req(GetTablesRequest req)
     throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    StringBuilder message = new StringBuilder();
+    Stopwatch stopWatch = Stopwatch.createStarted();
+
+    message.append("get_table_objects_by_name_req: req=" + req.toString() + "\n");
     DatabaseMapping mapping = databaseMappingService.databaseMapping(req.getDbName());
+    message.append("    databaseMapping took:" + stopWatch.elapsed().toMillis() + "\n");
+    stopWatch.reset().start();
+
     List<String> filteredTables = databaseMappingService.filterTables(req.getDbName(), req.getTblNames(), mapping);
     req.setTblNames(filteredTables);
+    message.append("    filtered tables 1st call took: " + stopWatch.elapsed().toMillis() + "\n");
+    stopWatch.reset().start();
+
     GetTablesResult result = mapping
         .getClient()
         .get_table_objects_by_name_req(mapping.transformInboundGetTablesRequest(req));
+    message.append("    HMS call took: " + stopWatch.elapsed().toMillis() + "\n");
+    stopWatch.reset().start();
+
     result.setTables(mapping.getMetastoreFilter().filterTables(result.getTables()));
-    return mapping.transformOutboundGetTablesResult(result);
+    message.append("    filtered tables 2nd call took: " + stopWatch.elapsed().toMillis() + "\n");
+    stopWatch.reset().start();
+
+    GetTablesResult getTablesResult = mapping.transformOutboundGetTablesResult(result);
+    message.append("    transform outbound took: " + stopWatch.elapsed().toMillis() + "\n");
+    stopWatch.stop();
+    LOG.error(message.toString());
+    return getTablesResult;
   }
 
   @Override
