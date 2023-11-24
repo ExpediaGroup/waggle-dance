@@ -53,6 +53,7 @@
     <jackson.databind.version>2.9.10.8</jackson.databind.version>
     <curator.version>2.13.0</curator.version>
     <joda-time.version>2.9.9</joda-time.version>
+    <thrift.version>0.19.0</thrift.version>
   </properties>
 
   <dependencyManagement>
@@ -309,6 +310,11 @@
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
         <version>${joda-time.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>${thrift.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -187,9 +187,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
           .protocolFactory(new TBinaryProtocol.Factory())
           .minWorkerThreads(minWorkerThreads)
           .maxWorkerThreads(maxWorkerThreads)
-          .stopTimeoutVal(waggleDanceConfiguration.getThriftServerStopTimeoutValInSeconds())
-          .requestTimeout(waggleDanceConfiguration.getThriftServerRequestTimeout())
-          .requestTimeoutUnit(waggleDanceConfiguration.getThriftServerRequestTimeoutUnit());
+          .stopTimeoutVal(waggleDanceConfiguration.getThriftServerStopTimeoutValInSeconds());
 
       tServer = new TThreadPoolServer(args);
       if (useSASL){
