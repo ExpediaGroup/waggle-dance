@@ -1,7 +1,7 @@
 
 ## [3.11.7] - 2023-11-30
 ### Changed
-- Fixed exception that was not logging in a log statement.
+- Fixed log statement that was not logging the exception correctly.
 - Removed client.shutdown() call, this always throws an exception and the code ends up closing the transport directly.
 
 ## [3.11.6] - 2023-10-24
