@@ -66,8 +66,8 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
         } catch (Throwable t) {
           log
               .warn(
-                  "Unable to invoke compatibility for metastore client method {}. Will rethrow original exception, logging exception from invocation handler",
-                  method.getName(), t);
+                  "Unable to invoke compatibility for metastore client method "+method.getName()+". Will rethrow original exception, logging exception from invocation handler",
+                   t);
         }
         throw delegateException.getCause();
       }

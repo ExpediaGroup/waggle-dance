@@ -1371,7 +1371,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     mapping
         .getClient()
         .alter_partitions_with_environment_context(mapping.transformInboundDatabaseName(db_name), tbl_name,
-                mapping.transformInboundPartitions(new_parts), environment_context);
+            mapping.transformInboundPartitions(new_parts), environment_context);
   }
 
   @Override
