@@ -1,4 +1,9 @@
 
+## [3.11.7] - 2023-11-30
+### Changed
+- Fixed exeption logging in log statement
+- Removed client.shutdown() call, this always throws an exception and the code ends up closing the transport directly.
+
 ## [3.11.6] - 2023-10-24
 ### Fixed
 - Switch to ExecutorService instead of the default `ForkJoinPool` for `MetastoreMappingImpl.isAvailable()` calls. Using `ForkJoinPool` may cause threads to wait on each other.
