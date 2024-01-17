@@ -558,7 +558,7 @@ This only works when Waggle Dance is obtained from the compressed archive (.tar.
  * Access to underlying table data is still directly to the locations encoded in the metadata.
  * Users of Waggle Dance must still have the relevant authority to access the underlying table data.
  * All data processing occurs in the client cluster, not the external clusters. Data is simply pulled into the client cluster that connect to Waggle Dance.
- * Metadata read operations are routed only. Write and destructive operations can be performed on the local metastore only.
+ * Metadata operations are routed. Write and destructive operations can be performed on the local metastore. Federated metastore are by default read only but can be configured to allow write operations via Access Controls configuration.
  * When using Spark to read tables with a big number of partitions it may be necessary to set `spark.sql.hive.metastorePartitionPruning=true` to enable partition pruning. If this property is `false` Spark will try to fetch all the partitions of the tables in the query which may result on a `OutOfMemoryError` in Waggle Dance.
  * If a configuration file is updated and the update disappears after server shutdown, `yaml-storage.overwrite-config-on-shutdown` should be set to `false` in the federation configuration file (refer to the [federation configuration storage](#federation-configuration-storage) section).
 
