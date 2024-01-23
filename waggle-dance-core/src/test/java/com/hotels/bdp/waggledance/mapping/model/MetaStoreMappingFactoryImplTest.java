@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.GlueClientFactory;
+import com.hotels.bdp.waggledance.client.SplitTrafficMetastoreClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
@@ -61,7 +62,7 @@ public class MetaStoreMappingFactoryImplTest {
   private @Mock AccessControlHandlerFactory accessControlHandlerFactory;
   private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory = new CloseableThriftHiveMetastoreIfaceClientFactory(
       new TunnelingMetaStoreClientFactory(), new DefaultMetaStoreClientFactory(), new GlueClientFactory(),
-      new WaggleDanceConfiguration());
+      new WaggleDanceConfiguration(), new SplitTrafficMetastoreClientFactory());
 
   private MetaStoreMappingFactoryImpl factory;
 

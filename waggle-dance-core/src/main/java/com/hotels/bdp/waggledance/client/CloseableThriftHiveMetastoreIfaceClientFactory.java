@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2022 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,16 +44,19 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   private final int defaultConnectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L);
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final GlueClientFactory glueClientFactory;
+  private final SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory;
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(
       TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
       DefaultMetaStoreClientFactory defaultMetaStoreClientFactory,
       GlueClientFactory glueClientFactory,
-      WaggleDanceConfiguration waggleDanceConfiguration) {
+      WaggleDanceConfiguration waggleDanceConfiguration,
+      SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory) {
     this.tunnelingMetaStoreClientFactory = tunnelingMetaStoreClientFactory;
     this.defaultMetaStoreClientFactory = defaultMetaStoreClientFactory;
     this.glueClientFactory = glueClientFactory;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
+    this.splitTrafficMetaStoreClientFactory = splitTrafficMetaStoreClientFactory;
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
@@ -64,14 +67,24 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     if (metaStore.getGlueConfig() != null) {
       return newGlueInstance(metaStore, properties);
     }
-    return newHiveInstance(metaStore, properties);
+    String name = metaStore.getName().toLowerCase(Locale.ROOT);
+    if (metaStore.getReadOnlyRemoteMetaStoreUris() != null) {
+      CloseableThriftHiveMetastoreIface readWrite = newHiveInstance(metaStore, name, metaStore.getRemoteMetaStoreUris(),
+          properties);
+      CloseableThriftHiveMetastoreIface readOnly = newHiveInstance(metaStore, name+"_ro",
+          metaStore.getReadOnlyRemoteMetaStoreUris(), properties);
+      return splitTrafficMetaStoreClientFactory.newInstance(readWrite, readOnly);
+
+    }
+    return newHiveInstance(metaStore, name, metaStore.getRemoteMetaStoreUris(), properties);
   }
 
   private CloseableThriftHiveMetastoreIface newHiveInstance(
       AbstractMetaStore metaStore,
+      String name,
+      String metaStoreUris,
       Map<String, String> properties) {
-    String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
-    String name = metaStore.getName().toLowerCase(Locale.ROOT);
+    String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStoreUris);
     // Connection timeout should not be less than 1
     // A timeout of zero is interpreted as an infinite timeout, so this is avoided
     int connectionTimeout = Math.max(1, defaultConnectionTimeout + (int) metaStore.getLatency());

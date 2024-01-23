@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public abstract class AbstractMetaStore {
   private long latency = 0;
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
   private GlueConfig glueConfig;
+  private String readOnlyRemoteMetaStoreUris;
 
   public AbstractMetaStore() {}
 
@@ -124,6 +125,14 @@ public abstract class AbstractMetaStore {
     this.remoteMetaStoreUris = remoteMetaStoreUris;
   }
 
+  public String getReadOnlyRemoteMetaStoreUris() {
+    return readOnlyRemoteMetaStoreUris;
+  }
+  
+  public void setReadOnlyRemoteMetaStoreUris(String readOnlyRemoteMetaStoreUris) {
+    this.readOnlyRemoteMetaStoreUris = readOnlyRemoteMetaStoreUris;
+  }
+  
   public MetastoreTunnel getMetastoreTunnel() {
     return metastoreTunnel;
   }
@@ -244,6 +253,7 @@ public abstract class AbstractMetaStore {
         .add("databasePrefix", databasePrefix)
         .add("federationType", getFederationType())
         .add("remoteMetaStoreUris", remoteMetaStoreUris)
+        .add("readOnlyRemoteMetaStoreUris", readOnlyRemoteMetaStoreUris)
         .add("metastoreTunnel", metastoreTunnel)
         .add("accessControlType", accessControlType)
         .add("writableDatabaseWhiteList", writableDatabaseWhitelist)
@@ -251,5 +261,6 @@ public abstract class AbstractMetaStore {
         .add("status", status)
         .toString();
   }
+
 
 }
