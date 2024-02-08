@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Bean;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.client.GlueClientFactory;
+import com.hotels.bdp.waggledance.client.SplitTrafficMetastoreClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
@@ -54,10 +55,15 @@ public class CommonBeans {
   }
 
   @Bean
+  public SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory() {
+    return new SplitTrafficMetastoreClientFactory();
+  }
+  
+  @Bean
   public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory(
-      WaggleDanceConfiguration waggleDanceConfiguration) {
+      WaggleDanceConfiguration waggleDanceConfiguration, SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory) {
     return new CloseableThriftHiveMetastoreIfaceClientFactory(new TunnelingMetaStoreClientFactory(),
-        new DefaultMetaStoreClientFactory(), new GlueClientFactory(), waggleDanceConfiguration);
+        new DefaultMetaStoreClientFactory(), new GlueClientFactory(), waggleDanceConfiguration, splitTrafficMetaStoreClientFactory);
   }
 
   @Bean
