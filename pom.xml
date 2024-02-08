@@ -249,7 +249,7 @@
         <artifactId>derby</artifactId>
         <!-- we should use whatever hive-metastore is using. Cannot rely
           on the transitive dep because we want it test scoped. -->
-        <version>10.10.2.0</version>
+        <version>10.17.1.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
