@@ -1,4 +1,8 @@
 
+## [3.12.0] - 2023-02-08
+### Added
+- Added optional `primary-meta-store.read-only-remote-meta-store-uris` config to allow traffic to be diverted based on calls made. See README.md.
+
 ## [3.11.7] - 2023-11-30
 ### Changed
 - Fixed log statement that was not logging the exception correctly.
