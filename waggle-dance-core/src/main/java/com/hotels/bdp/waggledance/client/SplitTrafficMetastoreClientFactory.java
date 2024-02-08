@@ -20,6 +20,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class splits the traffic for read only calls (get* for instance getTable, getPartition) to the readOnly client
  * and everything else will go to readWrite client.
@@ -29,6 +32,9 @@ public class SplitTrafficMetastoreClientFactory {
   static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
 
   private static class SplitTrafficClientInvocationHandler implements InvocationHandler {
+    
+    private static Logger log = LoggerFactory
+        .getLogger(SplitTrafficMetastoreClientFactory.SplitTrafficClientInvocationHandler.class);
 
     private final CloseableThriftHiveMetastoreIface readWrite;
     private final CloseableThriftHiveMetastoreIface readOnly;
@@ -59,8 +65,10 @@ public class SplitTrafficMetastoreClientFactory {
         return result;
       default:
         if (method.getName().startsWith("get")) {
+          log.info("Calling {}.{}", "readOnly", method.getName());
           return doRealCall(readOnly, method, args);
         }
+        log.info("Calling {}.{}", "readWrite", method.getName());
         return doRealCall(readWrite, method, args);
       }
     }
