@@ -59,7 +59,7 @@ public class SplitTrafficMetastoreClientFactory {
         return result;
       default:
         if (method.getName().startsWith("get")) {
-          doRealCall(readOnly, method, args);
+          return doRealCall(readOnly, method, args);
         }
         return doRealCall(readWrite, method, args);
       }
