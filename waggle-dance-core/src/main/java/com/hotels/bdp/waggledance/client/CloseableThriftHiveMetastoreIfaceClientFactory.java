@@ -71,7 +71,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     if (metaStore.getReadOnlyRemoteMetaStoreUris() != null) {
       CloseableThriftHiveMetastoreIface readWrite = newHiveInstance(metaStore, name, metaStore.getRemoteMetaStoreUris(),
           properties);
-      CloseableThriftHiveMetastoreIface readOnly = newHiveInstance(metaStore, name+"_ro",
+      CloseableThriftHiveMetastoreIface readOnly = newHiveInstance(metaStore, name + "_ro",
           metaStore.getReadOnlyRemoteMetaStoreUris(), properties);
       return splitTrafficMetaStoreClientFactory.newInstance(readWrite, readOnly);
 
