@@ -32,6 +32,7 @@ import org.apache.hadoop.hive.shims.Utils;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hive.service.auth.KerberosSaslHelper;
+import org.apache.thrift.TConfiguration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -39,6 +40,7 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +125,7 @@ class ThriftMetastoreClientManager implements Closeable {
       for (URI store : metastoreUris) {
         LOG.info("Trying to connect to metastore with URI " + store);
         try {
-          transport = new TSocket(store.getHost(), store.getPort(), clientSocketTimeout, connectionTimeout);
+          transport = new TSocket(new TConfiguration(), store.getHost(), store.getPort(), clientSocketTimeout, connectionTimeout);
           if (useSasl) {
             // Wrap thrift connection with SASL for secure connection.
             try {
@@ -186,7 +188,7 @@ class ThriftMetastoreClientManager implements Closeable {
               LOG.warn("Failed to connect to the MetaStore Server, URI " + store);
             }
           }
-        } catch (MetaException e) {
+        } catch (MetaException | TTransportException e) {
           LOG.error("Unable to connect to metastore with URI " + store + " in attempt " + attempt, e);
         }
         if (isConnected) {
