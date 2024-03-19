@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import javax.security.sasl.Sasl;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.security.DBTokenStore;
 import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge;
+import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge.Server;
 import org.apache.hadoop.hive.metastore.security.MetastoreDelegationTokenManager;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hive.service.auth.HiveAuthConstants;
@@ -42,7 +43,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SaslHelper {
 
-  public static HadoopThriftAuthBridge.Server createSaslServer(HiveConf conf) throws TTransportException {
+  public static class SaslServerAndMDT {
+
+    HadoopThriftAuthBridge.Server saslServer;
+    MetastoreDelegationTokenManager delegationTokenManager;
+
+    public Server getSaslServer() {
+      return saslServer;
+    }
+
+    public MetastoreDelegationTokenManager getDelegationTokenManager() {
+      return delegationTokenManager;
+    }
+  }
+
+  public static SaslServerAndMDT createSaslServer(HiveConf conf) throws TTransportException {
+    SaslServerAndMDT saslServerAndMDT = new SaslServerAndMDT();
     HadoopThriftAuthBridge.Server saslServer = null;
     if (SaslHelper.isSASLWithKerberizedHadoop(conf)) {
       saslServer =
@@ -75,8 +91,11 @@ public final class SaslHelper {
       catch (IOException e) {
         throw new TTransportException("Failed to start token manager", e);
       }
+
+      saslServerAndMDT.saslServer = saslServer;
+      saslServerAndMDT.delegationTokenManager = delegationTokenManager;
     }
-    return saslServer;
+    return saslServerAndMDT;
   }
 
   public static boolean isSASLWithKerberizedHadoop(HiveConf hiveconf) {

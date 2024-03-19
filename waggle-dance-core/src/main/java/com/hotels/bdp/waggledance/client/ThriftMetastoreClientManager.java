@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,15 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
+import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,8 +32,8 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.conf.HiveConfUtil;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
+import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.hadoop.hive.metastore.utils.MetaStoreUtils;
-import org.apache.hadoop.hive.metastore.utils.SecurityUtils;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hive.service.auth.KerberosSaslHelper;
@@ -42,7 +47,12 @@ import org.apache.thrift.transport.TTransport;
 
 import lombok.extern.log4j.Log4j2;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
+import com.hotels.bdp.waggledance.context.CommonBeans;
 
 @Log4j2
 class ThriftMetastoreClientManager implements Closeable {
@@ -61,6 +71,13 @@ class ThriftMetastoreClientManager implements Closeable {
 
   private final int connectionTimeout;
   private final String msUri;
+  private final boolean impersonationEnabled;
+  private static final Duration delegationTokenCacheTtl = Duration.ofHours(1); // The default lifetime in Hive is 7 days (metastore.cluster.delegation.token.max-lifetime)
+  private static final long delegationTokenCacheMaximumSize = 1000;
+  private static final LoadingCache<DelegationTokenKey, String> delegationTokenCache = CacheBuilder.newBuilder()
+      .expireAfterWrite(delegationTokenCacheTtl.toMillis(), MILLISECONDS)
+      .maximumSize(delegationTokenCacheMaximumSize)
+      .build(CacheLoader.from(ThriftMetastoreClientManager::loadDelegationToken));
 
   ThriftMetastoreClientManager(
       HiveConf conf,
@@ -70,6 +87,7 @@ class ThriftMetastoreClientManager implements Closeable {
     this.hiveCompatibleThriftHiveMetastoreIfaceFactory = hiveCompatibleThriftHiveMetastoreIfaceFactory;
     this.connectionTimeout = connectionTimeout;
     msUri = conf.getVar(ConfVars.METASTOREURIS);
+    impersonationEnabled = conf.getBoolean(CommonBeans.IMPERSONATION_ENABLED_KEY,false);
 
     if (HiveConfUtil.isEmbeddedMetaStore(msUri)) {
       throw new RuntimeException("You can't waggle an embedded metastore");
@@ -105,6 +123,44 @@ class ThriftMetastoreClientManager implements Closeable {
     }
   }
 
+  private static String loadDelegationToken(DelegationTokenKey key) {
+    try {
+      return key.client.get_delegation_token(key.username, key.username);
+    } catch (TException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static class DelegationTokenKey{
+    String msUri;
+    String username;
+    ThriftHiveMetastore.Iface client;
+
+    public DelegationTokenKey(String msUri, String username, Iface client) {
+      this.msUri = msUri;
+      this.username = username;
+      this.client = client;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      DelegationTokenKey that = (DelegationTokenKey) o;
+      return Objects.equals(msUri, that.msUri) && Objects.equals(username,
+          that.username);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(msUri, username);
+    }
+  }
+
   void open() {
     open(null);
   }
@@ -113,6 +169,21 @@ class ThriftMetastoreClientManager implements Closeable {
     if (isConnected) {
       return;
     }
+    createMetastoreClientAndOpen(null, ugiArgs);
+    if (impersonationEnabled) {
+      try {
+        String userName = UserGroupInformation.getCurrentUser().getShortUserName();
+        DelegationTokenKey key = new DelegationTokenKey(msUri, userName, client);
+        String delegationToken = delegationTokenCache.get(key);
+        close();
+        createMetastoreClientAndOpen(delegationToken, ugiArgs);
+      } catch (IOException | ExecutionException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  void createMetastoreClientAndOpen(String delegationToken, HiveUgiArgs ugiArgs) {
     TException te = null;
     boolean useSasl = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_SASL);
     boolean useSsl = conf.getBoolVar(ConfVars.HIVE_METASTORE_USE_SSL);
@@ -135,14 +206,14 @@ class ThriftMetastoreClientManager implements Closeable {
               // this should happen on the map/reduce tasks if the client added the
               // tokens into hadoop's credential store in the front end during job
               // submission.
-              String tokenSig = conf.getVar(ConfVars.METASTORE_TOKEN_SIGNATURE);
+//              String tokenSig = conf.getVar(ConfVars.METASTORE_TOKEN_SIGNATURE);
               // tokenSig could be null
-              String tokenStrForm = SecurityUtils.getTokenStrForm(tokenSig);
-              if (tokenStrForm != null) {
+              if (impersonationEnabled && delegationToken != null) {
                 // authenticate using delegation tokens via the "DIGEST" mechanism
                 transport = KerberosSaslHelper
-                        .getTokenTransport(tokenStrForm, store.getHost(), transport,
-                                MetaStoreUtils.getMetaStoreSaslProperties(conf, useSsl));
+                    .getTokenTransport(delegationToken,
+                        store.getHost(), transport,
+                        MetaStoreUtils.getMetaStoreSaslProperties(conf, useSsl));
               } else {
                 String principalConfig = conf.getVar(ConfVars.METASTORE_KERBEROS_PRINCIPAL);
                 transport = KerberosSaslHelper

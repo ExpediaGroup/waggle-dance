@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public abstract class AbstractMetaStore {
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
-
+  private boolean impersonationEnabled;
   public AbstractMetaStore(String name, String remoteMetaStoreUris, AccessControlType accessControlType) {
     this.name = name;
     this.remoteMetaStoreUris = remoteMetaStoreUris;
@@ -211,6 +211,14 @@ public abstract class AbstractMetaStore {
     this.status = status;
   }
 
+  public boolean isImpersonationEnabled() {
+    return impersonationEnabled;
+  }
+
+  public void setImpersonationEnabled(boolean impersonationEnabled) {
+    this.impersonationEnabled = impersonationEnabled;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hashCode(name);
@@ -242,5 +250,4 @@ public abstract class AbstractMetaStore {
         .add("status", status)
         .toString();
   }
-
 }

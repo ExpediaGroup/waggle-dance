@@ -24,74 +24,64 @@ In addition, because Kerberos authentication requires a delegation-token to prox
 * Zookeeper to store delegation-token (Recommended)
 
 ### Configuration
-
-Waggle Dance does not read Hadoop's `core-site.xml` so a general property providing Kerberos auth should be added to
-the Hive configuration file `hive-site.xml`:
+Waggle Dance `waggle-dance-server.yml` example:
 
 ```
-<property>
-  <name>hadoop.security.authentication</name>
-  <value>KERBEROS</value>
-</property>
+port: 9083
+verbose: true
+#database-resolution: MANUAL
+database-resolution: PREFIXED
+yaml-storage:
+  overwrite-config-on-shutdown: false
+logging:
+    config: file:/path/to/log4j2.xml
+configuration-properties:
+    hadoop.security.authentication: KERBEROS
+    hive.metastore.sasl.enabled: true
+    hive.metastore.kerberos.principal: hive/_HOST@EXAMPLE.COM
+    hive.metastore.kerberos.keytab.file: /path/to/hive.keytab
+    hive.cluster.delegation.token.store.class: org.apache.hadoop.hive.thrift.ZooKeeperTokenStore
+    hive.cluster.delegation.token.store.zookeeper.connectString: zz1:2181,zz2:2181,zz3:2181
+    hive.cluster.delegation.token.store.zookeeper.znode: /hive/cluster/wd_delegation
+    hive.server2.authentication: KERBEROS
+    hive.server2.authentication.kerberos.principal: hive/_HOST@EXAMPLE.COM
+    hive.server2.authentication.kerberos.keytab: /path/to/hive.keytab
+    hive.server2.authentication.client.kerberos.principal: hive/_HOST@EXAMPLE.COM
+    hadoop.kerberos.keytab.login.autorenewal.enabled : true
+    hadoop.proxyuser.hive.users: '*'
+    hadoop.proxyuser.hive.hosts: '*'
 ```
 
-
-Waggle Dance also needs a keytab file to communicate with the Metastore so the following properties should be present:
+Waggle Dance `waggle-dance-federation.yml` example:
 ```
-<property>
-  <name>hive.metastore.sasl.enabled</name>
-  <value>true</value>
-</property>
-<property>
-  <name>hive.metastore.kerberos.principal</name>
-  <value>hive/_HOST@YOUR_REALM.COM</value>
-</property>
-<property>
-  <name>hive.metastore.kerberos.keytab.file</name>
-  <value>/etc/hive.keytab</value>
-</property>
-```
-
-In addition, all metastores need to use the Zookeeper shared token:
-```
-  <property>
-    <name>hive.cluster.delegation.token.store.class</name>
-    <value>org.apache.hadoop.hive.thrift.ZooKeeperTokenStore</value>
-  </property>
-  <property>
-    <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
-    <value>zk1:2181,zk2:2181,zk3:2181</value>
-  </property>
-  <property>
-    <name>hive.cluster.delegation.token.store.zookeeper.znode</name>
-    <value>/hive/token</value>
-  </property>
+primary-meta-store:
+  database-prefix: ''
+  name: local
+  remote-meta-store-uris: thrift://ms1:9083
+  access-control-type: READ_AND_WRITE_AND_CREATE
+  impersonation-enabled: true
+federated-meta-stores:
+- remote-meta-store-uris: thrift://ms2:9083
+  database-prefix: dw_
+  name: remote
+  impersonation-enabled: true
+  access-control-type: READ_AND_WRITE_ON_DATABASE_WHITELIST
+  writable-database-white-list:
+  - .*
 ```
 
-If you are intending to use a Beeline client, the following properties may be valuable:
+In start shell , add jvm properties maybe useful.
 ```
-<property>
-  <name>hive.server2.transport.mode</name>
-  <value>http</value>
-</property>
-<property>
-  <name>hive.server2.authentication</name>
-  <value>KERBEROS</value>
-</property>
-<property>
-  <name>hive.server2.authentication.kerberos.principal</name>
-  <value>hive/_HOST@YOUR_REALM.COM</value>
-</property>
-<property>
-  <name>hive.server2.authentication.kerberos.keytab</name>
-  <value>/etc/hive.keytab</value>
-</property>
-<property>
-  <name>hive.server2.enable.doAs</name>
-  <value>false</value>
-</property>
+-Djavax.security.auth.useSubjectCredsOnly=false
 ```
 
+Connect to Waggle Dance via beeline, change ` hive.metastore.uris` in Hive configuration file `hive-site.xml`:
+```
+<property>
+  <name>hive.metastore.uris</name>
+  <value>thrift://wd:9083</value>
+</property>
+```
 
 ### Running
 

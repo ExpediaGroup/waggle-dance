@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1341,8 +1341,16 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public GrantRevokePrivilegeResponse refresh_privileges(HiveObjectRef hiveObjectRef, String authorizer,
                                                          GrantRevokePrivilegeRequest grantRevokePrivilegeRequest) throws MetaException, TException {
     DatabaseMapping databaseMapping = checkWritePermissions(hiveObjectRef.getDbName());
+    PrivilegeBag privilegeBag = grantRevokePrivilegeRequest.getPrivileges();
+    if (privilegeBag != null && privilegeBag.getPrivileges() != null) {
+      for (HiveObjectPrivilege hiveObjectPrivilege : privilegeBag.getPrivileges()) {
+        if (hiveObjectPrivilege.getHiveObject() != null) {
+          databaseMapping.transformInboundHiveObjectRef(hiveObjectPrivilege.getHiveObject());
+        }
+      }
+    }
     return databaseMapping.getClient().refresh_privileges(databaseMapping.transformInboundHiveObjectRef(hiveObjectRef),
-            authorizer, grantRevokePrivilegeRequest);
+            authorizer, databaseMapping.transformInboundGrantRevokePrivilegesRequest(grantRevokePrivilegeRequest));
   }
 
   private DatabaseMapping checkWritePermissionsForPrivileges(PrivilegeBag privileges) throws NoSuchObjectException {
@@ -1369,19 +1377,48 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public String get_delegation_token(String token_owner, String renewer_kerberos_principal_name)
       throws MetaException, TException {
-    return getPrimaryClient().get_delegation_token(token_owner, renewer_kerberos_principal_name);
+    try {
+      return MetaStoreProxyServer.getSaslServerAndMDT().getDelegationTokenManager()
+          .getDelegationToken(token_owner, renewer_kerberos_principal_name,
+              MetaStoreProxyServer.getIPAddress());
+    } catch (IOException | InterruptedException e) {
+      throw new MetaException(e.getMessage());
+    }
   }
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public long renew_delegation_token(String token_str_form) throws MetaException, TException {
-    return getPrimaryClient().renew_delegation_token(token_str_form);
+    try {
+      return MetaStoreProxyServer.getSaslServerAndMDT().getDelegationTokenManager()
+          .renewDelegationToken(token_str_form);
+    } catch (IOException e) {
+      throw new MetaException(e.getMessage());
+    } catch (Exception e) {
+      throw newMetaException(e);
+    }
   }
 
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void cancel_delegation_token(String token_str_form) throws MetaException, TException {
-    getPrimaryClient().cancel_delegation_token(token_str_form);
+    try {
+      MetaStoreProxyServer.getSaslServerAndMDT().getDelegationTokenManager()
+          .cancelDelegationToken(token_str_form);
+    } catch (IOException e) {
+      throw new MetaException(e.getMessage());
+    } catch (Exception e) {
+      throw newMetaException(e);
+    }
+  }
+
+  private static MetaException newMetaException(Exception e) {
+    if (e instanceof MetaException) {
+      return (MetaException)e;
+    }
+    MetaException me = new MetaException(e.toString());
+    me.initCause(e);
+    return me;
   }
 
   @Override

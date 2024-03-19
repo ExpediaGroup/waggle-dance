@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -119,6 +120,7 @@ import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeRequest;
 import org.apache.hadoop.hive.metastore.api.HeartbeatTxnRangeResponse;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
+import org.apache.hadoop.hive.metastore.api.HiveObjectType;
 import org.apache.hadoop.hive.metastore.api.ISchema;
 import org.apache.hadoop.hive.metastore.api.ISchemaName;
 import org.apache.hadoop.hive.metastore.api.LockComponent;
@@ -211,6 +213,7 @@ import org.apache.hadoop.hive.metastore.api.WMGetTriggersForResourePlanRequest;
 import org.apache.hadoop.hive.metastore.api.WMGetTriggersForResourePlanResponse;
 import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanRequest;
 import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanResponse;
+import org.apache.hadoop.hive.metastore.security.MetastoreDelegationTokenManager;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
@@ -227,6 +230,7 @@ import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
+import com.hotels.bdp.waggledance.util.SaslHelper.SaslServerAndMDT;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FederatedHMSHandlerTest {
@@ -244,6 +248,9 @@ public class FederatedHMSHandlerTest {
   private @Mock DatabaseMapping primaryMapping;
   private @Mock Iface primaryClient;
   private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
+  private @Mock SaslServerAndMDT saslServerAndMDT;
+  private @Mock MetastoreDelegationTokenManager metastoreDelegationTokenManager;
+  private @Mock MetaStoreProxyServer metaStoreProxyServer;
 
   private FederatedHMSHandler handler;
 
@@ -1518,25 +1525,32 @@ public class FederatedHMSHandlerTest {
   }
 
   @Test
-  public void get_delegation_token() throws TException {
+  public void get_delegation_token() throws TException, IOException, InterruptedException {
     String expected = "expected";
-    when(primaryClient.get_delegation_token("owner", "kerberos_principal")).thenReturn(expected);
+    MetaStoreProxyServer.setSaslServerAndMDT(saslServerAndMDT);
+    when(saslServerAndMDT.getDelegationTokenManager()).thenReturn(metastoreDelegationTokenManager);
+    when(metastoreDelegationTokenManager.getDelegationToken("owner", "kerberos_principal",
+        null)).thenReturn(expected);
     String result = handler.get_delegation_token("owner", "kerberos_principal");
     assertThat(result, is(expected));
   }
 
   @Test
-  public void renew_delegation_token() throws TException {
+  public void renew_delegation_token() throws TException, IOException {
     long expected = 10L;
-    when(primaryClient.renew_delegation_token("token")).thenReturn(expected);
+    MetaStoreProxyServer.setSaslServerAndMDT(saslServerAndMDT);
+    when(saslServerAndMDT.getDelegationTokenManager()).thenReturn(metastoreDelegationTokenManager);
+    when(metastoreDelegationTokenManager.renewDelegationToken("token")).thenReturn(expected);
     long result = handler.renew_delegation_token("token");
     assertThat(result, is(expected));
   }
 
   @Test
-  public void cancel_delegation_token() throws TException {
+  public void cancel_delegation_token() throws TException, IOException {
+    MetaStoreProxyServer.setSaslServerAndMDT(saslServerAndMDT);
+    when(saslServerAndMDT.getDelegationTokenManager()).thenReturn(metastoreDelegationTokenManager);
     handler.cancel_delegation_token("token");
-    verify(primaryClient).cancel_delegation_token("token");
+    verify(metastoreDelegationTokenManager).cancelDelegationToken("token");
   }
 
   @Test
@@ -1990,9 +2004,21 @@ public class FederatedHMSHandlerTest {
     GrantRevokePrivilegeRequest grantRevokePrivilegeRequest = new GrantRevokePrivilegeRequest();
     HiveObjectRef hiveObjectRef = new HiveObjectRef();
     hiveObjectRef.setDbName(DB_P);
+    PrivilegeBag privileges = new PrivilegeBag();
+    List<HiveObjectPrivilege> privilegesList = new ArrayList<>();
+    HiveObjectPrivilege hiveObjectPrivilege = new HiveObjectPrivilege();
+    HiveObjectRef hor = new HiveObjectRef();
+    hor.setDbName(DB_P);
+    hor.setObjectType(HiveObjectType.DATABASE);
+    hor.setObjectName(DB_P);
+    hiveObjectPrivilege.setHiveObject(hor);
+    privilegesList.add(hiveObjectPrivilege);
+    privileges.setPrivileges(privilegesList);
+    grantRevokePrivilegeRequest.setPrivileges(privileges);
     GrantRevokePrivilegeResponse grantRevokePrivilegeResponse = new GrantRevokePrivilegeResponse();
 
     when(primaryMapping.transformInboundHiveObjectRef(hiveObjectRef)).thenReturn(hiveObjectRef);
+    when(primaryMapping.transformInboundGrantRevokePrivilegesRequest(grantRevokePrivilegeRequest)).thenReturn(grantRevokePrivilegeRequest);
     when(primaryClient.refresh_privileges(hiveObjectRef, "dummy", grantRevokePrivilegeRequest)).thenReturn(grantRevokePrivilegeResponse);
     GrantRevokePrivilegeResponse result = handler.refresh_privileges(hiveObjectRef, "dummy", grantRevokePrivilegeRequest);
     assertThat(result, is(grantRevokePrivilegeResponse));
