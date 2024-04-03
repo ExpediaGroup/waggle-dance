@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  */
 public class ManifestAttributes {
-  private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
+  private static Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
 
   static final String META_INF_MANIFEST_MF = "META-INF/MANIFEST.MF";
   private static final String JAR_PROTOCOL = "jar:";

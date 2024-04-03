@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import com.google.common.base.Preconditions;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ManifestAttributes.class })
-@PowerMockIgnore("javax.management.*")
+@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*"})
 public class ManifestAttributesTest {
 
   private @Rule ClassDataFolder dataFolder = new ClassDataFolder();

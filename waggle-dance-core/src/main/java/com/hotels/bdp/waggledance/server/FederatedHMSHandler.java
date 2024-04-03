@@ -44,7 +44,7 @@ import com.hotels.bdp.waggledance.metrics.Monitored;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
 
-  private static final Logger LOG = LoggerFactory.getLogger(FederatedHMSHandler.class);
+  private static  Logger LOG = LoggerFactory.getLogger(FederatedHMSHandler.class);
 
   private static final String INVOCATION_LOG_NAME = "com.hotels.bdp.waggledance.server.invocation-log";
   private final MappingEventListener databaseMappingService;

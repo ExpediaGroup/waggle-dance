@@ -34,16 +34,17 @@
   </modules>
 
   <properties>
-    <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
-    <maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
+    <jdk.version>11</jdk.version>
+    <maven.release.plugin.version>3.0.1</maven.release.plugin.version>
+    <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
     <spring-boot.version>2.7.11</spring-boot.version>
     <hadoop.version>2.10.1</hadoop.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hive.version>2.3.7</hive.version>
     <junit.version>4.13.1</junit.version>
     <mockito.version>3.5.15</mockito.version>
-    <aspectj-maven-plugin.version>1.9</aspectj-maven-plugin.version>
-    <aspectj.version>1.8.9</aspectj.version>
+    <aspectj-maven-plugin.version>1.14.0</aspectj-maven-plugin.version>
+    <aspectj.version>1.9.2</aspectj.version>
     <beeju.version>4.0.0</beeju.version>
     <guava.version>23.0</guava.version>
     <guice.version>4.0</guice.version>
@@ -53,6 +54,9 @@
     <jackson.databind.version>2.9.10.8</jackson.databind.version>
     <curator.version>2.13.0</curator.version>
     <joda-time.version>2.9.9</joda-time.version>
+    <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+    <maven.compiler.source>${jdk.version}</maven.compiler.source>
+    <maven.compiler.target>${jdk.version}</maven.compiler.target>
   </properties>
 
   <dependencyManagement>
@@ -335,7 +339,7 @@
         </plugin>
         <plugin>
           <!-- NOTE: we are blocked on building waggle dance using Java 11
-            on the below, need to wait for https://github.com/mojohaus/aspectj-maven-plugin/pull/45 -->
+      on the below, need to wait for https://github.com/mojohaus/aspectj-maven-plugin/pull/45 -->
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>aspectj-maven-plugin</artifactId>
           <version>${aspectj-maven-plugin.version}</version>
@@ -374,7 +378,7 @@
           </executions>
         </plugin>
         <!--This plugin's configuration is used to store Eclipse m2e settings
-          only. It has no influence on the Maven build itself. -->
+      only. It has no influence on the Maven build itself. -->
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
@@ -414,4 +418,5 @@
       </plugins>
     </pluginManagement>
   </build>
+
 </project>
