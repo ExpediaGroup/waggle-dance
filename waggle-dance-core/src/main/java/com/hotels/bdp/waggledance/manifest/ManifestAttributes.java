@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  */
 public class ManifestAttributes {
-  private static Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
 
   static final String META_INF_MANIFEST_MF = "META-INF/MANIFEST.MF";
   private static final String JAR_PROTOCOL = "jar:";
