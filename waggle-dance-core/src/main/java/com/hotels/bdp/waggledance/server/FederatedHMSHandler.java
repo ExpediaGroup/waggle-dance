@@ -1342,7 +1342,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
                                                          GrantRevokePrivilegeRequest grantRevokePrivilegeRequest) throws MetaException, TException {
     DatabaseMapping databaseMapping = checkWritePermissions(hiveObjectRef.getDbName());
     return databaseMapping.getClient().refresh_privileges(databaseMapping.transformInboundHiveObjectRef(hiveObjectRef),
-            authorizer, grantRevokePrivilegeRequest);
+            authorizer, databaseMapping.transformInboundGrantRevokePrivilegesRequest(grantRevokePrivilegeRequest));
   }
 
   private DatabaseMapping checkWritePermissionsForPrivileges(PrivilegeBag privileges) throws NoSuchObjectException {
