@@ -65,7 +65,6 @@ public class WaggleDanceRateLimitIntegrationTest {
     extraServerConfig.put("waggledance.extensions.ratelimit.capacity", "2");
     extraServerConfig.put("waggledance.extensions.ratelimit.tokenPerMinute", "1");
 
-
     runner = WaggleDanceRunner
         .builder(temporaryFolder.newFolder("config"))
         .databaseResolution(DatabaseResolution.PREFIXED)
