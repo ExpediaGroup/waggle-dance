@@ -37,9 +37,9 @@ The next example assumes a Redis Replicated Server is running using SSL and `aut
 Timeouts and retry are set lower then default to impact the Waggle Dance service. 
 The maximum latency this solution will add to a request in the following scenarios is: 
 1. Redis server down:
- * Latency will be in low ms as `retryAttemps: 0`, the connection will immediately fail.
+  * Latency will be in low ms as `retryAttemps: 0`, the connection will immediately fail.
 2. Redis server slow:
- * Latency will be max `timeout: 1000` ms
+  * Latency will be max `timeout: 1000` ms
  
 Waggle Dance is configured to allow all request in case of Rate Limiting Server failures.
 
