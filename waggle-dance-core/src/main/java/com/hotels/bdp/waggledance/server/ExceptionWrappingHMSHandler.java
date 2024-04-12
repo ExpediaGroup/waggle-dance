@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Arrays;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.slf4j.Logger;
@@ -34,10 +36,12 @@ public class ExceptionWrappingHMSHandler implements InvocationHandler {
   private final static Logger LOG = LoggerFactory.getLogger(ExceptionWrappingHMSHandler.class);
 
   private final IHMSHandler baseHandler;
+  private String user = "";
 
   public static IHMSHandler newProxyInstance(IHMSHandler baseHandler) {
-    return (IHMSHandler) Proxy.newProxyInstance(ExceptionWrappingHMSHandler.class.getClassLoader(),
-        new Class[] { IHMSHandler.class }, new ExceptionWrappingHMSHandler(baseHandler));
+    return (IHMSHandler) Proxy
+        .newProxyInstance(ExceptionWrappingHMSHandler.class.getClassLoader(), new Class[] { IHMSHandler.class },
+            new ExceptionWrappingHMSHandler(baseHandler));
   }
 
   public ExceptionWrappingHMSHandler(IHMSHandler baseHandler) {
@@ -46,7 +50,13 @@ public class ExceptionWrappingHMSHandler implements InvocationHandler {
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    if (method.getName().equals("set_ugi")) {
+      user = (String) args[0];
+    }
     try {
+      LOG
+          .info("WD Audit:[User:{}, method:{}, source_ip:{}, args:{}]", user, method.getName(),
+              HMSHandler.getThreadLocalIpAddress(), StringUtils.left(Arrays.toString(args), 256));
       return method.invoke(baseHandler, args);
     } catch (InvocationTargetException e) {
       Throwable cause = e.getCause();

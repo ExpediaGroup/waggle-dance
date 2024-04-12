@@ -25,6 +25,11 @@
       <artifactId>waggle-dance-rest</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>waggle-dance-extensions</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

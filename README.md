@@ -113,6 +113,8 @@ The table below describes all the available configuration values for Waggle Danc
 | `configuration-properties`        | No         | Map of Hive properties that will be added to the HiveConf used when creating the Thrift clients (they will be shared among all the clients). |
 | `queryFunctionsAcrossAllMetastores` | No | Controls if the Thrift `getAllFunctions` should be fired to all configured metastores or only the primary metastore. The advice is to set this to false. Executing `getAllFunctions` can have an unwanted performance impact when a metastore is slow to respond. The function call is typically only called when a client is initialized and is largely irrelevant. Default is `true` (to be backward compatible) |
 
+Extensions (for instance Rate Limiting) are described here: [waggle-dance-extensions/README.md](waggle-dance-extensions/README.md)
+
 ### Federation
 
 Federation config is by default located in: `$WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml`.
@@ -611,4 +613,4 @@ The Waggle Dance logo uses the [Beetype Filled font](http://www.1001fonts.com/be
 ## Legal
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
 
-Copyright 2016-2019 Expedia, Inc.
+Copyright 2016-2024 Expedia, Inc.

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Function;
@@ -90,7 +86,6 @@ import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.junit.ServerSocketRule;
 import com.hotels.bdp.waggledance.mapping.model.PrefixingMetastoreFilter;
-import com.hotels.bdp.waggledance.server.MetaStoreProxyServer;
 import com.hotels.bdp.waggledance.yaml.YamlFactory;
 import com.hotels.beeju.ThriftHiveMetaStoreJUnitRule;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
@@ -113,7 +108,6 @@ public class WaggleDanceIntegrationTest {
   public @Rule ThriftHiveMetaStoreJUnitRule newRemoteServer = new ThriftHiveMetaStoreJUnitRule();
   public @Rule DataFolder dataFolder = new ClassDataFolder();
 
-  private ExecutorService executor;
   private WaggleDanceRunner runner;
 
   private File configLocation;
@@ -131,8 +125,6 @@ public class WaggleDanceIntegrationTest {
 
     createRemoteTable(new File(remoteWarehouseUri, REMOTE_DATABASE + "/" + REMOTE_TABLE), REMOTE_TABLE);
     LOG.info(">>>> Table {} ", remoteServer.client().getTable(REMOTE_DATABASE, REMOTE_TABLE));
-
-    executor = Executors.newSingleThreadExecutor();
   }
 
   @After
@@ -140,7 +132,6 @@ public class WaggleDanceIntegrationTest {
     if (runner != null) {
       runner.stop();
     }
-    executor.shutdownNow();
   }
 
   private void createLocalTable(File tableUri, String table) throws Exception {
@@ -166,28 +157,8 @@ public class WaggleDanceIntegrationTest {
                         newPartition(hiveTable, Arrays.asList("Asia", "China"), partitionChina))));
   }
 
-  private String getWaggleDanceThriftUri() {
-    return "thrift://localhost:" + MetaStoreProxyServer.DEFAULT_WAGGLEDANCE_PORT;
-  }
-
-  private HiveMetaStoreClient getWaggleDanceClient() throws MetaException {
-    HiveConf conf = new HiveConf();
-    conf.setVar(ConfVars.METASTOREURIS, getWaggleDanceThriftUri());
-    conf.setBoolVar(ConfVars.METASTORE_EXECUTE_SET_UGI, true);
-    return new HiveMetaStoreClient(conf);
-  }
-
   private void runWaggleDance(WaggleDanceRunner runner) throws Exception {
-    executor.submit(() -> {
-      try {
-        runner.run();
-      } catch (RuntimeException e) {
-        throw e;
-      } catch (Exception e) {
-        throw new RuntimeException("Error during execution", e);
-      }
-    });
-    runner.waitForService();
+    runner.runAndWaitForStartup();
   }
 
   private Federations stopServerAndGetConfiguration() throws Exception, FileNotFoundException {
@@ -208,7 +179,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     // Local table
     Table localTable = localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE);
@@ -231,7 +202,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     List<ResourceUri> resourceUris = Lists
         .newArrayList(new ResourceUri(ResourceType.JAR, "hdfs://path/to/my/jar/my.jar"));
     Function localFunction = new Function("fn1", LOCAL_DATABASE, "com.hotels.hive.FN1", "hadoop", PrincipalType.USER, 0,
@@ -262,11 +233,14 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
+    HiveMetaStoreClient proxy2 = runner.createWaggleDanceClient();
 
     // Local table
     Table localTable = localServer.client().getTable(LOCAL_DATABASE, LOCAL_TABLE);
     Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+    assertThat(waggledLocalTable, is(localTable));
+    waggledLocalTable = proxy2.getTable(LOCAL_DATABASE, LOCAL_TABLE);
     assertThat(waggledLocalTable, is(localTable));
 
     // Remote table
@@ -297,7 +271,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     List<String> dbs = proxy.getAllDatabases();
     List<String> expected = newArrayList("default", "local_database", "waggle_remote_default",
@@ -322,7 +296,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     // Local table
     String prefixedLocalDbName = primaryPrefix + LOCAL_DATABASE;
@@ -379,7 +353,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     // Execute a couple of requests
     proxy.getAllDatabases();
@@ -429,7 +403,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     // create rights
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Database newDB = proxy.getDatabase("newDB");
@@ -464,7 +438,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     // create rights
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Database newDB = proxy.getDatabase("newDB");
@@ -497,7 +471,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
@@ -527,7 +501,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
@@ -557,7 +531,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     String waggledRemoteDbName = PREFIXED_REMOTE_DATABASE;
 
@@ -589,7 +563,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     Database readOnlyDB = proxy.getDatabase(LOCAL_DATABASE);
     assertNotNull(readOnlyDB);
     Database writableDB = proxy.getDatabase(writableDatabase);
@@ -614,7 +588,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Database newDB = proxy.getDatabase("newDB");
     assertNotNull(newDB);
@@ -641,7 +615,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Database newDB = proxy.getDatabase("newDB");
     assertNotNull(newDB);
@@ -672,7 +646,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     Table table = proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
     Table newTable = new Table(table);
     newTable.setTableName("new_remote_table");
@@ -695,7 +669,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     proxy.createDatabase(new Database("newDB", "", new File(localWarehouseUri, "newDB").toURI().toString(), null));
     Database newDB = proxy.getDatabase("newDB");
     assertNotNull(newDB);
@@ -847,7 +821,7 @@ public class WaggleDanceIntegrationTest {
         .build();
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     List<String> allDatabases = proxy.getAllDatabases();
 
     List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, REMOTE_DATABASE);
@@ -867,7 +841,7 @@ public class WaggleDanceIntegrationTest {
         .build();
     runWaggleDance(runner);
 
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     List<String> allDatabases = proxy.getAllDatabases();
 
     List<String> expected = Lists.newArrayList("default", LOCAL_DATABASE, PREFIXED_REMOTE_DATABASE);
@@ -889,7 +863,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
     assertThat(allDatabases.size(), is(2));
@@ -918,7 +892,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
     assertThat(allDatabases.size(), is(2));
@@ -955,7 +929,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     List<String> resultTables = proxy.getAllTables(LOCAL_DATABASE);
     assertThat(resultTables.size(), is(1));
     assertThat(resultTables.get(0), is(localTable));
@@ -986,7 +960,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
     List<String> resultTables = proxy.getAllTables(LOCAL_DATABASE);
     assertThat(resultTables.size(), is(1));
     assertThat(resultTables.get(0), is(localTable));
@@ -1011,7 +985,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
     assertThat(allDatabases.size(), is(5));
@@ -1044,7 +1018,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     List<String> allDatabases = proxy.getAllDatabases();
     assertThat(allDatabases.size(), is(5));
@@ -1072,7 +1046,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     Table waggledLocalTable = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
     assertThat(waggledLocalTable.getSd().getLocation(), startsWith("prefix"));
@@ -1090,7 +1064,7 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
 
     HiveObjectType objectType = HiveObjectType.DATABASE;
     String dbName = LOCAL_DATABASE;
@@ -1113,8 +1087,8 @@ public class WaggleDanceIntegrationTest {
         .build();
 
     runWaggleDance(runner);
-    HiveMetaStoreClient proxy = getWaggleDanceClient();
-
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
+ 
     List<TableMeta> tableMeta = proxy
         .getTableMeta("waggle_remote_remote_database", "*", Lists.newArrayList("EXTERNAL_TABLE"));
     assertThat(tableMeta.size(), is(1));

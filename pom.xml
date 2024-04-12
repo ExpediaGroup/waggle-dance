@@ -24,6 +24,7 @@
   </scm>
 
   <modules>
+    <module>waggle-dance-extensions</module>
     <module>waggle-dance-core</module>
     <module>waggle-dance-api</module>
     <module>waggle-dance-rest</module>
@@ -273,6 +274,11 @@
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-cbor</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
         <version>${jackson.version}</version>
       </dependency>
       <dependency>

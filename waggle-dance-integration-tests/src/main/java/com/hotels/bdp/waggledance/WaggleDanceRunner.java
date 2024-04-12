@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +30,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -38,10 +39,17 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.yaml.snakeyaml.Yaml;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 
 import com.hotels.bdp.waggledance.api.model.AccessControlType;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
@@ -58,11 +66,14 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 
 public class WaggleDanceRunner implements WaggleDance.ContextListener {
 
+  private static Logger log = LoggerFactory.getLogger(WaggleDanceRunner.class);
+
   public static final String SERVER_CONFIG = "server-config";
   public static final String FEDERATION_CONFIG = "federation-config";
 
   private final File serverConfig;
   private final File federationConfig;
+  private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
   private ApplicationContext applicationContext;
   private final int restApiPort;
@@ -74,6 +85,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
     private final GraphiteConfiguration graphiteConfiguration = new GraphiteConfiguration();
     private final List<FederatedMetaStore> federatedMetaStores = new ArrayList<>();
     private PrimaryMetaStore primaryMetaStore;
+    private Map<String, Object> extraServerConfig = new HashMap<>();
 
     private Builder(File workingDirectory) {
       checkArgument(workingDirectory != null);
@@ -145,7 +157,11 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       return this;
     }
 
-    public Builder federate(String name, String remoteMetaStoreUris, List<MappedTables> mappedTables, String... mappableDatabases) {
+    public Builder federate(
+        String name,
+        String remoteMetaStoreUris,
+        List<MappedTables> mappedTables,
+        String... mappableDatabases) {
       checkArgument(isNotEmpty(name));
       checkArgument(isNotEmpty(remoteMetaStoreUris));
       FederatedMetaStore federatedMetaStore = new FederatedMetaStore(name, remoteMetaStoreUris);
@@ -232,7 +248,12 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       return this;
     }
 
-    private File marshall(Yaml yaml, String fileName, Object... objects) {
+    public Builder extraServerConfig(Map<String, Object> extraServerConfig) {
+      this.extraServerConfig = extraServerConfig;
+      return this;
+    }
+
+    private File marshall(Yaml yaml, String fileName, Object... objects) throws IOException {
       File config = new File(workingDirectory, fileName);
 
       FileSystemManager fsManager = null;
@@ -250,33 +271,24 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
       } catch (IOException e) {
         throw new RuntimeException("Unable to write federations to '" + config.toURI() + "'", e);
       }
-
+      log.info("Wrote config {} content: {}", fileName, Files.asCharSource(config, StandardCharsets.UTF_8).read());
       return config;
     }
 
-    public WaggleDanceRunner build() {
+    public WaggleDanceRunner build() throws IOException {
       Yaml yaml = YamlFactory.newYaml();
 
       HashMap<String, Object> extraConfig = new HashMap<>();
       extraConfig.put("graphite", graphiteConfiguration);
       extraConfig.put("yaml-storage", yamlStorageConfiguration);
-      int restApiPort = getFreePort();
+      int restApiPort = TestUtils.getFreePort();
       extraConfig.put("server.port", restApiPort);
+      extraConfig.putAll(extraServerConfig);
       File serverConfig = marshall(yaml, SERVER_CONFIG + ".yml", waggleDanceConfiguration, extraConfig);
-
       Federations federations = new Federations(primaryMetaStore, federatedMetaStores);
       File federationConfig = marshall(yaml, FEDERATION_CONFIG + ".yml", federations);
-
       WaggleDanceRunner runner = new WaggleDanceRunner(serverConfig, federationConfig, restApiPort);
       return runner;
-    }
-
-    private int getFreePort() {
-      try (ServerSocket socket = new ServerSocket(0)) {
-        return socket.getLocalPort();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
     }
 
   }
@@ -327,14 +339,22 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
     return applicationContext.getBean(MetaStoreProxyServer.class);
   }
 
-  public Map<String, String> run() throws Exception {
-    Map<String, String> props = populateProperties();
-    WaggleDance.register(this);
-    WaggleDance.main(getArgsArray(props));
-    return props;
+  public void runAndWaitForStartup() throws Exception {
+    executor.submit(() -> {
+      try {
+        Map<String, String> props = populateProperties();
+        WaggleDance.register(this);
+        WaggleDance.main(getArgsArray(props));
+      } catch (RuntimeException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new RuntimeException("Error during execution", e);
+      }
+    });
+    waitForService();
   }
 
-  public void waitForService() throws Exception {
+  private void waitForService() throws Exception {
     long delay = 1;
     while (applicationContext == null) {
       if (delay >= 15) {
@@ -356,6 +376,9 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
         Thread.sleep(TimeUnit.SECONDS.toMillis(++delay));
       }
     }
+    if (!executor.isShutdown()) {
+      executor.shutdownNow();
+    }
   }
 
   @Override
@@ -366,6 +389,14 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
   @Override
   public void onStop(ApplicationContext context) {
     applicationContext = null;
+  }
+
+  public HiveMetaStoreClient createWaggleDanceClient() throws MetaException {
+    String thriftUri = "thrift://localhost:" + MetaStoreProxyServer.DEFAULT_WAGGLEDANCE_PORT;
+    HiveConf conf = new HiveConf();
+    conf.setVar(ConfVars.METASTOREURIS, thriftUri);
+    conf.setBoolVar(ConfVars.METASTORE_EXECUTE_SET_UGI, true);
+    return new HiveMetaStoreClient(conf);
   }
 
 }

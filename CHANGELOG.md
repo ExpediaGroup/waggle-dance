@@ -1,5 +1,13 @@
 
-## [3.12.0] - 2023-02-08
+## [3.13.0] - TBD
+### Added
+- Added `waggle-dance-extensions` module. See [extensions README](waggle-dance-extensions/README.md.)
+ - Added support to enable Rate Limiting of the Waggle Dance application based.
+### Changed
+- Changed and added some log message so for better tracking of calls being done.
+- Changed Integration Test WaggleDanceRunner to allow for better reuse.
+
+## [3.12.0] - 2024-02-08
 ### Added
 - Added optional `primary-meta-store.read-only-remote-meta-store-uris` config to allow traffic to be diverted based on calls made. See README.md.
 
