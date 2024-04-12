@@ -162,7 +162,6 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       this.clientManager = clientManager;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       try {

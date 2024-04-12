@@ -19,7 +19,7 @@ import java.time.Duration;
 
 import io.github.bucket4j.Bandwidth;
 
-public class IntervallyBandwidthProvider implements BucketBandwithProvider {
+public class IntervallyBandwidthProvider implements BucketBandwidthProvider {
 
   private long capacity;
   private long tokensPerMinute;
@@ -30,7 +30,7 @@ public class IntervallyBandwidthProvider implements BucketBandwithProvider {
   }
 
   @Override
-  public Bandwidth getBandwith() {
+  public Bandwidth getBandwidth() {
     Bandwidth limit = Bandwidth
         .builder()
         .capacity(capacity)

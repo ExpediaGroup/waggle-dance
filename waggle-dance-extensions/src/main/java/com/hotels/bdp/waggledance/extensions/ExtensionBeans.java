@@ -29,24 +29,24 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
-import io.github.bucket4j.distributed.serialization.Mapper;
-import io.github.bucket4j.redis.redisson.cas.RedissonBasedProxyManager;
-
 import com.hotels.bdp.waggledance.client.ThriftClientFactory;
-import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketBandwithProvider;
+import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketBandwidthProvider;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketService;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.RateLimitingClientFactory;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.RefillType;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.memory.InMemoryBucketService;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.redis.RedisBucketService;
 
+import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
+import io.github.bucket4j.distributed.serialization.Mapper;
+import io.github.bucket4j.redis.redisson.cas.RedissonBasedProxyManager;
+
 @Configuration
 @ConditionalOnProperty(name = "waggledance.extensions.ratelimit.enabled", havingValue = "true")
 public class ExtensionBeans {
 
   private static final String STORAGE_MEMORY = "MEMORY";
-  private static final String STORAGE_REDIS= "REDIS";
+  private static final String STORAGE_REDIS = "REDIS";
 
   @Bean
   public ThriftClientFactory thriftClientFactory(
@@ -57,16 +57,16 @@ public class ExtensionBeans {
 
   @ConditionalOnProperty(name = "waggledance.extensions.ratelimit.storage", havingValue = STORAGE_MEMORY)
   @Bean
-  public BucketService inMemoryBucketService(BucketBandwithProvider bucketBandwithProvider) {
-    return new InMemoryBucketService(bucketBandwithProvider);
+  public BucketService inMemoryBucketService(BucketBandwidthProvider bucketBandwidthProvider) {
+    return new InMemoryBucketService(bucketBandwidthProvider);
   }
 
   @ConditionalOnProperty(name = "waggledance.extensions.ratelimit.storage", havingValue = STORAGE_REDIS)
   @Bean
   public BucketService redisBucketService(
-      BucketBandwithProvider bucketBandwithProvider,
+      BucketBandwidthProvider bucketBandwidthProvider,
       RedissonBasedProxyManager<String> redissonBasedProxyManager) {
-    return new RedisBucketService(bucketBandwithProvider, redissonBasedProxyManager);
+    return new RedisBucketService(bucketBandwidthProvider, redissonBasedProxyManager);
   }
 
   @ConditionalOnProperty(name = "waggledance.extensions.ratelimit.storage", havingValue = STORAGE_REDIS)
@@ -88,7 +88,7 @@ public class ExtensionBeans {
   }
 
   @Bean
-  public BucketBandwithProvider bucketBandwithProvider(
+  public BucketBandwidthProvider bucketBandwidthProvider(
       @Value("${waggledance.extensions.ratelimit.capacity:2000}") long capacity,
       @Value("${waggledance.extensions.ratelimit.tokensPerMinute:1000}") long tokensPerMinute,
       @Value("${waggledance.extensions.ratelimit.refillType:GREEDY}") RefillType refillType) {

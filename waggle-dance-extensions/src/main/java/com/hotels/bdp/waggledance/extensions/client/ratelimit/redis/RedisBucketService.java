@@ -19,7 +19,7 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.redis.redisson.cas.RedissonBasedProxyManager;
 
-import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketBandwithProvider;
+import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketBandwidthProvider;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketService;
 
 /**
@@ -32,10 +32,10 @@ public class RedisBucketService implements BucketService {
   private final BucketConfiguration configuration;
 
   public RedisBucketService(
-      BucketBandwithProvider bucketBandwithProvider,
+      BucketBandwidthProvider bucketBandwidthProvider,
       RedissonBasedProxyManager<String> proxyManager) {
     this.proxyManager = proxyManager;
-    configuration = BucketConfiguration.builder().addLimit(bucketBandwithProvider.getBandwith()).build();
+    configuration = BucketConfiguration.builder().addLimit(bucketBandwidthProvider.getBandwidth()).build();
   }
 
   @Override

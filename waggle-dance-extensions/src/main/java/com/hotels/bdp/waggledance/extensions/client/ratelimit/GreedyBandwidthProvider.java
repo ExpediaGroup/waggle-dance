@@ -19,7 +19,7 @@ import java.time.Duration;
 
 import io.github.bucket4j.Bandwidth;
 
-public class GreedyBandwidthProvider implements BucketBandwithProvider {
+public class GreedyBandwidthProvider implements BucketBandwidthProvider {
 
   private final long capacity;
   private final long tokensPerMinute;
@@ -30,7 +30,7 @@ public class GreedyBandwidthProvider implements BucketBandwithProvider {
   }
 
   @Override
-  public Bandwidth getBandwith() {
+  public Bandwidth getBandwidth() {
     Bandwidth limit = Bandwidth
         .builder()
         .capacity(capacity)

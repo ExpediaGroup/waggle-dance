@@ -20,7 +20,7 @@ import java.util.Map;
 
 import io.github.bucket4j.Bucket;
 
-import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketBandwithProvider;
+import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketBandwidthProvider;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketService;
 
 /**
@@ -29,15 +29,15 @@ import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketService;
  */
 public class InMemoryBucketService implements BucketService {
 
-  private final BucketBandwithProvider bucketBandwithProvider;
+  private final BucketBandwidthProvider bucketBandwidthProvider;
   private Map<String, Bucket> bucketsPerUser = new HashMap<>();
 
-  public InMemoryBucketService(BucketBandwithProvider bucketBandwithProvider) {
-    this.bucketBandwithProvider = bucketBandwithProvider;
+  public InMemoryBucketService(BucketBandwidthProvider bucketBandwidthProvider) {
+    this.bucketBandwidthProvider = bucketBandwidthProvider;
   }
 
   private Bucket createNewBucket() {
-    return Bucket.builder().addLimit(bucketBandwithProvider.getBandwith()).build();
+    return Bucket.builder().addLimit(bucketBandwidthProvider.getBandwidth()).build();
   }
 
   public Bucket getBucket(String key) {

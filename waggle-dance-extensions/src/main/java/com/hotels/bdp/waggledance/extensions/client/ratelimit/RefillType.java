@@ -18,16 +18,16 @@ package com.hotels.bdp.waggledance.extensions.client.ratelimit;
 public enum RefillType {
   GREEDY {
     @Override
-    public BucketBandwithProvider createBandwidthProvider(long capacity, long tokensPerMinute) {
+    public BucketBandwidthProvider createBandwidthProvider(long capacity, long tokensPerMinute) {
       return new GreedyBandwidthProvider(capacity, tokensPerMinute);
     }
   },
   INTERVALLY {
     @Override
-    public BucketBandwithProvider createBandwidthProvider(long capacity, long tokensPerMinute) {
+    public BucketBandwidthProvider createBandwidthProvider(long capacity, long tokensPerMinute) {
       return new IntervallyBandwidthProvider(capacity, tokensPerMinute);
     }
   };
 
-  public abstract BucketBandwithProvider createBandwidthProvider(long capacity, long tokensPerMinute);
+  public abstract BucketBandwidthProvider createBandwidthProvider(long capacity, long tokensPerMinute);
 }

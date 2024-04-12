@@ -15,13 +15,14 @@
  */
 package com.hotels.bdp.waggledance.extensions.client.ratelimit;
 
+import static com.hotels.bdp.waggledance.extensions.client.ratelimit.RateLimitingInvocationHandler.UNKNOWN_USER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import static com.hotels.bdp.waggledance.extensions.client.ratelimit.RateLimitingInvocationHandler.UNKNOWN_USER;
 
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -71,6 +72,9 @@ public class RateLimitingInvocationHandlerTest {
     } catch (WaggleDanceServerException e) {
       assertThat(e.getMessage(), is("[STATUS=429] Too many requests."));
     }
+    
+    verify(client, times(3)).get_table("db", "table");
+    verify(client).set_ugi(USER, null);
   }
 
   @Test
@@ -102,6 +106,25 @@ public class RateLimitingInvocationHandlerTest {
     } catch (NoSuchObjectException e) {
       assertThat(e.getMessage(), is("No such table"));
     }
+  }
+  
+  @Test
+  public void testIgnoredMethods() throws Exception {
+    when(thriftClientFactory.newInstance(metastore)).thenReturn(client);
+    CloseableThriftHiveMetastoreIface handlerProxy = new RateLimitingClientFactory(thriftClientFactory, bucketService)
+        .newInstance(metastore);
+
+    assertTokens(2, 2);
+    handlerProxy.set_ugi(USER, null);
+    handlerProxy.isOpen();
+    handlerProxy.flushCache();
+    handlerProxy.close();
+    assertTokens(2, 2);
+
+    verify(client).set_ugi(USER, null);
+    verify(client).isOpen();
+    verify(client).flushCache();
+    verify(client).close();
   }
 
   private void assertTokens(long expectedUserTokenCount, long expectedUnknownUserTokenCount) {
