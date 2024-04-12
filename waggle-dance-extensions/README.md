@@ -34,7 +34,7 @@ waggledance.extensions.ratelimit.tokensPerMinute: 1000
 
 Using a Redis backend server is supported by this module, it's up to the user to configure and maintain that infrastructure. 
 The next example assumes a Redis Replicated Server is running using SSL and `auth_token` authentication.
-Timeouts and retry are set lower than default to impact the Waggle Dance service. 
+Timeouts and retry are set lower than default to *not* impact the Waggle Dance service if the Rate Limiting storage is unavailable. 
 The maximum latency this solution will add to a request in the following scenarios is: 
 * Redis server down:
     * Latency will be in low ms as `retryAttemps: 0`, the connection will immediately fail.
