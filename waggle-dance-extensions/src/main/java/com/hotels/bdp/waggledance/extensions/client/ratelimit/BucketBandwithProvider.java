@@ -19,6 +19,6 @@ import io.github.bucket4j.Bandwidth;
 
 public interface BucketBandwidthProvider {
 
-  Bandwidth getBandwith();
+  Bandwidth getBandwidth();
   
 }
