@@ -17,7 +17,7 @@ package com.hotels.bdp.waggledance.extensions.client.ratelimit;
 
 import io.github.bucket4j.Bandwidth;
 
-public interface BucketBandwithProvider {
+public interface BucketBandwidthProvider {
 
   Bandwidth getBandwith();
   
