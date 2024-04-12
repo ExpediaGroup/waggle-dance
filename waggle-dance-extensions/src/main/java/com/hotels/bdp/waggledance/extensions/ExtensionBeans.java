@@ -63,7 +63,7 @@ public class ExtensionBeans {
 
   @ConditionalOnProperty(name = "waggledance.extensions.ratelimit.storage", havingValue = STORAGE_REDIS)
   @Bean
-  public BucketService redisbucketService(
+  public BucketService redisBucketService(
       BucketBandwithProvider bucketBandwithProvider,
       RedissonBasedProxyManager<String> redissonBasedProxyManager) {
     return new RedisBucketService(bucketBandwithProvider, redissonBasedProxyManager);
