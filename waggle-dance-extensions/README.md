@@ -41,7 +41,7 @@ The maximum latency this solution will add to a request in the following scenari
 2. Redis server slow:
   * Latency will be max `timeout: 1000` ms
  
-Waggle Dance is configured to allow all request in case of Rate Limiting Server failures.
+Waggle Dance is configured to allow all requests in case of Rate Limiting Server failures.
 
 Example config using a Redis Replicated Server:
 
