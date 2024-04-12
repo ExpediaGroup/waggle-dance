@@ -57,7 +57,7 @@ public class ExtensionBeans {
 
   @ConditionalOnProperty(name = "waggledance.extensions.ratelimit.storage", havingValue = STORAGE_MEMORY)
   @Bean
-  public BucketService inMemorybucketService(BucketBandwithProvider bucketBandwithProvider) {
+  public BucketService inMemoryBucketService(BucketBandwithProvider bucketBandwithProvider) {
     return new InMemoryBucketService(bucketBandwithProvider);
   }
 
