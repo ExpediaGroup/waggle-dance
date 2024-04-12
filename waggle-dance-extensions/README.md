@@ -36,10 +36,10 @@ Using a Redis backend server is supported by this module, it's up to the user to
 The next example assumes a Redis Replicated Server is running using SSL and `auth_token` authentication.
 Timeouts and retry are set lower than default to impact the Waggle Dance service. 
 The maximum latency this solution will add to a request in the following scenarios is: 
-1. Redis server down:
-  * Latency will be in low ms as `retryAttemps: 0`, the connection will immediately fail.
-2. Redis server slow:
-  * Latency will be max `timeout: 1000` ms
+* Redis server down:
+    * Latency will be in low ms as `retryAttemps: 0`, the connection will immediately fail.
+* Redis server slow:
+    * Latency will be max `timeout: 1000` ms
  
 Waggle Dance is configured to allow all requests in case of Rate Limiting Server failures.
 
