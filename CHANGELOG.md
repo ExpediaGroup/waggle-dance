@@ -2,10 +2,10 @@
 ## [3.13.0] - TBD
 ### Added
 - Added `waggle-dance-extensions` module. See [extensions README](waggle-dance-extensions/README.md.)
- - Added support to enable Rate Limiting of the Waggle Dance application based.
+- Added support to enable Rate Limiting in Waggle Dance.
 ### Changed
-- Changed and added some log message so for better tracking of calls being done.
-- Changed Integration Test WaggleDanceRunner to allow for better reuse.
+- Changed and added some log messages for better tracking of calls.
+- Changed Integration Test WaggleDanceRunner to allow for reuse.
 
 ## [3.12.0] - 2024-02-08
 ### Added
