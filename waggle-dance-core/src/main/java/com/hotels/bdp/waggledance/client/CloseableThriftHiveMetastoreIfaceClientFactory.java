@@ -17,12 +17,10 @@ package com.hotels.bdp.waggledance.client;
 
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.hotels.bdp.waggledance.context.CommonBeans;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
 import lombok.AllArgsConstructor;
@@ -45,7 +43,21 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
     if (waggleDanceConfiguration.getConfigurationProperties() != null) {
-      properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
+//      properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
+      Map<String, String> serverConfigMap=waggleDanceConfiguration.getConfigurationProperties();
+      Set<String> keySet=serverConfigMap.keySet();
+
+      for(String key:keySet){
+        if(!key.startsWith(CommonBeans.WD_HMS + ".")){
+          properties.put(key,properties.get(key));
+        }
+      }
+      String hmsPrefix = CommonBeans.WD_HMS + "." + metaStore.getName() + ".";
+      for(String key:keySet){
+        if(key.startsWith(hmsPrefix)){
+          properties.put(key.substring(hmsPrefix.length()),properties.get(key));
+        }
+      }
     }
     return newHiveInstance(metaStore, properties);
   }
