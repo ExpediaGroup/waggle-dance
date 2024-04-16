@@ -13,6 +13,7 @@ To enable and configure see the following table, you can add these properties to
   | Property | Required | Description |
   | --- | --- | --- |
   | waggledance.extensions.ratelimit.enabled | no | Whether the rate limiting extension is enabled. Default is `false` |
+  | waggledance.extensions.ratelimit.keyPrefix | no | Optional prefix for the bucket keys. Default is (empty string) `` |
   | waggledance.extensions.ratelimit.storage | yes (if `enabled: true`) | The storage backend for the rate limiter, possible values `MEMORY` or `REDIS` |
   | waggledance.extensions.ratelimit.capacity | no | The capacity of the bucket. Default `2000` |
   | waggledance.extensions.ratelimit.refillType | no | The refill type, possible values `GREEDY` or `INTERVALLY`. Default is `GREEDY` |

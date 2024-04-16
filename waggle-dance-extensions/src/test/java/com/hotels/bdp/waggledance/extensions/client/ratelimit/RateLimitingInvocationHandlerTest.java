@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -41,17 +42,25 @@ import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
 @RunWith(MockitoJUnitRunner.class)
 public class RateLimitingInvocationHandlerTest {
 
+  private static final String USER = "user";
   private @Mock ThriftClientFactory thriftClientFactory;
   private @Mock CloseableThriftHiveMetastoreIface client;
+  private @Mock BucketKeyGenerator bucketKeyGenerator;
   private BucketService bucketService = new InMemoryBucketService(new IntervallyBandwidthProvider(2, 1));
   private AbstractMetaStore metastore = AbstractMetaStore.newPrimaryInstance("name", "uri");
-  private static final String USER = "user";
+  private CloseableThriftHiveMetastoreIface handlerProxy;
+
+  @Before
+  public void setUp() {
+    when(thriftClientFactory.newInstance(metastore)).thenReturn(client);
+    when(bucketKeyGenerator.generateKey(USER)).thenReturn(USER);
+    when(bucketKeyGenerator.generateKey(UNKNOWN_USER)).thenReturn(UNKNOWN_USER);
+    handlerProxy = new RateLimitingClientFactory(thriftClientFactory, bucketService, bucketKeyGenerator)
+        .newInstance(metastore);
+  }
 
   @Test
   public void testLimitDifferentUsers() throws Exception {
-    when(thriftClientFactory.newInstance(metastore)).thenReturn(client);
-    CloseableThriftHiveMetastoreIface handlerProxy = new RateLimitingClientFactory(thriftClientFactory, bucketService)
-        .newInstance(metastore);
 
     assertTokens(2, 2);
     handlerProxy.get_table("db", "table");
@@ -79,27 +88,20 @@ public class RateLimitingInvocationHandlerTest {
 
   @Test
   public void testBucketExceptionStillDoCall() throws Exception {
-    when(thriftClientFactory.newInstance(metastore)).thenReturn(client);
     Table table = new Table();
     when(client.get_table("db", "table")).thenReturn(table);
     BucketService mockedBucketService = Mockito.mock(BucketService.class);
     when(mockedBucketService.getBucket(anyString())).thenThrow(new RuntimeException("Bucket exception"));
-    CloseableThriftHiveMetastoreIface handlerProxy = new RateLimitingClientFactory(thriftClientFactory,
-        mockedBucketService).newInstance(metastore);
+    CloseableThriftHiveMetastoreIface proxy = new RateLimitingClientFactory(thriftClientFactory, mockedBucketService, bucketKeyGenerator)
+        .newInstance(metastore);
 
-    Table result = handlerProxy.get_table("db", "table");
+    Table result = proxy.get_table("db", "table");
     assertThat(result, is(table));
   }
 
   @Test
   public void testInvocationHandlerThrowsCause() throws Exception {
-    when(thriftClientFactory.newInstance(metastore)).thenReturn(client);
     when(client.get_table("db", "table")).thenThrow(new NoSuchObjectException("No such table"));
-    BucketService mockedBucketService = Mockito.mock(BucketService.class);
-    when(mockedBucketService.getBucket(anyString())).thenThrow(new RuntimeException("Bucket exception"));
-    CloseableThriftHiveMetastoreIface handlerProxy = new RateLimitingClientFactory(thriftClientFactory,
-        mockedBucketService).newInstance(metastore);
-
     try {
       handlerProxy.get_table("db", "table");
       fail("Should have thrown exception.");
@@ -110,10 +112,6 @@ public class RateLimitingInvocationHandlerTest {
   
   @Test
   public void testIgnoredMethods() throws Exception {
-    when(thriftClientFactory.newInstance(metastore)).thenReturn(client);
-    CloseableThriftHiveMetastoreIface handlerProxy = new RateLimitingClientFactory(thriftClientFactory, bucketService)
-        .newInstance(metastore);
-
     assertTokens(2, 2);
     handlerProxy.set_ugi(USER, null);
     handlerProxy.isOpen();

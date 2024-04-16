@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.hotels.bdp.waggledance.client.ThriftClientFactory;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketBandwidthProvider;
+import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketKeyGenerator;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketService;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.RateLimitingClientFactory;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.RefillType;
@@ -51,8 +52,15 @@ public class ExtensionBeans {
   @Bean
   public ThriftClientFactory thriftClientFactory(
       ThriftClientFactory defaultWaggleDanceClientFactory,
-      BucketService bucketService) {
-    return new RateLimitingClientFactory(defaultWaggleDanceClientFactory, bucketService);
+      BucketService bucketService,
+      BucketKeyGenerator bucketKeyGenerator) {
+    return new RateLimitingClientFactory(defaultWaggleDanceClientFactory, bucketService, bucketKeyGenerator);
+  }
+
+  @Bean
+  public BucketKeyGenerator bucketKeyGenerator(
+      @Value("${waggledance.extensions.ratelimit.keyPrefix:\"\"}") String keyPrefix) {
+    return new BucketKeyGenerator(keyPrefix);
   }
 
   @ConditionalOnProperty(name = "waggledance.extensions.ratelimit.storage", havingValue = STORAGE_MEMORY)

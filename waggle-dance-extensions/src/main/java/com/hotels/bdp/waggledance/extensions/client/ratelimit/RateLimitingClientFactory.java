@@ -27,18 +27,23 @@ public class RateLimitingClientFactory implements ThriftClientFactory {
 
   private final ThriftClientFactory thriftClientFactory;
   private final BucketService bucketService;
+  private final BucketKeyGenerator bucketKeyGenerator;
 
   public RateLimitingClientFactory(
-      ThriftClientFactory thriftClientFactory, BucketService bucketService) {
+      ThriftClientFactory thriftClientFactory,
+      BucketService bucketService,
+      BucketKeyGenerator bucketKeyGenerator) {
     this.thriftClientFactory = thriftClientFactory;
     this.bucketService = bucketService;
+    this.bucketKeyGenerator = bucketKeyGenerator;
   }
 
   @Override
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     CloseableThriftHiveMetastoreIface client = thriftClientFactory.newInstance(metaStore);
     return (CloseableThriftHiveMetastoreIface) Proxy
-        .newProxyInstance(getClass().getClassLoader(), INTERFACES, new RateLimitingInvocationHandler(client, metaStore.getName(), bucketService));
+        .newProxyInstance(getClass().getClassLoader(), INTERFACES,
+            new RateLimitingInvocationHandler(client, metaStore.getName(), bucketService, bucketKeyGenerator));
 
   }
 

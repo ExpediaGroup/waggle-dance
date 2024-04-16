@@ -27,6 +27,7 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 
 import com.amazonaws.glue.catalog.metastore.AWSCatalogMetastoreClient;
+
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.adapter.MetastoreIfaceAdapter;

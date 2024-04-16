@@ -42,14 +42,16 @@ class RateLimitingInvocationHandler implements InvocationHandler {
   private String user = UNKNOWN_USER;
 
   private final BucketService bucketService;
+  private final BucketKeyGenerator bucketKeyGenerator;
 
   public RateLimitingInvocationHandler(
       CloseableThriftHiveMetastoreIface client,
       String metastoreName,
-      BucketService bucketService) {
+      BucketService bucketService, BucketKeyGenerator bucketKeyGenerator) {
     this.client = client;
     this.metastoreName = metastoreName;
     this.bucketService = bucketService;
+    this.bucketKeyGenerator = bucketKeyGenerator;
   }
 
   @Override
@@ -78,7 +80,7 @@ class RateLimitingInvocationHandler implements InvocationHandler {
 
   private boolean proceedWithCall(Method method) {
     try {
-      Bucket bucket = bucketService.getBucket(user);
+      Bucket bucket = bucketService.getBucket(bucketKeyGenerator.generateKey(user));
       ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
       log
           .info("RateLimitCall:[User:{}, method:{}, source_ip:{}, tokens_remaining:{}, metastoreName:{}]", user,
