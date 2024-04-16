@@ -34,9 +34,9 @@ import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
 
 class RateLimitingInvocationHandler implements InvocationHandler {
   private static Logger log = LoggerFactory.getLogger(RateLimitingInvocationHandler.class);
-
+  
   static final String UNKNOWN_USER = "_UNKNOWN_USER_";
-  private static final Set<String> ignorableMethods = Sets.newHashSet("isOpen", "close", "set_ugi", "flushCache");
+  private static final Set<String> IGNORABLE_METHODS = Sets.newHashSet("isOpen", "close", "set_ugi", "flushCache");
   private String metastoreName;
   private CloseableThriftHiveMetastoreIface client;
   private String user = UNKNOWN_USER;
@@ -59,7 +59,7 @@ class RateLimitingInvocationHandler implements InvocationHandler {
     if (method.getName().equals("set_ugi")) {
       user = (String) args[0];
     }
-    if (isIgnoredMethod(method)) {
+    if (isIgnoredMethod(method.getName())) {
       return doRealCall(client, method, args);
     } else {
       return doRateLimitCall(client, method, args);
@@ -68,8 +68,7 @@ class RateLimitingInvocationHandler implements InvocationHandler {
 
   private Object doRateLimitCall(CloseableThriftHiveMetastoreIface client, Method method, Object[] args)
     throws IllegalAccessException, Throwable {
-    boolean proceedWithCall = proceedWithCall(method);
-    if (proceedWithCall) {
+    if (shouldProceedWithCall(method)) {
       return doRealCall(client, method, args);
     } else {
       log.info("User '{}' made too many requests.", user);
@@ -78,7 +77,7 @@ class RateLimitingInvocationHandler implements InvocationHandler {
     }
   }
 
-  private boolean proceedWithCall(Method method) {
+  private boolean shouldProceedWithCall(Method method) {
     try {
       Bucket bucket = bucketService.getBucket(bucketKeyGenerator.generateKey(user));
       ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
@@ -114,8 +113,7 @@ class RateLimitingInvocationHandler implements InvocationHandler {
    * @param method
    * @return true if the method should be ignored for rate limiting purposes.
    */
-  private boolean isIgnoredMethod(Method method) {
-    String name = method.getName();
-    return ignorableMethods.contains(name);
+  private boolean isIgnoredMethod(String methodName) {
+    return IGNORABLE_METHODS.contains(methodName);
   }
 }

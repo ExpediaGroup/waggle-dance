@@ -16,7 +16,7 @@ To enable and configure see the following table, you can add these properties to
   | waggledance.extensions.ratelimit.keyPrefix | no | Optional prefix for the bucket keys. Default is (empty string) `` |
   | waggledance.extensions.ratelimit.storage | yes (if `enabled: true`) | The storage backend for the rate limiter, possible values `MEMORY` or `REDIS` |
   | waggledance.extensions.ratelimit.capacity | no | The capacity of the bucket. Default `2000` |
-  | waggledance.extensions.ratelimit.refillType | no | The refill type, possible values `GREEDY` or `INTERVALLY`. Default is `GREEDY` |
+  | waggledance.extensions.ratelimit.refillType | no | The refill type, possible values `GREEDY` or `INTERVALLY`. See [Bucket4j](https://bucket4j.com/8.9.0/toc.html#refill-types) for explanation. Default is `GREEDY` |
   | waggledance.extensions.ratelimit.tokensPerMinute | no | The number of tokens to add to the bucket per minute. Default `1000` |
   | waggledance.extensions.ratelimit.reddison.embedded.config | yes (if `storage: REDIS`) | The configuration for Redisson client, can be added in a similar way as described [here](https://github.com/redisson/redisson/tree/master/redisson-spring-boot-starter#2-add-settings-into-applicationsettings-file) |
 

@@ -111,17 +111,39 @@ public class RateLimitingInvocationHandlerTest {
   }
   
   @Test
-  public void testIgnoredMethods() throws Exception {
+  public void testIgnoreSetUgi() throws Exception {
     assertTokens(2, 2);
     handlerProxy.set_ugi(USER, null);
-    handlerProxy.isOpen();
-    handlerProxy.flushCache();
-    handlerProxy.close();
     assertTokens(2, 2);
 
     verify(client).set_ugi(USER, null);
-    verify(client).isOpen();
+  }
+
+  @Test
+  public void testIgnoreFlushCache() throws Exception {
+    assertTokens(2, 2);
+    handlerProxy.flushCache();
+    assertTokens(2, 2);
+
     verify(client).flushCache();
+  }
+
+  @Test
+  public void testIgnoreIsOpen() throws Exception {
+    assertTokens(2, 2);
+
+    handlerProxy.isOpen();
+    assertTokens(2, 2);
+
+    verify(client).isOpen();
+  }
+
+  @Test
+  public void testIgnoreClose() throws Exception {
+    assertTokens(2, 2);
+    handlerProxy.close();
+    assertTokens(2, 2);
+
     verify(client).close();
   }
 
