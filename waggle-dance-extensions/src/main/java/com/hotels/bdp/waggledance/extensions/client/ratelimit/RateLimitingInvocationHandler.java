@@ -24,17 +24,18 @@ import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.bucket4j.Bucket;
-import io.github.bucket4j.ConsumptionProbe;
-
 import com.google.common.collect.Sets;
-
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
 
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.ConsumptionProbe;
+import io.micrometer.core.instrument.MeterRegistry;
+
 class RateLimitingInvocationHandler implements InvocationHandler {
   private static Logger log = LoggerFactory.getLogger(RateLimitingInvocationHandler.class);
-  
+
+  static final String METRIC_BASE_NAME = "com.hotels.bdp.waggledance.extensions.client.ratelimit";
   static final String UNKNOWN_USER = "_UNKNOWN_USER_";
   private static final Set<String> IGNORABLE_METHODS = Sets.newHashSet("isOpen", "close", "set_ugi", "flushCache");
   private String metastoreName;
@@ -43,15 +44,19 @@ class RateLimitingInvocationHandler implements InvocationHandler {
 
   private final BucketService bucketService;
   private final BucketKeyGenerator bucketKeyGenerator;
+  private final MeterRegistry meterRegistry;
 
   public RateLimitingInvocationHandler(
       CloseableThriftHiveMetastoreIface client,
       String metastoreName,
-      BucketService bucketService, BucketKeyGenerator bucketKeyGenerator) {
+      BucketService bucketService,
+      BucketKeyGenerator bucketKeyGenerator,
+      MeterRegistry meterRegistry) {
     this.client = client;
     this.metastoreName = metastoreName;
     this.bucketService = bucketService;
     this.bucketKeyGenerator = bucketKeyGenerator;
+    this.meterRegistry = meterRegistry;
   }
 
   @Override
@@ -71,6 +76,7 @@ class RateLimitingInvocationHandler implements InvocationHandler {
     if (shouldProceedWithCall(method)) {
       return doRealCall(client, method, args);
     } else {
+      meterRegistry.counter(Metrics.EXCEEDED.getMetricName()).increment();
       log.info("User '{}' made too many requests.", user);
       // HTTP status would be 429, so using same for Thrift.
       throw new WaggleDanceServerException("[STATUS=429] Too many requests.");
@@ -86,6 +92,7 @@ class RateLimitingInvocationHandler implements InvocationHandler {
               method.getName(), HMSHandler.getThreadLocalIpAddress(), probe.getRemainingTokens(), metastoreName);
       return probe.isConsumed();
     } catch (Exception e) {
+      meterRegistry.counter(Metrics.ERRORS.getMetricName()).increment();
       if (log.isDebugEnabled()) {
         log.error("Error while processing rate limit for: User:{}, method:{}", user, method.getName(), e);
       } else {
@@ -94,6 +101,8 @@ class RateLimitingInvocationHandler implements InvocationHandler {
                 e.getMessage());
       }
       return true;
+    } finally {
+      meterRegistry.counter(Metrics.CALLS.getMetricName()).increment();
     }
   }
 

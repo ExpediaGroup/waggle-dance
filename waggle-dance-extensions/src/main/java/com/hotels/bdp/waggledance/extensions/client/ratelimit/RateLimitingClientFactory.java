@@ -21,6 +21,8 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.ThriftClientFactory;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 public class RateLimitingClientFactory implements ThriftClientFactory {
 
   private static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
@@ -28,14 +30,16 @@ public class RateLimitingClientFactory implements ThriftClientFactory {
   private final ThriftClientFactory thriftClientFactory;
   private final BucketService bucketService;
   private final BucketKeyGenerator bucketKeyGenerator;
+  private final MeterRegistry meterRegistry;
 
   public RateLimitingClientFactory(
       ThriftClientFactory thriftClientFactory,
       BucketService bucketService,
-      BucketKeyGenerator bucketKeyGenerator) {
+      BucketKeyGenerator bucketKeyGenerator, MeterRegistry meterRegistry) {
     this.thriftClientFactory = thriftClientFactory;
     this.bucketService = bucketService;
     this.bucketKeyGenerator = bucketKeyGenerator;
+    this.meterRegistry = meterRegistry;
   }
 
   @Override
@@ -43,7 +47,7 @@ public class RateLimitingClientFactory implements ThriftClientFactory {
     CloseableThriftHiveMetastoreIface client = thriftClientFactory.newInstance(metaStore);
     return (CloseableThriftHiveMetastoreIface) Proxy
         .newProxyInstance(getClass().getClassLoader(), INTERFACES,
-            new RateLimitingInvocationHandler(client, metaStore.getName(), bucketService, bucketKeyGenerator));
+            new RateLimitingInvocationHandler(client, metaStore.getName(), bucketService, bucketKeyGenerator, meterRegistry));
 
   }
 

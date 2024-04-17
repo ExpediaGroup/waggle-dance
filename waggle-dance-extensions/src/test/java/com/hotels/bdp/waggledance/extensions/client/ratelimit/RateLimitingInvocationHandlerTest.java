@@ -39,6 +39,9 @@ import com.hotels.bdp.waggledance.client.ThriftClientFactory;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.memory.InMemoryBucketService;
 import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 @RunWith(MockitoJUnitRunner.class)
 public class RateLimitingInvocationHandlerTest {
 
@@ -46,6 +49,7 @@ public class RateLimitingInvocationHandlerTest {
   private @Mock ThriftClientFactory thriftClientFactory;
   private @Mock CloseableThriftHiveMetastoreIface client;
   private @Mock BucketKeyGenerator bucketKeyGenerator;
+  private MeterRegistry meterRegistry = new SimpleMeterRegistry();
   private BucketService bucketService = new InMemoryBucketService(new IntervallyBandwidthProvider(2, 1));
   private AbstractMetaStore metastore = AbstractMetaStore.newPrimaryInstance("name", "uri");
   private CloseableThriftHiveMetastoreIface handlerProxy;
@@ -55,7 +59,7 @@ public class RateLimitingInvocationHandlerTest {
     when(thriftClientFactory.newInstance(metastore)).thenReturn(client);
     when(bucketKeyGenerator.generateKey(USER)).thenReturn(USER);
     when(bucketKeyGenerator.generateKey(UNKNOWN_USER)).thenReturn(UNKNOWN_USER);
-    handlerProxy = new RateLimitingClientFactory(thriftClientFactory, bucketService, bucketKeyGenerator)
+    handlerProxy = new RateLimitingClientFactory(thriftClientFactory, bucketService, bucketKeyGenerator, meterRegistry)
         .newInstance(metastore);
   }
 
@@ -84,6 +88,9 @@ public class RateLimitingInvocationHandlerTest {
     
     verify(client, times(3)).get_table("db", "table");
     verify(client).set_ugi(USER, null);
+    assertThat(meterRegistry.counter(Metrics.CALLS.getMetricName()).count(), is(4.0));
+    assertThat(meterRegistry.counter(Metrics.ERRORS.getMetricName()).count(), is(0.0));
+    assertThat(meterRegistry.counter(Metrics.EXCEEDED.getMetricName()).count(), is(1.0));
   }
 
   @Test
@@ -92,11 +99,15 @@ public class RateLimitingInvocationHandlerTest {
     when(client.get_table("db", "table")).thenReturn(table);
     BucketService mockedBucketService = Mockito.mock(BucketService.class);
     when(mockedBucketService.getBucket(anyString())).thenThrow(new RuntimeException("Bucket exception"));
-    CloseableThriftHiveMetastoreIface proxy = new RateLimitingClientFactory(thriftClientFactory, mockedBucketService, bucketKeyGenerator)
+    CloseableThriftHiveMetastoreIface proxy = new RateLimitingClientFactory(thriftClientFactory, mockedBucketService, bucketKeyGenerator, meterRegistry)
         .newInstance(metastore);
 
     Table result = proxy.get_table("db", "table");
     assertThat(result, is(table));
+    assertThat(meterRegistry.counter(Metrics.CALLS.getMetricName()).count(), is(1.0));
+    assertThat(meterRegistry.counter(Metrics.ERRORS.getMetricName()).count(), is(1.0));
+    assertThat(meterRegistry.counter(Metrics.EXCEEDED.getMetricName()).count(), is(0.0));
+
   }
 
   @Test

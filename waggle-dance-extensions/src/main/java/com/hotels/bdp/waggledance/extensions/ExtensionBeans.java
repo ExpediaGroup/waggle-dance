@@ -41,6 +41,7 @@ import com.hotels.bdp.waggledance.extensions.client.ratelimit.redis.RedisBucketS
 import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
 import io.github.bucket4j.distributed.serialization.Mapper;
 import io.github.bucket4j.redis.redisson.cas.RedissonBasedProxyManager;
+import io.micrometer.core.instrument.MeterRegistry;
 
 @Configuration
 @ConditionalOnProperty(name = "waggledance.extensions.ratelimit.enabled", havingValue = "true")
@@ -53,8 +54,8 @@ public class ExtensionBeans {
   public ThriftClientFactory thriftClientFactory(
       ThriftClientFactory defaultWaggleDanceClientFactory,
       BucketService bucketService,
-      BucketKeyGenerator bucketKeyGenerator) {
-    return new RateLimitingClientFactory(defaultWaggleDanceClientFactory, bucketService, bucketKeyGenerator);
+      BucketKeyGenerator bucketKeyGenerator, MeterRegistry meterRegistry) {
+    return new RateLimitingClientFactory(defaultWaggleDanceClientFactory, bucketService, bucketKeyGenerator, meterRegistry);
   }
 
   @Bean
