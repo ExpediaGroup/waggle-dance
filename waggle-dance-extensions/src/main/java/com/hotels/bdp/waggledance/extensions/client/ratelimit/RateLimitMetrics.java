@@ -15,19 +15,21 @@
  */
 package com.hotels.bdp.waggledance.extensions.client.ratelimit;
 
-public class BucketKeyGenerator {
+public enum RateLimitMetrics {
+  
+  CALLS("calls"),
+  EXCEEDED("exceeded"),
+  ERRORS("errors");
 
-  private final String prefix;
-
-  public BucketKeyGenerator(String prefix) {
-    this.prefix = prefix;
+  private final static String METRIC_BASE_NAME = "com.hotels.bdp.waggledance.extensions.client.ratelimit";
+  private String metricName;
+  
+  private RateLimitMetrics(String name) {
+    this.metricName = METRIC_BASE_NAME + "." + name;
   }
-
-  public String generateKey(String key) {
-    if (prefix != null && !prefix.isEmpty()) {
-      return prefix + "_" + key;
-    }
-    return key;
+  
+  public String getMetricName() {
+    return metricName;
   }
-
+  
 }

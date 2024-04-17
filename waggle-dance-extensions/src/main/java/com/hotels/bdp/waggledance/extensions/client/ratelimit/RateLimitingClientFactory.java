@@ -17,11 +17,11 @@ package com.hotels.bdp.waggledance.extensions.client.ratelimit;
 
 import java.lang.reflect.Proxy;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.ThriftClientFactory;
-
-import io.micrometer.core.instrument.MeterRegistry;
 
 public class RateLimitingClientFactory implements ThriftClientFactory {
 

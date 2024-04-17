@@ -29,6 +29,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
+import io.github.bucket4j.distributed.serialization.Mapper;
+import io.github.bucket4j.redis.redisson.cas.RedissonBasedProxyManager;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import com.hotels.bdp.waggledance.client.ThriftClientFactory;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketBandwidthProvider;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketKeyGenerator;
@@ -37,11 +42,6 @@ import com.hotels.bdp.waggledance.extensions.client.ratelimit.RateLimitingClient
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.RefillType;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.memory.InMemoryBucketService;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.redis.RedisBucketService;
-
-import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
-import io.github.bucket4j.distributed.serialization.Mapper;
-import io.github.bucket4j.redis.redisson.cas.RedissonBasedProxyManager;
-import io.micrometer.core.instrument.MeterRegistry;
 
 @Configuration
 @ConditionalOnProperty(name = "waggledance.extensions.ratelimit.enabled", havingValue = "true")

@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.extensions.client.ratelimit;
 
-import static com.hotels.bdp.waggledance.extensions.client.ratelimit.RateLimitingInvocationHandler.UNKNOWN_USER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
@@ -23,6 +22,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import static com.hotels.bdp.waggledance.extensions.client.ratelimit.RateLimitingInvocationHandler.UNKNOWN_USER;
 
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -33,14 +34,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.client.ThriftClientFactory;
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.memory.InMemoryBucketService;
 import com.hotels.bdp.waggledance.server.WaggleDanceServerException;
-
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RateLimitingInvocationHandlerTest {
@@ -88,9 +89,9 @@ public class RateLimitingInvocationHandlerTest {
     
     verify(client, times(3)).get_table("db", "table");
     verify(client).set_ugi(USER, null);
-    assertThat(meterRegistry.counter(Metrics.CALLS.getMetricName()).count(), is(4.0));
-    assertThat(meterRegistry.counter(Metrics.ERRORS.getMetricName()).count(), is(0.0));
-    assertThat(meterRegistry.counter(Metrics.EXCEEDED.getMetricName()).count(), is(1.0));
+    assertThat(meterRegistry.counter(RateLimitMetrics.CALLS.getMetricName()).count(), is(4.0));
+    assertThat(meterRegistry.counter(RateLimitMetrics.ERRORS.getMetricName()).count(), is(0.0));
+    assertThat(meterRegistry.counter(RateLimitMetrics.EXCEEDED.getMetricName()).count(), is(1.0));
   }
 
   @Test
@@ -104,9 +105,9 @@ public class RateLimitingInvocationHandlerTest {
 
     Table result = proxy.get_table("db", "table");
     assertThat(result, is(table));
-    assertThat(meterRegistry.counter(Metrics.CALLS.getMetricName()).count(), is(1.0));
-    assertThat(meterRegistry.counter(Metrics.ERRORS.getMetricName()).count(), is(1.0));
-    assertThat(meterRegistry.counter(Metrics.EXCEEDED.getMetricName()).count(), is(0.0));
+    assertThat(meterRegistry.counter(RateLimitMetrics.CALLS.getMetricName()).count(), is(1.0));
+    assertThat(meterRegistry.counter(RateLimitMetrics.ERRORS.getMetricName()).count(), is(1.0));
+    assertThat(meterRegistry.counter(RateLimitMetrics.EXCEEDED.getMetricName()).count(), is(0.0));
 
   }
 
