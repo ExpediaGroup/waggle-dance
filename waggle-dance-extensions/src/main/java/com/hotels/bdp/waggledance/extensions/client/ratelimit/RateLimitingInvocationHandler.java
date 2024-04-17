@@ -76,7 +76,6 @@ class RateLimitingInvocationHandler implements InvocationHandler {
     if (shouldProceedWithCall(method)) {
       return doRealCall(client, method, args);
     } else {
-      meterRegistry.counter(RateLimitMetrics.EXCEEDED.getMetricName()).increment();
       log.info("User '{}' made too many requests.", user);
       // HTTP status would be 429, so using same for Thrift.
       throw new WaggleDanceServerException("[STATUS=429] Too many requests.");
@@ -90,7 +89,13 @@ class RateLimitingInvocationHandler implements InvocationHandler {
       log
           .info("RateLimitCall:[User:{}, method:{}, source_ip:{}, tokens_remaining:{}, metastoreName:{}]", user,
               method.getName(), HMSHandler.getThreadLocalIpAddress(), probe.getRemainingTokens(), metastoreName);
-      return probe.isConsumed();
+      boolean isConsumed = probe.isConsumed();
+      if (isConsumed) {
+        meterRegistry.counter(RateLimitMetrics.WITHIN_LIMIT.getMetricName()).increment();     
+      } else {
+        meterRegistry.counter(RateLimitMetrics.EXCEEDED.getMetricName()).increment();
+      }
+      return isConsumed;
     } catch (Exception e) {
       meterRegistry.counter(RateLimitMetrics.ERRORS.getMetricName()).increment();
       if (log.isDebugEnabled()) {
@@ -101,8 +106,6 @@ class RateLimitingInvocationHandler implements InvocationHandler {
                 e.getMessage());
       }
       return true;
-    } finally {
-      meterRegistry.counter(RateLimitMetrics.CALLS.getMetricName()).increment();
     }
   }
 

@@ -89,7 +89,7 @@ public class RateLimitingInvocationHandlerTest {
     
     verify(client, times(3)).get_table("db", "table");
     verify(client).set_ugi(USER, null);
-    assertThat(meterRegistry.counter(RateLimitMetrics.CALLS.getMetricName()).count(), is(4.0));
+    assertThat(meterRegistry.counter(RateLimitMetrics.WITHIN_LIMIT.getMetricName()).count(), is(3.0));
     assertThat(meterRegistry.counter(RateLimitMetrics.ERRORS.getMetricName()).count(), is(0.0));
     assertThat(meterRegistry.counter(RateLimitMetrics.EXCEEDED.getMetricName()).count(), is(1.0));
   }
@@ -105,7 +105,7 @@ public class RateLimitingInvocationHandlerTest {
 
     Table result = proxy.get_table("db", "table");
     assertThat(result, is(table));
-    assertThat(meterRegistry.counter(RateLimitMetrics.CALLS.getMetricName()).count(), is(1.0));
+    assertThat(meterRegistry.counter(RateLimitMetrics.WITHIN_LIMIT.getMetricName()).count(), is(0.0));
     assertThat(meterRegistry.counter(RateLimitMetrics.ERRORS.getMetricName()).count(), is(1.0));
     assertThat(meterRegistry.counter(RateLimitMetrics.EXCEEDED.getMetricName()).count(), is(0.0));
 

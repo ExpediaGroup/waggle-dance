@@ -23,12 +23,28 @@ import org.junit.Test;
 public class BucketKeyGeneratorTest {
 
   @Test
-    public void testGenerateKey() {
-      BucketKeyGenerator bucketKeyGenerator = new BucketKeyGenerator("prefix");
-      String key = bucketKeyGenerator.generateKey("key");
-      assertThat(key, is("prefix_key"));
-    }
+  public void testGenerateKey() {
+    BucketKeyGenerator bucketKeyGenerator = new BucketKeyGenerator("prefix");
+    String key = bucketKeyGenerator.generateKey("key");
+    assertThat(key, is("prefix_key"));
+  }
 
+  @Test
+  public void testGenerateNullKey() {
+    BucketKeyGenerator bucketKeyGenerator = new BucketKeyGenerator("prefix");
+    String key = bucketKeyGenerator.generateKey(null);
+    assertThat(key, is("prefix_null"));
+  }
+
+
+  @Test
+  public void testGenerateNullKeyNullPrefix() {
+    BucketKeyGenerator bucketKeyGenerator = new BucketKeyGenerator(null);
+    String key = bucketKeyGenerator.generateKey(null);
+    assertThat(key, is("null"));
+  }
+
+  
   @Test
     public void testGenerateKeyNullPrefix() {
       BucketKeyGenerator bucketKeyGenerator = new BucketKeyGenerator(null);

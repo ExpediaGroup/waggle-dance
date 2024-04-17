@@ -27,7 +27,7 @@ public class BucketKeyGenerator {
     if (prefix != null && !prefix.isEmpty()) {
       return prefix + "_" + key;
     }
-    return key;
+    return ""+key;
   }
 
 }
