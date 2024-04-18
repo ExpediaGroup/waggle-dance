@@ -21,6 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.net.ConnectException;
 import java.net.Socket;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class ServerSocketRuleTest {
@@ -33,6 +34,11 @@ public class ServerSocketRuleTest {
     }
   }
 
+  @Before
+  public void setUp() throws Throwable {
+    rule.before();
+  }
+  
   @Test
   public void typical() throws Throwable {
     sendData(rule.port(), "my-data".getBytes());

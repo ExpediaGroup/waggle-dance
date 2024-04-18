@@ -38,15 +38,18 @@ import com.google.common.io.ByteStreams;
 public class ServerSocketRule extends ExternalResource {
   private static final Logger LOG = LoggerFactory.getLogger(ServerSocketRule.class);
 
-  private final InetSocketAddress address;
-  private final ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-  private final ServerSocketChannel serverSocketChannel;
+  private InetSocketAddress address;
+  private ByteArrayOutputStream output;
+  private ServerSocketChannel serverSocketChannel;
 
   private int requests = 0;
 
-  public ServerSocketRule() {
+  public ServerSocketRule() {}
+
+  @Override
+  protected void before() throws Throwable {
     try {
+      output = new ByteArrayOutputStream();
       serverSocketChannel = (ServerSocketChannel) ServerSocketChannel
           .open()
           .bind(new InetSocketAddress(0))
