@@ -1,5 +1,5 @@
 
-## [3.13.0] - TBD
+## [3.13.0] - 2024-04-19
 ### Added
 - Added `waggle-dance-extensions` module. See [extensions README](waggle-dance-extensions/README.md.)
 - Added support to enable Rate Limiting in Waggle Dance.
