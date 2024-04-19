@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>3.12.1-SNAPSHOT</version>
+    <version>3.13.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-core</artifactId>
@@ -158,6 +158,8 @@
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-exec</artifactId>
+      <version>${hive.version}</version>
+      <classifier>core</classifier>
       <exclusions>
         <exclusion>
           <groupId>log4j</groupId>
@@ -166,6 +168,10 @@
         <exclusion>
           <groupId>org.pentaho</groupId>
           <artifactId>pentaho-aggdesigner-algorithm</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.calcite.avatica</groupId>
+          <artifactId>avatica</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -193,6 +199,10 @@
         <exclusion>
           <groupId>jdk.tools</groupId>
           <artifactId>jdk.tools</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hive</groupId>
+          <artifactId>hive-exec</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -346,6 +356,12 @@
       <groupId>com.hotels</groupId>
       <artifactId>beeju</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hive</groupId>
+          <artifactId>hive-exec</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>fm.last.commons</groupId>

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       primaryDatabaseMapping = databaseMapping;
       if (!metaStoreMapping.isAvailable()) {
         throw new WaggleDanceException(
-                String.format("Primary metastore is unavailable {}", metaStore.getRemoteMetaStoreUris())
+                String.format("Primary metastore is unavailable %s", metaStore.getRemoteMetaStoreUris())
         );
       }
     }

@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>3.12.1-SNAPSHOT</version>
+    <version>3.13.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-integration-tests</artifactId>
@@ -25,6 +25,11 @@
           <groupId>org.apache.logging.log4j</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>waggle-dance-extensions</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.hotels</groupId>
@@ -122,6 +127,12 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.github.codemonstur</groupId>
+      <artifactId>embedded-redis</artifactId>
+      <version>1.4.3</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.github.stefanbirkner</groupId>

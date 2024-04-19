@@ -135,9 +135,9 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public Database get_database(String name) throws NoSuchObjectException, MetaException, TException {
-    LOG.info("Fetching database {}", name);
+    LOG.debug("Fetching database {}", name);
     DatabaseMapping mapping = databaseMappingService.databaseMapping(name);
-    LOG.info("Mapping is '{}'", mapping.getDatabasePrefix());
+    LOG.debug("Mapping is '{}'", mapping.getDatabasePrefix());
     Database result = mapping.getClient().get_database(mapping.transformInboundDatabaseName(name));
     return mapping.transformOutboundDatabase(mapping.getMetastoreFilter().filterDatabase(result));
   }

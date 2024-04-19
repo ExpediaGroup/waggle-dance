@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hotels</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>3.12.1-SNAPSHOT</version>
+    <version>3.13.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-boot</artifactId>
@@ -23,6 +23,11 @@
     <dependency>
       <groupId>com.hotels</groupId>
       <artifactId>waggle-dance-rest</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>waggle-dance-extensions</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

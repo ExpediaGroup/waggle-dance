@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,15 +38,18 @@ import com.google.common.io.ByteStreams;
 public class ServerSocketRule extends ExternalResource {
   private static final Logger LOG = LoggerFactory.getLogger(ServerSocketRule.class);
 
-  private final InetSocketAddress address;
-  private final ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-  private final ServerSocketChannel serverSocketChannel;
+  private InetSocketAddress address;
+  private ByteArrayOutputStream output;
+  private ServerSocketChannel serverSocketChannel;
 
   private int requests = 0;
 
-  public ServerSocketRule() {
+  public ServerSocketRule() {}
+
+  @Override
+  protected void before() throws Throwable {
     try {
+      output = new ByteArrayOutputStream();
       serverSocketChannel = (ServerSocketChannel) ServerSocketChannel
           .open()
           .bind(new InetSocketAddress(0))
