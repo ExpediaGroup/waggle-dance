@@ -32,7 +32,6 @@ import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStra
 
 @org.springframework.context.annotation.Configuration
 public class CommonBeans {
-  public static final String WD_HMS = "wd-metastore";
 
   @Bean
   public HiveConf hiveConf(WaggleDanceConfiguration waggleDanceConfiguration) {

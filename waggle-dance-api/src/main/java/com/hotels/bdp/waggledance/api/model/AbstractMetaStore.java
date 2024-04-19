@@ -59,6 +59,7 @@ public abstract class AbstractMetaStore {
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
+  private Map<String, String> configurationProperties = Collections.emptyMap();
 
   public AbstractMetaStore(String name, String remoteMetaStoreUris, AccessControlType accessControlType) {
     this.name = name;
@@ -243,4 +244,12 @@ public abstract class AbstractMetaStore {
         .toString();
   }
 
+  public Map<String, String> getConfigurationProperties() {
+    return configurationProperties;
+  }
+
+  public void setConfigurationProperties(
+          Map<String, String> configurationProperties) {
+    this.configurationProperties = configurationProperties;
+  }
 }

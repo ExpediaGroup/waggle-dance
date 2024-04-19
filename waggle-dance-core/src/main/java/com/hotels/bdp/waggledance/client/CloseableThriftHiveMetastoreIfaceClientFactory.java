@@ -43,22 +43,10 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
     if (waggleDanceConfiguration.getConfigurationProperties() != null) {
-//      properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
-      Map<String, String> serverConfigMap=waggleDanceConfiguration.getConfigurationProperties();
-      Set<String> keySet=serverConfigMap.keySet();
-
-      for(String key:keySet){
-        if(!key.startsWith(CommonBeans.WD_HMS + ".")){
-          properties.put(key,properties.get(key));
-        }
-      }
-      String hmsPrefix = CommonBeans.WD_HMS + "." + metaStore.getName() + ".";
-      for(String key:keySet){
-        if(key.startsWith(hmsPrefix)){
-          properties.put(key.substring(hmsPrefix.length()),properties.get(key));
-        }
-      }
+      properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
     }
+    //override per metastore
+    properties.putAll(metaStore.getConfigurationProperties());
     return newHiveInstance(metaStore, properties);
   }
 
