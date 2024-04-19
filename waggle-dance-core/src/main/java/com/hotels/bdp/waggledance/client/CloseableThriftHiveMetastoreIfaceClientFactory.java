@@ -32,7 +32,7 @@ import com.hotels.bdp.waggledance.context.CommonBeans;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
-public class CloseableThriftHiveMetastoreIfaceClientFactory {
+public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftClientFactory {
 
   private static final int DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY = 3;
   private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;

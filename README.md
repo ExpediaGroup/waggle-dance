@@ -112,6 +112,8 @@ The table below describes all the available configuration values for Waggle Danc
 | `status-polling-delay-time-unit`  | No         | Controls the delay time unit. Default is `MINUTES` . |
 | `configuration-properties`        | No         | Map of Hive properties that will be added to the HiveConf used when creating the Thrift clients (they will be shared among all the clients). |
 
+Extensions (for instance Rate Limiting) are described here: [waggle-dance-extensions/README.md](waggle-dance-extensions/README.md)
+
 ### Federation
 
 Federation config is by default located in: `$WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml`.
@@ -577,4 +579,4 @@ The Waggle Dance logo uses the [Beetype Filled font](http://www.1001fonts.com/be
 ## Legal
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
 
-Copyright 2016-2019 Expedia, Inc.
+Copyright 2016-2024 Expedia, Inc.
