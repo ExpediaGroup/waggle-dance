@@ -20,12 +20,15 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.security.PrivilegedExceptionAction;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.security.sasl.SaslException;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -216,13 +219,22 @@ class ThriftMetastoreClientManager implements Closeable {
                         MetaStoreUtils.getMetaStoreSaslProperties(conf, useSsl));
               } else {
                 String principalConfig = conf.getVar(ConfVars.METASTORE_KERBEROS_PRINCIPAL);
-                transport = KerberosSaslHelper
-                        .getKerberosTransport(principalConfig, store.getHost(), transport,
+                transport = UserGroupInformation.getLoginUser().doAs(
+                    (PrivilegedExceptionAction<TTransport>) () -> {
+                      try {
+                        return KerberosSaslHelper
+                            .getKerberosTransport(principalConfig, store.getHost(), transport,
                                 MetaStoreUtils.getMetaStoreSaslProperties(conf, useSsl), false);
+                      } catch (SaslException e) {
+                        throw new RuntimeException(e);
+                      }
+                    });
               }
             } catch (IOException ioe) {
               log.error("Couldn't create client transport, URI " + store, ioe);
               throw new MetaException(ioe.toString());
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
             }
           } else if (useFramedTransport) {
             transport = new TFramedTransport(transport);
