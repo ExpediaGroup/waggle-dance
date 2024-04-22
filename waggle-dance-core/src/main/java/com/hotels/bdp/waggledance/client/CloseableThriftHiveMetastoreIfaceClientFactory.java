@@ -17,10 +17,12 @@ package com.hotels.bdp.waggledance.client;
 
 import static com.hotels.bdp.waggledance.api.model.ConnectionType.TUNNELED;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import com.hotels.bdp.waggledance.context.CommonBeans;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
 import lombok.AllArgsConstructor;
