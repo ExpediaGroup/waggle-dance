@@ -1,4 +1,8 @@
 
+## [3.13.1] - 2024-05-06
+### Fix
+- Fix for `NullPointerException` in ClientCapabilities when `get_table_req` and `get_tables_req` is called from Hive3.x client. See [#317](https://github.com/ExpediaGroup/waggle-dance/issues/317)
+
 ## [3.13.0] - 2024-04-19
 ### Added
 - Added `waggle-dance-extensions` module. See [extensions README](waggle-dance-extensions/README.md.)
