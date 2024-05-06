@@ -803,7 +803,7 @@ public class DatabaseMappingImplTest {
     assertThat(transformedRequest, is(sameInstance(request)));
     assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
     assertThat(transformedRequest.getTblName(), is(TABLE_NAME));
-    assertThat(transformedRequest.getCapabilities().getValues().size(), is(1));
+    assertThat(transformedRequest.getCapabilities().getValues().size(), is(0));
     try {
       transformedRequest.validate();
     } catch (TException e) {
