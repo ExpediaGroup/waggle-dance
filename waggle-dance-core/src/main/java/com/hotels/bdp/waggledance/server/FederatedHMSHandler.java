@@ -245,16 +245,19 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   private final NotifyingFederationService notifyingFederationService;
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private Configuration conf;
+  private SaslServerWrapper saslServerWrapper;
 
   FederatedHMSHandler(
       MappingEventListener databaseMappingService,
       NotifyingFederationService notifyingFederationService,
-      WaggleDanceConfiguration waggleDanceConfiguration) {
+      WaggleDanceConfiguration waggleDanceConfiguration,
+      SaslServerWrapper saslServerWrapper) {
     super("waggle-dance-handler");
     this.databaseMappingService = databaseMappingService;
     this.notifyingFederationService = notifyingFederationService;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.notifyingFederationService.subscribe(databaseMappingService);
+    this.saslServerWrapper= saslServerWrapper;
   }
 
   private ThriftHiveMetastore.Iface getPrimaryClient() throws TException {
@@ -1370,9 +1373,9 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public String get_delegation_token(String token_owner, String renewer_kerberos_principal_name)
       throws MetaException, TException {
     try {
-      return MetaStoreProxyServer.getSaslServerAndMDT().getDelegationTokenManager()
+      return saslServerWrapper.getDelegationTokenManager()
           .getDelegationToken(token_owner, renewer_kerberos_principal_name,
-              MetaStoreProxyServer.getIPAddress());
+              saslServerWrapper.getIPAddress());
     } catch (IOException | InterruptedException e) {
       throw new MetaException(e.getMessage());
     }
@@ -1382,7 +1385,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public long renew_delegation_token(String token_str_form) throws MetaException, TException {
     try {
-      return MetaStoreProxyServer.getSaslServerAndMDT().getDelegationTokenManager()
+      return saslServerWrapper.getDelegationTokenManager()
           .renewDelegationToken(token_str_form);
     } catch (IOException e) {
       throw new MetaException(e.getMessage());
@@ -1395,7 +1398,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void cancel_delegation_token(String token_str_form) throws MetaException, TException {
     try {
-      MetaStoreProxyServer.getSaslServerAndMDT().getDelegationTokenManager()
+      saslServerWrapper.getDelegationTokenManager()
           .cancelDelegationToken(token_str_form);
     } catch (IOException e) {
       throw new MetaException(e.getMessage());

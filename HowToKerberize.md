@@ -70,11 +70,6 @@ federated-meta-stores:
   - .*
 ```
 
-In start shell , add jvm properties maybe useful.
-```
--Djavax.security.auth.useSubjectCredsOnly=false
-```
-
 Connect to Waggle Dance via beeline, change ` hive.metastore.uris` in Hive configuration file `hive-site.xml`:
 ```
 <property>
@@ -87,10 +82,6 @@ Connect to Waggle Dance via beeline, change ` hive.metastore.uris` in Hive confi
 
 Waggle Dance should be started by a privileged user with a fresh keytab.
 
-If Waggle Dance throws a GSS exception, you have problem with the keytab file.
-Try to perform `kdestroy` and `kinit` operations and check the keytab file ownership flags.
-
-If the Metastore throws an exception with code -127, Waggle Dance is probably using the wrong authentication policy.
-Check the values in `hive-conf.xml` and make sure that HIVE_HOME and HIVE_CONF_DIR are defined.
-
-Don't forget to restart hive services!
+Just start the service directly, no kinit operation is required. 
+Because the ticket information is saved in jvm instead of being saved in a local file.
+In this way, it can automatically renew without the need for additional operations to renew local tickets.

@@ -25,8 +25,6 @@
 package com.hotels.bdp.waggledance.server;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,11 +40,9 @@ import javax.security.auth.login.LoginException;
 import org.apache.hadoop.hive.common.auth.HiveAuthUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
-import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.apache.hadoop.hive.metastore.TServerSocketKeepAlive;
 import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge;
 import org.apache.hadoop.hive.shims.ShimLoader;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authorize.ProxyUsers;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TProcessorFactory;
@@ -66,11 +62,8 @@ import org.springframework.stereotype.Component;
 
 import lombok.extern.log4j.Log4j2;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.util.SaslHelper;
-import com.hotels.bdp.waggledance.util.SaslHelper.SaslServerAndMDT;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -90,20 +83,20 @@ public class MetaStoreProxyServer implements ApplicationRunner {
   private final Lock startLock;
   private final Condition startCondition;
   private TServer tServer;
-  private static HadoopThriftAuthBridge.Server saslServer;
-  private static SaslServerAndMDT saslServerAndMDT;
-  private static boolean useSasl;
+  private SaslServerWrapper saslServerWrapper;
 
   @Autowired
   public MetaStoreProxyServer(
       HiveConf hiveConf,
       WaggleDanceConfiguration waggleDanceConfiguration,
-      TProcessorFactory tProcessorFactory) {
+      TProcessorFactory tProcessorFactory,
+      SaslServerWrapper saslServerWrapper) {
     this.hiveConf = hiveConf;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.tProcessorFactory = tProcessorFactory;
     startLock = new ReentrantLock();
     startCondition = startLock.newCondition();
+    this.saslServerWrapper = saslServerWrapper;
   }
 
   private boolean isRunning() {
@@ -168,7 +161,7 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       boolean tcpKeepAlive = hiveConf.getBoolVar(ConfVars.METASTORE_TCP_KEEP_ALIVE);
       boolean useFramedTransport = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT);
       boolean useSSL = hiveConf.getBoolVar(ConfVars.HIVE_METASTORE_USE_SSL);
-      useSasl = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_SASL);
+      boolean useSasl = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_SASL);
 
       //load 'hadoop.proxyuser' configs
       ProxyUsers.refreshSuperUserGroupsConfiguration(hiveConf);
@@ -179,14 +172,9 @@ public class MetaStoreProxyServer implements ApplicationRunner {
         serverSocket = new TServerSocketKeepAlive(serverSocket);
       }
 
-      if(useSasl) {
-        UserGroupInformation.setConfiguration(hiveConf);
-        saslServerAndMDT = SaslHelper.createSaslServer(hiveConf);
-        saslServer = saslServerAndMDT.getSaslServer();
-      }
-
-      TTransportFactory transFactory = createTTransportFactory(useFramedTransport, useSasl, saslServer);
-      TProcessorFactory tProcessorFactory = getTProcessorFactory(useSasl, saslServer);
+      TTransportFactory transFactory = createTTransportFactory(useFramedTransport, useSasl,
+          saslServerWrapper.getSaslServer());
+      TProcessorFactory tProcessorFactory = getTProcessorFactory(useSasl, saslServerWrapper.getSaslServer());
       log.info("Starting WaggleDance Server");
 
       TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverSocket)
@@ -316,33 +304,5 @@ public class MetaStoreProxyServer implements ApplicationRunner {
         throw new RuntimeException("Maximum number of tries reached whilst waiting for Thrift server to be ready");
       }
     }
-  }
-
-  static String getIPAddress() {
-    if (useSasl) {
-      if (saslServer != null && saslServer.getRemoteAddress() != null) {
-        return saslServer.getRemoteAddress().getHostAddress();
-      }
-    } else {
-      // if kerberos is not enabled
-      try {
-        Method method = HMSHandler.class.getDeclaredMethod("getThreadLocalIpAddress", null);
-        method.setAccessible(true);
-        return (String) method.invoke(null, null);
-      } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return null;
-  }
-
-  @VisibleForTesting
-  public static void setSaslServerAndMDT(
-      SaslServerAndMDT saslServerAndMDT) {
-    MetaStoreProxyServer.saslServerAndMDT = saslServerAndMDT;
-  }
-
-  public static SaslServerAndMDT getSaslServerAndMDT() {
-    return saslServerAndMDT;
   }
 }

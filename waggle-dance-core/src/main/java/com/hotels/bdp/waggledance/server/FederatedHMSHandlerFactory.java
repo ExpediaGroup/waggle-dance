@@ -38,6 +38,7 @@ public class FederatedHMSHandlerFactory {
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final QueryMapping queryMapping;
+  private SaslServerWrapper saslServerWrapper;
 
   @Autowired
   public FederatedHMSHandlerFactory(
@@ -45,20 +46,23 @@ public class FederatedHMSHandlerFactory {
           NotifyingFederationService notifyingFederationService,
           MetaStoreMappingFactory metaStoreMappingFactory,
           WaggleDanceConfiguration waggleDanceConfiguration,
-          QueryMapping queryMapping) {
+          QueryMapping queryMapping,
+          SaslServerWrapper saslServerWrapper) {
     this.hiveConf = hiveConf;
     this.notifyingFederationService = notifyingFederationService;
     this.metaStoreMappingFactory = metaStoreMappingFactory;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.queryMapping = queryMapping;
+    this.saslServerWrapper = saslServerWrapper;
   }
 
   public CloseableIHMSHandler create() {
     MappingEventListener service = createDatabaseMappingService();
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
 
-    CloseableIHMSHandler baseHandler = new FederatedHMSHandler(monitoredService, notifyingFederationService,
-            waggleDanceConfiguration);
+    CloseableIHMSHandler baseHandler = new FederatedHMSHandler(monitoredService,
+        notifyingFederationService,
+        waggleDanceConfiguration, saslServerWrapper);
     HiveConf conf = new HiveConf(hiveConf);
     baseHandler.setConf(conf);
     return baseHandler;

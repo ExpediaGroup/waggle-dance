@@ -17,7 +17,6 @@ package com.hotels.bdp.waggledance.util;
 
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHENTICATION;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,11 +24,7 @@ import javax.security.auth.login.LoginException;
 import javax.security.sasl.Sasl;
 
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.security.DBTokenStore;
 import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge;
-import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge.Server;
-import org.apache.hadoop.hive.metastore.security.MetastoreDelegationTokenManager;
-import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hive.service.auth.HiveAuthConstants;
 import org.apache.hive.service.auth.PlainSaslHelper;
 import org.apache.hive.service.auth.SaslQOP;
@@ -42,61 +37,6 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SaslHelper {
-
-  public static class SaslServerAndMDT {
-
-    HadoopThriftAuthBridge.Server saslServer;
-    MetastoreDelegationTokenManager delegationTokenManager;
-
-    public Server getSaslServer() {
-      return saslServer;
-    }
-
-    public MetastoreDelegationTokenManager getDelegationTokenManager() {
-      return delegationTokenManager;
-    }
-  }
-
-  public static SaslServerAndMDT createSaslServer(HiveConf conf) throws TTransportException {
-    SaslServerAndMDT saslServerAndMDT = new SaslServerAndMDT();
-    HadoopThriftAuthBridge.Server saslServer = null;
-    if (SaslHelper.isSASLWithKerberizedHadoop(conf)) {
-      saslServer =
-              HadoopThriftAuthBridge.getBridge().createServer(
-                      conf.getVar(HiveConf.ConfVars.HIVE_SERVER2_KERBEROS_KEYTAB),
-                      conf.getVar(HiveConf.ConfVars.HIVE_SERVER2_KERBEROS_PRINCIPAL),
-                      conf.getVar(HiveConf.ConfVars.HIVE_SERVER2_CLIENT_KERBEROS_PRINCIPAL));
-
-      // Start delegation token manager
-      MetastoreDelegationTokenManager delegationTokenManager = new MetastoreDelegationTokenManager();
-      try {
-        Object baseHandler = null;
-        String tokenStoreClass = conf.getVar(HiveConf.ConfVars.METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_CLS);
-
-        if (tokenStoreClass.equals(DBTokenStore.class.getName())) {
-          // IMetaStoreClient is needed to access token store if DBTokenStore is to be used. It
-          // will be got via Hive.get(conf).getMSC in a thread where the DelegationTokenStore
-          // is called. To avoid the cyclic reference, we pass the Hive class to DBTokenStore where
-          // it is used to get a threadLocal Hive object with a synchronized MetaStoreClient using
-          // Java reflection.
-          // Note: there will be two HS2 life-long opened MSCs, one is stored in HS2 thread local
-          // Hive object, the other is in a daemon thread spawned in DelegationTokenSecretManager
-          // to remove expired tokens.
-          baseHandler = Hive.class;
-        }
-
-        delegationTokenManager.startDelegationTokenSecretManager(conf, baseHandler, HadoopThriftAuthBridge.Server.ServerMode.METASTORE);
-        saslServer.setSecretManager(delegationTokenManager.getSecretManager());
-      }
-      catch (IOException e) {
-        throw new TTransportException("Failed to start token manager", e);
-      }
-
-      saslServerAndMDT.saslServer = saslServer;
-      saslServerAndMDT.delegationTokenManager = delegationTokenManager;
-    }
-    return saslServerAndMDT;
-  }
 
   public static boolean isSASLWithKerberizedHadoop(HiveConf hiveconf) {
     return "kerberos".equalsIgnoreCase(hiveconf.get(HADOOP_SECURITY_AUTHENTICATION, "simple"))

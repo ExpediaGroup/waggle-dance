@@ -22,6 +22,7 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.thrift.transport.TTransportException;
 
 import lombok.extern.log4j.Log4j2;
@@ -40,7 +41,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
   @Log4j2
   private static class ReconnectingMetastoreClientInvocationHandler implements InvocationHandler {
 
-    private final ThriftMetastoreClientManager base;
+    private final AbstractThriftMetastoreClientManager base;
     private final String name;
     private final int maxRetries;
 
@@ -49,7 +50,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private ReconnectingMetastoreClientInvocationHandler(
             String name,
             int maxRetries,
-            ThriftMetastoreClientManager base) {
+        AbstractThriftMetastoreClientManager base) {
       this.name = name;
       this.maxRetries = maxRetries;
       this.base = base;
@@ -94,7 +95,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       }
     }
 
-    private Object doRealCall(Method method, Object[] args, int attempt) throws IllegalAccessException, Throwable {
+    private Object doRealCall(Method method, Object[] args, int attempt) throws Throwable {
       do {
         try {
           return method.invoke(base.getClient(), args);
@@ -146,15 +147,22 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
           String name,
           int reconnectionRetries,
           int connectionTimeout) {
-    return newInstance(name, reconnectionRetries, new ThriftMetastoreClientManager(hiveConf,
-            new HiveCompatibleThriftHiveMetastoreIfaceFactory(), connectionTimeout));
+    boolean useSasl = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_SASL);
+    HiveCompatibleThriftHiveMetastoreIfaceFactory factory = new HiveCompatibleThriftHiveMetastoreIfaceFactory();
+    AbstractThriftMetastoreClientManager base = null;
+    if (useSasl) {
+      base = new SaslThriftMetastoreClientManager(hiveConf, factory, connectionTimeout);
+    } else {
+      base = new ThriftMetastoreClientManager(hiveConf, factory, connectionTimeout);
+    }
+    return newInstance(name, reconnectionRetries, base);
   }
 
   @VisibleForTesting
   CloseableThriftHiveMetastoreIface newInstance(
           String name,
           int reconnectionRetries,
-          ThriftMetastoreClientManager base) {
+          AbstractThriftMetastoreClientManager base) {
     ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
         name, reconnectionRetries, base);
     return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(getClass().getClassLoader(),

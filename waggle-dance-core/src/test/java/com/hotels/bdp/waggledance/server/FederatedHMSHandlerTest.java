@@ -230,7 +230,6 @@ import com.hotels.bdp.waggledance.mapping.model.DatabaseMapping;
 import com.hotels.bdp.waggledance.mapping.service.MappingEventListener;
 import com.hotels.bdp.waggledance.mapping.service.PanopticOperationHandler;
 import com.hotels.bdp.waggledance.mapping.service.impl.NotifyingFederationService;
-import com.hotels.bdp.waggledance.util.SaslHelper.SaslServerAndMDT;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FederatedHMSHandlerTest {
@@ -248,15 +247,15 @@ public class FederatedHMSHandlerTest {
   private @Mock DatabaseMapping primaryMapping;
   private @Mock Iface primaryClient;
   private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
-  private @Mock SaslServerAndMDT saslServerAndMDT;
+  private @Mock SaslServerWrapper saslServerWrapper;
   private @Mock MetastoreDelegationTokenManager metastoreDelegationTokenManager;
-  private @Mock MetaStoreProxyServer metaStoreProxyServer;
 
   private FederatedHMSHandler handler;
 
   @Before
   public void setUp() throws NoSuchObjectException {
-    handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService, waggleDanceConfiguration);
+    handler = new FederatedHMSHandler(databaseMappingService, notifyingFederationService,
+        waggleDanceConfiguration, saslServerWrapper);
     when(databaseMappingService.primaryDatabaseMapping()).thenReturn(primaryMapping);
     when(databaseMappingService.getAvailableDatabaseMappings()).thenReturn(Collections.singletonList(primaryMapping));
     when(primaryMapping.getClient()).thenReturn(primaryClient);
@@ -1527,8 +1526,7 @@ public class FederatedHMSHandlerTest {
   @Test
   public void get_delegation_token() throws TException, IOException, InterruptedException {
     String expected = "expected";
-    MetaStoreProxyServer.setSaslServerAndMDT(saslServerAndMDT);
-    when(saslServerAndMDT.getDelegationTokenManager()).thenReturn(metastoreDelegationTokenManager);
+    when(saslServerWrapper.getDelegationTokenManager()).thenReturn(metastoreDelegationTokenManager);
     when(metastoreDelegationTokenManager.getDelegationToken("owner", "kerberos_principal",
         null)).thenReturn(expected);
     String result = handler.get_delegation_token("owner", "kerberos_principal");
@@ -1538,8 +1536,7 @@ public class FederatedHMSHandlerTest {
   @Test
   public void renew_delegation_token() throws TException, IOException {
     long expected = 10L;
-    MetaStoreProxyServer.setSaslServerAndMDT(saslServerAndMDT);
-    when(saslServerAndMDT.getDelegationTokenManager()).thenReturn(metastoreDelegationTokenManager);
+    when(saslServerWrapper.getDelegationTokenManager()).thenReturn(metastoreDelegationTokenManager);
     when(metastoreDelegationTokenManager.renewDelegationToken("token")).thenReturn(expected);
     long result = handler.renew_delegation_token("token");
     assertThat(result, is(expected));
@@ -1547,8 +1544,7 @@ public class FederatedHMSHandlerTest {
 
   @Test
   public void cancel_delegation_token() throws TException, IOException {
-    MetaStoreProxyServer.setSaslServerAndMDT(saslServerAndMDT);
-    when(saslServerAndMDT.getDelegationTokenManager()).thenReturn(metastoreDelegationTokenManager);
+    when(saslServerWrapper.getDelegationTokenManager()).thenReturn(metastoreDelegationTokenManager);
     handler.cancel_delegation_token("token");
     verify(metastoreDelegationTokenManager).cancelDelegationToken("token");
   }
