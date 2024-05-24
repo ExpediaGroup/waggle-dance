@@ -202,6 +202,15 @@ public abstract class AbstractMetaStore {
     return databaseNameBiMapping;
   }
 
+  public Map<String, String> getConfigurationProperties() {
+    return configurationProperties;
+  }
+
+  public void setConfigurationProperties(
+          Map<String, String> configurationProperties) {
+    this.configurationProperties = configurationProperties;
+  }
+
   @Transient
   public MetaStoreStatus getStatus() {
     return status;
@@ -242,14 +251,5 @@ public abstract class AbstractMetaStore {
         .add("writableDatabaseWhiteList", writableDatabaseWhitelist)
         .add("status", status)
         .toString();
-  }
-
-  public Map<String, String> getConfigurationProperties() {
-    return configurationProperties;
-  }
-
-  public void setConfigurationProperties(
-          Map<String, String> configurationProperties) {
-    this.configurationProperties = configurationProperties;
   }
 }

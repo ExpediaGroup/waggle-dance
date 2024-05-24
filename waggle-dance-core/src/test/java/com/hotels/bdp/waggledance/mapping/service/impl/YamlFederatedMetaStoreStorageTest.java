@@ -212,7 +212,7 @@ public class YamlFederatedMetaStoreStorageTest {
     MappedTables mappedTables2 = new MappedTables("db2", Lists.newArrayList("tbl2"));
     newFederatedInstance.setMappedTables(Lists.newArrayList(mappedTables1, mappedTables2));
     newFederatedInstance.setHiveMetastoreFilterHook("filter.hook.class");
-    newFederatedInstance.setConfigurationProperties(Collections.singletonMap("hive.metastore.kerberos.principal","hive/_HOST@REALM"));
+    newFederatedInstance.setConfigurationProperties(Collections.singletonMap("hive.metastore.kerberos.principal", "hive/_HOST@REALM"));
     storage.insert(newFederatedInstance);
     storage.saveFederation();
     List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
@@ -296,7 +296,7 @@ public class YamlFederatedMetaStoreStorageTest {
     MappedTables mappedTables1 = new MappedTables("db1", Lists.newArrayList("tbl1"));
     MappedTables mappedTables2 = new MappedTables("db2", Lists.newArrayList("tbl2"));
     primaryMetaStore.setMappedTables(Lists.newArrayList(mappedTables1, mappedTables2));
-    primaryMetaStore.setConfigurationProperties(Collections.singletonMap("hive.metastore.kerberos.principal","hive/_HOST@REALM"));
+    primaryMetaStore.setConfigurationProperties(Collections.singletonMap("hive.metastore.kerberos.principal", "hive/_HOST@REALM"));
     storage.insert(primaryMetaStore);
     storage.insert(newFederatedInstance("hcom_2", "thrift://localhost:29083"));
     storage.saveFederation();

@@ -71,7 +71,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   public void defaultFactory() {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
     FederatedMetaStore fed1 = newFederatedInstance("fed1", THRIFT_URI);
-    fed1.setConfigurationProperties(Collections.singletonMap(ConfVars.METASTORE_KERBEROS_PRINCIPAL.varname,"hive/_HOST@HADOOP.COM"));
+    fed1.setConfigurationProperties(Collections.singletonMap(ConfVars.METASTORE_KERBEROS_PRINCIPAL.varname, "hive/_HOST@HADOOP.COM"));
     factory.newInstance(fed1);
     verify(defaultMetaStoreClientFactory).newInstance(hiveConfCaptor.capture(), eq(
         "waggledance-fed1"), eq(3), eq(2000));
