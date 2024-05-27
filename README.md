@@ -127,6 +127,8 @@ Example:
       - my_writable_db2
       - user_db_.*
       - ...
+      configuration-properties:
+        hive.metastore.kerberos.principal: hive/_HOST@HADOOP.COM
     federated-meta-stores:                                  # List of read only metastores to federate
     - remote-meta-store-uris: thrift://10.0.0.1:9083
       name: secondary
@@ -147,6 +149,8 @@ Example:
       - database: prod_db2
         mapped-tables:
         - tbl2
+      configuration-properties:
+        hive.metastore.kerberos.principal: hive/clustername@HADOOP.COM
     - ...
 
 The table below describes all the available configuration values for Waggle Dance federations:
@@ -166,6 +170,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store.mapped-tables`                      | No       | List of mappings from databases to tables to federate from the primary metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
 | `primary-meta-stores.hive-metastore-filter-hook`        | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
 | `primary-meta-stores.database-name-mapping`             | No       | BiDirectional Map of database names and mapped name, where key=`<database name as known in the primary metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
+| `primary-meta-stores.configuration-properties`            | No       | Map of the primary metastore personalized properties that will be added to the HiveConf used when creating the Thrift clients (they will be effect only on this client),the priority is higher than the properites of the same name in waggle-dance-server.yml.                                                                                                                                                                                                                                                                                                                         |
 | `federated-meta-stores`                                 | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`       | Yes      | Thrift URIs of the federated read-only metastore. |
 | `federated-meta-stores[n].name`                         | Yes      | Name that uniquely identifies this metastore. Used internally. Cannot be empty. |
@@ -178,6 +183,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `federated-meta-stores[n].hive-metastore-filter-hook`   | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
 | `federated-meta-stores[n].database-name-mapping`        | No       | BiDirectional Map of database names and mapped names where key=`<database name as known in the federated metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
 | `federated-meta-stores[n].writable-database-white-list` | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).|
+| `federated-meta-stores[n].configuration-properties`       | No       | Map of the federate metastore personalized properties that will be added to the HiveConf used when creating the Thrift clients (they will be effect only on this client),the priority is higher than the properites of the same name in waggle-dance-server.yml.                                                                                                                                                                                                                                                                                                                        |
 
 #### Metastore tunnel
 The table below describes the metastore tunnel configuration values:

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
@@ -68,8 +70,9 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   @Test
   public void defaultFactory() {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
-
-    factory.newInstance(newFederatedInstance("fed1", THRIFT_URI));
+    FederatedMetaStore fed1 = newFederatedInstance("fed1", THRIFT_URI);
+    fed1.setConfigurationProperties(Collections.singletonMap(ConfVars.METASTORE_KERBEROS_PRINCIPAL.varname, "hive/_HOST@HADOOP.COM"));
+    factory.newInstance(fed1);
     verify(defaultMetaStoreClientFactory).newInstance(hiveConfCaptor.capture(), eq(
         "waggledance-fed1"), eq(3), eq(2000));
     verifyNoInteractions(tunnelingMetaStoreClientFactory);
@@ -80,6 +83,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     assertThat(hiveConf.getTimeVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY, TimeUnit.SECONDS), is(5L));
     assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT), is(true));
     assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL), is(false));
+    assertThat(hiveConf.getVar(ConfVars.METASTORE_KERBEROS_PRINCIPAL), is("hive/_HOST@HADOOP.COM"));
   }
 
   @Test
