@@ -24,10 +24,12 @@ import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.junit.Before;
@@ -68,8 +70,9 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   @Test
   public void defaultFactory() {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
-
-    factory.newInstance(newFederatedInstance("fed1", THRIFT_URI));
+    FederatedMetaStore fed1 = newFederatedInstance("fed1", THRIFT_URI);
+    fed1.setConfigurationProperties(Collections.singletonMap(ConfVars.METASTORE_KERBEROS_PRINCIPAL.varname, "hive/_HOST@HADOOP.COM"));
+    factory.newInstance(fed1);
     verify(defaultMetaStoreClientFactory).newInstance(hiveConfCaptor.capture(), eq(
         "waggledance-fed1"), eq(3), eq(2000));
     verifyNoInteractions(tunnelingMetaStoreClientFactory);
@@ -80,6 +83,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     assertThat(hiveConf.getTimeVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY, TimeUnit.SECONDS), is(5L));
     assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT), is(true));
     assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL), is(false));
+    assertThat(hiveConf.getVar(ConfVars.METASTORE_KERBEROS_PRINCIPAL), is("hive/_HOST@HADOOP.COM"));
   }
 
   @Test
