@@ -36,19 +36,19 @@ import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveM
 public abstract class AbstractThriftMetastoreClientManager implements Closeable {
 
 
-  static final AtomicInteger CONN_COUNT = new AtomicInteger(0);
-  final HiveConf conf;
-  final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
-  final URI[] metastoreUris;
-  ThriftHiveMetastore.Iface client = null;
-  TTransport transport = null;
-  boolean isConnected = false;
+  protected static final AtomicInteger CONN_COUNT = new AtomicInteger(0);
+  protected final HiveConf conf;
+  protected final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
+  protected final URI[] metastoreUris;
+  protected ThriftHiveMetastore.Iface client = null;
+  protected TTransport transport = null;
+  protected boolean isConnected = false;
   // for thrift connects
-  int retries = 5;
-  long retryDelaySeconds = 0;
+  protected int retries = 5;
+  protected long retryDelaySeconds = 0;
 
-  final int connectionTimeout;
-  final String msUri;
+  protected final int connectionTimeout;
+  protected final String msUri;
 
   AbstractThriftMetastoreClientManager(
       HiveConf conf,
@@ -114,18 +114,6 @@ public abstract class AbstractThriftMetastoreClientManager implements Closeable 
 
   public void setHiveConfValue(String key, String value) {
     conf.set(key, value);
-  }
-
-  public String generateNewTokenSignature(String defaultTokenSignature) {
-    String tokenSignature = conf.get(ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-        defaultTokenSignature);
-    conf.set(ConfVars.METASTORE_TOKEN_SIGNATURE.varname,
-        tokenSignature);
-    return tokenSignature;
-  }
-
-  public Boolean isSaslEnabled() {
-    return conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_SASL);
   }
 
   @Override

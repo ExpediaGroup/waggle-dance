@@ -96,11 +96,4 @@ public class SaslServerWrapper {
     return saslServer;
   }
 
-
-  String getIPAddress() {
-    if (saslServer != null && saslServer.getRemoteAddress() != null) {
-      return saslServer.getRemoteAddress().getHostAddress();
-    }
-    return null;
-  }
 }

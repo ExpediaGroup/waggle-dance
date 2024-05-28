@@ -214,6 +214,7 @@ import org.apache.hadoop.hive.metastore.api.WMGetTriggersForResourePlanResponse;
 import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanRequest;
 import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanResponse;
 import org.apache.hadoop.hive.metastore.conf.MetastoreConf;
+import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge;
 import org.apache.hadoop.hive.metastore.txn.TxnStore;
 import org.apache.hadoop.hive.metastore.txn.TxnUtils;
 import org.apache.hadoop.hive.metastore.utils.MetaStoreUtils;
@@ -1375,10 +1376,18 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     try {
       return saslServerWrapper.getDelegationTokenManager()
           .getDelegationToken(token_owner, renewer_kerberos_principal_name,
-              saslServerWrapper.getIPAddress());
+              getIPAddressFromSaslServer());
     } catch (IOException | InterruptedException e) {
       throw new MetaException(e.getMessage());
     }
+  }
+
+  private String getIPAddressFromSaslServer() {
+    HadoopThriftAuthBridge.Server saslServer = saslServerWrapper.getSaslServer();
+    if (saslServer != null && saslServer.getRemoteAddress() != null) {
+      return saslServer.getRemoteAddress().getHostAddress();
+    }
+    return null;
   }
 
   @Override

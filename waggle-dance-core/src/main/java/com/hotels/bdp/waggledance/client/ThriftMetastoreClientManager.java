@@ -40,7 +40,7 @@ class ThriftMetastoreClientManager extends AbstractThriftMetastoreClientManager 
       HiveConf conf,
       HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory,
       int connectionTimeout) {
-    super(conf,hiveCompatibleThriftHiveMetastoreIfaceFactory,connectionTimeout);
+    super(conf, hiveCompatibleThriftHiveMetastoreIfaceFactory, connectionTimeout);
   }
 
   void open(HiveUgiArgs ugiArgs) {

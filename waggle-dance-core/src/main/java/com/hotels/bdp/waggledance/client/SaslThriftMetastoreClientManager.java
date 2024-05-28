@@ -89,7 +89,7 @@ public class SaslThriftMetastoreClientManager extends AbstractThriftMetastoreCli
     }
   }
 
-  void createMetastoreClientAndOpen(String delegationToken, HiveUgiArgs ugiArgs) {
+  private void createMetastoreClientAndOpen(String delegationToken, HiveUgiArgs ugiArgs) {
     TException te = null;
     boolean useSsl = conf.getBoolVar(ConfVars.HIVE_METASTORE_USE_SSL);
     boolean useCompactProtocol = conf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL);
