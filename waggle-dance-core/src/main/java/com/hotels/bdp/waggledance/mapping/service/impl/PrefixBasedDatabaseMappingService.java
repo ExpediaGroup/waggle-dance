@@ -97,7 +97,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
       primaryDatabaseMapping = databaseMapping;
       if (!metaStoreMapping.isAvailable()) {
         throw new WaggleDanceException(
-                String.format("Primary metastore is unavailable {}", metaStore.getRemoteMetaStoreUris())
+                String.format("Primary metastore is unavailable %s", metaStore.getRemoteMetaStoreUris())
         );
       }
     }
