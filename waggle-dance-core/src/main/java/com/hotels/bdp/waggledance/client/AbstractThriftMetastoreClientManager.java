@@ -35,7 +35,6 @@ import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveM
 @Log4j2
 public abstract class AbstractThriftMetastoreClientManager implements Closeable {
 
-
   protected static final AtomicInteger CONN_COUNT = new AtomicInteger(0);
   protected final HiveConf conf;
   protected final HiveCompatibleThriftHiveMetastoreIfaceFactory hiveCompatibleThriftHiveMetastoreIfaceFactory;
