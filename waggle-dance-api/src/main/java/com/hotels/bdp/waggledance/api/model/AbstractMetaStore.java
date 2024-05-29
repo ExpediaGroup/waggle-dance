@@ -60,6 +60,7 @@ public abstract class AbstractMetaStore {
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
+  private boolean impersonationEnabled;
   private Map<String, String> configurationProperties = new HashMap<>();
 
   public AbstractMetaStore(String name, String remoteMetaStoreUris, AccessControlType accessControlType) {
@@ -220,6 +221,14 @@ public abstract class AbstractMetaStore {
   @Transient
   public void setStatus(MetaStoreStatus status) {
     this.status = status;
+  }
+
+  public boolean isImpersonationEnabled() {
+    return impersonationEnabled;
+  }
+
+  public void setImpersonationEnabled(boolean impersonationEnabled) {
+    this.impersonationEnabled = impersonationEnabled;
   }
 
   @Override

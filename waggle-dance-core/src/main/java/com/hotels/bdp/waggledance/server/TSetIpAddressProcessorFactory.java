@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,18 +58,10 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
       }
       CloseableIHMSHandler baseHandler = federatedHMSHandlerFactory.create();
 
-      boolean useSASL = hiveConf.getBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
-      if (useSASL) {
-        IHMSHandler tokenHandler = TokenWrappingHMSHandler.newProxyInstance(baseHandler, useSASL);
-        IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(tokenHandler), hiveConf,
-                false);
-        return new TSetIpAddressProcessor<>(handler);
-      } else {
-        IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
-                false);
-        transportMonitor.monitor(transport, baseHandler);
-        return new TSetIpAddressProcessor<>(handler);
-      }
+      IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
+              false);
+      transportMonitor.monitor(transport, baseHandler);
+      return new TSetIpAddressProcessor<>(handler);
     } catch (MetaException | ReflectiveOperationException | RuntimeException e) {
       throw new RuntimeException("Error creating TProcessor", e);
     }

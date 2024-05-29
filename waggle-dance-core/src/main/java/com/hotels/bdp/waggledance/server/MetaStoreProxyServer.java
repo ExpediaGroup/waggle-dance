@@ -43,18 +43,14 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.TServerSocketKeepAlive;
 import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge;
 import org.apache.hadoop.hive.shims.ShimLoader;
-import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.authorize.ProxyUsers;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.server.ServerContext;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TServerEventHandler;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,17 +83,20 @@ public class MetaStoreProxyServer implements ApplicationRunner {
   private final Lock startLock;
   private final Condition startCondition;
   private TServer tServer;
+  private SaslServerWrapper saslServerWrapper;
 
   @Autowired
   public MetaStoreProxyServer(
       HiveConf hiveConf,
       WaggleDanceConfiguration waggleDanceConfiguration,
-      TProcessorFactory tProcessorFactory) {
+      TProcessorFactory tProcessorFactory,
+      SaslServerWrapper saslServerWrapper) {
     this.hiveConf = hiveConf;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.tProcessorFactory = tProcessorFactory;
     startLock = new ReentrantLock();
     startCondition = startLock.newCondition();
+    this.saslServerWrapper = saslServerWrapper;
   }
 
   private boolean isRunning() {
@@ -162,7 +161,10 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       boolean tcpKeepAlive = hiveConf.getBoolVar(ConfVars.METASTORE_TCP_KEEP_ALIVE);
       boolean useFramedTransport = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT);
       boolean useSSL = hiveConf.getBoolVar(ConfVars.HIVE_METASTORE_USE_SSL);
-      boolean useSASL = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_SASL);
+      boolean useSasl = hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_SASL);
+
+      //load 'hadoop.proxyuser' configs
+      ProxyUsers.refreshSuperUserGroupsConfiguration(hiveConf);
 
       TServerSocket serverSocket = createServerSocket(useSSL, waggleDanceConfiguration.getPort());
 
@@ -170,15 +172,9 @@ public class MetaStoreProxyServer implements ApplicationRunner {
         serverSocket = new TServerSocketKeepAlive(serverSocket);
       }
 
-      HadoopThriftAuthBridge.Server saslServer = null;
-
-      if(useSASL) {
-        UserGroupInformation.setConfiguration(hiveConf);
-        saslServer = SaslHelper.createSaslServer(hiveConf);
-      }
-
-      TTransportFactory transFactory = createTTransportFactory(useFramedTransport, useSASL, saslServer);
-      TProcessorFactory tProcessorFactory = getTProcessorFactory(useSASL, saslServer);
+      TTransportFactory transFactory = createTTransportFactory(useFramedTransport, useSasl,
+          saslServerWrapper.getSaslServer());
+      TProcessorFactory tProcessorFactory = getTProcessorFactory(useSasl, saslServerWrapper.getSaslServer());
       log.info("Starting WaggleDance Server");
 
       TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverSocket)
@@ -192,28 +188,6 @@ public class MetaStoreProxyServer implements ApplicationRunner {
           .requestTimeoutUnit(waggleDanceConfiguration.getThriftServerRequestTimeoutUnit());
 
       tServer = new TThreadPoolServer(args);
-      if (useSASL){
-        TServerEventHandler tServerEventHandler = new TServerEventHandler() {
-          @Override
-          public void preServe() {
-          }
-
-          @Override
-          public ServerContext createContext(TProtocol tProtocol, TProtocol tProtocol1) {
-            return null;
-          }
-
-          @Override
-          public void deleteContext(ServerContext serverContext, TProtocol tProtocol, TProtocol tProtocol1) {
-            TokenWrappingHMSHandler.removeToken();
-          }
-
-          @Override
-          public void processContext(ServerContext serverContext, TTransport tTransport, TTransport tTransport1) {
-          }
-        };
-        tServer.setServerEventHandler(tServerEventHandler);
-      }
       log.info("Started the new WaggleDance on port [{}]...", waggleDanceConfiguration.getPort());
       log.info("Options.minWorkerThreads = {}", minWorkerThreads);
       log.info("Options.maxWorkerThreads = {}", maxWorkerThreads);
@@ -331,5 +305,4 @@ public class MetaStoreProxyServer implements ApplicationRunner {
       }
     }
   }
-
 }

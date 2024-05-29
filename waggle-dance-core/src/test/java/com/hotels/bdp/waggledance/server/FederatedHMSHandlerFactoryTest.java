@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,13 +44,14 @@ public class FederatedHMSHandlerFactoryTest {
   private @Mock NotifyingFederationService notifyingFederationService;
   private @Mock MetaStoreMappingFactory metaStoreMappingFactory;
   private @Mock QueryMapping queryMapping;
+  private @Mock SaslServerWrapper saslServerWrapper;
   private FederatedHMSHandlerFactory factory;
 
   @Before
   public void init() {
     when(notifyingFederationService.getAll()).thenReturn(new ArrayList<>());
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
-        waggleDanceConfiguration, queryMapping);
+        waggleDanceConfiguration, queryMapping, saslServerWrapper);
   }
 
   @Test
@@ -64,7 +65,7 @@ public class FederatedHMSHandlerFactoryTest {
   public void prefixedDatabase() throws Exception {
     when(waggleDanceConfiguration.getDatabaseResolution()).thenReturn(DatabaseResolution.PREFIXED);
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
-        waggleDanceConfiguration, queryMapping);
+        waggleDanceConfiguration, queryMapping, saslServerWrapper);
     CloseableIHMSHandler handler = factory.create();
     assertThat(handler, is(instanceOf(FederatedHMSHandler.class)));
   }
@@ -72,7 +73,7 @@ public class FederatedHMSHandlerFactoryTest {
   @Test(expected = WaggleDanceException.class)
   public void noMode() {
     factory = new FederatedHMSHandlerFactory(hiveConf, notifyingFederationService, metaStoreMappingFactory,
-        waggleDanceConfiguration, queryMapping);
+        waggleDanceConfiguration, queryMapping, saslServerWrapper);
     factory.create();
   }
 

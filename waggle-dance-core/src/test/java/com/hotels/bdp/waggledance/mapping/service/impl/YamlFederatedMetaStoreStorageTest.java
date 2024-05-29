@@ -216,32 +216,37 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.insert(newFederatedInstance);
     storage.saveFederation();
     List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
-    assertThat(lines.size(), is(25));
-    assertThat(lines.get(0), is("primary-meta-store:"));
-    assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
-    assertThat(lines.get(2), is("  database-prefix: ''"));
-    assertThat(lines.get(3), is("  latency: 0"));
-    assertThat(lines.get(4), is("  name: hcom_1"));
-    assertThat(lines.get(5), is("  remote-meta-store-uris: thrift://localhost:19083"));
-    assertThat(lines.get(6), is("federated-meta-stores:"));
-    assertThat(lines.get(7), is("- access-control-type: READ_ONLY"));
-    assertThat(lines.get(8), is("  configuration-properties:"));
-    assertThat(lines.get(9), is("    hive.metastore.kerberos.principal: hive/_HOST@REALM"));
-    assertThat(lines.get(10), is("  database-prefix: hcom_2_"));
-    assertThat(lines.get(11), is("  hive-metastore-filter-hook: filter.hook.class"));
-    assertThat(lines.get(12), is("  latency: 0"));
-    assertThat(lines.get(13), is("  mapped-databases:"));
-    assertThat(lines.get(14), is("  - db1"));
-    assertThat(lines.get(15), is("  - db2"));
-    assertThat(lines.get(16), is("  mapped-tables:"));
-    assertThat(lines.get(17), is("  - database: db1"));
-    assertThat(lines.get(18), is("    mapped-tables:"));
-    assertThat(lines.get(19), is("    - tbl1"));
-    assertThat(lines.get(20), is("  - database: db2"));
-    assertThat(lines.get(21), is("    mapped-tables:"));
-    assertThat(lines.get(22), is("    - tbl2"));
-    assertThat(lines.get(23), is("  name: hcom_2"));
-    assertThat(lines.get(24), is("  remote-meta-store-uris: thrift://localhost:29083"));
+    assertThat(lines.size(), is(27));
+    int i = 0;
+    while (i < lines.size()) {
+      assertThat(lines.get(i++), is("primary-meta-store:"));
+      assertThat(lines.get(i++), is("  access-control-type: READ_ONLY"));
+      assertThat(lines.get(i++), is("  database-prefix: ''"));
+      assertThat(lines.get(i++), is("  impersonation-enabled: false"));
+      assertThat(lines.get(i++), is("  latency: 0"));
+      assertThat(lines.get(i++), is("  name: hcom_1"));
+      assertThat(lines.get(i++), is("  remote-meta-store-uris: thrift://localhost:19083"));
+      assertThat(lines.get(i++), is("federated-meta-stores:"));
+      assertThat(lines.get(i++), is("- access-control-type: READ_ONLY"));
+      assertThat(lines.get(i++), is("  configuration-properties:"));
+      assertThat(lines.get(i++), is("    hive.metastore.kerberos.principal: hive/_HOST@REALM"));
+      assertThat(lines.get(i++), is("  database-prefix: hcom_2_"));
+      assertThat(lines.get(i++), is("  hive-metastore-filter-hook: filter.hook.class"));
+      assertThat(lines.get(i++), is("  impersonation-enabled: false"));
+      assertThat(lines.get(i++), is("  latency: 0"));
+      assertThat(lines.get(i++), is("  mapped-databases:"));
+      assertThat(lines.get(i++), is("  - db1"));
+      assertThat(lines.get(i++), is("  - db2"));
+      assertThat(lines.get(i++), is("  mapped-tables:"));
+      assertThat(lines.get(i++), is("  - database: db1"));
+      assertThat(lines.get(i++), is("    mapped-tables:"));
+      assertThat(lines.get(i++), is("    - tbl1"));
+      assertThat(lines.get(i++), is("  - database: db2"));
+      assertThat(lines.get(i++), is("    mapped-tables:"));
+      assertThat(lines.get(i++), is("    - tbl2"));
+      assertThat(lines.get(i++), is("  name: hcom_2"));
+      assertThat(lines.get(i++), is("  remote-meta-store-uris: thrift://localhost:29083"));
+    }
   }
 
   @Test
@@ -300,31 +305,36 @@ public class YamlFederatedMetaStoreStorageTest {
     storage.insert(newFederatedInstance("hcom_2", "thrift://localhost:29083"));
     storage.saveFederation();
     List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
-    assertThat(lines.size(), is(24));
-    assertThat(lines.get(0), is("primary-meta-store:"));
-    assertThat(lines.get(1), is("  access-control-type: READ_ONLY"));
-    assertThat(lines.get(2), is("  configuration-properties:"));
-    assertThat(lines.get(3), is("    hive.metastore.kerberos.principal: hive/_HOST@REALM"));
-    assertThat(lines.get(4), is("  database-prefix: ''"));
-    assertThat(lines.get(5), is("  latency: 0"));
-    assertThat(lines.get(6), is("  mapped-databases:"));
-    assertThat(lines.get(7), is("  - db1"));
-    assertThat(lines.get(8), is("  - db2"));
-    assertThat(lines.get(9), is("  mapped-tables:"));
-    assertThat(lines.get(10), is("  - database: db1"));
-    assertThat(lines.get(11), is("    mapped-tables:"));
-    assertThat(lines.get(12), is("    - tbl1"));
-    assertThat(lines.get(13), is("  - database: db2"));
-    assertThat(lines.get(14), is("    mapped-tables:"));
-    assertThat(lines.get(15), is("    - tbl2"));
-    assertThat(lines.get(16), is("  name: hcom_1"));
-    assertThat(lines.get(17), is("  remote-meta-store-uris: thrift://localhost:19083"));
-    assertThat(lines.get(18), is("federated-meta-stores:"));
-    assertThat(lines.get(19), is("- access-control-type: READ_ONLY"));
-    assertThat(lines.get(20), is("  database-prefix: hcom_2_"));
-    assertThat(lines.get(21), is("  latency: 0"));
-    assertThat(lines.get(22), is("  name: hcom_2"));
-    assertThat(lines.get(23), is("  remote-meta-store-uris: thrift://localhost:29083"));
+    assertThat(lines.size(), is(26));
+    int i = 0;
+    while (i < lines.size()) {
+      assertThat(lines.get(i++), is("primary-meta-store:"));
+      assertThat(lines.get(i++), is("  access-control-type: READ_ONLY"));
+      assertThat(lines.get(i++), is("  configuration-properties:"));
+      assertThat(lines.get(i++), is("    hive.metastore.kerberos.principal: hive/_HOST@REALM"));
+      assertThat(lines.get(i++), is("  database-prefix: ''"));
+      assertThat(lines.get(i++), is("  impersonation-enabled: false"));
+      assertThat(lines.get(i++), is("  latency: 0"));
+      assertThat(lines.get(i++), is("  mapped-databases:"));
+      assertThat(lines.get(i++), is("  - db1"));
+      assertThat(lines.get(i++), is("  - db2"));
+      assertThat(lines.get(i++), is("  mapped-tables:"));
+      assertThat(lines.get(i++), is("  - database: db1"));
+      assertThat(lines.get(i++), is("    mapped-tables:"));
+      assertThat(lines.get(i++), is("    - tbl1"));
+      assertThat(lines.get(i++), is("  - database: db2"));
+      assertThat(lines.get(i++), is("    mapped-tables:"));
+      assertThat(lines.get(i++), is("    - tbl2"));
+      assertThat(lines.get(i++), is("  name: hcom_1"));
+      assertThat(lines.get(i++), is("  remote-meta-store-uris: thrift://localhost:19083"));
+      assertThat(lines.get(i++), is("federated-meta-stores:"));
+      assertThat(lines.get(i++), is("- access-control-type: READ_ONLY"));
+      assertThat(lines.get(i++), is("  database-prefix: hcom_2_"));
+      assertThat(lines.get(i++), is("  impersonation-enabled: false"));
+      assertThat(lines.get(i++), is("  latency: 0"));
+      assertThat(lines.get(i++), is("  name: hcom_2"));
+      assertThat(lines.get(i++), is("  remote-meta-store-uris: thrift://localhost:29083"));
+    }
   }
 
   private PrimaryMetaStore newPrimaryInstance(String name, String remoteMetaStoreUris) {

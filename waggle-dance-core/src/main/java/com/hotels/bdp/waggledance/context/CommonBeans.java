@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import com.hotels.bdp.waggledance.mapping.service.impl.LowerCasePrefixNamingStra
 
 @org.springframework.context.annotation.Configuration
 public class CommonBeans {
+
+  public final static String IMPERSONATION_ENABLED_KEY = "hive.metastore.thrift.impersonation.enabled";
 
   @Bean
   public HiveConf hiveConf(WaggleDanceConfiguration waggleDanceConfiguration) {

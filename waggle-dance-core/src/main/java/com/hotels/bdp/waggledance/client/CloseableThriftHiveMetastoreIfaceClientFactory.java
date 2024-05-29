@@ -30,6 +30,7 @@ import lombok.AllArgsConstructor;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.context.CommonBeans;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
@@ -70,6 +71,8 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
               connectionTimeout, waggleDanceConfiguration.getConfigurationProperties());
     }
     properties.put(ConfVars.METASTOREURIS.varname, uris);
+    properties.put(CommonBeans.IMPERSONATION_ENABLED_KEY,
+        String.valueOf(metaStore.isImpersonationEnabled()));
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     return defaultMetaStoreClientFactory
         .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
