@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.client.SplitTrafficMetastoreClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.model.ASTQueryMapping;
@@ -55,9 +56,15 @@ public class CommonBeans {
   }
 
   @Bean
-  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory(WaggleDanceConfiguration waggleDanceConfiguration) {
+  public SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory() {
+    return new SplitTrafficMetastoreClientFactory();
+  }
+  
+  @Bean
+  public CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory(
+      WaggleDanceConfiguration waggleDanceConfiguration, SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory) {
     return new CloseableThriftHiveMetastoreIfaceClientFactory(new TunnelingMetaStoreClientFactory(),
-        new DefaultMetaStoreClientFactory(), waggleDanceConfiguration);
+        new DefaultMetaStoreClientFactory(), waggleDanceConfiguration, splitTrafficMetaStoreClientFactory);
   }
 
   @Bean

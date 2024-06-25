@@ -13,6 +13,9 @@
 * `lombok` - `1.18.24`.
 * `jakarta` - `6.0.0`.
 * `apache-commons` - `3.12.0`.
+## [3.12.0] - 2023-02-08
+### Added
+- Added optional `primary-meta-store.read-only-remote-meta-store-uris` config to allow traffic to be diverted based on calls made. See README.md.
 
 ### Fixed
 * Added lombok

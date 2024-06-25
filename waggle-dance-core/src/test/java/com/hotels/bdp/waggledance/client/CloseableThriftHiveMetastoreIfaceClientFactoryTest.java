@@ -17,12 +17,15 @@ package com.hotels.bdp.waggledance.client;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
+import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newPrimaryInstance;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +43,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
+import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
@@ -48,12 +52,14 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
 
   private static final String THRIFT_URI = "thrift://host:port";
+  private static final String THRIFT_URI_READ_ONLY = "thrift://host-read-only:port";
 
   private CloseableThriftHiveMetastoreIfaceClientFactory factory;
   private @Mock TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private @Mock DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
   private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
-  private Map<String, String> configurationProperties = new HashMap<>();
+  private final Map<String, String> configurationProperties = new HashMap<>();
+  private @Mock SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory;
 
   @Before
   public void setUp() {
@@ -64,7 +70,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     configurationProperties.put(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL.varname, "false");
     when(waggleDanceConfiguration.getConfigurationProperties()).thenReturn(configurationProperties);
     factory = new CloseableThriftHiveMetastoreIfaceClientFactory(tunnelingMetaStoreClientFactory,
-        defaultMetaStoreClientFactory, waggleDanceConfiguration);
+        defaultMetaStoreClientFactory, waggleDanceConfiguration, splitTrafficMetaStoreClientFactory);
   }
 
   @Test
@@ -86,6 +92,25 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     assertThat(hiveConf.getVar(ConfVars.METASTORE_KERBEROS_PRINCIPAL), is("hive/_HOST@HADOOP.COM"));
   }
 
+  @Test
+  public void splitTrafficFactory() {
+    PrimaryMetaStore metaStore = newPrimaryInstance("hms", THRIFT_URI);
+    metaStore.setReadOnlyRemoteMetaStoreUris(THRIFT_URI_READ_ONLY);   
+    CloseableThriftHiveMetastoreIface readWriteClient = mock(CloseableThriftHiveMetastoreIface.class);
+    //Using 'any(HiveConf.class); generic matcher because HiveConf doesn't implement equals.
+    when(defaultMetaStoreClientFactory
+        .newInstance(any(HiveConf.class), eq("waggledance-hms"), eq(3), eq(2000))).thenReturn(readWriteClient);
+    CloseableThriftHiveMetastoreIface readOnlyclient = mock(CloseableThriftHiveMetastoreIface.class);
+    when(defaultMetaStoreClientFactory
+        .newInstance(any(HiveConf.class), eq("waggledance-hms_ro"), eq(3), eq(2000))).thenReturn(readOnlyclient);
+
+    factory.newInstance(metaStore);
+
+
+    verify(splitTrafficMetaStoreClientFactory).newInstance(readWriteClient, readOnlyclient);
+    verifyNoInteractions(tunnelingMetaStoreClientFactory);
+  }
+  
   @Test
   public void tunnelingFactory() {
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();
