@@ -28,8 +28,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import lombok.NoArgsConstructor;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -45,7 +43,6 @@ import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
 @JsonSubTypes({
     @Type(value = PrimaryMetaStore.class, name = "PRIMARY"),
     @Type(value = FederatedMetaStore.class, name = "FEDERATED") })
-@NoArgsConstructor
 public abstract class AbstractMetaStore {
   private String databasePrefix;
   private String hiveMetastoreFilterHook;
@@ -62,6 +59,9 @@ public abstract class AbstractMetaStore {
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
   private boolean impersonationEnabled;
   private Map<String, String> configurationProperties = new HashMap<>();
+  private String readOnlyRemoteMetaStoreUris;
+
+  public AbstractMetaStore() {}
 
   public AbstractMetaStore(String name, String remoteMetaStoreUris, AccessControlType accessControlType) {
     this.name = name;
@@ -127,6 +127,14 @@ public abstract class AbstractMetaStore {
     this.remoteMetaStoreUris = remoteMetaStoreUris;
   }
 
+  public String getReadOnlyRemoteMetaStoreUris() {
+    return readOnlyRemoteMetaStoreUris;
+  }
+  
+  public void setReadOnlyRemoteMetaStoreUris(String readOnlyRemoteMetaStoreUris) {
+    this.readOnlyRemoteMetaStoreUris = readOnlyRemoteMetaStoreUris;
+  }
+  
   public MetastoreTunnel getMetastoreTunnel() {
     return metastoreTunnel;
   }
@@ -256,6 +264,7 @@ public abstract class AbstractMetaStore {
         .add("databasePrefix", databasePrefix)
         .add("federationType", getFederationType())
         .add("remoteMetaStoreUris", remoteMetaStoreUris)
+        .add("readOnlyRemoteMetaStoreUris", readOnlyRemoteMetaStoreUris)
         .add("metastoreTunnel", metastoreTunnel)
         .add("accessControlType", accessControlType)
         .add("writableDatabaseWhiteList", writableDatabaseWhitelist)

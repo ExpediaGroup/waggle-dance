@@ -112,6 +112,8 @@ The table below describes all the available configuration values for Waggle Danc
 | `status-polling-delay-time-unit`  | No         | Controls the delay time unit. Default is `MINUTES` . |
 | `configuration-properties`        | No         | Map of Hive properties that will be added to the HiveConf used when creating the Thrift clients (they will be shared among all the clients). |
 
+Extensions (for instance Rate Limiting) are described here: [waggle-dance-extensions/README.md](waggle-dance-extensions/README.md)
+
 ### Federation
 
 Federation config is by default located in: `$WAGGLE_DANCE_HOME/conf/waggle-dance-federation.yml`.
@@ -170,6 +172,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-store.mapped-tables`                       | No       | List of mappings from databases to tables to federate from the primary metastore, similar to `mapped-databases`. By default, all tables are available. See `mapped-tables` configuration below. |
 | `primary-meta-stores.hive-metastore-filter-hook`         | No       | Name of the class which implements the `MetaStoreFilterHook` interface from Hive. This allows a metastore filter hook to be applied to the corresponding Hive metastore calls. Can be configured with the `configuration-properties` specified in the `waggle-dance-server.yml` configuration. They will be added in the HiveConf object that is given to the constructor of the `MetaStoreFilterHook` implementation you provide. |
 | `primary-meta-stores.database-name-mapping`              | No       | BiDirectional Map of database names and mapped name, where key=`<database name as known in the primary metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
+| `primary-meta-store.read-only-remote-meta-store-uris`    | No       | Can be used to configure an extra read-only endpoint for the primary Metastore. This is an optimization if your environment runs separate Metastore endpoints and traffic needs to be diverted efficiently. Waggle Dance will direct traffic to the read-write or read-only endpoints based on the call being done. For instance `get_table` will be a read-only call but `alter_table` will be forwarded to the read-write Metastore.| 
 | `primary-meta-stores.configuration-properties`           | No       | Map of the primary metastore personalized properties that will be added to the HiveConf used when creating the Thrift clients (they will be effect only on this client),the priority is higher than the properites of the same name in waggle-dance-server.yml.                                                                                                                                                                                                                                                                                                                         |
 | `federated-meta-stores`                                  | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`        | Yes      | Thrift URIs of the federated read-only metastore. |
@@ -576,4 +579,4 @@ The Waggle Dance logo uses the [Beetype Filled font](http://www.1001fonts.com/be
 ## Legal
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
 
-Copyright 2016-2019 Expedia, Inc.
+Copyright 2016-2024 Expedia, Inc.

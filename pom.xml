@@ -24,6 +24,7 @@
   </scm>
 
   <modules>
+    <module>waggle-dance-extensions</module>
     <module>waggle-dance-core</module>
     <module>waggle-dance-api</module>
     <module>waggle-dance-rest</module>
