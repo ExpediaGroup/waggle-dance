@@ -25,8 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
-import lombok.AllArgsConstructor;
-
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
@@ -34,14 +32,25 @@ import com.hotels.bdp.waggledance.context.CommonBeans;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
-@AllArgsConstructor
-public class CloseableThriftHiveMetastoreIfaceClientFactory {
+public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftClientFactory {
 
   private static final int DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY = 3;
   private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private final DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final int defaultConnectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L);
+  private final SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory;
+
+  public CloseableThriftHiveMetastoreIfaceClientFactory(
+      TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
+      DefaultMetaStoreClientFactory defaultMetaStoreClientFactory,
+      WaggleDanceConfiguration waggleDanceConfiguration,
+      SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory) {
+    this.tunnelingMetaStoreClientFactory = tunnelingMetaStoreClientFactory;
+    this.defaultMetaStoreClientFactory = defaultMetaStoreClientFactory;
+    this.waggleDanceConfiguration = waggleDanceConfiguration;
+    this.splitTrafficMetaStoreClientFactory = splitTrafficMetaStoreClientFactory;
+  }
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
@@ -51,16 +60,24 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory {
     if (metaStore.getConfigurationProperties() != null) {
       properties.putAll(metaStore.getConfigurationProperties());
     }
+    String name = metaStore.getName().toLowerCase(Locale.ROOT);
+    if (metaStore.getReadOnlyRemoteMetaStoreUris() != null) {
+      CloseableThriftHiveMetastoreIface readWrite = newHiveInstance(metaStore, name, metaStore.getRemoteMetaStoreUris(),
+          properties);
+      CloseableThriftHiveMetastoreIface readOnly = newHiveInstance(metaStore, name + "_ro",
+          metaStore.getReadOnlyRemoteMetaStoreUris(), properties);
+      return splitTrafficMetaStoreClientFactory.newInstance(readWrite, readOnly);
 
-    return newHiveInstance(metaStore, properties);
+    }
+    return newHiveInstance(metaStore, name, metaStore.getRemoteMetaStoreUris(), properties);
   }
 
   private CloseableThriftHiveMetastoreIface newHiveInstance(
-          AbstractMetaStore metaStore,
-          Map<String, String> properties) {
-    String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStore.getRemoteMetaStoreUris());
-    String name = metaStore.getName().toLowerCase(Locale.ROOT);
-
+      AbstractMetaStore metaStore,
+      String name,
+      String metaStoreUris,
+      Map<String, String> properties) {
+    String uris = MetaStoreUriNormaliser.normaliseMetaStoreUris(metaStoreUris);
     // Connection timeout should not be less than 1
     // A timeout of zero is interpreted as an infinite timeout, so this is avoided
     int connectionTimeout = Math.max(1, defaultConnectionTimeout + (int) metaStore.getLatency());

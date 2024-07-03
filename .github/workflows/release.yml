@@ -1,0 +1,60 @@
+name: Release to Maven Central
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "The branch to use to release from."
+        required: true
+        default: "main"
+jobs:
+  release:
+    name: Release to Maven Central
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.branch }}
+        # We need a personal access token to be able to push to a protected branch
+        token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '8'
+        java-package: jdk
+        server-id: sonatype-nexus-staging # Value of the distributionManagement/repository/id field of the pom.xml
+        server-username: SONATYPE_USERNAME # env variable for username in deploy
+        server-password: SONATYPE_PASSWORD # env variable for token in deploy
+        # only signed artifacts will be released to maven central. this sets up things for the maven-gpg-plugin
+        gpg-private-key: ${{ secrets.HCOM_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+        gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
+        # this creates a settings.xml with the following server
+        settings-path: ${{ github.workspace }}
+
+    - name: Configure Git User
+      run: |
+        git config user.email "oss@expediagroup.com"
+        git config user.name "eg-oss-ci"
+
+    - name: Install Local Dependencies
+      run: |
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive-client-1.10.0-WD.pom -DpomFile=lib/aws-glue-datacatalog-hive-client-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/shims-1.10.0-WD.pom -DpomFile=lib/shims-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/shims-common-1.10.0-WD.jar -DpomFile=lib/shims-common-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/hive2-shims-1.10.0-WD.jar -DpomFile=lib/hive2-shims-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/spark-hive-shims-1.10.0-WD.jar -DpomFile=lib/spark-hive-shims-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/shims-loader-1.10.0-WD.jar -DpomFile=lib/shims-loader-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.pom
+
+    - name: Run Maven Targets
+      # we are skipping the tests for releases, run a build step first.
+      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml -DskipTests -Darguments=-DskipTests --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
+      env:
+        SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
+        SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
+        GPG_PASSPHRASE: ${{secrets.HCOM_GPG_PRIVATE_KEY_PASSPHRASE}}

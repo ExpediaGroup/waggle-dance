@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import lombok.extern.log4j.Log4j2;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.DatabaseResolution;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
-import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
+import com.hotels.bdp.waggledance.client.ThriftClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.bdp.waggledance.mapping.service.MetaStoreMappingFactory;
 import com.hotels.bdp.waggledance.mapping.service.PrefixNamingStrategy;
@@ -45,24 +45,24 @@ import com.hotels.bdp.waggledance.server.security.AccessControlHandlerFactory;
 public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final PrefixNamingStrategy prefixNamingStrategy;
-  private final CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory;
+  private final ThriftClientFactory thriftClientFactory;
   private final AccessControlHandlerFactory accessControlHandlerFactory;
 
   @Autowired
   public MetaStoreMappingFactoryImpl(
-          WaggleDanceConfiguration waggleDanceConfiguration,
-          PrefixNamingStrategy prefixNamingStrategy,
-          CloseableThriftHiveMetastoreIfaceClientFactory metaStoreClientFactory,
-          AccessControlHandlerFactory accessControlHandlerFactory) {
+      WaggleDanceConfiguration waggleDanceConfiguration,
+      PrefixNamingStrategy prefixNamingStrategy,
+      ThriftClientFactory thriftClientFactory,
+      AccessControlHandlerFactory accessControlHandlerFactory) {
     this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.prefixNamingStrategy = prefixNamingStrategy;
-    this.metaStoreClientFactory = metaStoreClientFactory;
+    this.thriftClientFactory = thriftClientFactory;
     this.accessControlHandlerFactory = accessControlHandlerFactory;
   }
 
   private CloseableThriftHiveMetastoreIface createClient(AbstractMetaStore metaStore) {
     try {
-      return metaStoreClientFactory.newInstance(metaStore);
+      return thriftClientFactory.newInstance(metaStore);
     } catch (Exception e) {
       log.error("Can't create a client for metastore '{}':", metaStore.getName(), e);
       return newUnreachableMetastoreClient(metaStore);

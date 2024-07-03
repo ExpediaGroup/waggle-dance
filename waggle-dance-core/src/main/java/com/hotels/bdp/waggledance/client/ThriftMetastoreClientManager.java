@@ -54,7 +54,7 @@ class ThriftMetastoreClientManager extends AbstractThriftMetastoreClientManager 
 
     for (int attempt = 0; !isConnected && (attempt < retries); ++attempt) {
       for (URI store : metastoreUris) {
-        log.info("Trying to connect to metastore with URI {}", store);
+        log.debug("Trying to connect to metastore with URI {}", store);
         transport = new TSocket(store.getHost(), store.getPort(), clientSocketTimeout, connectionTimeout);
         if (useFramedTransport) {
           transport = new TFramedTransport(transport);

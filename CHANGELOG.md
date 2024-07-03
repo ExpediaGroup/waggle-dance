@@ -13,6 +13,17 @@
 * `lombok` - `1.18.24`.
 * `jakarta` - `6.0.0`.
 * `apache-commons` - `3.12.0`.
+## [3.13.0] - 2024-04-19
+### Added
+- Added `waggle-dance-extensions` module. See [extensions README](waggle-dance-extensions/README.md.)
+- Added support to enable Rate Limiting in Waggle Dance.
+### Changed
+- Changed and added some log messages for better tracking of calls.
+- Changed Integration Test WaggleDanceRunner to allow for reuse.
+
+## [3.12.0] - 2024-02-08
+### Added
+- Added optional `primary-meta-store.read-only-remote-meta-store-uris` config to allow traffic to be diverted based on calls made. See README.md.
 
 ### Fixed
 * Added lombok
