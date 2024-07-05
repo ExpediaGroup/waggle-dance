@@ -15,9 +15,7 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -25,13 +23,20 @@ import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -64,6 +69,7 @@ public class MetaStoreMappingFactoryImplTest {
       new WaggleDanceConfiguration(), new SplitTrafficMetastoreClientFactory());
 
   private MetaStoreMappingFactoryImpl factory;
+  public @Rule TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Before
   public void init() {
@@ -134,12 +140,35 @@ public class MetaStoreMappingFactoryImplTest {
   }
 
   @Test
+  public void loadMetastoreFilterHook(){
+
+  }
+
+  @Test
   public void loadMetastoreFilterHookFromConfig() {
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
     federatedMetaStore.setHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName());
+    Map<String,String> metaStoreConfigurationProperties = new HashMap<>();
+    metaStoreConfigurationProperties.put(PrefixingMetastoreFilter.PREFIX_KEY,"prefix-test-");
+    federatedMetaStore.setConfigurationProperties(metaStoreConfigurationProperties);
+
     MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
     assertThat(mapping, is(notNullValue()));
-    assertThat(mapping.getMetastoreFilter(), instanceOf(PrefixingMetastoreFilter.class));
+
+    MetaStoreFilterHook filterHook = mapping.getMetastoreFilter();
+    assertThat(filterHook, instanceOf(PrefixingMetastoreFilter.class));
+
+    Table table = new Table();
+    try {
+      StorageDescriptor sd = new StorageDescriptor();
+      File localWarehouseUri = temporaryFolder.newFolder("local-warehouse");
+      sd.setLocation(new File(localWarehouseUri,"local_database/local_table").toURI().toString());
+      table.setSd(sd);
+
+      String oldLocation=sd.getLocation();
+      assertThat(filterHook.filterTable(table).getSd().getLocation(), equalTo("prefix-test-" + oldLocation ) );
+    }catch (Exception e){
+    }
   }
 
   @Test
