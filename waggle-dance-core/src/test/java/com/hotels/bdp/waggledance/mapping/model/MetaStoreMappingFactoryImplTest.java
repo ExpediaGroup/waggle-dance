@@ -140,11 +140,6 @@ public class MetaStoreMappingFactoryImplTest {
   }
 
   @Test
-  public void loadMetastoreFilterHook(){
-
-  }
-
-  @Test
   public void loadMetastoreFilterHookFromConfig() {
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
     federatedMetaStore.setHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName());
