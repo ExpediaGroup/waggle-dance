@@ -143,13 +143,29 @@ public class MetaStoreMappingFactoryImplTest {
   public void loadMetastoreFilterHookFromConfig() {
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
     federatedMetaStore.setHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName());
+    MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
+    assertThat(mapping, is(notNullValue()));
+    assertThat(mapping.getMetastoreFilter(), instanceOf(PrefixingMetastoreFilter.class));
+  }
+
+  @Test
+  public void loadDefaultMetastoreFilterHook() {
+    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
+    MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
+    assertThat(mapping, is(notNullValue()));
+    assertThat(mapping.getMetastoreFilter(), instanceOf(DefaultMetaStoreFilterHookImpl.class));
+  }
+
+  @Test
+  public void loadMetastoreFilterHookWithCustomConfig() {
+    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
+    federatedMetaStore.setHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName());
     Map<String,String> metaStoreConfigurationProperties = new HashMap<>();
     metaStoreConfigurationProperties.put(PrefixingMetastoreFilter.PREFIX_KEY,"prefix-test-");
     federatedMetaStore.setConfigurationProperties(metaStoreConfigurationProperties);
 
     MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
     assertThat(mapping, is(notNullValue()));
-
     MetaStoreFilterHook filterHook = mapping.getMetastoreFilter();
     assertThat(filterHook, instanceOf(PrefixingMetastoreFilter.class));
 
@@ -164,13 +180,5 @@ public class MetaStoreMappingFactoryImplTest {
       assertThat(filterHook.filterTable(table).getSd().getLocation(), equalTo("prefix-test-" + oldLocation ) );
     }catch (Exception e){
     }
-  }
-
-  @Test
-  public void loadDefaultMetastoreFilterHook() {
-    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
-    MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
-    assertThat(mapping, is(notNullValue()));
-    assertThat(mapping.getMetastoreFilter(), instanceOf(DefaultMetaStoreFilterHookImpl.class));
   }
 }
