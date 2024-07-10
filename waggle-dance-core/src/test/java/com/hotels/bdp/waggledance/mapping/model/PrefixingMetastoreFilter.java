@@ -33,7 +33,7 @@ import org.apache.hadoop.hive.metastore.api.TableMeta;
  * */
 public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
 
-  public static final String PREFIX_KEY = "hive.metastore.hooks.prefix";
+  public static final String PREFIX_KEY = "waggledance.hook.prefix";
   public static final String PREFIX_DEFAULT = "prefix-";
   private final String prefix;
 
