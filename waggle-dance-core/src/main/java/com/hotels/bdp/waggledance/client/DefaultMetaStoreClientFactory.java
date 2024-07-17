@@ -139,8 +139,8 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
   }
 
-  private static class SaslMetastoreClientHander implements InvocationHandler {
-    private static final Logger LOG = LoggerFactory.getLogger(SaslMetastoreClientHander.class);
+  private static class SaslMetastoreClientHandler implements InvocationHandler {
+    private static final Logger LOG = LoggerFactory.getLogger(SaslMetastoreClientHandler.class);
 
     private final CloseableThriftHiveMetastoreIface baseHandler;
     private final ThriftMetastoreClientManager clientManager;
@@ -151,11 +151,11 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     public static CloseableThriftHiveMetastoreIface newProxyInstance(
             CloseableThriftHiveMetastoreIface baseHandler,
             ThriftMetastoreClientManager clientManager) {
-      return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(SaslMetastoreClientHander.class.getClassLoader(),
-              INTERFACES, new SaslMetastoreClientHander(baseHandler, clientManager));
+      return (CloseableThriftHiveMetastoreIface) Proxy.newProxyInstance(SaslMetastoreClientHandler.class.getClassLoader(),
+              INTERFACES, new SaslMetastoreClientHandler(baseHandler, clientManager));
     }
 
-    private SaslMetastoreClientHander(
+    private SaslMetastoreClientHandler(
             CloseableThriftHiveMetastoreIface handler,
             ThriftMetastoreClientManager clientManager) {
       this.baseHandler = handler;
@@ -233,8 +233,8 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     if (base.isSaslEnabled()) {
       CloseableThriftHiveMetastoreIface ifaceReconnectingHandler = (CloseableThriftHiveMetastoreIface) Proxy
               .newProxyInstance(getClass().getClassLoader(), INTERFACES, reconnectingHandler);
-      // wrapping the SaslMetastoreClientHander to handle delegation token if using sasl
-      return SaslMetastoreClientHander.newProxyInstance(ifaceReconnectingHandler, base);
+      // wrapping the SaslMetastoreClientHandler to handle delegation token if using sasl
+      return SaslMetastoreClientHandler.newProxyInstance(ifaceReconnectingHandler, base);
     } else {
       return (CloseableThriftHiveMetastoreIface) Proxy
               .newProxyInstance(getClass().getClassLoader(), INTERFACES, reconnectingHandler);
