@@ -58,7 +58,7 @@ public class AccessControlHandlerFactory {
       }
 
     default:
-      throw new IllegalStateException("Cannot determine AcccessControlHandler type given type: '"
+      throw new IllegalStateException("Cannot determine AccessControlHandler type given type: '"
           + metaStore.getAccessControlType()
           + "'");
     }
