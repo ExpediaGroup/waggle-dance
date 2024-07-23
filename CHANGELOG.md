@@ -1,3 +1,6 @@
+## [3.13.2] - 2024-07-23
+### Fix
+- Add HiveConf cache to `CloseableThriftHiveMetastoreIfaceClientFactory` to prevent threads block. See [#325](https://github.com/ExpediaGroup/waggle-dance/issues/325)
 
 ## [3.13.1] - 2024-05-06
 ### Fix

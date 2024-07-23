@@ -21,8 +21,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 
@@ -45,6 +47,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftCli
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final GlueClientFactory glueClientFactory;
   private final SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory;
+  private final ConcurrentHashMap<String, HiveConf> cachedHiveConf = new ConcurrentHashMap<>();
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(
       TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
@@ -96,8 +99,9 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftCli
     }
     properties.put(ConfVars.METASTOREURIS.varname, uris);
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
+    HiveConf hiveConf = cachedHiveConf.computeIfAbsent(uris, t-> confFactory.newInstance());
     return defaultMetaStoreClientFactory
-        .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
+        .newInstance(hiveConf, "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
             connectionTimeout);
   }
 
