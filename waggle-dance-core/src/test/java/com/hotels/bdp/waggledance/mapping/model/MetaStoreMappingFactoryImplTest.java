@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +38,6 @@ import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -72,7 +70,6 @@ public class MetaStoreMappingFactoryImplTest {
       new WaggleDanceConfiguration(), new SplitTrafficMetastoreClientFactory());
 
   private MetaStoreMappingFactoryImpl factory;
-  public @Rule TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Before
   public void init() {
@@ -173,12 +170,11 @@ public class MetaStoreMappingFactoryImplTest {
     assertThat(filterHook, instanceOf(PrefixingMetastoreFilter.class));
 
     Table table = new Table();
-      StorageDescriptor sd = new StorageDescriptor();
-      File localWarehouseUri = temporaryFolder.newFolder("local-warehouse");
-      sd.setLocation(new File(localWarehouseUri,"local_database/local_table").toURI().toString());
-      table.setSd(sd);
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setLocation("file:///tmp/local_database/local_table");
+    table.setSd(sd);
 
-      String oldLocation=sd.getLocation();
-      assertThat(filterHook.filterTable(table).getSd().getLocation(), equalTo("prefix-test-" + oldLocation ) );
+    String oldLocation=sd.getLocation();
+    assertThat(filterHook.filterTable(table).getSd().getLocation(), equalTo("prefix-test-" + oldLocation ) );
   }
 }
