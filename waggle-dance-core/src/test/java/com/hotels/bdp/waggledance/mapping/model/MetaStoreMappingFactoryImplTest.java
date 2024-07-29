@@ -15,7 +15,10 @@
  */
 package com.hotels.bdp.waggledance.mapping.model;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -157,7 +160,7 @@ public class MetaStoreMappingFactoryImplTest {
   }
 
   @Test
-  public void loadMetastoreFilterHookWithCustomConfig() {
+  public void loadMetastoreFilterHookWithCustomConfig() throws Exception{
     AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
     federatedMetaStore.setHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName());
     Map<String,String> metaStoreConfigurationProperties = new HashMap<>();
@@ -170,7 +173,6 @@ public class MetaStoreMappingFactoryImplTest {
     assertThat(filterHook, instanceOf(PrefixingMetastoreFilter.class));
 
     Table table = new Table();
-    try {
       StorageDescriptor sd = new StorageDescriptor();
       File localWarehouseUri = temporaryFolder.newFolder("local-warehouse");
       sd.setLocation(new File(localWarehouseUri,"local_database/local_table").toURI().toString());
@@ -178,7 +180,5 @@ public class MetaStoreMappingFactoryImplTest {
 
       String oldLocation=sd.getLocation();
       assertThat(filterHook.filterTable(table).getSd().getLocation(), equalTo("prefix-test-" + oldLocation ) );
-    }catch (Exception e){
-    }
   }
 }
