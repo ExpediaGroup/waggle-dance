@@ -33,9 +33,12 @@ import org.apache.hadoop.hive.metastore.api.TableMeta;
  * */
 public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
 
-  public static final String PREFIX = "prefix-";
+  public static final String PREFIX_KEY = "waggledance.hook.prefix";
+  public static final String PREFIX_DEFAULT = "prefix-";
+  private final String prefix;
 
   public PrefixingMetastoreFilter(HiveConf conf) {
+    prefix = conf.get(PREFIX_KEY,PREFIX_DEFAULT);
   }
 
   @Override
@@ -140,7 +143,7 @@ public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
 
   private void setLocationPrefix(StorageDescriptor sd) {
     String location = sd.getLocation();
-    sd.setLocation(PREFIX + location);
+    sd.setLocation(prefix + location);
   }
 
 }

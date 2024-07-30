@@ -108,6 +108,12 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
         conf.set(property.getKey(), property.getValue());
       }
     }
+    Map<String, String> metaConfigurationProperties = metaStore.getConfigurationProperties();
+    if (metaConfigurationProperties != null) {
+      for (Map.Entry<String, String> property : metaConfigurationProperties.entrySet()) {
+        conf.set(property.getKey(), property.getValue());
+      }
+    }
     conf.set(HiveConf.ConfVars.METASTORE_FILTER_HOOK.varname, metaStoreFilterHook);
     try {
       Class<? extends MetaStoreFilterHook> filterHookClass = conf

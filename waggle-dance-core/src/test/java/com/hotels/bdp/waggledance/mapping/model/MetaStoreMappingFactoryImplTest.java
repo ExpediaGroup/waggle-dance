@@ -18,6 +18,7 @@ package com.hotels.bdp.waggledance.mapping.model;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -26,8 +27,13 @@ import static org.mockito.Mockito.when;
 import static com.hotels.bdp.waggledance.api.model.AbstractMetaStore.newFederatedInstance;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.DefaultMetaStoreFilterHookImpl;
+import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -148,5 +154,27 @@ public class MetaStoreMappingFactoryImplTest {
     MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
     assertThat(mapping, is(notNullValue()));
     assertThat(mapping.getMetastoreFilter(), instanceOf(DefaultMetaStoreFilterHookImpl.class));
+  }
+
+  @Test
+  public void loadMetastoreFilterHookWithCustomConfig() throws Exception{
+    AbstractMetaStore federatedMetaStore = newFederatedInstance("fed1", thrift.getThriftConnectionUri());
+    federatedMetaStore.setHiveMetastoreFilterHook(PrefixingMetastoreFilter.class.getName());
+    Map<String,String> metaStoreConfigurationProperties = new HashMap<>();
+    metaStoreConfigurationProperties.put(PrefixingMetastoreFilter.PREFIX_KEY,"prefix-test-");
+    federatedMetaStore.setConfigurationProperties(metaStoreConfigurationProperties);
+
+    MetaStoreMapping mapping = factory.newInstance(federatedMetaStore);
+    assertThat(mapping, is(notNullValue()));
+    MetaStoreFilterHook filterHook = mapping.getMetastoreFilter();
+    assertThat(filterHook, instanceOf(PrefixingMetastoreFilter.class));
+
+    Table table = new Table();
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setLocation("file:///tmp/local_database/local_table");
+    table.setSd(sd);
+
+    String oldLocation=sd.getLocation();
+    assertThat(filterHook.filterTable(table).getSd().getLocation(), equalTo("prefix-test-" + oldLocation ) );
   }
 }
