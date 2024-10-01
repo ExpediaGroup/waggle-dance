@@ -48,7 +48,6 @@ public class TSetIpAddressProcessorFactoryTest {
   @Before
   public void init() {
     when(federatedHMSHandlerFactory.create()).thenReturn(federatedHMSHandler);
-    when(federatedHMSHandler.getConf()).thenReturn(hiveConf);
     factory = new TSetIpAddressProcessorFactory(hiveConf, federatedHMSHandlerFactory, transportMonitor);
   }
 
