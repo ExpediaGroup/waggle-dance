@@ -19,9 +19,7 @@ import java.net.Socket;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.IHMSHandler;
-import org.apache.hadoop.hive.metastore.RetryingHMSHandler;
 import org.apache.hadoop.hive.metastore.TSetIpAddressProcessor;
-import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.transport.TSocket;
@@ -61,24 +59,16 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
 
       boolean useSASL = hiveConf.getBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
       if (useSASL) {
-        IHMSHandler tokenHandler = TokenWrappingHMSHandler.newProxyInstance(baseHandler, useSASL);
-        IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(tokenHandler), hiveConf,
-                false);
+        IHMSHandler handler = TokenWrappingHMSHandler.newProxyInstance(baseHandler, useSASL);
         return new TSetIpAddressProcessor<>(handler);
       } else {
-        IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
-                false);
+        IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
         transportMonitor.monitor(transport, baseHandler);
         return new TSetIpAddressProcessor<>(handler);
       }
-    } catch (MetaException | ReflectiveOperationException | RuntimeException e) {
+    } catch (ReflectiveOperationException | RuntimeException e) {
       throw new RuntimeException("Error creating TProcessor", e);
     }
-  }
-
-  private IHMSHandler newRetryingHMSHandler(IHMSHandler baseHandler, HiveConf hiveConf, boolean local)
-    throws MetaException {
-    return RetryingHMSHandler.getProxy(hiveConf, baseHandler, local);
   }
 
 }
