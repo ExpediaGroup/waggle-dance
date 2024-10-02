@@ -1,4 +1,4 @@
-## [3.13.3] - 2024-10-01
+## [3.13.3] - 2024-10-02
 ### Added
 - Metric for monitoring open transports. `<prefix>.open_transports_gauge`
 ### Changed
