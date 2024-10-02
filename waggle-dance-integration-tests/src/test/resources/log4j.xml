@@ -20,7 +20,7 @@
   <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
     <layout class="org.apache.log4j.PatternLayout">
      <!--  WaggleDance Integration Tests (WD_IT) log (through hive dependencies) via log4j (not log4j2.xml which controls the logging of the started WaggleDanceRunner) -->
-      <param name="ConversionPattern" value="%d{ISO8601} WD_IT %tn %-5p %c:%L - %m%n" />
+      <param name="ConversionPattern" value="%d{ISO8601} WD_IT %t %-5p %c:%L - %m%n" />
     </layout>
   </appender>
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2020 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,6 @@ public class TSetIpAddressProcessorFactoryTest {
   @Before
   public void init() {
     when(federatedHMSHandlerFactory.create()).thenReturn(federatedHMSHandler);
-    when(federatedHMSHandler.getConf()).thenReturn(hiveConf);
     factory = new TSetIpAddressProcessorFactory(hiveConf, federatedHMSHandlerFactory, transportMonitor);
   }
 

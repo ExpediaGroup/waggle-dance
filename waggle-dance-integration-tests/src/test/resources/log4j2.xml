@@ -17,7 +17,7 @@
 <Configuration>
   <Appenders>
     <Console name="STDOUT" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d{ISO8601} %tn %-5p %c:%L - %m%n"/>
+      <PatternLayout pattern="%d{ISO8601} %t %-5p %c:%L - %m%n"/>
     </Console>
   </Appenders>
   <Loggers>

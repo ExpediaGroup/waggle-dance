@@ -1,3 +1,9 @@
+## [3.13.3] - 2024-10-02
+### Added
+- Metric for monitoring open transports. `<prefix>.open_transports_gauge`
+### Changed
+- Removed RetryingHMSHandler. Retries are done in the client there should be no need to wrap everything in retry logic again. 
+
 ## [3.13.2] - 2024-07-23
 ### Fix
 - Add HiveConf cache to `CloseableThriftHiveMetastoreIfaceClientFactory` to prevent threads block. See [#325](https://github.com/ExpediaGroup/waggle-dance/issues/325)

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
@@ -37,6 +40,7 @@ import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 @Component
 public class TTransportMonitor {
 
+  static final String METRIC_NAME_OPEN_TRANSPORTS = "com_hotels_bdp_waggledance_open_transports_gauge";
   private static final Logger LOG = LoggerFactory.getLogger(TTransportMonitor.class);
 
   private static class ActionContainer {
@@ -53,13 +57,17 @@ public class TTransportMonitor {
   private final ConcurrentLinkedQueue<ActionContainer> transports = new ConcurrentLinkedQueue<>();
 
   @Autowired
-  public TTransportMonitor(WaggleDanceConfiguration waggleDanceConfiguration) {
-    this(waggleDanceConfiguration, Executors.newScheduledThreadPool(1));
+  public TTransportMonitor(WaggleDanceConfiguration waggleDanceConfiguration, MeterRegistry meterRegistry) {
+    this(waggleDanceConfiguration, Executors.newScheduledThreadPool(1), meterRegistry);
   }
 
   @VisibleForTesting
-  TTransportMonitor(WaggleDanceConfiguration waggleDanceConfiguration, ScheduledExecutorService scheduler) {
+  TTransportMonitor(
+      WaggleDanceConfiguration waggleDanceConfiguration,
+      ScheduledExecutorService scheduler,
+      MeterRegistry meterRegistry) {
     this.scheduler = scheduler;
+    Gauge.builder(METRIC_NAME_OPEN_TRANSPORTS, transports, ConcurrentLinkedQueue::size).register(meterRegistry);
     Runnable monitor = () -> {
       LOG.debug("Releasing disconnected sessions");
       Iterator<ActionContainer> iterator = transports.iterator();
@@ -80,6 +88,7 @@ public class TTransportMonitor {
         }
         iterator.remove();
       }
+      LOG.info("Number of open transports (#connections clients -> WD ): {}", transports.size());
     };
     this.scheduler
         .scheduleAtFixedRate(monitor, waggleDanceConfiguration.getDisconnectConnectionDelay(),
