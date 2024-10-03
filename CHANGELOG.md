@@ -1,6 +1,11 @@
+## [3.13.4] - 2024-10-03
+### Fix
+- Removed call to primary and made it only when Kerberos (SASL) is enabled. 
+- Fixed Handler creation for SASL.
+
 ## [3.13.3] - 2024-10-02
 ### Added
-- Metric for monitoring open transports. `<prefix>.open_transports_gauge`
+- Metric for monitoring open transports. `<prefix>.com_hotels_bdp_waggledance_open_transports_gauge`
 ### Changed
 - Removed RetryingHMSHandler. Retries are done in the client there should be no need to wrap everything in retry logic again. 
 
