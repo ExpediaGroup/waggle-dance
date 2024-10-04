@@ -20,6 +20,7 @@ import java.net.Socket;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.hive.metastore.TSetIpAddressProcessor;
+import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.transport.TSocket;
@@ -59,7 +60,14 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
 
       boolean useSASL = hiveConf.getBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
       if (useSASL) {
-        IHMSHandler handler = TokenWrappingHMSHandler.newProxyInstance(baseHandler, useSASL);
+        try {
+          baseHandler.getStatus();
+        } catch (TException e) {
+          throw new RuntimeException("Error creating TProcessor. Could not get status.", e);
+        }
+        IHMSHandler tokenHandler = TokenWrappingHMSHandler.newProxyInstance(baseHandler, useSASL);
+        IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(tokenHandler);
+        transportMonitor.monitor(transport, baseHandler);
         return new TSetIpAddressProcessor<>(handler);
       } else {
         IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);

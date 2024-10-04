@@ -97,11 +97,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = databaseMapping;
-      if (!metaStoreMapping.isAvailable()) {
-        throw new WaggleDanceException(
-                String.format("Primary metastore is unavailable %s", metaStore.getRemoteMetaStoreUris())
-        );
-      }
     }
 
     mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), databaseMapping);
