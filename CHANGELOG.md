@@ -1,4 +1,4 @@
-## [3.13.4] - 2024-10-03
+## [3.13.4] - 2024-10-04
 ### Fix
 - Removed call to primary and made it only when Kerberos (SASL) is enabled. 
 - Fixed Handler creation for SASL.
