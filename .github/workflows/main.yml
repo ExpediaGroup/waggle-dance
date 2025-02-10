@@ -1,6 +1,14 @@
 name: Java CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "The branch to use to run from."
+        required: true
+        default: "main"
+
+on:
   pull_request:
   push:
     branches:
