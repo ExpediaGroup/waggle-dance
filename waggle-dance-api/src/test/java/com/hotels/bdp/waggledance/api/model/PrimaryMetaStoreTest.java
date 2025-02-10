@@ -36,6 +36,7 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
   private final String remoteMetaStoreUris = "remoteMetaStoreUris";
   private final List<String> whitelist = new ArrayList<>();
   private final AccessControlType accessControlType = AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
+  private final String databasePrefix = "primary";
 
   public PrimaryMetaStoreTest() {
     super(new PrimaryMetaStore());
@@ -116,6 +117,31 @@ public class PrimaryMetaStoreTest extends AbstractMetaStoreTest<PrimaryMetaStore
     PrimaryMetaStore store = new PrimaryMetaStore(name, remoteMetaStoreUris, accessControlType, whitelist);
     assertThat(store.getName(), is(name));
     assertThat(store.getRemoteMetaStoreUris(), is(remoteMetaStoreUris));
+    assertThat(store.getAccessControlType(), is(accessControlType));
+    assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
+  }
+
+  @Test
+  public void nonEmptyPrefixConstructor() {
+    whitelist.add("databaseOne");
+    whitelist.add("databaseTwo");
+    PrimaryMetaStore store = new PrimaryMetaStore(name, remoteMetaStoreUris, databasePrefix, accessControlType, whitelist.get(0),
+            whitelist.get(1));
+    assertThat(store.getName(), is(name));
+    assertThat(store.getRemoteMetaStoreUris(), is(remoteMetaStoreUris));
+    assertThat(store.getDatabasePrefix(), is(databasePrefix));
+    assertThat(store.getAccessControlType(), is(accessControlType));
+    assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
+  }
+
+  @Test
+  public void constructorWithPrefixArrayListForWhitelist() {
+    whitelist.add("databaseOne");
+    whitelist.add("databaseTwo");
+    PrimaryMetaStore store = new PrimaryMetaStore(name, remoteMetaStoreUris, databasePrefix, accessControlType, whitelist);
+    assertThat(store.getName(), is(name));
+    assertThat(store.getRemoteMetaStoreUris(), is(remoteMetaStoreUris));
+    assertThat(store.getDatabasePrefix(), is(databasePrefix));
     assertThat(store.getAccessControlType(), is(accessControlType));
     assertThat(store.getWritableDatabaseWhiteList(), is(whitelist));
   }

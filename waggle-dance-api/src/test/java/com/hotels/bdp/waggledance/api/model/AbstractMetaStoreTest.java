@@ -155,6 +155,18 @@ public abstract class AbstractMetaStoreTest<T extends AbstractMetaStore> {
   }
 
   @Test
+  public void newPrimaryPrefixInstance() {
+    AccessControlType access = AccessControlType.READ_AND_WRITE_AND_CREATE;
+    String databasePrefix = "primary";
+    PrimaryMetaStore primaryMetaStore = AbstractMetaStore.newPrimaryInstance(name, remoteMetaStoreUri, databasePrefix, access);
+    assertThat(primaryMetaStore.getName(), is(name));
+    assertThat(primaryMetaStore.getRemoteMetaStoreUris(), is(remoteMetaStoreUri));
+    assertThat(primaryMetaStore.getDatabasePrefix(), is(databasePrefix));
+    assertThat(primaryMetaStore.getAccessControlType(), is(access));
+  }
+
+
+  @Test
   public void mappedDatabases() {
     List<String> mappedDatabases = new ArrayList<>();
     mappedDatabases.add("database");
