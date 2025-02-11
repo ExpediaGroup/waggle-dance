@@ -1,4 +1,8 @@
 ## [4.0.0] - TBD
+### Fixed
+* Issue where the primary prefix when creating database. https://github.com/ExpediaGroup/waggle-dance/pull/336
+* Various fixes and support for Kerberos was contributed.
+
 ### Updated Dependency
 * `hive` updated to `3.1.3` (was `3.1.2`).
 * `hadoop` updated to `3.3.6` (was `3.1.0`).
@@ -13,6 +17,7 @@
 * `lombok` - `1.18.24`.
 * `jakarta` - `6.0.0`.
 * `apache-commons` - `3.12.0`.
+  
 ## [3.13.0] - 2024-04-19
 ### Added
 - Added `waggle-dance-extensions` module. See [extensions README](waggle-dance-extensions/README.md.)
