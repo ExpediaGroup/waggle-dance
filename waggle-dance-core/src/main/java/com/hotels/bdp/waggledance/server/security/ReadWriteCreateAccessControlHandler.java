@@ -55,7 +55,7 @@ public class ReadWriteCreateAccessControlHandler implements AccessControlHandler
     AbstractMetaStore newMetaStore;
     if (metaStore instanceof PrimaryMetaStore) {
       newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
-          metaStore.getAccessControlType());
+          metaStore.getDatabasePrefix(), metaStore.getAccessControlType());
       newMetaStore.setMappedDatabases(mappedDatabases);
     } else {
       throw new WaggleDanceException(

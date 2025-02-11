@@ -80,6 +80,20 @@ public abstract class AbstractMetaStore {
     this.writableDatabaseWhitelist = writableDatabaseWhitelist;
   }
 
+  public AbstractMetaStore(
+          String name,
+          String remoteMetaStoreUris,
+          String databasePrefix,
+          AccessControlType accessControlType,
+          List<String> writableDatabaseWhitelist) {
+    this.name = name;
+    this.remoteMetaStoreUris = remoteMetaStoreUris;
+    this.databasePrefix = databasePrefix;
+    this.accessControlType = accessControlType;
+    this.writableDatabaseWhitelist = writableDatabaseWhitelist;
+  }
+
+
   public static FederatedMetaStore newFederatedInstance(String name, String remoteMetaStoreUris) {
     return new FederatedMetaStore(name, remoteMetaStoreUris);
   }
@@ -93,6 +107,14 @@ public abstract class AbstractMetaStore {
 
   public static PrimaryMetaStore newPrimaryInstance(String name, String remoteMetaStoreUris) {
     return new PrimaryMetaStore(name, remoteMetaStoreUris, AccessControlType.READ_ONLY);
+  }
+
+  public static PrimaryMetaStore newPrimaryInstance(
+          String name,
+          String remoteMetaStoreUris,
+          String databasePrefix,
+          AccessControlType accessControlType) {
+    return new PrimaryMetaStore(name, remoteMetaStoreUris, databasePrefix, accessControlType);
   }
 
   public String getDatabasePrefix() {

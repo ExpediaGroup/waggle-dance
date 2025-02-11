@@ -43,6 +43,24 @@ public class PrimaryMetaStore extends AbstractMetaStore {
     super(name, remoteMetaStoreUris, accessControlType, writableDatabaseWhitelist);
   }
 
+  public PrimaryMetaStore(
+          String name,
+          String remoteMetaStoreUris,
+          String databasePrefix,
+          AccessControlType accessControlType,
+          String... writableDatabaseWhitelist) {
+    this(name, remoteMetaStoreUris, databasePrefix, accessControlType, Arrays.asList(writableDatabaseWhitelist));
+  }
+
+  public PrimaryMetaStore(
+          String name,
+          String remoteMetaStoreUris,
+          String databasePrefix,
+          AccessControlType accessControlType,
+          List<String> writableDatabaseWhitelist) {
+    super(name, remoteMetaStoreUris, databasePrefix, accessControlType, writableDatabaseWhitelist);
+  }
+
   @Override
   public FederationType getFederationType() {
     return FederationType.PRIMARY;

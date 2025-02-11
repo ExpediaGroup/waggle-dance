@@ -45,10 +45,12 @@ public class ReadWriteCreateAccessControlHandlerTest {
   private @Mock FederationService federationService;
   private @Captor ArgumentCaptor<PrimaryMetaStore> captor;
   private String database = "database";
+  private String databasePrefix = "primary_";
 
   @Before
   public void setUp() {
     handler = new ReadWriteCreateAccessControlHandler(primaryMetaStore, federationService);
+    when(primaryMetaStore.getDatabasePrefix()).thenReturn(databasePrefix);
   }
 
   @Test
@@ -70,6 +72,7 @@ public class ReadWriteCreateAccessControlHandlerTest {
     PrimaryMetaStore newPrimaryMetaStore = captor.getValue();
     assertThat(newPrimaryMetaStore.getMappedDatabases().size(), is(1));
     assertThat(newPrimaryMetaStore.getMappedDatabases().get(0), is(database));
+    assertThat(newPrimaryMetaStore.getDatabasePrefix(), is(databasePrefix));
   }
 
   @Test
@@ -81,6 +84,7 @@ public class ReadWriteCreateAccessControlHandlerTest {
     PrimaryMetaStore newPrimaryMetaStore = captor.getValue();
     assertThat(newPrimaryMetaStore.getMappedDatabases().size(), is(1));
     assertThat(newPrimaryMetaStore.getMappedDatabases().get(0), is(database));
+    assertThat(newPrimaryMetaStore.getDatabasePrefix(), is(databasePrefix));
   }
 
   @Test
@@ -93,6 +97,7 @@ public class ReadWriteCreateAccessControlHandlerTest {
     PrimaryMetaStore newPrimaryMetaStore = captor.getValue();
     assertThat(newPrimaryMetaStore.getMappedDatabases().size(), is(mappedDatabases.size() + 1));
     assertThat(newPrimaryMetaStore.getMappedDatabases().get(mappedDatabases.size()), is(database));
+    assertThat(newPrimaryMetaStore.getDatabasePrefix(), is(databasePrefix));
   }
 
 }

@@ -49,10 +49,12 @@ public class DatabaseWhitelistAccessControlHandlerTest {
   private @Mock FederationService federationService;
   private @Captor ArgumentCaptor<PrimaryMetaStore> captor;
   private DatabaseWhitelistAccessControlHandler handler;
+  private String databasePrefix = "primary_";
 
   @Before
   public void setUp() {
     when(primaryMetaStore.getWritableDatabaseWhiteList()).thenReturn(whitelist);
+    when(primaryMetaStore.getDatabasePrefix()).thenReturn(databasePrefix);
     handler = new DatabaseWhitelistAccessControlHandler(primaryMetaStore, federationService, true);
   }
 
@@ -84,6 +86,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     PrimaryMetaStore updatedMetastore = captor.getValue();
     assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(3));
     assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "userdb.*", "newdb"));
+    assertThat(updatedMetastore.getDatabasePrefix(), is(databasePrefix));
   }
 
   @Test
@@ -93,6 +96,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     PrimaryMetaStore updatedMetastore = captor.getValue();
     assertThat(updatedMetastore.getWritableDatabaseWhiteList().size(), is(2));
     assertThat(updatedMetastore.getWritableDatabaseWhiteList(), contains("writabledb", "userdb.*"));
+    assertThat(updatedMetastore.getDatabasePrefix(), is(databasePrefix));
   }
 
   @Test
@@ -104,6 +108,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     PrimaryMetaStore newPrimaryMetaStore = captor.getValue();
     assertThat(newPrimaryMetaStore.getMappedDatabases().size(), is(1));
     assertThat(newPrimaryMetaStore.getMappedDatabases().get(0), is(database));
+    assertThat(newPrimaryMetaStore.getDatabasePrefix(), is(databasePrefix));
   }
 
   @Test
@@ -116,6 +121,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     PrimaryMetaStore newPrimaryMetaStore = captor.getValue();
     assertThat(newPrimaryMetaStore.getMappedDatabases().size(), is(1));
     assertThat(newPrimaryMetaStore.getMappedDatabases().get(0), is(database));
+    assertThat(newPrimaryMetaStore.getDatabasePrefix(), is(databasePrefix));
   }
 
   @Test
@@ -129,6 +135,7 @@ public class DatabaseWhitelistAccessControlHandlerTest {
     PrimaryMetaStore newPrimaryMetaStore = captor.getValue();
     assertThat(newPrimaryMetaStore.getMappedDatabases().size(), is(mappedDatabases.size() + 1));
     assertThat(newPrimaryMetaStore.getMappedDatabases().get(mappedDatabases.size()), is(database));
+    assertThat(newPrimaryMetaStore.getDatabasePrefix(), is(databasePrefix));
   }
 
 }

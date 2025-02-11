@@ -74,7 +74,7 @@ public class DatabaseWhitelistAccessControlHandler implements AccessControlHandl
     AbstractMetaStore newMetaStore;
     if (metaStore instanceof PrimaryMetaStore) {
       newMetaStore = new PrimaryMetaStore(metaStore.getName(), metaStore.getRemoteMetaStoreUris(),
-          metaStore.getAccessControlType(), newWritableDatabaseWhiteList);
+          metaStore.getDatabasePrefix(), metaStore.getAccessControlType(), newWritableDatabaseWhiteList);
       newMetaStore.setMappedDatabases(mappedDatabases);
     } else {
       throw new WaggleDanceException(
