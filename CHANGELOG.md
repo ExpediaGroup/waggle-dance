@@ -1,4 +1,8 @@
-## [4.0.0] - TBD
+## [4.0.0] - 2025-02-24
+
+### Changed (Backward incompatible)
+* Hive 3, waggle dance 4.x.x will be Hive 3 based for Hive 2 use waggledance 3.x.x releases.
+
 ### Fixed
 * Issue where the primary prefix when creating database. https://github.com/ExpediaGroup/waggle-dance/pull/336
 * Various fixes and support for Kerberos was contributed.
