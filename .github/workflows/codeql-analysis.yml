@@ -9,15 +9,10 @@ on:
 jobs:
   CodeQL-Build:
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     permissions:
       security-events: write
-
-    strategy:
-      matrix:
-        maven-version: ['3.9.2']
-        java-version: ['8']
 
     steps:
     - name: Checkout repository
@@ -28,23 +23,10 @@ jobs:
         fetch-depth: 2
 
    # WD requires Java 8 to build
-    - name: Set up JDK ${{ matrix.java-version }}
-      uses: actions/setup-java@v2
+    - name: Set up JDK
+      uses: actions/setup-java@v1
       with:
-        distribution: 'zulu'
-        java-version: ${{ matrix.java-version }}
-        java-package: jdk
-        server-id: sonatype-nexus-snapshots # Value of the distributionManagement/repository/id field of the pom.xml
-        server-username: SONATYPE_USERNAME # env variable for username in deploy
-        server-password: SONATYPE_PASSWORD # env variable for token in deploy
-        # only signed artifacts will be released to maven central. this sets up things for the maven-gpg-plugin
-        gpg-private-key: ${{ secrets.HCOM_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-        gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
-        # this creates a settings.xml on build server
-        settings-path: ${{ github.workspace }}
-        cache: maven
-    - name: Maven Verify
-      run: mvn -B clean verify --file pom.xml
+        java-version: 8
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -55,18 +37,27 @@ jobs:
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      run: |
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive-client-1.10.0-WD.pom -DpomFile=lib/aws-glue-datacatalog-hive-client-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/shims-1.10.0-WD.pom -DpomFile=lib/shims-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/shims-common-1.10.0-WD.jar -DpomFile=lib/shims-common-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/hive2-shims-1.10.0-WD.jar -DpomFile=lib/hive2-shims-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/spark-hive-shims-1.10.0-WD.jar -DpomFile=lib/spark-hive-shims-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/shims-loader-1.10.0-WD.jar -DpomFile=lib/shims-loader-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-client-common-1.10.0-WD.pom
+        mvn install:install-file -Dfile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.jar -DpomFile=lib/aws-glue-datacatalog-hive2-client-1.10.0-WD.pom
+        mvn install -DskipTests
 
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 https://git.io/JvXDl
+   # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
 
-    # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
-    #    and modify them (or add more) to build your code if your project
-    #    uses a compiled language
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following
+      #    three lines and modify them (or add more) to build your code if your
+      #    project uses a compiled language
 
-    #- run: |
-    #   make bootstrap
-    #   make release
+      #- run: |
+      #     make bootstrap
+      #     make release
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2

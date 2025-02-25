@@ -23,6 +23,7 @@
   <Loggers>
     <Logger name="com.hotels.bdp.waggledance" level="debug"/>
     <Logger name="com.hotels.bdp.waggledance.server.invocation-log" level="info"/>
+    <Logger name="com.amazonaws.glue.catalog.metastore.AWSGlueClientFactory" level="warn"/>
     <Root level="info">
       <AppenderRef ref="STDOUT"/>
     </Root>
