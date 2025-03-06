@@ -1,4 +1,19 @@
 /**
+ * Copyright (C) 2016-2025 Expedia, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
  * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -237,7 +252,6 @@ public class FederatedHMSHandlerTest {
   private final static String DB_P = "db_primary";
   private final static String DB_S = "db_second";
   private final static String TBL_1 = "table1";
-  private final static String TBL_2 = "table2";
   private final static String CAT_1 = "cat1";
   private final static String CAT_2 = "cat2";
   private final static String SCH_1 = "sch1";

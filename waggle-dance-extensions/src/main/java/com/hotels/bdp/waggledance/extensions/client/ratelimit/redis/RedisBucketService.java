@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketBandwidthPro
 import com.hotels.bdp.waggledance.extensions.client.ratelimit.BucketService;
 
 /**
- * This class uses a Redis server as a the storage back-end for the rate limiter. This is useful if you have multiple
+ * This class uses a Redis server as the storage back-end for the rate limiter. This is useful if you have multiple
  * Waggle Dance instances and you want to rate limit across all of them.
  */
 public class RedisBucketService implements BucketService {

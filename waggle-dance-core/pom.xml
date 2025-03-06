@@ -10,6 +10,7 @@
   <artifactId>waggle-dance-core</artifactId>
 
   <properties>
+    <aws.sdk.version>1.12.276</aws.sdk.version>
     <powermock.version>2.0.9</powermock.version>
     <jcabi-aspects.version>0.25.1</jcabi-aspects.version>
   </properties>
@@ -78,10 +79,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-jersey</artifactId>
-    </dependency>
     <!-- DO NOT REMOVE: this is required by aspectj-maven-plugin to weave the aspects despite not being used in the project -->
     <dependency>
       <groupId>org.springframework</groupId>
@@ -132,6 +129,16 @@
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hive</groupId>
@@ -154,6 +161,37 @@
         <exclusion>
           <groupId>org.apache.calcite.avatica</groupId>
           <artifactId>avatica</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-service</artifactId>
+      <version>${hive.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-server</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-runner</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.pentaho</groupId>
+          <artifactId>pentaho-aggdesigner-algorithm</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jdk.tools</groupId>
+          <artifactId>jdk.tools</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hive</groupId>
+          <artifactId>hive-exec</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -245,6 +283,46 @@
       </exclusions>
     </dependency>
 
+    <!-- Glue dependency -->
+    <!-- Fork https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore -->
+    <!-- See waggle-dance/lib/ for installing locally -->
+    <dependency>
+      <groupId>com.amazonaws.glue</groupId>
+      <artifactId>aws-glue-datacatalog-hive2-client</artifactId>
+      <version>1.10.0-WD</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-aws</artifactId>
+      <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <!-- best to exclude as it comes bundled with jackon dependencies and we get conflicts. -->
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-bundle</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-core</artifactId>
+      <version>${aws.sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-glue</artifactId>
+      <version>${aws.sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-s3</artifactId>
+      <version>${aws.sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-sts</artifactId>
+      <version>${aws.sdk.version}</version>
+    </dependency>
 
     <!-- Test -->
     <dependency>
