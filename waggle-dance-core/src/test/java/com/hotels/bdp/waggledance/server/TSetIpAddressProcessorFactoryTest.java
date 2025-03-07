@@ -1,5 +1,20 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Copyright (C) 2016-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,13 +57,13 @@ public class TSetIpAddressProcessorFactoryTest {
   private @Mock TTransportMonitor transportMonitor;
   private @Mock TTransport transport;
 
-  private final HiveConf hiveConf = new HiveConf();
+  private HiveConf hiveConf;
   private TSetIpAddressProcessorFactory factory;
 
   @Before
   public void init() {
     when(federatedHMSHandlerFactory.create()).thenReturn(federatedHMSHandler);
-    when(federatedHMSHandler.getConf()).thenReturn(hiveConf);
+    hiveConf = new HiveConf();
     factory = new TSetIpAddressProcessorFactory(hiveConf, federatedHMSHandlerFactory, transportMonitor);
   }
 
@@ -60,6 +75,18 @@ public class TSetIpAddressProcessorFactoryTest {
 
   @Test
   public void connectionIsMonitored() throws Exception {
+    factory.getProcessor(transport);
+
+    ArgumentCaptor<TTransport> transportCaptor = ArgumentCaptor.forClass(TTransport.class);
+    ArgumentCaptor<Closeable> handlerCaptor = ArgumentCaptor.forClass(Closeable.class);
+    verify(transportMonitor).monitor(transportCaptor.capture(), handlerCaptor.capture());
+    assertThat(transportCaptor.getValue(), is(transport));
+    assertThat(handlerCaptor.getValue(), is(instanceOf(FederatedHMSHandler.class)));
+  }
+
+  @Test
+  public void connectionIsMonitoredSasl() throws Exception {
+    hiveConf.setBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL, Boolean.TRUE);
     factory.getProcessor(transport);
 
     ArgumentCaptor<TTransport> transportCaptor = ArgumentCaptor.forClass(TTransport.class);

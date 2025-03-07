@@ -51,14 +51,14 @@ public abstract class AbstractMetaStore {
   private @Valid List<MappedTables> mappedTables;
   private Map<String, String> databaseNameMapping = new HashMap<>();
   private @NotBlank String name;
-  private @NotBlank String remoteMetaStoreUris;
+  private String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
-  private boolean impersonationEnabled;
   private Map<String, String> configurationProperties = new HashMap<>();
+  private GlueConfig glueConfig;
   private String readOnlyRemoteMetaStoreUris;
 
   public AbstractMetaStore() {}
@@ -229,6 +229,14 @@ public abstract class AbstractMetaStore {
     databaseNameBiMapping = HashBiMap.create(databaseNameMapping);
   }
 
+  public GlueConfig getGlueConfig() {
+    return glueConfig;
+  }
+
+  public void setGlueConfig(GlueConfig glueConfig) {
+    this.glueConfig = glueConfig;
+  }
+
   @Transient
   public HashBiMap<String, String> getDatabaseNameBiMapping() {
     return databaseNameBiMapping;
@@ -242,7 +250,7 @@ public abstract class AbstractMetaStore {
           Map<String, String> configurationProperties) {
     this.configurationProperties = configurationProperties;
   }
-
+  
   @Transient
   public MetaStoreStatus getStatus() {
     return status;
@@ -251,14 +259,6 @@ public abstract class AbstractMetaStore {
   @Transient
   public void setStatus(MetaStoreStatus status) {
     this.status = status;
-  }
-
-  public boolean isImpersonationEnabled() {
-    return impersonationEnabled;
-  }
-
-  public void setImpersonationEnabled(boolean impersonationEnabled) {
-    this.impersonationEnabled = impersonationEnabled;
   }
 
   @Override
@@ -290,6 +290,7 @@ public abstract class AbstractMetaStore {
         .add("metastoreTunnel", metastoreTunnel)
         .add("accessControlType", accessControlType)
         .add("writableDatabaseWhiteList", writableDatabaseWhitelist)
+        .add("latency", latency)
         .add("status", status)
         .toString();
   }

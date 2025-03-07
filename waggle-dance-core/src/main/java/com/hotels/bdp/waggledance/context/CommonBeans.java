@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIfaceClientFactory;
 import com.hotels.bdp.waggledance.client.DefaultMetaStoreClientFactory;
+import com.hotels.bdp.waggledance.client.GlueClientFactory;
 import com.hotels.bdp.waggledance.client.SplitTrafficMetastoreClientFactory;
 import com.hotels.bdp.waggledance.client.ThriftClientFactory;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
@@ -67,7 +68,7 @@ public class CommonBeans {
   public ThriftClientFactory defaultWaggleDanceClientFactory(
       WaggleDanceConfiguration waggleDanceConfiguration, SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory) {
     return new CloseableThriftHiveMetastoreIfaceClientFactory(new TunnelingMetaStoreClientFactory(),
-        new DefaultMetaStoreClientFactory(), waggleDanceConfiguration, splitTrafficMetaStoreClientFactory);
+        new DefaultMetaStoreClientFactory(), new GlueClientFactory(), waggleDanceConfiguration, splitTrafficMetaStoreClientFactory);
   }
 
   //Only load when no other beans with this name can be found.
@@ -81,11 +82,4 @@ public class CommonBeans {
   public QueryMapping queryMapping() {
     return ASTQueryMapping.INSTANCE;
   }
-
- /* @Bean
-  public PollingFederationService pollingFederationService(
-      PopulateStatusFederationService populateStatusFederationService) {
-    return new PollingFederationService(populateStatusFederationService);
-  }*/
-
 }

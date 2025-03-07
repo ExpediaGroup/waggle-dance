@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.log4j.Log4j2;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -34,9 +35,8 @@ import com.hotels.bdp.waggledance.api.model.MetaStoreStatus;
 import com.hotels.bdp.waggledance.core.federation.service.PopulateStatusFederationService;
 
 @Service
-@Log4j2
 public class PollingFederationService {
-
+  private final static Logger log = LoggerFactory.getLogger(PollingFederationService.class);
   private final static String METASTORE_STATUS_METRIC_NAME = "metastore_status";
   private final static String METASTORE_TAG_NAME = "metastore";
 
@@ -72,8 +72,8 @@ public class PollingFederationService {
   private void sendMetric(String metastoreName, MetaStoreStatus status) {
     ImmutableTag tag = new ImmutableTag(METASTORE_TAG_NAME, metastoreName);
     Counter counter = Counter.builder(METASTORE_STATUS_METRIC_NAME)
-            .tag(tag.getKey(), tag.getValue())
-            .register(meterRegistry);
+        .tag(tag.getKey(), tag.getValue())
+        .register(meterRegistry);
     counter.increment(status.getIntValue());
   }
 

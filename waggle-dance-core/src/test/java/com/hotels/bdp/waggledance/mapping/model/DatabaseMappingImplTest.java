@@ -1,4 +1,19 @@
 /**
+ * Copyright (C) 2016-2025 Expedia, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
  * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +36,7 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,6 +50,8 @@ import org.apache.hadoop.hive.metastore.api.AddDynamicPartitions;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsRequest;
 import org.apache.hadoop.hive.metastore.api.AddPartitionsResult;
 import org.apache.hadoop.hive.metastore.api.CacheFileMetadataRequest;
+import org.apache.hadoop.hive.metastore.api.ClientCapabilities;
+import org.apache.hadoop.hive.metastore.api.ClientCapability;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
@@ -72,6 +90,7 @@ import org.apache.hadoop.hive.metastore.api.SetPartitionsStatsRequest;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.hadoop.hive.metastore.api.TableStatsRequest;
+import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -759,8 +778,56 @@ public class DatabaseMappingImplTest {
     assertThat(transformedRequest, is(sameInstance(request)));
     assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
     assertThat(transformedRequest.getTblName(), is(TABLE_NAME));
+    try {
+      transformedRequest.validate();
+    } catch (TException e) {
+      fail("Validation should not fail");
+    }
+  }
+  
+  @Test
+  public void transformInboundGetTableRequestClientCapabilities() throws Exception {
+    GetTableRequest request = new GetTableRequest();
+    request.setDbName(DB_NAME);
+    request.setTblName(TABLE_NAME);
+    ClientCapabilities clientCapabilities = new ClientCapabilities();
+    clientCapabilities.setValues(Lists.newArrayList(ClientCapability.TEST_CAPABILITY, null));
+    request.setCapabilities(clientCapabilities);
+    GetTableRequest transformedRequest = databaseMapping.transformInboundGetTableRequest(request);
+    assertThat(transformedRequest, is(sameInstance(request)));
+    assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
+    assertThat(transformedRequest.getTblName(), is(TABLE_NAME));
+    assertThat(transformedRequest.getCapabilities().getValues().size(), is(1));
+    assertThat(transformedRequest.getCapabilities().getValues().get(0), is(ClientCapability.TEST_CAPABILITY));
+    try {
+      transformedRequest.validate();
+    } catch (TException e) {
+      fail("Validation should not fail");
+    }
+
   }
 
+  @Test
+  public void transformInboundGetTableRequestClientCapabilitiesIsNull() throws Exception {
+    GetTableRequest request = new GetTableRequest();
+    request.setDbName(DB_NAME);
+    request.setTblName(TABLE_NAME);
+    ClientCapabilities clientCapabilities = new ClientCapabilities();
+    clientCapabilities.setValues(Lists.newArrayList((ClientCapability)null));
+    request.setCapabilities(clientCapabilities);
+    GetTableRequest transformedRequest = databaseMapping.transformInboundGetTableRequest(request);
+    assertThat(transformedRequest, is(sameInstance(request)));
+    assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
+    assertThat(transformedRequest.getTblName(), is(TABLE_NAME));
+    assertThat(transformedRequest.getCapabilities().getValues().size(), is(0));
+    try {
+      transformedRequest.validate();
+    } catch (TException e) {
+      fail("Validation should not fail");
+    }
+  }
+
+  
   @Test
   public void transformOutboundGetTableResult() throws Exception {
     Table table = new Table();
@@ -786,6 +853,55 @@ public class DatabaseMappingImplTest {
     assertThat(transformedRequest, is(sameInstance(request)));
     assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
     assertThat(transformedRequest.getTblNames(), is(Collections.singletonList(TABLE_NAME)));
+    try {
+      transformedRequest.validate();
+    } catch (TException e) {
+      fail("Validation should not fail");
+    }
+
+  }
+  
+  @Test
+  public void transformInboundGetTablesRequestClientCapabilities() throws Exception {
+    GetTablesRequest request = new GetTablesRequest();
+    request.setDbName(DB_NAME);
+    request.setTblNames(Collections.singletonList(TABLE_NAME));
+    ClientCapabilities clientCapabilities = new ClientCapabilities();
+    clientCapabilities.setValues(Lists.newArrayList(ClientCapability.TEST_CAPABILITY, null));
+    request.setCapabilities(clientCapabilities);
+
+    GetTablesRequest transformedRequest = databaseMapping.transformInboundGetTablesRequest(request);
+    assertThat(transformedRequest, is(sameInstance(request)));
+    assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
+    assertThat(transformedRequest.getTblNames(), is(Collections.singletonList(TABLE_NAME)));
+    assertThat(transformedRequest.getCapabilities().getValues().size(), is(1));
+    assertThat(transformedRequest.getCapabilities().getValues().get(0), is(ClientCapability.TEST_CAPABILITY));
+    try {
+      transformedRequest.validate();
+    } catch (TException e) {
+      fail("Validation should not fail");
+    }
+  }
+  
+  @Test
+  public void transformInboundGetTablesRequestClientCapabilitiesIsNull() throws Exception {
+    GetTablesRequest request = new GetTablesRequest();
+    request.setDbName(DB_NAME);
+    request.setTblNames(Collections.singletonList(TABLE_NAME));
+    ClientCapabilities clientCapabilities = new ClientCapabilities();
+    clientCapabilities.setValues(Lists.newArrayList((ClientCapability)null));
+    request.setCapabilities(clientCapabilities);
+
+    GetTablesRequest transformedRequest = databaseMapping.transformInboundGetTablesRequest(request);
+    assertThat(transformedRequest, is(sameInstance(request)));
+    assertThat(transformedRequest.getDbName(), is(IN_DB_NAME));
+    assertThat(transformedRequest.getTblNames(), is(Collections.singletonList(TABLE_NAME)));
+    assertThat(transformedRequest.getCapabilities().getValues().size(), is(0));
+    try {
+      transformedRequest.validate();
+    } catch (TException e) {
+      fail("Validation should not fail");
+    }
   }
 
   @Test

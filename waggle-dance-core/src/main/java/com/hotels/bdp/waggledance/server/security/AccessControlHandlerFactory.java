@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class AccessControlHandlerFactory {
       }
 
     default:
-      throw new IllegalStateException("Cannot determine AcccessControlHandler type given type: '"
+      throw new IllegalStateException("Cannot determine AccessControlHandler type given type: '"
           + metaStore.getAccessControlType()
           + "'");
     }

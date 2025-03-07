@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,13 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
@@ -27,18 +34,21 @@ import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.thrift.TException;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.api.model.ConnectionType;
 import com.hotels.bdp.waggledance.client.CloseableThriftHiveMetastoreIface;
 import com.hotels.bdp.waggledance.server.security.AccessControlHandler;
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
-@AllArgsConstructor
-@Log4j2
+
 class MetaStoreMappingImpl implements MetaStoreMapping {
+
+  private final static Logger log = LoggerFactory.getLogger(MetaStoreMappingImpl.class);
+
+  // MilliSeconds
+  static final long DEFAULT_AVAILABILITY_TIMEOUT = 2000;
 
   private final String databasePrefix;
   private final String name;
@@ -47,6 +57,24 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final ConnectionType connectionType;
   private final long latency;
   private final MetaStoreFilterHook metastoreFilter;
+  private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+  MetaStoreMappingImpl(
+      String databasePrefix,
+      String name,
+      CloseableThriftHiveMetastoreIface client,
+      AccessControlHandler accessControlHandler,
+      ConnectionType connectionType,
+      long latency,
+      MetaStoreFilterHook metastoreFilter) {
+    this.databasePrefix = databasePrefix;
+    this.name = name;
+    this.client = client;
+    this.accessControlHandler = accessControlHandler;
+    this.connectionType = connectionType;
+    this.latency = latency;
+    this.metastoreFilter = metastoreFilter;
+  }
 
   @Override
   public String transformOutboundDatabaseName(String databaseName) {
@@ -87,20 +115,36 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   @Override
   public void close() throws IOException {
     client.close();
+    executor.shutdownNow();
   }
 
+  /**
+   * This is potentially slow so a best effort is made and false is returned after a timeout.
+   */
   @Override
   public boolean isAvailable() {
-    try {
-      boolean isOpen = client.isOpen();
-      if (isOpen && connectionType == ConnectionType.TUNNELED) {
-        client.getStatus();
+    Future<Boolean> future = CompletableFuture.supplyAsync(() -> {
+      try {
+        boolean isOpen = client.isOpen();
+        if (isOpen && connectionType == ConnectionType.TUNNELED) {
+          client.getStatus();
+        }
+        return isOpen;
+      } catch (Exception e) {
+        log.error("Metastore Mapping {} unavailable", name, e);
+        return false;
       }
-      return isOpen;
-    } catch (Exception e) {
-      log.error("Metastore Mapping {} unavailable", name, e);
-      return false;
+    }, executor);
+    long timeout = DEFAULT_AVAILABILITY_TIMEOUT + getLatency();
+    try {
+      return future.get(timeout, TimeUnit.MILLISECONDS);
+    } catch (TimeoutException e) {
+      log.info("Took too long (>" + timeout + "ms) to check availability of '" + name + "', assuming unavailable");
+      future.cancel(true);
+    } catch (InterruptedException | ExecutionException e) {
+      log.error("Error while checking availability '" + name + "', assuming unavailable");
     }
+    return false;
   }
 
   @Override

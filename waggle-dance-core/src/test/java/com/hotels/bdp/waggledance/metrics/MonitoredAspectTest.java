@@ -1,4 +1,19 @@
 /**
+ * Copyright (C) 2016-2025 Expedia, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
  * Copyright (C) 2016-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +35,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import java.util.Collection;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.junit.Before;
@@ -28,6 +45,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.search.RequiredSearch;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -108,6 +126,39 @@ public class MonitoredAspectTest {
     rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
     assertThat(rs.timer().count(), is(1L));
   }
+
+  @Test
+  public void monitorSuccessWithTags() throws Throwable {
+    aspect.monitor(pjp, monitored);
+
+    RequiredSearch rs = meterRegistry.get("counter.Type_Anonymous.success");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("counter.Type_Anonymous.calls");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("timer.Type_Anonymous.duration");
+    assertThat(rs.timer().count(), is(1L));
+
+    // Verify the tags for successMeters
+    Collection<Meter> successMeters = meterRegistry.get("counter.Type_Anonymous.success").meters();
+    Meter successMeter = successMeters.iterator().next();
+    assertThat(successMeter.getId().getTag("federation_namespace"), is("all"));
+    assertThat(successMeter.getId().getTag("method_name"), is("myMethod"));
+
+    // Verify the tags for callsMeters
+    Collection<Meter> callsMeters = meterRegistry.get("counter.Type_Anonymous.calls").meters();
+    Meter callsMeter = callsMeters.iterator().next();
+    assertThat(callsMeter.getId().getTag("federation_namespace"), is("all"));
+    assertThat(successMeter.getId().getTag("method_name"), is("myMethod"));
+
+    // Verify the tags for durationMeters
+    Collection<Meter> durationMeters = meterRegistry.get("timer.Type_Anonymous.duration").meters();
+    Meter durationMeter = durationMeters.iterator().next();
+    assertThat(durationMeter.getId().getTag("federation_namespace"), is("all"));
+    assertThat(successMeter.getId().getTag("method_name"), is("myMethod"));
+  }
+
 
   @Test
   public void monitorFailuresForSpecificMetastore() throws Throwable {
