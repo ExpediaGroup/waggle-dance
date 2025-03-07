@@ -73,7 +73,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
   @Override
   public MetaStoreMapping newInstance(AbstractMetaStore metaStore) {
     log
-        .info("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
+        .debug("Mapping databases with name '{}' to metastore: {}", metaStore.getName(),
             metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
         createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType(),
