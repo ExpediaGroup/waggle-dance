@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package com.hotels.bdp.waggledance.mapping.service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -97,19 +97,20 @@ public final class GrammarUtils {
       return matchingPrefixes;
     }
 
-    Map<String, List<String>> prefixPatterns = new HashMap<>();
+    Map<String, Set<String>> prefixPatterns = new HashMap<>();
     for (String subPattern : OR_SPLITTER.split(dbPatterns)) {
       for (String prefix : prefixes) {
-        String[] subPatternParts = splitPattern(prefix, subPattern);
-        if (subPatternParts.length == 0) {
+        HivePrefixPattern hivePrefixPattern = new HivePrefixPattern(prefix, subPattern);
+        List<String> subPatterns = hivePrefixPattern.getSubPatterns();
+        if (subPatterns.isEmpty()) {
           continue;
         }
-        List<String> prefixPatternList = prefixPatterns.computeIfAbsent(prefix, k -> new ArrayList<>());
-        prefixPatternList.add(subPatternParts[1]);
+        Set<String> prefixPatternList = prefixPatterns.computeIfAbsent(prefix, k -> new HashSet<>());
+        prefixPatternList.addAll(hivePrefixPattern.getSubPatterns());
       }
     }
 
-    for (Entry<String, List<String>> prefixPatternEntry : prefixPatterns.entrySet()) {
+    for (Entry<String, Set<String>> prefixPatternEntry : prefixPatterns.entrySet()) {
       matchingPrefixes.put(prefixPatternEntry.getKey(), OR_JOINER.join(prefixPatternEntry.getValue()));
     }
     return matchingPrefixes;

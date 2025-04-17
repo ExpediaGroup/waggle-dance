@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,6 +133,10 @@ public class GrammarUtilsTest {
     Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), "other.dm");
     assertThat(splits.size(), is(1));
     assertThat(splits.get("other_"), is("dm"));
+
+    splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX), "waggle*.dm");
+    assertThat(splits.size(), is(1));
+    assertThat(splits.get(PREFIX), is("dm|*.dm"));
   }
 
   @Test
@@ -177,7 +181,7 @@ public class GrammarUtilsTest {
         .selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), "w*base|oth*_*dat");
     assertThat(splits.size(), is(2));
     assertThat(splits.get(PREFIX), is("*base"));
-    assertThat(splits.get("other_"), is("*dat"));
+    assertThat(splits.get("other_"), is("*_*dat|*dat"));
   }
 
   @Test
@@ -186,15 +190,21 @@ public class GrammarUtilsTest {
         .selectMatchingPrefixes(ImmutableSet.of(PREFIX, "wother_"), "w*base|woth*_*dat");
     assertThat(splits.size(), is(2));
     assertThat(splits.get(PREFIX), is("*base"));
-    assertThat(splits.get("wother_"), is("*base|*dat"));
+    assertThat(splits.get("wother_"), is("*base|*_*dat|*dat"));
   }
 
   @Test
   public void multipleMatchesPatternWithMultipleWildcard() {
     Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "baggle_"), "*aggle*");
     assertThat(splits.size(), is(2));
-    assertThat(splits.get(PREFIX), is("*"));
-    assertThat(splits.get("baggle_"), is("*"));
+    assertThat(splits.get(PREFIX), is("*|*aggle*"));
+    assertThat(splits.get("baggle_"), is("*|*aggle*"));
   }
 
+  @Test
+  public void matchesPatternWithFullPrefix() {
+    Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(
+        ImmutableSet.of(PREFIX, "baggle_"), PREFIX + "|" + "baggle_");
+    assertThat(splits.size(), is(0));
+  }
 }
