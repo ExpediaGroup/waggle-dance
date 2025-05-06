@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
@@ -33,46 +32,6 @@ public final class GrammarUtils {
   private static final Joiner OR_JOINER = Joiner.on(OR_SEPARATOR);
 
   private GrammarUtils() {}
-
-  @VisibleForTesting
-  static String[] splitPattern(String prefix, String pattern) {
-    if (pattern.startsWith(prefix)) {
-      return new String[] { prefix, pattern.substring(prefix.length()) };
-    }
-
-    // Find the longest sub-pattern that matches the prefix
-    String subPattern = pattern;
-    int index = pattern.length();
-    while (index >= 0) {
-      String subPatternRegex = subPattern.replaceAll("\\*", ".*");
-      if (prefix.matches(subPatternRegex)) {
-        if (subPattern.endsWith("*")) {
-          // * is a multi character match so belongs to prefix and pattern.
-          return new String[] { subPattern, pattern.substring(subPattern.length() - 1) };
-        }
-        // Dot is a one character x match so can't belong to the pattern anymore.
-        return new String[] { subPattern, pattern.substring(subPattern.length()) };
-      }
-      // Skip last * or . and find the next sub-pattern
-      if (subPattern.endsWith("*") || subPattern.endsWith(".")) {
-        subPattern = subPattern.substring(0, subPattern.length() - 1);
-      }
-      int lastStar = subPattern.lastIndexOf('*');
-      int lastDot = subPattern.lastIndexOf('.');
-      if (lastStar > lastDot) {
-        index = lastStar;
-        if (lastStar >= 0) {
-          subPattern = subPattern.substring(0, index + 1);
-        }
-      } else {
-        index = lastDot;
-        if (lastDot >= 0) {
-          subPattern = subPattern.substring(0, subPattern.length() - 1);
-        }
-      }
-    }
-    return new String[] {};
-  }
 
   /**
    * Selects Waggle Dance database mappings that can potentially match the provided pattern.

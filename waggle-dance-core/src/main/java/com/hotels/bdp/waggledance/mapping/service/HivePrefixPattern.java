@@ -25,35 +25,48 @@ public class HivePrefixPattern {
   private String pattern;
   private final List<String> subPatterns;
 
+  /**
+   * Using a dynamic programming algorithm to match a given pattern with an input string,
+   * where '*' represents matching any number of any characters,
+   * and '.' represents matching a single arbitrary character.
+   *
+   * @param input input string.
+   * @param pattern regular expression.
+   * @return A boolean array with a length of one more than the length of the pattern.
+   * If the substring of the pattern from index 0 to i+1 can match the input string,
+   * the value at index i of the boolean array is true; otherwise, it is false.
+   */
   @VisibleForTesting
   static boolean[] matchDp(String input, String pattern) {
     int m = input.length() + 1;
     int n = pattern.length() + 1;
-    boolean[] dp = new boolean[n];
-    boolean[] prev = new boolean[n];
+    boolean[] matchingResult = new boolean[n];
+    boolean[] prevMatchingResult = new boolean[n];
 
-    dp[0] = true;
+    matchingResult[0] = true;
 
     for (int j = 1; j < n; j++) {
-      dp[j] = dp[j - 1] && pattern.charAt(j - 1) == '*';
+      matchingResult[j] = matchingResult[j - 1] && pattern.charAt(j - 1) == '*';
     }
 
     for (int i = 1; i < m; i++) {
-      copy(prev, dp);
-      dp[0] = false;
+      copy(prevMatchingResult, matchingResult);
+      matchingResult[0] = false;
       for (int j = 1; j < n; j++) {
-        dp[j] = pattern.charAt(j - 1) == '*' ?
-            prev[j] || prev[j - 1] || dp[j - 1] :
-            prev[j - 1] && (pattern.charAt(j - 1) == '.'
-                || input.charAt(i - 1) == pattern.charAt(j - 1));
+        if (pattern.charAt(j - 1) == '*') {
+          matchingResult[j] = prevMatchingResult[j] || prevMatchingResult[j - 1] || matchingResult[j - 1];
+        } else {
+          matchingResult[j] = prevMatchingResult[j - 1] && (pattern.charAt(j - 1) == '.'
+              || input.charAt(i - 1) == pattern.charAt(j - 1));
+        }
       }
     }
-    return dp;
+    return matchingResult;
   }
 
-  static void copy(boolean[] prev, boolean[] dp) {
+  static void copy(boolean[] prev, boolean[] current) {
     for (int i = 0; i < prev.length; i++) {
-      prev[i] = dp[i];
+      prev[i] = current[i];
     }
   }
 
