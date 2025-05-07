@@ -64,8 +64,8 @@ public final class GrammarUtils {
         if (subPatterns.isEmpty()) {
           continue;
         }
-        Set<String> prefixPatternList = prefixPatterns.computeIfAbsent(prefix, k -> new HashSet<>());
-        prefixPatternList.addAll(hivePrefixPattern.getSubPatterns());
+        Set<String> prefixPatternSet = prefixPatterns.computeIfAbsent(prefix, k -> new HashSet<>());
+        prefixPatternSet.addAll(hivePrefixPattern.getSubPatterns());
       }
     }
 

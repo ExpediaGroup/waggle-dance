@@ -21,9 +21,9 @@ import java.util.List;
 import com.google.common.annotations.VisibleForTesting;
 
 public class HivePrefixPattern {
-  private final String prefix;
+  private String prefix;
   private String pattern;
-  private final List<String> subPatterns;
+  private final List<String> subPatterns = new ArrayList<>();
 
   /**
    * Using a dynamic programming algorithm to match a given pattern with an input string,
@@ -71,16 +71,15 @@ public class HivePrefixPattern {
   }
 
   public HivePrefixPattern(String prefix, String pattern) {
+    if (prefix == null || pattern == null) {
+      return;
+    }
     this.prefix = prefix;
     this.pattern = pattern;
-    this.subPatterns = new ArrayList<>();
     init();
   }
 
   private void init() {
-    if (this.prefix == null || this.pattern == null) {
-      return;
-    }
     boolean[] match = matchDp(this.prefix, this.pattern);
     if (match[0]) {
       this.subPatterns.add(this.pattern);
