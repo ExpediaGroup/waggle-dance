@@ -20,6 +20,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNull;
 
 import java.util.Map;
+
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
