@@ -414,7 +414,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(metaStoreMappingFederated.transformOutboundDatabaseNameMultiple(FEDERATED_DB))
         .thenReturn(Lists.newArrayList(FEDERATED_DB));
-    when(federatedDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList(FEDERATED_DB));
+    when(federatedDatabaseClient.get_databases("*_db|db")).thenReturn(Lists.newArrayList(FEDERATED_DB));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> allDatabases = handler.getAllDatabases(pattern);
@@ -436,7 +436,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
         .thenReturn(Lists.newArrayList(FEDERATED_DB));
     when(primaryDatabaseClient.get_databases(pattern))
         .thenReturn(Lists.newArrayList(PRIMARY_DB, "primary_db_that_is_not_mapped_and_ends_with_db"));
-    when(federatedDatabaseClient.get_databases(pattern))
+    when(federatedDatabaseClient.get_databases("*_db|db"))
         .thenReturn(Lists.newArrayList(FEDERATED_DB, "another_db_that_is_not_mapped_and_ends_with_db"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
@@ -471,7 +471,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(primaryDatabaseClient.get_table_meta("*_db", "*", null))
         .thenReturn(Collections.singletonList(primaryTableMeta));
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_table_meta("*_db", "*", null))
+    when(federatedDatabaseClient.get_table_meta("*_db|db", "*", null))
         .thenReturn(Collections.singletonList(federatedTableMeta));
     when(metaStoreMappingFederated.transformOutboundDatabaseName(FEDERATED_DB)).thenReturn("name_federated_db");
 
@@ -496,7 +496,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(primaryDatabaseClient.get_table_meta("*_db", "*", null))
         .thenReturn(Collections.singletonList(primaryTableMeta));
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_table_meta("*_db", "*", null))
+    when(federatedDatabaseClient.get_table_meta("*_db|db", "*", null))
         .thenReturn(Collections.singletonList(federatedTableMeta));
     when(metaStoreMappingFederated.transformOutboundDatabaseName(FEDERATED_DB)).thenReturn("name_federated_db");
 

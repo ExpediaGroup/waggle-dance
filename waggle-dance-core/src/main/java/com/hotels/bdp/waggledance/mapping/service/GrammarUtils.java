@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  */
 package com.hotels.bdp.waggledance.mapping.service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
@@ -33,46 +32,6 @@ public final class GrammarUtils {
   private static final Joiner OR_JOINER = Joiner.on(OR_SEPARATOR);
 
   private GrammarUtils() {}
-
-  @VisibleForTesting
-  static String[] splitPattern(String prefix, String pattern) {
-    if (pattern.startsWith(prefix)) {
-      return new String[] { prefix, pattern.substring(prefix.length()) };
-    }
-
-    // Find the longest sub-pattern that matches the prefix
-    String subPattern = pattern;
-    int index = pattern.length();
-    while (index >= 0) {
-      String subPatternRegex = subPattern.replaceAll("\\*", ".*");
-      if (prefix.matches(subPatternRegex)) {
-        if (subPattern.endsWith("*")) {
-          // * is a multi character match so belongs to prefix and pattern.
-          return new String[] { subPattern, pattern.substring(subPattern.length() - 1) };
-        }
-        // Dot is a one character x match so can't belong to the pattern anymore.
-        return new String[] { subPattern, pattern.substring(subPattern.length()) };
-      }
-      // Skip last * or . and find the next sub-pattern
-      if (subPattern.endsWith("*") || subPattern.endsWith(".")) {
-        subPattern = subPattern.substring(0, subPattern.length() - 1);
-      }
-      int lastStar = subPattern.lastIndexOf('*');
-      int lastDot = subPattern.lastIndexOf('.');
-      if (lastStar > lastDot) {
-        index = lastStar;
-        if (lastStar >= 0) {
-          subPattern = subPattern.substring(0, index + 1);
-        }
-      } else {
-        index = lastDot;
-        if (lastDot >= 0) {
-          subPattern = subPattern.substring(0, subPattern.length() - 1);
-        }
-      }
-    }
-    return new String[] {};
-  }
 
   /**
    * Selects Waggle Dance database mappings that can potentially match the provided pattern.
@@ -97,19 +56,20 @@ public final class GrammarUtils {
       return matchingPrefixes;
     }
 
-    Map<String, List<String>> prefixPatterns = new HashMap<>();
+    Map<String, Set<String>> prefixPatterns = new HashMap<>();
     for (String subPattern : OR_SPLITTER.split(dbPatterns)) {
       for (String prefix : prefixes) {
-        String[] subPatternParts = splitPattern(prefix, subPattern);
-        if (subPatternParts.length == 0) {
+        HivePrefixPattern hivePrefixPattern = new HivePrefixPattern(prefix, subPattern);
+        List<String> subPatterns = hivePrefixPattern.getSubPatterns();
+        if (subPatterns.isEmpty()) {
           continue;
         }
-        List<String> prefixPatternList = prefixPatterns.computeIfAbsent(prefix, k -> new ArrayList<>());
-        prefixPatternList.add(subPatternParts[1]);
+        Set<String> prefixPatternSet = prefixPatterns.computeIfAbsent(prefix, k -> new HashSet<>());
+        prefixPatternSet.addAll(hivePrefixPattern.getSubPatterns());
       }
     }
 
-    for (Entry<String, List<String>> prefixPatternEntry : prefixPatterns.entrySet()) {
+    for (Entry<String, Set<String>> prefixPatternEntry : prefixPatterns.entrySet()) {
       matchingPrefixes.put(prefixPatternEntry.getKey(), OR_JOINER.join(prefixPatternEntry.getValue()));
     }
     return matchingPrefixes;
