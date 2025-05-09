@@ -1,3 +1,7 @@
+## [3.13.5] - 2025-05-09
+### Fix
+- Fixed pattern processing to federated metastore. [#342](https://github.com/ExpediaGroup/waggle-dance/pull/342)
+
 ## [3.13.4] - 2024-10-04
 ### Fix
 - Removed call to primary and made it only when Kerberos (SASL) is enabled. 
