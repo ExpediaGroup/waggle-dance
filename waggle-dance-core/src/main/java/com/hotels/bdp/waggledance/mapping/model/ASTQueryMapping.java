@@ -93,6 +93,10 @@ public enum ASTQueryMapping implements QueryMapping {
     List<CommonToken> functionTokens = extractFunctionTokens(root);
     for (CommonToken functionNode : functionTokens) {
       final String functionName = functionNode.getText();
+      // No dbname, no need to replace.
+      if (!functionName.contains(".")) {
+        continue;
+      }
       Pattern pattern = Pattern.compile(RE_WORD_BOUNDARY + functionName + RE_WORD_BOUNDARY);
       Matcher matcher = pattern.matcher(result);
       if (matcher.find()) {

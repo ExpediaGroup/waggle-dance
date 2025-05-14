@@ -115,6 +115,28 @@ public class ASTQueryMappingTest {
   }
 
   @Test
+  public void transformOutboundDatabaseNameOnFunctionNoDbName() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+
+    String query = "CREATE VIEW test_view AS SELECT a.c1 FROM (SELECT fun(),1) a";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("CREATE VIEW test_view AS SELECT a.c1 FROM (SELECT fun(),1) a"));
+
+    query = "CREATE VIEW db1.test_view AS SELECT a.c1 FROM (SELECT fun(), db.fun2()) a";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("CREATE VIEW " + PREFIX + "db1.test_view AS SELECT a.c1 FROM " +
+                    "(SELECT fun(), " + PREFIX +"db.fun2()) a"));
+
+    query = "SELECT hellobdp() as q union all SELECT hellobdp() as qq where false";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT hellobdp() as q union all SELECT hellobdp() as qq where false"));
+
+    query = "SELECT hellobdp() as q union all SELECT db1.hellobdp() as qq where false";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT hellobdp() as q union all SELECT " + PREFIX + "db1.hellobdp() as qq where false"));
+  }
+
+  @Test
   public void transformOutboundDatabaseNameOnMultipleSameFunctions() {
     ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
 
