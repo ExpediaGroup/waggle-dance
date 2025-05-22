@@ -1,3 +1,7 @@
+## [3.13.6] - 2025-05-22
+### Fix
+- Fixed unnecessary function prefix. [#343](https://github.com/ExpediaGroup/waggle-dance/pull/343)
+
 ## [3.13.5] - 2025-05-09
 ### Fix
 - Fixed pattern processing to federated metastore. [#342](https://github.com/ExpediaGroup/waggle-dance/pull/342)
