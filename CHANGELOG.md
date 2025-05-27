@@ -1,6 +1,8 @@
 
-## [4.0.1] - 2025-02-25
+## [4.0.1] - TBD
 ### Fix
+- Fixed unnecessary function prefix. [#343](https://github.com/ExpediaGroup/waggle-dance/pull/343)
+- Fixed pattern processing to federated metastore. [#342](https://github.com/ExpediaGroup/waggle-dance/pull/342)
 - Removed call to primary and made it only when Kerberos (SASL) is enabled. 
 - Fixed Handler creation for SASL.
 - Add HiveConf cache to `CloseableThriftHiveMetastoreIfaceClientFactory` to prevent threads block. See [#325](https://github.com/ExpediaGroup/waggle-dance/issues/325)
@@ -9,7 +11,6 @@
 - Metric for monitoring open transports. `<prefix>.com_hotels_bdp_waggledance_open_transports_gauge`
 ### Changed
 - Removed RetryingHMSHandler. Retries are done in the client there should be no need to wrap everything in retry logic again. 
-### Fix
 
 ## [4.0.0] - 2025-02-24
 ### Changed (Backward incompatible)
