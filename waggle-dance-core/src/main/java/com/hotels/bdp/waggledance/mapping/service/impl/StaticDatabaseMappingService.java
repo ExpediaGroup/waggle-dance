@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -263,10 +263,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     List<String> allowedTables = new ArrayList<>();
     databaseName = GrammarUtils.removeCatName(databaseName);
     String db = databaseName.toLowerCase(Locale.ROOT);
-    for (String table : tableNames)
+    for (String table : tableNames) {
       if (isTableAllowed(db, table)) {
         allowedTables.add(table);
       }
+    }
     return allowedTables;
   }
 

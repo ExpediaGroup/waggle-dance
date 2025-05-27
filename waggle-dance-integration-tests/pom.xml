@@ -78,11 +78,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.github.codemonstur</groupId>
       <artifactId>embedded-redis</artifactId>
       <version>1.4.3</version>
@@ -128,6 +123,5 @@
       <version>${feign.version}</version>
       <scope>test</scope>
     </dependency>
-  </dependencies>
-
+  </dependencies>  
 </project>

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,13 @@ import java.util.Arrays;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.hive.metastore.api.MetaException;
-
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 
-@Log4j2
 public class ExceptionWrappingHMSHandler implements InvocationHandler {
+  private static Logger log = LoggerFactory.getLogger(ExceptionWrappingHMSHandler.class);
 
   private final IHMSHandler baseHandler;
   private String user = "";

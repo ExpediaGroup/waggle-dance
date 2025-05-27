@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 
+import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.client.adapter.MetastoreIfaceAdapter;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
-import com.hotels.bdp.waggledance.context.CommonBeans;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
@@ -37,17 +42,21 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftCli
   private static final int DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY = 3;
   private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private final DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
-  private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final int defaultConnectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L);
+  private final WaggleDanceConfiguration waggleDanceConfiguration;
+  private final GlueClientFactory glueClientFactory;
   private final SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory;
+  private final ConcurrentHashMap<String, HiveConf> cachedHiveConf = new ConcurrentHashMap<>();
 
   public CloseableThriftHiveMetastoreIfaceClientFactory(
       TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory,
       DefaultMetaStoreClientFactory defaultMetaStoreClientFactory,
+      GlueClientFactory glueClientFactory,
       WaggleDanceConfiguration waggleDanceConfiguration,
       SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory) {
     this.tunnelingMetaStoreClientFactory = tunnelingMetaStoreClientFactory;
     this.defaultMetaStoreClientFactory = defaultMetaStoreClientFactory;
+    this.glueClientFactory = glueClientFactory;
     this.waggleDanceConfiguration = waggleDanceConfiguration;
     this.splitTrafficMetaStoreClientFactory = splitTrafficMetaStoreClientFactory;
   }
@@ -59,6 +68,9 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftCli
     }
     if (metaStore.getConfigurationProperties() != null) {
       properties.putAll(metaStore.getConfigurationProperties());
+    }
+    if (metaStore.getGlueConfig() != null) {
+      return newGlueInstance(metaStore, properties);
     }
     String name = metaStore.getName().toLowerCase(Locale.ROOT);
     if (metaStore.getReadOnlyRemoteMetaStoreUris() != null) {
@@ -88,11 +100,23 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftCli
               connectionTimeout, waggleDanceConfiguration.getConfigurationProperties());
     }
     properties.put(ConfVars.METASTOREURIS.varname, uris);
-    properties.put(CommonBeans.IMPERSONATION_ENABLED_KEY,
-        String.valueOf(metaStore.isImpersonationEnabled()));
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
+    HiveConf hiveConf = cachedHiveConf.computeIfAbsent(uris, t-> confFactory.newInstance());
     return defaultMetaStoreClientFactory
-        .newInstance(confFactory.newInstance(), "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
+        .newInstance(hiveConf, "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
             connectionTimeout);
+  }
+
+  private CloseableThriftHiveMetastoreIface newGlueInstance(
+      AbstractMetaStore metaStore,
+      Map<String, String> properties) {
+    properties.putAll(metaStore.getGlueConfig().getConfigurationProperties());
+    HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
+    try {
+      IMetaStoreClient client = glueClientFactory.newInstance(confFactory.newInstance(), null);
+      return new MetastoreIfaceAdapter(client);
+    } catch (MetaException e) {
+      throw new WaggleDanceException("Couldn't create Glue client for " + metaStore.getName(), e);
+    }
   }
 }

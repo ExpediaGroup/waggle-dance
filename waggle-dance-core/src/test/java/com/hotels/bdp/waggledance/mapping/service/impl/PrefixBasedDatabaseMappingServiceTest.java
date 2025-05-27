@@ -1,4 +1,19 @@
 /**
+ * Copyright (C) 2016-2025 Expedia, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
  * Copyright (C) 2016-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -414,7 +429,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
     when(metaStoreMappingFederated.transformOutboundDatabaseNameMultiple(FEDERATED_DB))
         .thenReturn(Lists.newArrayList(FEDERATED_DB));
-    when(federatedDatabaseClient.get_databases(pattern)).thenReturn(Lists.newArrayList(FEDERATED_DB));
+    when(federatedDatabaseClient.get_databases("*_db|db")).thenReturn(Lists.newArrayList(FEDERATED_DB));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
     List<String> allDatabases = handler.getAllDatabases(pattern);
@@ -436,7 +451,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
         .thenReturn(Lists.newArrayList(FEDERATED_DB));
     when(primaryDatabaseClient.get_databases(pattern))
         .thenReturn(Lists.newArrayList(PRIMARY_DB, "primary_db_that_is_not_mapped_and_ends_with_db"));
-    when(federatedDatabaseClient.get_databases(pattern))
+    when(federatedDatabaseClient.get_databases("*_db|db"))
         .thenReturn(Lists.newArrayList(FEDERATED_DB, "another_db_that_is_not_mapped_and_ends_with_db"));
 
     PanopticOperationHandler handler = service.getPanopticOperationHandler();
@@ -471,7 +486,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(primaryDatabaseClient.get_table_meta("*_db", "*", null))
         .thenReturn(Collections.singletonList(primaryTableMeta));
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_table_meta("*_db", "*", null))
+    when(federatedDatabaseClient.get_table_meta("*_db|db", "*", null))
         .thenReturn(Collections.singletonList(federatedTableMeta));
     when(metaStoreMappingFederated.transformOutboundDatabaseName(FEDERATED_DB)).thenReturn("name_federated_db");
 
@@ -496,7 +511,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
     when(primaryDatabaseClient.get_table_meta("*_db", "*", null))
         .thenReturn(Collections.singletonList(primaryTableMeta));
     when(metaStoreMappingFederated.getClient()).thenReturn(federatedDatabaseClient);
-    when(federatedDatabaseClient.get_table_meta("*_db", "*", null))
+    when(federatedDatabaseClient.get_table_meta("*_db|db", "*", null))
         .thenReturn(Collections.singletonList(federatedTableMeta));
     when(metaStoreMappingFederated.transformOutboundDatabaseName(FEDERATED_DB)).thenReturn("name_federated_db");
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -345,7 +346,7 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
   }
 
   public void runAndWaitForStartup() throws Exception {
-    executor.submit(() -> {
+    Future<?> service = executor.submit(() -> {
       try {
         Map<String, String> props = populateProperties();
         WaggleDance.register(this);
@@ -356,18 +357,23 @@ public class WaggleDanceRunner implements WaggleDance.ContextListener {
         throw new RuntimeException("Error during execution", e);
       }
     });
-    waitForService();
+    waitForService(service);
   }
 
-  private void waitForService() throws Exception {
+  private void waitForService(Future<?> service) throws Exception {
     long delay = 1;
-    while (applicationContext == null) {
+    while (applicationContext == null && !service.isDone()) {
       if (delay >= 15) {
         throw new TimeoutException("Service did not start");
       }
       Thread.sleep(TimeUnit.SECONDS.toMillis(++delay));
     }
-    getProxy().waitUntilStarted();
+    if (service.isDone()) {
+      //Will throw some startup error
+      service.get();
+    } else {
+      getProxy().waitUntilStarted();
+    }
   }
 
   public void stop() throws Exception {
