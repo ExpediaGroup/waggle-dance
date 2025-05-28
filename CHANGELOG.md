@@ -1,7 +1,7 @@
 ## [3.13.7] - 2025-05-28
 ### Fix
 - Fixed unnecessary function prefix on parameterized functions. [#344](https://github.com/ExpediaGroup/waggle-dance/pull/344)
-- 
+
 ## [3.13.6] - 2025-05-22
 ### Fix
 - Fixed unnecessary function prefix. [#343](https://github.com/ExpediaGroup/waggle-dance/pull/343)
