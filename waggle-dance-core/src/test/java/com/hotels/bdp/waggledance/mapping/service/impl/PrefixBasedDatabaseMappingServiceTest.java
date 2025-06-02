@@ -83,14 +83,14 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Before
   public void init() {
-    init(true);
+    init(true, "");
   }
 
-  private void init(boolean metastoreIsAvailable) {
-    metaStoreMappingPrimary = mockNewMapping(metastoreIsAvailable, "");
+  private void init(boolean primaryIsAvailable, String primaryPrefix) {
+    metaStoreMappingPrimary = mockNewMapping(primaryIsAvailable, primaryPrefix);
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
     when(metaStoreMappingPrimary.getLatency()).thenReturn(LATENCY);
-    metaStoreMappingFederated = mockNewMapping(metastoreIsAvailable, DB_PREFIX);
+    metaStoreMappingFederated = mockNewMapping(true, DB_PREFIX);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
@@ -230,15 +230,18 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Test
   public void databaseMappingDefaultsToPrimaryWhenNothingMatches() {
+    String prefix = "primary_";
+    init(true, prefix);
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
-    assertThat(databaseMapping.getDatabasePrefix(), is(""));
+    assertThat(databaseMapping.getDatabasePrefix(), is(prefix));
   }
 
   @Test
   public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() {
-    init(false);
+    String prefix = "primary_";
+    init(false, prefix);
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
-    assertThat(databaseMapping.getDatabasePrefix(), is(""));
+    assertThat(databaseMapping.getDatabasePrefix(), is(prefix));
   }
 
   @Test
