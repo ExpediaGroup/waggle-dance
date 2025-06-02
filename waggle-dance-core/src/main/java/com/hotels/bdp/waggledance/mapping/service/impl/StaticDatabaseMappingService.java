@@ -297,9 +297,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       LOG
           .debug("Database Name `{}` maps to metastore with name '{}'", databaseName,
               databaseMapping.getMetastoreMappingName());
-      if (includeInResults(databaseMapping)) {
-        return databaseMapping;
-      }
+      return databaseMapping;
     }
     LOG.debug("Database Name `{}` not mapped", databaseName);
     throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,11 +105,11 @@ class ThriftMetastoreClientManager implements Closeable {
     }
   }
 
-  void open() {
+  void open() throws TException {
     open(null);
   }
 
-  void open(HiveUgiArgs ugiArgs) {
+  void open(HiveUgiArgs ugiArgs) throws TException {
     if (isConnected) {
       return;
     }
@@ -203,15 +203,16 @@ class ThriftMetastoreClientManager implements Closeable {
     }
 
     if (!isConnected) {
-      throw new RuntimeException("Could not connect to meta store using any of the URIs ["
+      LOG.debug("Could not connect to meta store using any of the URIs ["
           + msUri
           + "] provided. Most recent failure: "
-          + StringUtils.stringifyException(te));
+          + StringUtils.stringifyException(te), te);
+      throw te;
     }
     LOG.debug("Connected to metastore.");
   }
 
-  void reconnect(HiveUgiArgs ugiArgs) {
+  void reconnect(HiveUgiArgs ugiArgs) throws TException {
     close();
     // Swap the first element of the metastoreUris[] with a random element from the rest
     // of the array. Rationale being that this method will generally be called when the default

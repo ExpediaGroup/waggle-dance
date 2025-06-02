@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,12 +178,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     return (metaStoreMapping != null) && metaStoreMapping.isAvailable();
   }
 
-  private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
-    return includeInResults(metaStoreMapping)
-        && isDbAllowed(metaStoreMapping.getDatabasePrefix(),
-            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
-  }
-
   @Override
   public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
     // Find a Metastore with a prefix
@@ -193,9 +187,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
           DatabaseMapping databaseMapping = entry.getValue();
           LOG.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
-          if (includeInResults(databaseMapping, databaseName)) {
-            return databaseMapping;
-          }
+          return databaseMapping;
         }
       }
     }
@@ -203,18 +195,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     DatabaseMapping databaseMapping = mappingsByPrefix.get(EMPTY_PREFIX);
     if (databaseMapping != null) {
       LOG.debug("Database Name `{}` maps to metastore with EMPTY_PREFIX", databaseName);
-      if (includeInResults(databaseMapping, databaseName)) {
-        return databaseMapping;
-      }
+      return databaseMapping;
     }
     if (primaryDatabaseMapping != null) {
       // If none found we fall back to primary one
-      if (includeInResults(primaryDatabaseMapping, databaseName)) {
-        LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-        return primaryDatabaseMapping;
-      }
-
-      throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
+      LOG.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+      return primaryDatabaseMapping;
     }
     LOG.debug("Database Name `{}` not mapped", databaseName);
     throw new NoPrimaryMetastoreException(
