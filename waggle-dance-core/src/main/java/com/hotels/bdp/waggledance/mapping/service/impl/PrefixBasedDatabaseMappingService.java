@@ -179,7 +179,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
+  public DatabaseMapping databaseMapping(@NotNull String databaseName) {
     // Find a Metastore with a prefix
     synchronized (mappingsByPrefix) {
       for (Entry<String, DatabaseMapping> entry : mappingsByPrefix.entrySet()) {

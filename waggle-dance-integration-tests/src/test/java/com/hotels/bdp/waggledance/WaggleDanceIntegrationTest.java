@@ -15,18 +15,20 @@
  */
 package com.hotels.bdp.waggledance;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
-import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
-import static com.hotels.bdp.waggledance.TestUtils.newPartition;
-import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
-import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+
+import static com.google.common.collect.Lists.newArrayList;
+
+import static com.hotels.bdp.waggledance.TestUtils.createPartitionedTable;
+import static com.hotels.bdp.waggledance.TestUtils.createUnpartitionedTable;
+import static com.hotels.bdp.waggledance.TestUtils.newPartition;
+import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_AND_WRITE_ON_DATABASE_WHITELIST;
+import static com.hotels.bdp.waggledance.api.model.AccessControlType.READ_ONLY;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -83,10 +83,14 @@ public class PrefixBasedDatabaseMappingServiceTest {
 
   @Before
   public void init() {
-    metaStoreMappingPrimary = mockNewMapping(true, "");
+    init(true);
+  }
+
+  private void init(boolean metastoreIsAvailable) {
+    metaStoreMappingPrimary = mockNewMapping(metastoreIsAvailable, "");
     when(metaStoreMappingPrimary.getClient()).thenReturn(primaryDatabaseClient);
     when(metaStoreMappingPrimary.getLatency()).thenReturn(LATENCY);
-    metaStoreMappingFederated = mockNewMapping(true, DB_PREFIX);
+    metaStoreMappingFederated = mockNewMapping(metastoreIsAvailable, DB_PREFIX);
 
     when(metaStoreMappingFactory.newInstance(primaryMetastore)).thenReturn(metaStoreMappingPrimary);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
@@ -219,40 +223,22 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void databaseMappingMapsToEmptyPrefix() throws NoSuchObjectException {
+  public void databaseMappingMapsToEmptyPrefix() {
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
   }
 
   @Test
-  public void databaseMappingDefaultsToPrimaryWhenNothingMatches() throws NoSuchObjectException {
+  public void databaseMappingDefaultsToPrimaryWhenNothingMatches() {
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
   }
 
-  @Test(expected = NoSuchObjectException.class)
-  public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() throws NoSuchObjectException {
-    Mockito.reset(metaStoreMappingPrimary);
-    when(metaStoreMappingPrimary.isAvailable()).thenReturn(false);
+  @Test
+  public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() {
+    init(false);
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
-
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
-  }
-
-  @Test(expected = NoSuchObjectException.class)
-  public void databaseMappingDoesNotMatchPrimary() throws NoSuchObjectException {
-    AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
-    noMappedDbsPrimary.setMappedDatabases(Collections.emptyList());
-    service.onUpdate(primaryMetastore, noMappedDbsPrimary);
-    service.databaseMapping("some_unknown_db");
-  }
-
-  @Test(expected = NoSuchObjectException.class)
-  public void databaseMappingDoesNotMatchPrimaryWithOtherMappedDbs() throws NoSuchObjectException {
-    AbstractMetaStore noMappedDbsPrimary = primaryMetastore;
-    noMappedDbsPrimary.setMappedDatabases(Collections.singletonList(PRIMARY_DB));
-    service.onUpdate(primaryMetastore, noMappedDbsPrimary);
-    service.databaseMapping("some_unknown_db");
   }
 
   @Test
@@ -592,13 +578,12 @@ public class PrefixBasedDatabaseMappingServiceTest {
     federatedMetastore.setMappedDatabases(Collections.singletonList("testName"));
     metaStoreMappingFederated = mockNewMapping(true, DB_PREFIX);
     when(metaStoreMappingFactory.newInstance(federatedMetastore)).thenReturn(metaStoreMappingFederated);
-    when(metaStoreMappingFederated.transformInboundDatabaseName(DB_PREFIX + testDatabase)).thenReturn(testDatabase);
 
     service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
         Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
 
     DatabaseMapping mapping = service.databaseMapping(DB_PREFIX + testDatabase);
-    assertThat(mapping.getDatabasePrefix(), is(""));
+    assertThat(mapping.getDatabasePrefix(), is(DB_PREFIX));
   }
 
   @Test
