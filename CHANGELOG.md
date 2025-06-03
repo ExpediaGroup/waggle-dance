@@ -1,5 +1,5 @@
 
-## ## [3.13.8] - 2025-06-03
+## [3.13.8] - 2025-06-03
 ### Fix
 - Fixed issue where a call to an unavailable metastore got redirected to "primary" which results in NoSuchObjectException instead of TException causing clients to not retry. 
 
