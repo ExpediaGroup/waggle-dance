@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftCli
   private static final int DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY = 3;
   private final TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private final DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
-  private final int defaultConnectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L);
+  private final int defaultConnectionTimeout = (int) TimeUnit.SECONDS.toMillis(2L); //TODO paduin make configurable
   private final WaggleDanceConfiguration waggleDanceConfiguration;
   private final GlueClientFactory glueClientFactory;
   private final SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory;

@@ -47,7 +47,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final static Logger log = LoggerFactory.getLogger(MetaStoreMappingImpl.class);
 
   // MilliSeconds
-  static final long DEFAULT_AVAILABILITY_TIMEOUT = 2000;
+  static final long DEFAULT_AVAILABILITY_TIMEOUT = 2500;
 
   private final String databasePrefix;
   private final CloseableThriftHiveMetastoreIface client;
