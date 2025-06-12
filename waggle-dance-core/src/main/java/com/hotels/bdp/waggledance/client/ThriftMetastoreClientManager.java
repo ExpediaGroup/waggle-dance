@@ -46,8 +46,7 @@ class ThriftMetastoreClientManager extends AbstractThriftMetastoreClientManager 
     super(conf, hiveCompatibleThriftHiveMetastoreIfaceFactory, connectionTimeout);
   }
 
-
-  void open(HiveUgiArgs ugiArgs) {
+  void open(HiveUgiArgs ugiArgs) throws TException {
     if (isConnected) {
       return;
     }
@@ -108,10 +107,11 @@ class ThriftMetastoreClientManager extends AbstractThriftMetastoreClientManager 
     }
 
     if (!isConnected) {
-      throw new RuntimeException("Could not connect to meta store using any of the URIs ["
+      log.debug("Could not connect to meta store using any of the URIs ["
           + msUri
           + "] provided. Most recent failure: "
-          + StringUtils.stringifyException(te));
+          + StringUtils.stringifyException(te), te);
+      throw te;
     }
     log.debug("Connected to metastore.");
   }

@@ -92,13 +92,13 @@ public abstract class AbstractThriftMetastoreClientManager implements Closeable 
     }
   }
 
-  void open() {
+  void open() throws TException{
     open(null);
   }
 
-  abstract void open(HiveUgiArgs ugiArgs);
+  abstract void open(HiveUgiArgs ugiArgs) throws TException;
 
-  void reconnect(HiveUgiArgs ugiArgs) {
+  void reconnect(HiveUgiArgs ugiArgs) throws TException {
     close();
     // Swap the first element of the metastoreUris[] with a random element from the rest
     // of the array. Rationale being that this method will generally be called when the default

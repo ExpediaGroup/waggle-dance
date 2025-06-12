@@ -57,6 +57,7 @@ import org.apache.hadoop.hive.metastore.api.ResourceType;
 import org.apache.hadoop.hive.metastore.api.ResourceUri;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
+import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -346,7 +347,6 @@ public class WaggleDanceIntegrationTest {
     }
   }
 
-  
   @Ignore("Seems to fail for unknown reasons often in Github Actions")
   @Test
   public void typicalWithGraphite() throws Exception {
@@ -380,10 +380,8 @@ public class WaggleDanceIntegrationTest {
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.calls;metricattribute=count 1");
     assertMetric(metrics,
         "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.get_table_req.remote.success;metricattribute=count 1");
-    assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.success");
-    assertMetric(metrics,
-        "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls");
+    assertMetric(metrics, "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.success");
+    assertMetric(metrics, "graphitePrefix.counter.com.hotels.bdp.waggledance.server.FederatedHMSHandler.calls");
   }
 
   private void assertMetric(Set<String> metrics, String partialMetric) {
@@ -1093,7 +1091,7 @@ public class WaggleDanceIntegrationTest {
 
     runWaggleDance(runner);
     HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
- 
+
     List<TableMeta> tableMeta = proxy
         .getTableMeta("waggle_remote_remote_database", "*", Lists.newArrayList("EXTERNAL_TABLE"));
     assertThat(tableMeta.size(), is(1));
@@ -1110,4 +1108,53 @@ public class WaggleDanceIntegrationTest {
     assertThat(tableMeta.get(0).getTableName(), is(REMOTE_TABLE));
   }
 
+  @Test
+  public void getTableWhenConnectionUnavailablePrefix() throws Exception {
+    String unavailable = "unavailable_secondary";
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.PREFIXED)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(unavailable, "thrift://localhost:0000", REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
+
+    try {
+      // secondary is not reachable
+      proxy.getTable(unavailable + "_remote_database", REMOTE_TABLE);
+      fail("Should throw TApplicationException");
+    } catch (TApplicationException e) {
+      // primary still works
+      Table tableFromPrimary = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+      assertNotNull(tableFromPrimary);
+    }
+  }
+
+  @Test
+  public void getTableWhenConnectionUnavailableManual() throws Exception {
+    String unavailable = "unavailable_secondary";
+    runner = WaggleDanceRunner
+        .builder(configLocation)
+        .databaseResolution(DatabaseResolution.MANUAL)
+        .primary("primary", localServer.getThriftConnectionUri(), READ_ONLY)
+        .federate(unavailable, "thrift://localhost:0000", REMOTE_DATABASE)
+        .build();
+
+    runWaggleDance(runner);
+    HiveMetaStoreClient proxy = runner.createWaggleDanceClient();
+
+    try {
+      // secondary is not reachable
+      proxy.getTable(REMOTE_DATABASE, REMOTE_TABLE);
+      fail("Should throw NoSuchObjectException");
+      // Manual mapping works differently then PREFIXED mapping if the secondary is not reachable, it results in NoSuchObject.
+      // A better test would be a connection failure after WD started, but that's hard to mimic. So testing current behavior so we at least capture that.
+    } catch (NoSuchObjectException e) {
+      // primary still works
+      Table tableFromPrimary = proxy.getTable(LOCAL_DATABASE, LOCAL_TABLE);
+      assertNotNull(tableFromPrimary);
+    }
+  }
 }

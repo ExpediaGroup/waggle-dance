@@ -1,6 +1,8 @@
 
 ## [4.0.1] - TBD
 ### Fix
+- Fixed issue where a call to an unavailable metastore got redirected to "primary" which results in NoSuchObjectException instead of TException causing clients to not retry. 
+- Fixed unnecessary function prefix on parameterized functions. [#344](https://github.com/ExpediaGroup/waggle-dance/pull/344)
 - Fixed unnecessary function prefix. [#343](https://github.com/ExpediaGroup/waggle-dance/pull/343)
 - Fixed pattern processing to federated metastore. [#342](https://github.com/ExpediaGroup/waggle-dance/pull/342)
 - Removed call to primary and made it only when Kerberos (SASL) is enabled. 

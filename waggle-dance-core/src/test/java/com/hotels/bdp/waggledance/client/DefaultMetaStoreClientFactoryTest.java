@@ -48,7 +48,7 @@ public class DefaultMetaStoreClientFactoryTest {
   private final static int RECONNECTION_RETRIES = 1;
 
   @Test
-  public void isOpen() {
+  public void isOpen() throws Exception {
     when(base.isOpen()).thenReturn(true);
 
     CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);
@@ -59,7 +59,7 @@ public class DefaultMetaStoreClientFactoryTest {
   }
 
   @Test
-  public void isOpenWithReconnection() {
+  public void isOpenWithReconnection() throws Exception {
     when(base.isOpen()).thenReturn(false).thenReturn(true);
 
     CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);
