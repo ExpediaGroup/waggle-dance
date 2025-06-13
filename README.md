@@ -111,6 +111,9 @@ The table below describes all the available configuration values for Waggle Danc
 | `status-polling-delay`            | No         | Controls the delay that checks metastore availability and updates long running connections of any status change. Default is `5` (every 5 minutes). |
 | `status-polling-delay-time-unit`  | No         | Controls the delay time unit. Default is `MINUTES` . |
 | `configuration-properties`        | No         | Map of Hive properties that will be added to the HiveConf used when creating the Thrift clients (they will be shared among all the clients). |
+| `queryFunctionsAcrossAllMetastores` | No | Controls if the Thrift `getAllFunctions` should be fired to all configured metastores or only the primary metastore. The advice is to set this to false. Executing `getAllFunctions` can have an unwanted performance impact when a metastore is slow to respond. The function call is typically only called when a client is initialized and is largely irrelevant. Default is `true` (to be backward compatible) |
+
+Extensions (for instance Rate Limiting) are described here: [waggle-dance-extensions/README.md](waggle-dance-extensions/README.md)
 
 Extensions (for instance Rate Limiting) are described here: [waggle-dance-extensions/README.md](waggle-dance-extensions/README.md)
 
@@ -174,6 +177,7 @@ The table below describes all the available configuration values for Waggle Danc
 | `primary-meta-stores.database-name-mapping`              | No       | BiDirectional Map of database names and mapped name, where key=`<database name as known in the primary metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
 | `primary-meta-store.read-only-remote-meta-store-uris`    | No       | Can be used to configure an extra read-only endpoint for the primary Metastore. This is an optimization if your environment runs separate Metastore endpoints and traffic needs to be diverted efficiently. Waggle Dance will direct traffic to the read-write or read-only endpoints based on the call being done. For instance `get_table` will be a read-only call but `alter_table` will be forwarded to the read-write Metastore.| 
 | `primary-meta-stores.configuration-properties`           | No       | Map of the primary metastore personalized properties that will be added to the HiveConf used when creating the Thrift clients (they will be effect only on this client),the priority is higher than the properites of the same name in waggle-dance-server.yml.                                                                                                                                                                                                                                                                                                                         |
+| `primary-meta-store.glue-config`                       | No       | Can be used instead of `remote-meta-store-uris` to federate to an AWS Glue Catalog ([AWS Glue](https://docs.aws.amazon.com/glue/index.html). See the [Federate to AWS Glue Catalog](#federate-to-aws-glue-catalog) section.|
 | `federated-meta-stores`                                  | No       | Possible empty list of read only federated metastores. |
 | `federated-meta-stores[n].remote-meta-store-uris`        | Yes      | Thrift URIs of the federated read-only metastore. |
 | `federated-meta-stores[n].name`                          | Yes      | Name that uniquely identifies this metastore. Used internally. Cannot be empty. |
@@ -187,6 +191,8 @@ The table below describes all the available configuration values for Waggle Danc
 | `federated-meta-stores[n].database-name-mapping`         | No       | BiDirectional Map of database names and mapped names where key=`<database name as known in the federated metastore>` and value=`<name that should be shown to a client>`. See the [Database Name Mapping](#database-name-mapping) section.|
 | `federated-meta-stores[n].writable-database-white-list`  | No       | White-list of databases used to verify write access used in conjunction with `federated-meta-stores[n].access-control-type`. The list of databases should be listed without a `federated-meta-stores[n].database-prefix`. This property supports both full database names and (case-insensitive) [Java RegEx patterns](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).|
 | `federated-meta-stores[n].configuration-properties`      | No       | Map of the federate metastore personalized properties that will be added to the HiveConf used when creating the Thrift clients (they will be effect only on this client),the priority is higher than the properites of the same name in waggle-dance-server.yml.                                                                                                                                                                                                                                                                                                                        |
+| `federated-meta-stores[n].glue-config`             | No       | Can be used instead of `remote-meta-store-uris` to federate to an AWS Glue Catalog ([AWS Glue](https://docs.aws.amazon.com/glue/index.html). See the [Federate to AWS Glue Catalog](#federate-to-aws-glue-catalog) section.|
+
 
 #### Metastore tunnel
 The table below describes the metastore tunnel configuration values:
@@ -199,7 +205,7 @@ The table below describes the metastore tunnel configuration values:
 | `*.metastore-tunnel.known-hosts`                        | No       | Path to a known hosts file. |
 | `*.metastore-tunnel.private-keys`                       | No       | A comma-separated list of paths to any SSH keys required in order to set up the SSH tunnel. |
 | `*.metastore-tunnel.timeout`                            | No       | The SSH session timeout in milliseconds, `0` means no timeout. Default is `60000` milliseconds, i.e. 1 minute. |
-| `*.metastore-tunnel.strict-host-key-checking`           | No       | Whether the SSH tunnel should be created with strict host key checking. Can be set to `yes` or `no`. The default is `yes`. |
+| `*.metastore-tunnel.strict-host-key-checking`            | No       | Whether the SSH tunnel should be created with strict host key checking. Can be set to `yes` or `no`. The default is `yes`. |
 
 #### Mapped tables
 The table below describes the `mapped-tables` configuration. For each entry in the list, a database name and the corresponding list of table names/patterns must be mentioned.
@@ -235,7 +241,7 @@ These include:
 * Keys foreign/primary
 * Locks
 * Transactions / compact
-* Security management: roles, prinicpals, grant/revoke
+* Security management: roles, principals, grant/revoke
 * Delegation tokens
 * Notifications
 * Config management
@@ -255,6 +261,41 @@ The following properties are configured in the server configuration file(waggle-
 | Property                          | Required   | Description |
 |:----|:----:|:----|
 | `overwrite-config-on-shutdown`    | No         | Controls whether the federations configuration must be overwritten when the server is stopped. Settings this to `false` will cause any federations dynamically added at runtime to be lost when the server is stopped. This is also the case of databases created at runtime when `database-resolution` is set to `MANUAL`. Default is `true`. |
+
+#### Federate to AWS Glue Catalog
+
+Waggle Dance supports federation to AWS Glue Catalog. The federation only works as read-only. Write (Create/Alter/Drop) operations are not supported very well as the Glue APIS don't expose all Hive Metastore functions for instance lock/transactions and other functions are not supported so clients might get exceptions when using certain operations (this can depend on a client like Hive, Spark, etc...). Some research has been done to allow write operations and it is not impossible with a bit more work but out of scope at the moment.
+The GlueConfig configuration should be used if federation to Glue is needed.
+
+
+| Property        | Required | Description |
+|:----|:----:|:----|
+| `glue-account-id` | Yes (if `glueConfig` used)   | The AWS account number.|
+| `glue-endpoint`   | Yes (if `glueConfig` used)   | The AWS glue endpoint example: glue.us-east-1.amazonaws.com. The value is the same for all AWS accounts per region.|
+
+ Example,:
+
+    glue-config:
+      glue-account-id: 1234566789012
+      glue-endpoint: glue.us-east-1.amazonaws.com
+
+As with Hive federation, the IAM permissions need to be setup to read underlying data. IAM permissions are not setup by this code, but are usually setup by the Terraform code that deploys WaggleDance, such as (apiary-federation)[https://github.com/ExpediaGroup/apiary-federation].
+
+If federating across AWS accounts, the correct (cross account federation permissions)[https://docs.aws.amazon.com/glue/latest/dg/cross-account-access.html] needs to be setup as well.       
+The policy giving access to the role running Waggle Dance will need at least these IAM Glue actions:
+
+     actions = [
+    "glue:GetDatabase",
+    "glue:GetDatabases",
+    "glue:GetTable",
+    "glue:GetTables",
+    "glue:GetTableVersions",
+    "glue:GetPartition",
+    "glue:GetPartitions",
+    "glue:BatchGetPartition",
+    "glue:GetUserDefinedFunction",
+    "glue:GetUserDefinedFunctions"
+    ]
 
 #### Configuring a SSH tunnel
 
@@ -531,7 +572,7 @@ This only works when Waggle Dance is obtained from the compressed archive (.tar.
  * Access to underlying table data is still directly to the locations encoded in the metadata.
  * Users of Waggle Dance must still have the relevant authority to access the underlying table data.
  * All data processing occurs in the client cluster, not the external clusters. Data is simply pulled into the client cluster that connect to Waggle Dance.
- * Metadata read operations are routed only. Write and destructive operations can be performed on the local metastore only.
+ * Metadata operations are routed. Write and destructive operations can be performed on the local metastore. Federated metastore are by default read only but can be configured to allow write operations via Access Controls configuration.
  * When using Spark to read tables with a big number of partitions it may be necessary to set `spark.sql.hive.metastorePartitionPruning=true` to enable partition pruning. If this property is `false` Spark will try to fetch all the partitions of the tables in the query which may result on a `OutOfMemoryError` in Waggle Dance.
  * If a configuration file is updated and the update disappears after server shutdown, `yaml-storage.overwrite-config-on-shutdown` should be set to `false` in the federation configuration file (refer to the [federation configuration storage](#federation-configuration-storage) section).
 
@@ -555,8 +596,12 @@ This class needs to be on the classpath and can be an external jar. If so the co
 Note: The database calls `getDatabases` and `getAllDatabases`, as well as `getTableMeta` do not support having the provided filter applied at the moment, so their result will not be modified by the filter.
 
 
-## Building
+## Building Waggle Dance
 
+### Prerequisites
+In order to build Waggle Dance, AWS Glue libraries will need to be installed locally. Please follow [this installation guide](lib/HOW_TO_INSTALL.MD) to install those libraries.
+
+### Building
 Waggle Dance can be built from source using Maven:
 
     mvn clean package

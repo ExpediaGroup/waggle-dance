@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static com.hotels.bdp.waggledance.client.HiveUgiArgsStub.TEST_ARGS;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public class ThriftMetastoreClientManagerIntegrationTest {
 
     try {
       manager.open(TEST_ARGS);
-    } catch (RuntimeException e) {
+    } catch (TException e) {
       assertThat(e.getMessage(), containsString("java.net.ConnectException: Connection refused"));
     }
   }

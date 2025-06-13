@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.hotels.bdp.waggledance.mapping.model;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.MetaStoreFilterHook;
@@ -33,6 +34,8 @@ import org.apache.hadoop.hive.metastore.api.AlterISchemaRequest;
 import org.apache.hadoop.hive.metastore.api.CacheFileMetadataRequest;
 import org.apache.hadoop.hive.metastore.api.CheckConstraintsRequest;
 import org.apache.hadoop.hive.metastore.api.CheckConstraintsResponse;
+import org.apache.hadoop.hive.metastore.api.ClientCapabilities;
+import org.apache.hadoop.hive.metastore.api.ClientCapability;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.CompactionRequest;
 import org.apache.hadoop.hive.metastore.api.CreationMetadata;
@@ -191,7 +194,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public HiveObjectRef transformInboundHiveObjectRef(HiveObjectRef obj) {
     obj.setDbName(metaStoreMapping.transformInboundDatabaseName(obj.getDbName()));
-    if (obj.getObjectType() == HiveObjectType.DATABASE) {
+    if (obj.getObjectName() != null && obj.getObjectType() == HiveObjectType.DATABASE) {
       obj.setObjectName(metaStoreMapping.transformInboundDatabaseName(obj.getObjectName()));
     }
     return obj;
@@ -509,7 +512,20 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public GetTableRequest transformInboundGetTableRequest(GetTableRequest request) {
     request.setDbName(metaStoreMapping.transformInboundDatabaseName(request.getDbName()));
+    cleanupClientCapabilities(request.getCapabilities());
     return request;
+  }
+
+  private void cleanupClientCapabilities(ClientCapabilities clientCapabilities) {
+    if (clientCapabilities != null) {
+      List<ClientCapability> values = new ArrayList<>();
+      for (ClientCapability value : clientCapabilities.getValues()) {
+        if (value != null) {
+          values.add(value);
+        }
+      }
+      clientCapabilities.setValues(values);
+    }
   }
 
   @Override
@@ -521,6 +537,7 @@ public class DatabaseMappingImpl implements DatabaseMapping {
   @Override
   public GetTablesRequest transformInboundGetTablesRequest(GetTablesRequest request) {
     request.setDbName(metaStoreMapping.transformInboundDatabaseName(request.getDbName()));
+    cleanupClientCapabilities(request.getCapabilities());
     return request;
   }
 

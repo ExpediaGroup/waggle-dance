@@ -1,5 +1,20 @@
-## [4.0.0] - 2025-02-24
 
+## [4.0.1] - TBD
+### Fix
+- Fixed issue where a call to an unavailable metastore got redirected to "primary" which results in NoSuchObjectException instead of TException causing clients to not retry. 
+- Fixed unnecessary function prefix on parameterized functions. [#344](https://github.com/ExpediaGroup/waggle-dance/pull/344)
+- Fixed unnecessary function prefix. [#343](https://github.com/ExpediaGroup/waggle-dance/pull/343)
+- Fixed pattern processing to federated metastore. [#342](https://github.com/ExpediaGroup/waggle-dance/pull/342)
+- Removed call to primary and made it only when Kerberos (SASL) is enabled. 
+- Fixed Handler creation for SASL.
+- Add HiveConf cache to `CloseableThriftHiveMetastoreIfaceClientFactory` to prevent threads block. See [#325](https://github.com/ExpediaGroup/waggle-dance/issues/325)
+- Fix for `NullPointerException` in ClientCapabilities when `get_table_req` and `get_tables_req` is called from Hive3.x client. See [#317](https://github.com/ExpediaGroup/waggle-dance/issues/317)
+### Added
+- Metric for monitoring open transports. `<prefix>.com_hotels_bdp_waggledance_open_transports_gauge`
+### Changed
+- Removed RetryingHMSHandler. Retries are done in the client there should be no need to wrap everything in retry logic again. 
+
+## [4.0.0] - 2025-02-24
 ### Changed (Backward incompatible)
 * Hive 3, waggle dance 4.x.x will be Hive 3 based for Hive 2 use waggledance 3.x.x releases.
 
@@ -34,14 +49,147 @@
 ### Added
 - Added optional `primary-meta-store.read-only-remote-meta-store-uris` config to allow traffic to be diverted based on calls made. See README.md.
 
-### Fixed
-* Added lombok
-* Fixed test cases
-* Fixed issue where the primary metastore was not applying the allow filter to validate database clashes from other metastores.
+## [3.11.7] - 2023-11-30
+### Changed
+- Fixed log statement that was not logging the exception correctly.
+- Removed client.shutdown() call, this always throws an exception and the code ends up closing the transport directly.
 
-## [3.9.5] - TBD
+## [3.11.6] - 2023-10-24
+### Fixed
+- Added lombok
+- Fixed test cases
+- Fixed issue where the primary metastore was not applying the allow filter to validate database clashes from other metastores.
+- Switch to ExecutorService instead of the default `ForkJoinPool` for `MetastoreMappingImpl.isAvailable()` calls. Using `ForkJoinPool` may cause threads to wait on each other.
+- Increased default `MetastoreMappingImpl.isAvailable()` timeout to `2000ms` (was `500ms`) to set a bit more conservative default.
+
+## [3.11.5] - 2023-10-23
+### Fixed
+- Added timeout on `MetastoreMappingImpl.isAvailable()` calls to prevent long waits on unresponsive metastores.
+
+## [3.11.4] - 2023-08-23
+### Changed
+- Metrics have been incorporated into Waggle Dance with the inclusion of tags, which will facilitate filtering within Datadog.
+- Exclude jetty-all from core module, because it makes spring start fail and makes `WaggleDanceIntegrationTest` fail.
+- Upgrade maven.surefire.plugin.version to 3.1.2 (was 3.0.0-m5).
+- Exclude jdk.tools clashes with > java8 JDK.
+### Fixed
+- Exclude Junit5 dependencies as they clashed with Junit4 and caused maven to stop running the tests.
+- Fixed metric(graphite) integration test (was broken since 3.10.12 (spring-boot upgrade).
+
+## [3.11.3] - YANKED
+### Fixed
+- Exclude Junit5 dependencies as they clashed with Junit4 and caused maven to stop running the tests.
+- Fixed metric(graphite) integration test (was broken since 3.10.12 (spring-boot upgrade).
+### Changed
+- Exclude jetty-all from core module, because it makes spring start fail and makes `WaggleDanceIntegrationTest` fail.
+- Upgrade maven.surefire.plugin.version to 3.1.2 (was 3.0.0-m5).
+- Exclude jdk.tools clashes with > java8 JDK.
+
+## [3.11.2] - 2023-07-04
+### Changed
+- Setting AWSGlueClientFactory log level to `WARN` because it spams this [log](https://github.com/awslabs/aws-glue-data-catalog-client-for-apache-hive-metastore/blob/branch-3.4.0/aws-glue-datacatalog-client-common/src/main/java/com/amazonaws/glue/catalog/metastore/AWSGlueClientFactory.java#L57) every ~200ms. It could be creating unnecessary Glue clients.
+
+## [3.11.1] - 2023-05-31
+### Fixed
+- Clean up delegation-token set for Kerberos in thread-local.
+
+## [3.11.0] - 2023-05-22
+### Fixed
+- Support kerberos and delegation-token See [#264](https://github.com/ExpediaGroup/waggle-dance/issues/264)
+### Changed
+- Upgrade version of snakeyaml to 1.32 (was 1.26)
+
+## [3.10.14] - 2023-05-11
+### Changed
+- Remove `waggledance.allow-bean-definition-overriding` property to configuration to favor single bean creation.
+
+## [3.10.13] - Not released [YANKED]
+
+## [3.10.12] - 2023-05-04 - [YANKED]
+### Changed
+- Upgraded `springboot` version to `2.7.11` (was `2.0.4.RELEASE`).
+- Added `spring-boot-starter-validation`.
+- Added `waggledance.allow-bean-definition-overriding` property to configuration.
+- Added `joda-time` version `2.9.9`.
+
+## [3.10.11] - 2023-02-06
+### Added
+- Functionality to get tables from a database using a Glue federation. Code pulled from original AWS master branch.
+- [Code](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/commit/7f8f13681b09d07dafb57e6efdae457a5c6f6d7b)
+
+## [3.10.10] - 2022-12-01
+### Changed     
+- Upgraded `aws-sdk` version to `1.12.276` (was `1.11.267`) in `waggledance-core`.
+- Enabled support to use AWS STS tokens when using Glue sync in `waggledance-core`.
+
+## [3.10.9] - 2022-11-29
+### Changed     
+- Uploaded Glue JARs with all changes from release `3.10.8` in `/lib` folder.
+- Excluded `pentaho-aggdesigner-algorithm` dependency from `hive-exec` (provided) due to problems when building the project locally.
+
+## [3.10.8] - 2022-11-24
+### Changed     
+- Upgraded `aws-sdk` version to `1.12.276` (was `1.11.267`) in `aws-glue-datacatalog-client-common`.
+- Enabled support to use AWS STS tokens when using Glue sync in `aws-glue-datacatalog-client-common`.
+
+## [3.10.7] - 2022-09-02
+### Fixed     
+- Fixed get objectname null pointer for:
+    - `transformInboundHiveObjectRef`
+    
+## [3.10.6] - 2022-06-07
+### Fixed
+- Fixed database name translation for:
+  - `alter_partitions_with_environment_context`
+  - `alter_table_with_cascade`
+
+## [3.10.5] - 2022-05-23
+### Changed
+* Added `queryFunctionsAcrossAllMetastores` configuration for optimising `getAllFunctions` calls.
+### Added
+* Metrics to track metastore availability. 
+
+## [3.10.4] - 2022-04-17
+### Fixes
+* More tuning of delayed `set_ugi` calls.
+
+## [3.10.3] - 2022-04-16
+### Fixes
+* Potential exception when `set_ugi` has immutable list or null-value groups argument.
+
+## [3.10.2] - 2022-04-19
+### Changed
+* Caching `set_ugi` call in clients to prevent unnecessary calls to metastores.
+
+## [3.10.1] - 2022-04-06
+### Added
+* Converted `metastore.isAvailable` loops to parallel execution to mitigate slow responding metastores.
+
+## [3.10.0] - 2022-03-01
+### Changed
+* Support for Glue catalog (read only) federation.
+* converted some log statements to debug to get less chatty logs.
+
+## [3.9.9] - 2022-01-19
+### Changed
+* `log4j2` updated to `2.17.1` (was `2.17.0`) - log4shell vulnerability fix
+
+## [3.9.8] - 2021-12-20
+### Changed
+* `log4j2` updated to `2.17.0` (was `2.16.0`) - log4j vulnerability fix see https://logging.apache.org/log4j/2.x/security.html
+
+## [3.9.7] - 2021-12-14
+### Changed
+* `log4j2` updated to `2.16.0` (was `2.15.0`) - log4shell vulnerability fix
+
+## [3.9.6] - 2021-12-14
+### Changed
+* `log4j2` updated to `2.15.0` (was `2.10.0`) - log4shell vulnerability fix
+
+## [3.9.5] - 2021-08-23
 ### Changed
 * `commons-io` updated to `2.7.` (was `2.6`).
+* `org.pentaho:pentaho-aggdesigner-algorithm` dependency excluded from `waggle-dance-core`.
 
 ## [3.9.4] - 2021-04-08
 ### Fixed

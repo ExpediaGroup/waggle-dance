@@ -59,6 +59,7 @@ public abstract class AbstractMetaStore {
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
   private boolean impersonationEnabled;
   private Map<String, String> configurationProperties = new HashMap<>();
+  private GlueConfig glueConfig;
   private String readOnlyRemoteMetaStoreUris;
 
   public AbstractMetaStore() {}
@@ -229,6 +230,14 @@ public abstract class AbstractMetaStore {
     databaseNameBiMapping = HashBiMap.create(databaseNameMapping);
   }
 
+  public GlueConfig getGlueConfig() {
+    return glueConfig;
+  }
+
+  public void setGlueConfig(GlueConfig glueConfig) {
+    this.glueConfig = glueConfig;
+  }
+
   @Transient
   public HashBiMap<String, String> getDatabaseNameBiMapping() {
     return databaseNameBiMapping;
@@ -242,7 +251,7 @@ public abstract class AbstractMetaStore {
           Map<String, String> configurationProperties) {
     this.configurationProperties = configurationProperties;
   }
-
+  
   @Transient
   public MetaStoreStatus getStatus() {
     return status;
@@ -290,6 +299,7 @@ public abstract class AbstractMetaStore {
         .add("metastoreTunnel", metastoreTunnel)
         .add("accessControlType", accessControlType)
         .add("writableDatabaseWhiteList", writableDatabaseWhitelist)
+        .add("latency", latency)
         .add("status", status)
         .toString();
   }

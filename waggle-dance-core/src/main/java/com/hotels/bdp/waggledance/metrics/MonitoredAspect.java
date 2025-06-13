@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -51,6 +53,8 @@ public class MonitoredAspect {
   public Object monitor(ProceedingJoinPoint pjp, Monitored monitored) throws Throwable {
 
     String metricBasePath = buildMetricBasePath(pjp);
+    String className = getClassName(pjp);
+    String methodName = getMethodName(pjp);
 
     String result = null;
     Stopwatch stopwatch = Stopwatch.createStarted();
@@ -63,10 +67,12 @@ public class MonitoredAspect {
       throw t;
     } finally {
       stopwatch.stop();
-      increment(buildMetricPath(COUNTER, metricBasePath, getMonitorMetastore(), "calls"));
-      increment(buildMetricPath(COUNTER, metricBasePath, getMonitorMetastore(), result));
-      submit(buildMetricPath(TIMER, metricBasePath, getMonitorMetastore(), "duration"),
-          stopwatch.elapsed(TimeUnit.MILLISECONDS));
+      increment(buildMetricName(COUNTER, metricBasePath, getMonitorMetastore(), "calls"),methodName,
+          buildMetricName(COUNTER, className, "calls"));
+      increment(buildMetricName(COUNTER, metricBasePath, getMonitorMetastore(), result),methodName,
+          buildMetricName(COUNTER, className, result));
+      submit(buildMetricName(TIMER, metricBasePath, getMonitorMetastore(), "duration"),
+          stopwatch.elapsed(TimeUnit.MILLISECONDS),methodName, buildMetricName(TIMER, className, "duration"));
     }
   }
 
@@ -75,21 +81,39 @@ public class MonitoredAspect {
     this.meterRegistry = meterRegistry;
   }
 
-  private void increment(String metricName) {
+  private void increment(String metricName, String methodName, String metricWithTag) {
     if (meterRegistry != null) {
+      Iterable<Tag> tags = getMetricsTags(methodName);
       meterRegistry.counter(metricName).increment();
+      meterRegistry.counter(metricWithTag, tags).increment();
     }
   }
 
-  private void submit(String metricName, long value) {
+  private void submit(String metricName, long value, String methodName, String metricWithTag) {
     if (meterRegistry != null) {
+      Iterable<Tag> tags = getMetricsTags(methodName);
       meterRegistry.timer(metricName).record(Duration.ofMillis(value));
+      meterRegistry.timer(metricWithTag, tags).record(Duration.ofMillis(value));
     }
+  }
+
+  private Tags getMetricsTags(String methodName) {
+    Tag federationTag = Tag.of("federation_namespace", getMonitorMetastore());
+    Tag methodTag = Tag.of("method_name", methodName);
+    return Tags.of(federationTag).and(methodTag);
+  }
+
+  private String getMethodName(ProceedingJoinPoint pjp) {
+    return clean(pjp.getSignature().getName());
+  }
+
+  private String getClassName(ProceedingJoinPoint pjp) {
+    return clean(pjp.getSignature().getDeclaringTypeName());
   }
 
   private String buildMetricBasePath(ProceedingJoinPoint pjp) {
-    String className = clean(pjp.getSignature().getDeclaringTypeName());
-    String methodName = clean(pjp.getSignature().getName());
+    String className = getClassName(pjp);
+    String methodName = getMethodName(pjp);
     return new StringBuilder(className).append(".").append(methodName).toString();
   }
 
@@ -98,8 +122,7 @@ public class MonitoredAspect {
     return result;
   }
 
-  private String buildMetricPath(String... parts) {
+  private String buildMetricName(String... parts) {
     return DOT_JOINER.join(parts);
   }
-
 }

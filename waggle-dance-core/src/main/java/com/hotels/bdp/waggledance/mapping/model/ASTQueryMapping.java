@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.antlr.runtime.CommonToken;
+import org.antlr.runtime.tree.Tree;
 import org.apache.hadoop.hive.ql.lib.Node;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.HiveParser;
@@ -92,7 +93,14 @@ public enum ASTQueryMapping implements QueryMapping {
     // have to fall back to search and replace.
     List<CommonToken> functionTokens = extractFunctionTokens(root);
     for (CommonToken functionNode : functionTokens) {
-      final String functionName = functionNode.getText();
+      String functionName = functionNode.getText();
+      // No dbname, no need to replace.
+      if (!functionName.contains(".")) {
+        continue;
+      }
+      if (functionName.startsWith("`") && functionName.endsWith("`")) {
+        functionName = functionName.replaceAll("`", "");
+      }
       Pattern pattern = Pattern.compile(RE_WORD_BOUNDARY + functionName + RE_WORD_BOUNDARY);
       Matcher matcher = pattern.matcher(result);
       if (matcher.find()) {
@@ -135,9 +143,12 @@ public enum ASTQueryMapping implements QueryMapping {
         stack.push(child);
       }
       if (current.getType() == HiveParser.TOK_FUNCTION) {
-        if (current.getChildCount() == 1 && childrenAreIdentifiers(current)) {
-          // TOK_FUNCTION has one child, <dbName.functionName>.
-          CommonToken dbNameDotFunctionNameNode = (CommonToken) ((ASTNode) current.getChild(0)).getToken();
+        if (current.getChildCount() < 1) {
+          continue;
+        }
+        Tree child = current.getChild(0);
+        if (child.getType() == HiveParser.Identifier) {
+          CommonToken dbNameDotFunctionNameNode = (CommonToken) ((ASTNode)child).getToken();
           tokens.add(dbNameDotFunctionNameNode);
         }
       }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class DefaultMetaStoreClientFactoryTest {
   private final static int RECONNECTION_RETRIES = 1;
 
   @Test
-  public void isOpen() {
+  public void isOpen() throws Exception {
     when(base.isOpen()).thenReturn(true);
 
     CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);
@@ -59,7 +59,7 @@ public class DefaultMetaStoreClientFactoryTest {
   }
 
   @Test
-  public void isOpenWithReconnection() {
+  public void isOpenWithReconnection() throws Exception {
     when(base.isOpen()).thenReturn(false).thenReturn(true);
 
     CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);

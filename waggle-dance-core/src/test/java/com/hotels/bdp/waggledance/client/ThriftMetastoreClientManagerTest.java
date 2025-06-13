@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static com.hotels.bdp.waggledance.client.HiveUgiArgsStub.TEST_ARGS;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.thrift.TException;
 import org.apache.thrift.transport.TSocket;
 import org.junit.Before;
 import org.junit.Test;
@@ -110,8 +111,8 @@ public class ThriftMetastoreClientManagerTest {
     client.close();
   }
 
-  @Test(expected = RuntimeException.class)
-  public void openSlowConnection() {
+  @Test(expected = TException.class)
+  public void openSlowConnection() throws Exception {
     client = new ThriftMetastoreClientManager(hiveConf, hiveCompatibleThriftHiveMetastoreIfaceFactory, 1);
     client.open(TEST_ARGS);
   }
