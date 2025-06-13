@@ -19,8 +19,9 @@ import java.net.Socket;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.IHMSHandler;
+import org.apache.hadoop.hive.metastore.RetryingHMSHandler;
 import org.apache.hadoop.hive.metastore.TSetIpAddressProcessor;
-import org.apache.thrift.TException;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.transport.TSocket;
@@ -57,25 +58,18 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
       }
       CloseableIHMSHandler baseHandler = federatedHMSHandlerFactory.create();
 
-      boolean useSASL = hiveConf.getBoolVar(HiveConf.ConfVars.METASTORE_USE_THRIFT_SASL);
-      if (useSASL) {
-        try {
-          baseHandler.getStatus();
-        } catch (TException e) {
-          throw new RuntimeException("Error creating TProcessor. Could not get status.", e);
-        }
-        IHMSHandler tokenHandler = TokenWrappingHMSHandler.newProxyInstance(baseHandler, useSASL);
-        IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(tokenHandler);
-        transportMonitor.monitor(transport, baseHandler);
-        return new TSetIpAddressProcessor<>(handler);
-      } else {
-        IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
-        transportMonitor.monitor(transport, baseHandler);
-        return new TSetIpAddressProcessor<>(handler);
-      }
-    } catch (ReflectiveOperationException | RuntimeException e) {
+      IHMSHandler handler = newRetryingHMSHandler(ExceptionWrappingHMSHandler.newProxyInstance(baseHandler), hiveConf,
+              false);
+      transportMonitor.monitor(transport, baseHandler);
+      return new TSetIpAddressProcessor<>(handler);
+    } catch (MetaException | ReflectiveOperationException | RuntimeException e) {
       throw new RuntimeException("Error creating TProcessor", e);
     }
+  }
+
+  private IHMSHandler newRetryingHMSHandler(IHMSHandler baseHandler, HiveConf hiveConf, boolean local)
+    throws MetaException {
+    return RetryingHMSHandler.getProxy(hiveConf, baseHandler, local);
   }
 
 }
