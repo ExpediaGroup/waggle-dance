@@ -1,9 +1,5 @@
 /**
-<<<<<<< HEAD
- * Copyright (C) 2016-2023 Expedia, Inc.
-=======
  * Copyright (C) 2016-2025 Expedia, Inc.
->>>>>>> main
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

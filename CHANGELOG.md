@@ -49,16 +49,6 @@
 ### Added
 - Added optional `primary-meta-store.read-only-remote-meta-store-uris` config to allow traffic to be diverted based on calls made. See README.md.
 
-<<<<<<< HEAD
-### Fixed
-* Added lombok
-* Fixed test cases
-* Fixed issue where the primary metastore was not applying the allow filter to validate database clashes from other metastores.
-
-## [3.9.5] - TBD
-### Changed
-* `commons-io` updated to `2.7.` (was `2.6`).
-=======
 ## [3.11.7] - 2023-11-30
 ### Changed
 - Fixed log statement that was not logging the exception correctly.
@@ -197,7 +187,6 @@
 ### Changed
 * `commons-io` updated to `2.7.` (was `2.6`).
 * `org.pentaho:pentaho-aggdesigner-algorithm` dependency excluded from `waggle-dance-core`.
->>>>>>> main
 
 ## [3.9.4] - 2021-04-08
 ### Fixed
