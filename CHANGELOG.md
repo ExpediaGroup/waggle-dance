@@ -56,6 +56,9 @@
 
 ## [3.11.6] - 2023-10-24
 ### Fixed
+- Added lombok
+- Fixed test cases
+- Fixed issue where the primary metastore was not applying the allow filter to validate database clashes from other metastores.
 - Switch to ExecutorService instead of the default `ForkJoinPool` for `MetastoreMappingImpl.isAvailable()` calls. Using `ForkJoinPool` may cause threads to wait on each other.
 - Increased default `MetastoreMappingImpl.isAvailable()` timeout to `2000ms` (was `500ms`) to set a bit more conservative default.
 
