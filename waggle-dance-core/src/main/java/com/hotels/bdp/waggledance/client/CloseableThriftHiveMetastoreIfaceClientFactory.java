@@ -34,6 +34,7 @@ import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.client.adapter.MetastoreIfaceAdapter;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
+import com.hotels.bdp.waggledance.context.CommonBeans;
 import com.hotels.hcommon.hive.metastore.conf.HiveConfFactory;
 import com.hotels.hcommon.hive.metastore.util.MetaStoreUriNormaliser;
 
@@ -100,6 +101,8 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftCli
               connectionTimeout, waggleDanceConfiguration.getConfigurationProperties());
     }
     properties.put(ConfVars.METASTOREURIS.varname, uris);
+    properties.put(CommonBeans.IMPERSONATION_ENABLED_KEY,
+        String.valueOf(metaStore.isImpersonationEnabled()));
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     HiveConf hiveConf = cachedHiveConf.computeIfAbsent(uris, t-> confFactory.newInstance());
     return defaultMetaStoreClientFactory

@@ -51,12 +51,13 @@ public abstract class AbstractMetaStore {
   private @Valid List<MappedTables> mappedTables;
   private Map<String, String> databaseNameMapping = new HashMap<>();
   private @NotBlank String name;
-  private String remoteMetaStoreUris;
+  private @NotBlank String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
   private long latency = 0;
   private transient @JsonIgnore HashBiMap<String, String> databaseNameBiMapping = HashBiMap.create();
+  private boolean impersonationEnabled;
   private Map<String, String> configurationProperties = new HashMap<>();
   private GlueConfig glueConfig;
   private String readOnlyRemoteMetaStoreUris;
@@ -259,6 +260,14 @@ public abstract class AbstractMetaStore {
   @Transient
   public void setStatus(MetaStoreStatus status) {
     this.status = status;
+  }
+
+  public boolean isImpersonationEnabled() {
+    return impersonationEnabled;
+  }
+
+  public void setImpersonationEnabled(boolean impersonationEnabled) {
+    this.impersonationEnabled = impersonationEnabled;
   }
 
   @Override
