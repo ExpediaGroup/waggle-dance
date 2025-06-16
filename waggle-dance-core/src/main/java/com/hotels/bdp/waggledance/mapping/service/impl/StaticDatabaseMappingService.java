@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -241,9 +241,7 @@ public class StaticDatabaseMappingService implements MappingEventListener {
       log
           .debug("Database Name `{}` maps to metastore with name '{}'", databaseName,
               databaseMapping.getMetastoreMappingName());
-      if (includeInResults(databaseMapping)) {
-        return databaseMapping;
-      }
+      return databaseMapping;
     }
     log.debug("Database Name `{}` not mapped", databaseName);
     throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
@@ -263,10 +261,11 @@ public class StaticDatabaseMappingService implements MappingEventListener {
     List<String> allowedTables = new ArrayList<>();
     databaseName = GrammarUtils.removeCatName(databaseName);
     String db = databaseName.toLowerCase(Locale.ROOT);
-    for (String table : tableNames)
+    for (String table : tableNames) {
       if (isTableAllowed(db, table)) {
         allowedTables.add(table);
       }
+    }
     return allowedTables;
   }
 

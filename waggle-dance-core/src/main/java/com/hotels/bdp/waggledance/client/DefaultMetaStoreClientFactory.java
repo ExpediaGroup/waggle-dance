@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.util.List;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.thrift.transport.TTransportException;
-
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -38,8 +38,8 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
 
   static final Class<?>[] INTERFACES = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
 
-  @Log4j2
   private static class ReconnectingMetastoreClientInvocationHandler implements InvocationHandler {
+    private static final Logger log = LoggerFactory.getLogger(ReconnectingMetastoreClientInvocationHandler.class);
 
     private final AbstractThriftMetastoreClientManager base;
     private final String name;
@@ -50,7 +50,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
     private ReconnectingMetastoreClientInvocationHandler(
             String name,
             int maxRetries,
-        AbstractThriftMetastoreClientManager base) {
+            AbstractThriftMetastoreClientManager base) {
       this.name = name;
       this.maxRetries = maxRetries;
       this.base = base;
@@ -95,7 +95,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       }
     }
 
-    private Object doRealCall(Method method, Object[] args, int attempt) throws Throwable {
+    private Object doRealCall(Method method, Object[] args, int attempt) throws IllegalAccessException, Throwable {
       do {
         try {
           return method.invoke(base.getClient(), args);
@@ -161,7 +161,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
   @VisibleForTesting
   CloseableThriftHiveMetastoreIface newInstance(
           String name,
-          int reconnectionRetries,
+          int reconnectionRetries,  
           AbstractThriftMetastoreClientManager base) {
     ReconnectingMetastoreClientInvocationHandler reconnectingHandler = new ReconnectingMetastoreClientInvocationHandler(
         name, reconnectionRetries, base);

@@ -15,10 +15,17 @@
  */
 package com.hotels.bdp.waggledance.client;
 
-import com.google.common.collect.Lists;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaHookLoader;
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 
-public final class HiveUgiArgsStub {
+import com.amazonaws.glue.catalog.metastore.AWSCatalogMetastoreClient;
 
-  public static final HiveUgiArgs TEST_ARGS = new HiveUgiArgs("test", Lists.newArrayList("my_group"));
+public class GlueClientFactory {
+
+  public IMetaStoreClient newInstance(HiveConf conf, HiveMetaHookLoader hook) throws MetaException {
+    return new AWSCatalogMetastoreClient(conf, hook);
+  }
 
 }

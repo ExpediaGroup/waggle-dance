@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ import org.apache.hadoop.hive.conf.HiveConfUtil;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransport;
-
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
 
-@Log4j2
 public abstract class AbstractThriftMetastoreClientManager implements Closeable {
+  private static final Logger log = LoggerFactory.getLogger(ThriftMetastoreClientManager.class);
 
   protected static final AtomicInteger CONN_COUNT = new AtomicInteger(0);
   protected final HiveConf conf;
@@ -92,13 +92,13 @@ public abstract class AbstractThriftMetastoreClientManager implements Closeable 
     }
   }
 
-  void open() {
+  void open() throws TException{
     open(null);
   }
 
-  abstract void open(HiveUgiArgs ugiArgs);
+  abstract void open(HiveUgiArgs ugiArgs) throws TException;
 
-  void reconnect(HiveUgiArgs ugiArgs) {
+  void reconnect(HiveUgiArgs ugiArgs) throws TException {
     close();
     // Swap the first element of the metastoreUris[] with a random element from the rest
     // of the array. Rationale being that this method will generally be called when the default

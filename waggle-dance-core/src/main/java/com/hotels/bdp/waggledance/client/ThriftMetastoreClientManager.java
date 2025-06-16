@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
@@ -28,13 +29,15 @@ import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
-
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hotels.bdp.waggledance.client.compatibility.HiveCompatibleThriftHiveMetastoreIfaceFactory;
 
-@Log4j2
+
 class ThriftMetastoreClientManager extends AbstractThriftMetastoreClientManager {
+
+  private static final Logger log = LoggerFactory.getLogger(ThriftMetastoreClientManager.class);
 
   ThriftMetastoreClientManager(
       HiveConf conf,
@@ -43,7 +46,7 @@ class ThriftMetastoreClientManager extends AbstractThriftMetastoreClientManager 
     super(conf, hiveCompatibleThriftHiveMetastoreIfaceFactory, connectionTimeout);
   }
 
-  void open(HiveUgiArgs ugiArgs) {
+  void open(HiveUgiArgs ugiArgs) throws TException {
     if (isConnected) {
       return;
     }
@@ -104,12 +107,12 @@ class ThriftMetastoreClientManager extends AbstractThriftMetastoreClientManager 
     }
 
     if (!isConnected) {
-      throw new RuntimeException("Could not connect to meta store using any of the URIs ["
+      log.debug("Could not connect to meta store using any of the URIs ["
           + msUri
           + "] provided. Most recent failure: "
-          + StringUtils.stringifyException(te));
+          + StringUtils.stringifyException(te), te);
+      throw te;
     }
     log.debug("Connected to metastore.");
   }
-
 }

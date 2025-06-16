@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNull;
 
 import java.util.Map;
 
-import org.hamcrest.collection.IsArrayWithSize;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
@@ -29,88 +28,6 @@ import com.google.common.collect.ImmutableSet;
 public class GrammarUtilsTest {
 
   private static final String PREFIX = "waggle_";
-
-  @Test
-  public void emptySubPattern() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "");
-    assertThat(patternParts, IsArrayWithSize.emptyArray());
-  }
-
-  @Test
-  public void basicSubPatternMatchingPrefix() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle_");
-    assertThat(patternParts[0], is(PREFIX));
-    assertThat(patternParts[1], is(""));
-  }
-
-  @Test
-  public void basicSubPatternNotMatchingPrefix() {
-    String[] patternParts = GrammarUtils.splitPattern("prefix", "waggle_");
-    assertThat(patternParts, IsArrayWithSize.emptyArray());
-  }
-
-  @Test
-  public void subPatternMatchesEverything() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "*");
-    assertThat(patternParts[0], is("*"));
-    assertThat(patternParts[1], is("*"));
-  }
-
-  @Test
-  public void subPatternMatchesAllTables() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle_*");
-    assertThat(patternParts[0], is(PREFIX));
-    assertThat(patternParts[1], is("*"));
-  }
-
-  @Test
-  public void subPatternMatchesAllSpecificTables() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle_*base");
-    assertThat(patternParts[0], is(PREFIX));
-    assertThat(patternParts[1], is("*base"));
-  }
-
-  @Test
-  public void subPatternMatchesDatabaseAndAllSpecificTables() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "wag*base");
-    assertThat(patternParts[0], is("wag*"));
-    assertThat(patternParts[1], is("*base"));
-  }
-
-  @Test
-  public void splitPatternWithDot() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle.dm*");
-    assertThat(patternParts[0], is("waggle."));
-    assertThat(patternParts[1], is("dm*"));
-  }
-
-  @Test
-  public void splitPatternWithDots() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle...dm");
-    assertThat(patternParts[0], is("waggle."));
-    assertThat(patternParts[1], is("..dm"));
-  }
-
-  @Test
-  public void splitPatternWithDotsAndStarEnd() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle...dm*");
-    assertThat(patternParts[0], is("waggle."));
-    assertThat(patternParts[1], is("..dm*"));
-  }
-
-  @Test
-  public void splitPatternWithDotsAndStar() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "waggle.*.dm");
-    assertThat(patternParts[0], is("waggle.*"));
-    assertThat(patternParts[1], is("*.dm"));
-  }
-
-  @Test
-  public void splitPatternWithDotsInMiddle() {
-    String[] patternParts = GrammarUtils.splitPattern(PREFIX, "wa..le_dm");
-    assertThat(patternParts[0], is("wa..le_"));
-    assertThat(patternParts[1], is("dm"));
-  }
 
   @Test
   public void matchesWithNullPattern() {
@@ -133,6 +50,10 @@ public class GrammarUtilsTest {
     Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), "other.dm");
     assertThat(splits.size(), is(1));
     assertThat(splits.get("other_"), is("dm"));
+
+    splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX), "waggle*.dm");
+    assertThat(splits.size(), is(1));
+    assertThat(splits.get(PREFIX), is("dm|*.dm"));
   }
 
   @Test
@@ -177,7 +98,7 @@ public class GrammarUtilsTest {
         .selectMatchingPrefixes(ImmutableSet.of(PREFIX, "other_"), "w*base|oth*_*dat");
     assertThat(splits.size(), is(2));
     assertThat(splits.get(PREFIX), is("*base"));
-    assertThat(splits.get("other_"), is("*dat"));
+    assertThat(splits.get("other_"), is("*_*dat|*dat"));
   }
 
   @Test
@@ -186,15 +107,21 @@ public class GrammarUtilsTest {
         .selectMatchingPrefixes(ImmutableSet.of(PREFIX, "wother_"), "w*base|woth*_*dat");
     assertThat(splits.size(), is(2));
     assertThat(splits.get(PREFIX), is("*base"));
-    assertThat(splits.get("wother_"), is("*base|*dat"));
+    assertThat(splits.get("wother_"), is("*base|*_*dat|*dat"));
   }
 
   @Test
   public void multipleMatchesPatternWithMultipleWildcard() {
     Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(ImmutableSet.of(PREFIX, "baggle_"), "*aggle*");
     assertThat(splits.size(), is(2));
-    assertThat(splits.get(PREFIX), is("*"));
-    assertThat(splits.get("baggle_"), is("*"));
+    assertThat(splits.get(PREFIX), is("*|*aggle*"));
+    assertThat(splits.get("baggle_"), is("*|*aggle*"));
   }
 
+  @Test
+  public void matchesPatternWithFullPrefix() {
+    Map<String, String> splits = GrammarUtils.selectMatchingPrefixes(
+        ImmutableSet.of(PREFIX, "baggle_"), PREFIX + "|" + "baggle_");
+    assertThat(splits.size(), is(0));
+  }
 }

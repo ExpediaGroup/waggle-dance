@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,36 @@ public class ASTQueryMappingTest {
 
     assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
         is("SELECT " + PREFIX + "db1.myFunction()"));
+  }
+
+  @Test
+  public void transformOutboundDatabaseNameOnFunctionNoDbName() {
+    ASTQueryMapping queryMapping = ASTQueryMapping.INSTANCE;
+
+    String query = "CREATE VIEW test_view AS SELECT a.c1 FROM (SELECT fun(),1) a";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("CREATE VIEW test_view AS SELECT a.c1 FROM (SELECT fun(),1) a"));
+
+    query = "CREATE VIEW db1.test_view AS SELECT a.c1 FROM (SELECT fun(), db.fun2()) a";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("CREATE VIEW " + PREFIX + "db1.test_view AS SELECT a.c1 FROM " +
+                    "(SELECT fun(), " + PREFIX +"db.fun2()) a"));
+
+    query = "SELECT hellobdp() as q union all SELECT hellobdp() as qq where false";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT hellobdp() as q union all SELECT hellobdp() as qq where false"));
+
+    query = "SELECT hellobdp() as q union all SELECT db1.hellobdp() as qq where false";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT hellobdp() as q union all SELECT " + PREFIX + "db1.hellobdp() as qq where false"));
+
+    query = "SELECT COALESCE(db1.hellobdp(`table1.id`, 1)) where false";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT COALESCE(" + PREFIX + "db1.hellobdp(`table1.id`, 1)) where false"));
+
+    query = "SELECT COALESCE(db1.hellobdp(`db2.fun2`(`table1.id`), 1)) where false";
+    assertThat(queryMapping.transformOutboundDatabaseName(metaStoreMapping, query),
+        is("SELECT COALESCE(" + PREFIX + "db1.hellobdp(`" + PREFIX + "db2.fun2`(`table1.id`), 1)) where false"));
   }
 
   @Test

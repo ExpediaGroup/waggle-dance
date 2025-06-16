@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.TableMeta;
 import org.apache.logging.log4j.util.Strings;
-
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -63,8 +63,10 @@ import com.hotels.bdp.waggledance.mapping.service.requests.GetAllDatabasesReques
 import com.hotels.bdp.waggledance.server.NoPrimaryMetastoreException;
 import com.hotels.bdp.waggledance.util.AllowList;
 
-@Log4j2
 public class PrefixBasedDatabaseMappingService implements MappingEventListener {
+  
+  private static final Logger log = LoggerFactory.getLogger(PrefixBasedDatabaseMappingService.class);
+  
   private static final String EMPTY_PREFIX = "";
   private final MetaStoreMappingFactory metaStoreMappingFactory;
   private final QueryMapping queryMapping;
@@ -95,11 +97,6 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
     if (metaStore.getFederationType() == PRIMARY) {
       primaryDatabaseMapping = databaseMapping;
-      if (!metaStoreMapping.isAvailable()) {
-        throw new WaggleDanceException(
-                String.format("Primary metastore is unavailable %s", metaStore.getRemoteMetaStoreUris())
-        );
-      }
     }
 
     mappingsByPrefix.put(metaStoreMapping.getDatabasePrefix(), databaseMapping);
@@ -181,14 +178,8 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     return (metaStoreMapping != null) && metaStoreMapping.isAvailable();
   }
 
-  private boolean includeInResults(MetaStoreMapping metaStoreMapping, String prefixedDatabaseName) {
-    return includeInResults(metaStoreMapping)
-        && isDbAllowed(metaStoreMapping.getDatabasePrefix(),
-            metaStoreMapping.transformInboundDatabaseName(prefixedDatabaseName));
-  }
-
   @Override
-  public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
+  public DatabaseMapping databaseMapping(@NotNull String databaseName) {
     // Find a Metastore with a prefix
     synchronized (mappingsByPrefix) {
       for (Entry<String, DatabaseMapping> entry : mappingsByPrefix.entrySet()) {
@@ -196,9 +187,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
         if (Strings.isNotBlank(metastorePrefix) && databaseName.startsWith(metastorePrefix)) {
           DatabaseMapping databaseMapping = entry.getValue();
           log.debug("Database Name `{}` maps to metastore with prefix `{}`", databaseName, metastorePrefix);
-          if (includeInResults(databaseMapping, databaseName)) {
-            return databaseMapping;
-          }
+          return databaseMapping;
         }
       }
     }
@@ -206,18 +195,12 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
     DatabaseMapping databaseMapping = mappingsByPrefix.get(EMPTY_PREFIX);
     if (databaseMapping != null) {
       log.debug("Database Name `{}` maps to metastore with EMPTY_PREFIX", databaseName);
-      if (includeInResults(databaseMapping, databaseName)) {
-        return databaseMapping;
-      }
+      return databaseMapping;
     }
     if (primaryDatabaseMapping != null) {
       // If none found we fall back to primary one
-      if (includeInResults(primaryDatabaseMapping, databaseName)) {
-        log.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
-        return primaryDatabaseMapping;
-      }
-
-      throw new NoSuchObjectException("Primary metastore does not have database " + databaseName);
+      log.debug("Database Name `{}` maps to 'primary' metastore", databaseName);
+      return primaryDatabaseMapping;
     }
     log.debug("Database Name `{}` not mapped", databaseName);
     throw new NoPrimaryMetastoreException(
@@ -377,7 +360,7 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
 
       @Override
       public List<String> getAllDatabases() {
-        List<DatabaseMapping> databaseMappings = getAllDatabaseMappings();
+        List<DatabaseMapping> databaseMappings = getAvailableDatabaseMappings();
         List<GetAllDatabasesRequest> allRequests = new ArrayList<>();
 
         BiFunction<List<String>, DatabaseMapping, List<String>> filter = (

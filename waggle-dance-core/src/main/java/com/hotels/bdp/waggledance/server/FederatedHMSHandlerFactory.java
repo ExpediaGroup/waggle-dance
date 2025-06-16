@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,12 +42,12 @@ public class FederatedHMSHandlerFactory {
 
   @Autowired
   public FederatedHMSHandlerFactory(
-          HiveConf hiveConf,
-          NotifyingFederationService notifyingFederationService,
-          MetaStoreMappingFactory metaStoreMappingFactory,
-          WaggleDanceConfiguration waggleDanceConfiguration,
-          QueryMapping queryMapping,
-          SaslServerWrapper saslServerWrapper) {
+      HiveConf hiveConf,
+      NotifyingFederationService notifyingFederationService,
+      MetaStoreMappingFactory metaStoreMappingFactory,
+      WaggleDanceConfiguration waggleDanceConfiguration,
+      QueryMapping queryMapping,
+      SaslServerWrapper saslServerWrapper) {
     this.hiveConf = hiveConf;
     this.notifyingFederationService = notifyingFederationService;
     this.metaStoreMappingFactory = metaStoreMappingFactory;
@@ -60,8 +60,7 @@ public class FederatedHMSHandlerFactory {
     MappingEventListener service = createDatabaseMappingService();
     MonitoredDatabaseMappingService monitoredService = new MonitoredDatabaseMappingService(service);
 
-    CloseableIHMSHandler baseHandler = new FederatedHMSHandler(monitoredService,
-        notifyingFederationService,
+    CloseableIHMSHandler baseHandler = new FederatedHMSHandler(monitoredService, notifyingFederationService,
         waggleDanceConfiguration, saslServerWrapper);
     HiveConf conf = new HiveConf(hiveConf);
     baseHandler.setConf(conf);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
         } catch (Throwable t) {
           log
               .warn(
-                  "Unable to invoke compatibility for metastore client method {}. Will rethrow original exception, logging exception from invocation handler",
-                  method.getName(), t);
+                  "Unable to invoke compatibility for metastore client method "+method.getName()+". Will rethrow original exception, logging exception from invocation handler",
+                   t);
         }
         throw delegateException.getCause();
       }

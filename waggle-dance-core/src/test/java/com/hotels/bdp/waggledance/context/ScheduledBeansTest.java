@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2023 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,20 +26,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import lombok.extern.log4j.Log4j2;
 
 import com.hotels.bdp.waggledance.mapping.service.impl.PollingFederationService;
 import com.hotels.bdp.waggledance.metrics.MonitoringConfiguration;
 import com.hotels.bdp.waggledance.metrics.MonitoringConfigurationTestContext;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { MonitoringConfiguration.class, MonitoringConfigurationTestContext.class, ScheduledBeansTestContext.class, ScheduledBeans.class })
-@Log4j2
+@ContextConfiguration(classes = {
+    MonitoringConfiguration.class,
+    MonitoringConfigurationTestContext.class,
+    ScheduledBeansTestContext.class,
+    ScheduledBeans.class })
 public class ScheduledBeansTest {
+
+  private static Logger log = LoggerFactory.getLogger(ScheduledBeansTest.class);
 
   @Autowired
   private PollingFederationService pollingFederationService;

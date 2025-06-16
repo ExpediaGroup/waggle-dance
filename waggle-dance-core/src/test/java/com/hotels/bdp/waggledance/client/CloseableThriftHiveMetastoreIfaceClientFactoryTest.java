@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.hotels.bdp.waggledance.client;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.isA;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +45,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
 import com.hotels.bdp.waggledance.api.model.FederatedMetaStore;
+import com.hotels.bdp.waggledance.api.model.GlueConfig;
 import com.hotels.bdp.waggledance.api.model.PrimaryMetaStore;
+import com.hotels.bdp.waggledance.client.adapter.MetastoreIfaceAdapter;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
 import com.hotels.hcommon.hive.metastore.client.tunnelling.MetastoreTunnel;
@@ -57,8 +61,10 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   private CloseableThriftHiveMetastoreIfaceClientFactory factory;
   private @Mock TunnelingMetaStoreClientFactory tunnelingMetaStoreClientFactory;
   private @Mock DefaultMetaStoreClientFactory defaultMetaStoreClientFactory;
+  private @Mock GlueClientFactory glueClientFactory;
   private @Mock WaggleDanceConfiguration waggleDanceConfiguration;
   private final Map<String, String> configurationProperties = new HashMap<>();
+  private @Mock IMetaStoreClient glueClient;
   private @Mock SplitTrafficMetastoreClientFactory splitTrafficMetaStoreClientFactory;
 
   @Before
@@ -70,7 +76,7 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     configurationProperties.put(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL.varname, "false");
     when(waggleDanceConfiguration.getConfigurationProperties()).thenReturn(configurationProperties);
     factory = new CloseableThriftHiveMetastoreIfaceClientFactory(tunnelingMetaStoreClientFactory,
-        defaultMetaStoreClientFactory, waggleDanceConfiguration, splitTrafficMetaStoreClientFactory);
+        defaultMetaStoreClientFactory, glueClientFactory, waggleDanceConfiguration, splitTrafficMetaStoreClientFactory);
   }
 
   @Test
@@ -124,7 +130,35 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
     federatedMetaStore.setMetastoreTunnel(metastoreTunnel);
 
     factory.newInstance(federatedMetaStore);
-    verify(tunnelingMetaStoreClientFactory).newInstance(THRIFT_URI, metastoreTunnel, "fed1", 3, 2000, configurationProperties);
+    verify(tunnelingMetaStoreClientFactory)
+        .newInstance(THRIFT_URI, metastoreTunnel, "fed1", 3, 2000, configurationProperties);
     verifyNoInteractions(defaultMetaStoreClientFactory);
+  }
+
+  @Test
+  public void glueFactory() throws Exception {
+    ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
+    FederatedMetaStore federatedMetaStore = new FederatedMetaStore("fedGlue", null);
+    GlueConfig glueConfig = new GlueConfig();
+    String glueAccountId = "123456789012";
+    glueConfig.setGlueAccountId(glueAccountId);
+    String glueEndpoint = "glue.us-east-1.amazonaws.com";
+    glueConfig.setGlueEndpoint(glueEndpoint);
+    federatedMetaStore.setGlueConfig(glueConfig);
+
+    when(glueClientFactory.newInstance(hiveConfCaptor.capture(), eq(null))).thenReturn(glueClient);
+    CloseableThriftHiveMetastoreIface newInstance = factory.newInstance(federatedMetaStore);
+
+    assertThat(newInstance, isA(MetastoreIfaceAdapter.class));
+    verifyNoInteractions(tunnelingMetaStoreClientFactory, defaultMetaStoreClientFactory);
+    HiveConf hiveConf = hiveConfCaptor.getValue();
+    assertThat(hiveConf.get("hive.metastore.glue.catalogid"), is(glueAccountId));
+    assertThat(hiveConf.get("aws.glue.endpoint"), is(glueEndpoint));
+    assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(""));
+    assertThat(hiveConf.getIntVar(ConfVars.METASTORETHRIFTCONNECTIONRETRIES), is(5));
+    assertThat(hiveConf.getTimeVar(ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, TimeUnit.MILLISECONDS), is(6000L));
+    assertThat(hiveConf.getTimeVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY, TimeUnit.SECONDS), is(5L));
+    assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_FRAMED_TRANSPORT), is(true));
+    assertThat(hiveConf.getBoolVar(ConfVars.METASTORE_USE_THRIFT_COMPACT_PROTOCOL), is(false));
   }
 }
