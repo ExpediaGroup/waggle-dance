@@ -22,6 +22,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 
+import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.junit.Before;
@@ -92,6 +94,45 @@ public class MonitoredAspectTest {
     assertThat(rs.counter().count(), is(1.0));
 
     rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.failure");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
+    assertThat(rs.timer().count(), is(1L));
+  }
+  
+  @Test
+  public void monitorSuccessOnNoSuchObjectException() throws Throwable {
+    when(pjp.proceed()).thenThrow(new NoSuchObjectException());
+    try {
+      aspect.monitor(pjp, monitored);
+    } catch (NoSuchObjectException e) {
+      // Expected
+    }
+
+    RequiredSearch rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.calls");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.success");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
+    assertThat(rs.timer().count(), is(1L));
+  }
+  
+  
+  @Test
+  public void monitorSuccessOnInvalidOperationException() throws Throwable {
+    when(pjp.proceed()).thenThrow(new InvalidOperationException());
+    try {
+      aspect.monitor(pjp, monitored);
+    } catch (InvalidOperationException e) {
+      // Expected
+    }
+
+    RequiredSearch rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.calls");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.success");
     assertThat(rs.counter().count(), is(1.0));
 
     rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
