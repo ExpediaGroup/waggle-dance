@@ -35,7 +35,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
   private static class ThriftMetaStoreClientInvocationHandler implements InvocationHandler {
 
     private final ThriftHiveMetastore.Client delegate;
-    private final HiveThriftMetaStoreIfaceCompatibility compatibility;
+    private final HiveThriftMetaStoreIfaceCompatibility1xx compatibility;
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -60,7 +60,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
         } catch (NoSuchMethodException e) {
           log
               .debug(
-                  "Compatibility layer has no such method '" + method.getName() + "'. Will rethrow original exception");
+                  "Compatibility layer has no such method '" + method.getName() + "'. Will rethrow original exception", e);
         } catch (Throwable t) {
           log
               .warn("Unable to invoke compatibility for metastore client method "
@@ -91,13 +91,13 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(ThriftHiveMetastore.Client delegate) {
-    HiveThriftMetaStoreIfaceCompatibility compatibility = new HiveThriftMetaStoreIfaceCompatibility1xx(delegate);
+    HiveThriftMetaStoreIfaceCompatiblity compatibility = new HMSCompatiblityImpl(delegate);
     return newInstance(delegate, compatibility);
   }
 
   private CloseableThriftHiveMetastoreIface newInstance(
       ThriftHiveMetastore.Client delegate,
-      HiveThriftMetaStoreIfaceCompatibility compatibility) {
+      HiveThriftMetaStoreIfaceCompatiblity compatibility) {
     ClassLoader classLoader = CloseableThriftHiveMetastoreIface.class.getClassLoader();
     Class<?>[] interfaces = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
     ThriftMetaStoreClientInvocationHandler handler = new ThriftMetaStoreClientInvocationHandler(delegate,
