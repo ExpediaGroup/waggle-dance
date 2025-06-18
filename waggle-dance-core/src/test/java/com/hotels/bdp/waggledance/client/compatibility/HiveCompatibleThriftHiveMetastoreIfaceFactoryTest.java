@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
+import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
@@ -140,7 +141,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
     try {
       thriftHiveMetastoreIface.get_table_req(tableRequest);
       fail("exception should have been thrown");
-    } catch (TException e) {
+    } catch (NoSuchObjectException e) {
       assertThat(e, is(cause));
       verify(delegate, never()).get_table(DB_NAME, TABLE_NAME);
     }
@@ -164,6 +165,18 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
     ForeignKeysResponse foreignKeysResponse = thriftHiveMetastoreIface.get_foreign_keys(foreignKeysRequest);
     assertThat(foreignKeysResponse, is(new ForeignKeysResponse(Collections.emptyList())));
     verify(delegate).get_table(DB_NAME, TABLE_NAME);
+  }
+  
+  @Test
+  public void noSuchMethodInCompatibilityLayerHandling() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    when(delegate.get_database(DB_NAME)).thenThrow(new TApplicationException("Error"));
+    try {
+      thriftHiveMetastoreIface.get_database(DB_NAME);
+      fail("exception should have been thrown");
+    } catch (TApplicationException e) {
+      assertThat(e.getMessage(), is("Error"));
+    }
   }
 
 }

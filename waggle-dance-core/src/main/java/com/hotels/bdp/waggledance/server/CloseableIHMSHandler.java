@@ -17,8 +17,9 @@ package com.hotels.bdp.waggledance.server;
 
 import java.io.Closeable;
 
-import org.apache.hadoop.hive.metastore.IHMSHandler;
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 
-public interface CloseableIHMSHandler extends IHMSHandler, Closeable {
-
+public interface CloseableIHMSHandler extends ThriftHiveMetastore.Iface, Configurable, Closeable {
+  
 }

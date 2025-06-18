@@ -63,11 +63,11 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
         } catch (TException e) {
           throw new RuntimeException("Error creating TProcessor. Could not get status.", e);
         }
-        IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
+        CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
         transportMonitor.monitor(transport, baseHandler);
         return new TSetIpAddressProcessor<>(handler);
       } else {
-        IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
+        CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
         transportMonitor.monitor(transport, baseHandler);
         return new TSetIpAddressProcessor<>(handler);
       }
