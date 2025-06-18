@@ -20,6 +20,8 @@ import static com.hotels.bdp.waggledance.metrics.CurrentMonitoredMetaStoreHolder
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -64,10 +66,10 @@ public class MonitoredAspect {
       Object returnObj = pjp.proceed();
       result = "success";
       return returnObj;
-    } catch (NoSuchObjectException | InvalidOperationException t) {
+    } catch (NoSuchObjectException | InvalidOperationException | InvalidObjectException | AlreadyExistsException e) {
       //expected Exception e.g. when getTable is called and the table does not exist.
       result = "success";
-      throw t;
+      throw e;
     } catch (Throwable t) {
       result = "failure";
       throw t;
