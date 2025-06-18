@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2024 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
-import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
@@ -37,7 +36,6 @@ import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Client;
 import org.apache.thrift.TApplicationException;
-import org.apache.thrift.TException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

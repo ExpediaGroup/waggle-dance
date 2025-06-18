@@ -1,5 +1,5 @@
 
-## [4.0.1] - TBD
+## [4.0.1] - 2025-06-27
 ### Fix
 - Fixed issue where a call to an unavailable metastore got redirected to "primary" which results in NoSuchObjectException instead of TException causing clients to not retry. 
 - Fixed unnecessary function prefix on parameterized functions. [#344](https://github.com/ExpediaGroup/waggle-dance/pull/344)

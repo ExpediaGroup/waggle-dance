@@ -59,9 +59,8 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
           }
         } catch (NoSuchMethodException e) {
           log
-              .debug("Compatibility layer has no such method '"
-                  + method.getName()
-                  + "'. Will rethrow original exception");
+              .debug(
+                  "Compatibility layer has no such method '" + method.getName() + "'. Will rethrow original exception");
         } catch (Throwable t) {
           log
               .warn("Unable to invoke compatibility for metastore client method "
