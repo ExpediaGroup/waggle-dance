@@ -15,7 +15,8 @@
  */
 package com.hotels.bdp.waggledance.client.compatibility;
 
-import java.util.Collections;
+import static java.util.Collections.emptyList;
+
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.api.AddCheckConstraintRequest;
@@ -108,7 +109,7 @@ public class HMSCompatiblityImpl implements HiveThriftMetaStoreIfaceCompatiblity
     // making sure the table exists
     client.get_table(request.getDb_name(), request.getTbl_name());
     // get_primary_keys is not supported in hive < 2.1 so just returning empty list.
-    return new PrimaryKeysResponse(Collections.emptyList());
+    return new PrimaryKeysResponse(emptyList());
   }
 
   /*
@@ -123,7 +124,7 @@ public class HMSCompatiblityImpl implements HiveThriftMetaStoreIfaceCompatiblity
     // making sure the table exists
     client.get_table(request.getForeign_db_name(), request.getForeign_tbl_name());
     // get_foreign_keys is not supported in hive < 2.1 so just returning empty list.
-    return new ForeignKeysResponse(Collections.emptyList());
+    return new ForeignKeysResponse(emptyList());
   }
 
   // Hive 2 Methods end #########################
@@ -145,10 +146,11 @@ public class HMSCompatiblityImpl implements HiveThriftMetaStoreIfaceCompatiblity
 
   @Override
   public void truncate_table(String dbName, String tableName, List<String> partNames) throws MetaException, TException {
+    // partNames null/empty means truncate whole table/all partitions
     if (partNames == null || partNames.isEmpty()) {
       client.drop_table(dbName, tableName, false);
     } else {
-      client.drop_partition(dbName, dbName, partNames, false);
+      client.drop_partition(dbName, tableName, partNames, false);
     }
   }
 
@@ -179,25 +181,25 @@ public class HMSCompatiblityImpl implements HiveThriftMetaStoreIfaceCompatiblity
   @Override
   public UniqueConstraintsResponse get_unique_constraints(UniqueConstraintsRequest uniqueConstraintsRequest)
     throws MetaException, NoSuchObjectException, TException {
-    return new UniqueConstraintsResponse(Collections.emptyList());
+    return new UniqueConstraintsResponse(emptyList());
   }
 
   @Override
   public NotNullConstraintsResponse get_not_null_constraints(NotNullConstraintsRequest notNullConstraintsRequest)
     throws MetaException, NoSuchObjectException, TException {
-    return new NotNullConstraintsResponse(Collections.emptyList());
+    return new NotNullConstraintsResponse(emptyList());
   }
 
   @Override
   public DefaultConstraintsResponse get_default_constraints(DefaultConstraintsRequest defaultConstraintsRequest)
     throws MetaException, NoSuchObjectException, TException {
-    return new DefaultConstraintsResponse(Collections.emptyList());
+    return new DefaultConstraintsResponse(emptyList());
   }
 
   @Override
   public CheckConstraintsResponse get_check_constraints(CheckConstraintsRequest checkConstraintsRequest)
     throws MetaException, NoSuchObjectException, TException {
-    return new CheckConstraintsResponse(Collections.emptyList());
+    return new CheckConstraintsResponse(emptyList());
   }
 
   /**

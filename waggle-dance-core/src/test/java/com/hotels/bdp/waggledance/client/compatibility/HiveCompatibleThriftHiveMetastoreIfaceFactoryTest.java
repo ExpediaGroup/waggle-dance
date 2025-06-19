@@ -15,6 +15,7 @@
  */
 package com.hotels.bdp.waggledance.client.compatibility;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,9 +26,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.api.AddCheckConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.AddDefaultConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.AddNotNullConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.AddUniqueConstraintRequest;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.CheckConstraintsResponse;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.DefaultConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysRequest;
 import org.apache.hadoop.hive.metastore.api.ForeignKeysResponse;
 import org.apache.hadoop.hive.metastore.api.GetTableRequest;
@@ -35,6 +43,8 @@ import org.apache.hadoop.hive.metastore.api.GetTableResult;
 import org.apache.hadoop.hive.metastore.api.GetTablesRequest;
 import org.apache.hadoop.hive.metastore.api.GetTablesResult;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.NotNullConstraintsResponse;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysRequest;
 import org.apache.hadoop.hive.metastore.api.PrimaryKeysResponse;
 import org.apache.hadoop.hive.metastore.api.SQLCheckConstraint;
@@ -45,6 +55,8 @@ import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
 import org.apache.hadoop.hive.metastore.api.SQLUniqueConstraint;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Client;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsRequest;
+import org.apache.hadoop.hive.metastore.api.UniqueConstraintsResponse;
 import org.apache.thrift.TApplicationException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,7 +78,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   private final Table table = new Table(DB_NAME, TABLE_NAME, "", 0, 0, 0, null, null, null, "", "", "");
 
   @Test
- public void get_table_req() throws Exception {
+  public void get_table_req() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     GetTableRequest tableRequest = new GetTableRequest(DB_NAME, TABLE_NAME);
     when(delegate.get_table_req(tableRequest)).thenThrow(new TApplicationException("Error"));
@@ -76,7 +88,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
- public void get_table_objects_by_name_req() throws Exception {
+  public void get_table_objects_by_name_req() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     GetTablesRequest tablesRequest = new GetTablesRequest(DB_NAME);
     tablesRequest.addToTblNames(TABLE_NAME);
@@ -88,7 +100,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
- public void normalGetTableCallWorks() throws Exception {
+  public void normalGetTableCallWorks() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     when(delegate.get_table(DB_NAME, TABLE_NAME)).thenReturn(table);
     Table tableResult = thriftHiveMetastoreIface.get_table(DB_NAME, TABLE_NAME);
@@ -96,7 +108,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
- public void underlyingExceptionIsThrownWhenCompatibilityFails() throws Exception {
+  public void underlyingExceptionIsThrownWhenCompatibilityFails() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     TApplicationException cause = new TApplicationException("CAUSE");
     when(delegate.get_all_databases()).thenThrow(cause);
@@ -109,7 +121,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
- public void compatibilityExceptionIsThrownWhenCompatibilityFailsOnTException() throws Exception {
+  public void compatibilityExceptionIsThrownWhenCompatibilityFailsOnTException() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     GetTableRequest tableRequest = new GetTableRequest(DB_NAME, TABLE_NAME);
     when(delegate.get_table_req(tableRequest))
@@ -125,7 +137,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
- public void underlyingyExceptionIsThrownWhenCompatibilityFailsOnTApplication() throws Exception {
+  public void underlyingyExceptionIsThrownWhenCompatibilityFailsOnTApplication() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     GetTableRequest tableRequest = new GetTableRequest(DB_NAME, TABLE_NAME);
     TApplicationException cause = new TApplicationException("Should be thrown");
@@ -141,7 +153,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
- public void nonTApplicationExceptionsAreThrown() throws Exception {
+  public void nonTApplicationExceptionsAreThrown() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     GetTableRequest tableRequest = new GetTableRequest(DB_NAME, TABLE_NAME);
     NoSuchObjectException cause = new NoSuchObjectException("Normal Error nothing to do with compatibility");
@@ -156,7 +168,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
- public void get_primary_keys() throws Exception {
+  public void get_primary_keys() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     PrimaryKeysRequest primaryKeysRequest = new PrimaryKeysRequest(DB_NAME, TABLE_NAME);
     when(delegate.get_primary_keys(primaryKeysRequest)).thenThrow(new TApplicationException("Error"));
@@ -166,7 +178,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
- public void get_foreign_keys() throws Exception {
+  public void get_foreign_keys() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     ForeignKeysRequest foreignKeysRequest = new ForeignKeysRequest(null, null, DB_NAME, TABLE_NAME);
     when(delegate.get_foreign_keys(foreignKeysRequest)).thenThrow(new TApplicationException("Error"));
@@ -176,7 +188,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
- public void noSuchMethodInCompatibilityLayerHandling() throws Exception {
+  public void noSuchMethodInCompatibilityLayerHandling() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     when(delegate.get_database(DB_NAME)).thenThrow(new TApplicationException("Error"));
     try {
@@ -192,11 +204,11 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   public void create_table_with_constraints() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     List<SQLPrimaryKey> primaryKeys = new ArrayList<>();
-    List<SQLForeignKey> foreignKeys = Collections.<SQLForeignKey>emptyList();
-    List<SQLUniqueConstraint> uniqueConstraints = Collections.<SQLUniqueConstraint>emptyList();
-    List<SQLNotNullConstraint> notNullConstraints = Collections.<SQLNotNullConstraint>emptyList();
-    List<SQLDefaultConstraint> defaultConstraints = Collections.<SQLDefaultConstraint>emptyList();
-    List<SQLCheckConstraint> checkConstraints = Collections.<SQLCheckConstraint>emptyList();
+    List<SQLForeignKey> foreignKeys = emptyList();
+    List<SQLUniqueConstraint> uniqueConstraints = emptyList();
+    List<SQLNotNullConstraint> notNullConstraints = emptyList();
+    List<SQLDefaultConstraint> defaultConstraints = emptyList();
+    List<SQLCheckConstraint> checkConstraints = emptyList();
     doThrow(new TApplicationException("Error"))
         .when(delegate)
         .create_table_with_constraints(table, primaryKeys, foreignKeys, uniqueConstraints, notNullConstraints,
@@ -207,47 +219,118 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
     verify(delegate).create_table(table);
   }
 
-//TODO  @Test
-// public void truncate_table() {
-//
-//  }
-//
-//  @Test
-// public void add_unique_constraint() {
-//
-//  }
-//
-//  @Test
-// public void add_not_null_constraint() {
-//
-//  }
-//
-//  @Test
-// public void add_default_constraint() {
-//
-//  }
-//
-//  @Test
-// public void add_check_constraint() {
-//
-//  }
-//
-//  @Test
-// public void get_unique_constraints() {
-//
-//  }
-//
-//  @Test
-// public void get_not_null_constraints() {
-//
-//  }
-//
-//  @Test
-// public void get_default_constraints() {}
-//
-//  @Test
-// public void get_check_constraints() {
-//
-//  }
+  @Test
+  public void truncate_table() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    doThrow(new TApplicationException("Error")).when(delegate).truncate_table(DB_NAME, TABLE_NAME, null);
+    thriftHiveMetastoreIface.truncate_table(DB_NAME, TABLE_NAME, null);
+    verify(delegate).drop_table(DB_NAME, TABLE_NAME, false);
+  }
+
+  @Test
+  public void truncate_tableEmptyPartNames() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    List<String> partNames = emptyList();
+    doThrow(new TApplicationException("Error")).when(delegate).truncate_table(DB_NAME, TABLE_NAME, partNames);
+    thriftHiveMetastoreIface.truncate_table(DB_NAME, TABLE_NAME, partNames);
+    verify(delegate).drop_table(DB_NAME, TABLE_NAME, false);
+  }
+
+  @Test
+  public void truncate_table_part_names() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    List<String> partNames = asList("year=2023");
+    doThrow(new TApplicationException("Error")).when(delegate).truncate_table(DB_NAME, TABLE_NAME, partNames);
+    thriftHiveMetastoreIface.truncate_table(DB_NAME, TABLE_NAME, partNames);
+    verify(delegate).drop_partition(DB_NAME, TABLE_NAME, partNames, false);
+  }
+
+  @Test
+  public void add_unique_constraint() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    AddUniqueConstraintRequest req = new AddUniqueConstraintRequest();
+    doThrow(new TApplicationException("Error")).when(delegate).add_unique_constraint(req);
+    try {
+      thriftHiveMetastoreIface.add_unique_constraint(req);
+    } catch (Exception e) {
+      fail("Should not throw exception");
+    }
+  }
+
+  @Test
+  public void add_not_null_constraint() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    AddNotNullConstraintRequest req = new AddNotNullConstraintRequest();
+    doThrow(new TApplicationException("Error")).when(delegate).add_not_null_constraint(req);
+    try {
+      thriftHiveMetastoreIface.add_not_null_constraint(req);
+    } catch (Exception e) {
+      fail("Should not throw exception");
+    }
+  }
+
+  @Test
+  public void add_default_constraint() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    AddDefaultConstraintRequest req = new AddDefaultConstraintRequest();
+    doThrow(new TApplicationException("Error")).when(delegate).add_default_constraint(req);
+    try {
+      thriftHiveMetastoreIface.add_default_constraint(req);
+    } catch (Exception e) {
+      fail("Should not throw exception");
+    }
+  }
+
+  @Test
+  public void add_check_constraint() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    AddCheckConstraintRequest req = new AddCheckConstraintRequest();
+    doThrow(new TApplicationException("Error")).when(delegate).add_check_constraint(req);
+    try {
+      thriftHiveMetastoreIface.add_check_constraint(req);
+    } catch (Exception e) {
+      fail("Should not throw exception");
+    }
+  }
+
+  @Test
+  public void get_unique_constraints() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    UniqueConstraintsRequest req = new UniqueConstraintsRequest();
+    doThrow(new TApplicationException("Error")).when(delegate).get_unique_constraints(req);
+    UniqueConstraintsResponse response = thriftHiveMetastoreIface.get_unique_constraints(req);
+    UniqueConstraintsResponse emptyResponse = new UniqueConstraintsResponse(emptyList());
+    assertThat(response, is(emptyResponse));
+  }
+
+  @Test
+  public void get_not_null_constraints() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    NotNullConstraintsRequest req = new NotNullConstraintsRequest();
+    doThrow(new TApplicationException("Error")).when(delegate).get_not_null_constraints(req);
+    NotNullConstraintsResponse response = thriftHiveMetastoreIface.get_not_null_constraints(req);
+    NotNullConstraintsResponse emptyResponse = new NotNullConstraintsResponse(emptyList());
+    assertThat(response, is(emptyResponse));
+  }
+
+  @Test
+  public void get_default_constraints() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    DefaultConstraintsRequest req = new DefaultConstraintsRequest();
+    doThrow(new TApplicationException("Error")).when(delegate).get_default_constraints(req);
+    DefaultConstraintsResponse response = thriftHiveMetastoreIface.get_default_constraints(req);
+    DefaultConstraintsResponse emptyResponse = new DefaultConstraintsResponse(emptyList());
+    assertThat(response, is(emptyResponse));
+  }
+
+  @Test
+  public void get_check_constraints() throws Exception {
+    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
+    CheckConstraintsRequest req = new CheckConstraintsRequest();
+    doThrow(new TApplicationException("Error")).when(delegate).get_check_constraints(req);
+    CheckConstraintsResponse response = thriftHiveMetastoreIface.get_check_constraints(req);
+    CheckConstraintsResponse emptyResponse = new CheckConstraintsResponse(emptyList());
+    assertThat(response, is(emptyResponse));
+  }
 
 }
