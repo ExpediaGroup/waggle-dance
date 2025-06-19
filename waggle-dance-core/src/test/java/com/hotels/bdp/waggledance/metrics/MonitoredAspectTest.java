@@ -22,6 +22,11 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 
+import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
+import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.thrift.TException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.junit.Before;
@@ -92,6 +97,45 @@ public class MonitoredAspectTest {
     assertThat(rs.counter().count(), is(1.0));
 
     rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.failure");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");
+    assertThat(rs.timer().count(), is(1L));
+  }
+  
+  @Test
+  public void monitorSuccessOnNoSuchObjectException() throws Throwable {
+    testOnExpectedException(new NoSuchObjectException());
+  }
+
+  @Test
+  public void monitorSuccessOnInvalidObjectException() throws Throwable {
+    testOnExpectedException(new InvalidObjectException());
+  }
+
+  @Test
+  public void monitorSuccessOnInvalidOperationException() throws Throwable {
+    testOnExpectedException(new InvalidOperationException());
+  }
+
+  @Test
+  public void monitorSuccessOnAlreadyExistsException() throws Throwable {
+    testOnExpectedException(new AlreadyExistsException());
+  }
+  
+  private void testOnExpectedException(TException expectedException) throws Throwable {
+    when(pjp.proceed()).thenThrow(expectedException);
+    try {
+      aspect.monitor(pjp, monitored);
+    } catch (Exception e) {
+      assertThat(e, is(expectedException));
+      // Expected
+    }
+
+    RequiredSearch rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.calls");
+    assertThat(rs.counter().count(), is(1.0));
+
+    rs = meterRegistry.get("counter.Type_Anonymous.myMethod.all.success");
     assertThat(rs.counter().count(), is(1.0));
 
     rs = meterRegistry.get("timer.Type_Anonymous.myMethod.all.duration");

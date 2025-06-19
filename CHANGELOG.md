@@ -1,4 +1,8 @@
 
+## [4.0.2] - TBD
+### Fix
+- Fixed metric reporting failed calls on expected exceptions.
+
 ## [4.0.1] - 2025-06-27
 ### Fix
 - Fixed issue where a call to an unavailable metastore got redirected to "primary" which results in NoSuchObjectException instead of TException causing clients to not retry. 
