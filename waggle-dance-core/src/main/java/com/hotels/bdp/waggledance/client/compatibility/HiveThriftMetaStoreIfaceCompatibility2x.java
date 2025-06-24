@@ -44,8 +44,6 @@ public interface HiveThriftMetaStoreIfaceCompatibility2x {
       List<SQLCheckConstraint> checkConstraints)
     throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException;
 
-  void truncate_table(String dbName, String tableName, List<String> partNames) throws MetaException, TException;
-
   void add_unique_constraint(AddUniqueConstraintRequest addUniqueConstraintRequest)
     throws NoSuchObjectException, MetaException, TException;
 

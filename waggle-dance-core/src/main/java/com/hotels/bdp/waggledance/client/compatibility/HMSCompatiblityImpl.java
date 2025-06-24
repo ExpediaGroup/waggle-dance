@@ -145,16 +145,6 @@ public class HMSCompatiblityImpl implements HiveThriftMetaStoreIfaceCompatiblity
   }
 
   @Override
-  public void truncate_table(String dbName, String tableName, List<String> partNames) throws MetaException, TException {
-    // partNames null/empty means truncate whole table/all partitions
-    if (partNames == null || partNames.isEmpty()) {
-      client.drop_table(dbName, tableName, false);
-    } else {
-      client.drop_partition(dbName, tableName, partNames, false);
-    }
-  }
-
-  @Override
   public void add_unique_constraint(AddUniqueConstraintRequest addUniqueConstraintRequest)
     throws NoSuchObjectException, MetaException, TException {
     // empty don't do anything

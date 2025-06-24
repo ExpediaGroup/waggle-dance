@@ -222,32 +222,6 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
   }
 
   @Test
-  public void truncate_table() throws Exception {
-    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
-    doThrow(new TApplicationException("Error")).when(delegate).truncate_table(DB_NAME, TABLE_NAME, null);
-    thriftHiveMetastoreIface.truncate_table(DB_NAME, TABLE_NAME, null);
-    verify(delegate).drop_table(DB_NAME, TABLE_NAME, false);
-  }
-
-  @Test
-  public void truncate_tableEmptyPartNames() throws Exception {
-    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
-    List<String> partNames = emptyList();
-    doThrow(new TApplicationException("Error")).when(delegate).truncate_table(DB_NAME, TABLE_NAME, partNames);
-    thriftHiveMetastoreIface.truncate_table(DB_NAME, TABLE_NAME, partNames);
-    verify(delegate).drop_table(DB_NAME, TABLE_NAME, false);
-  }
-
-  @Test
-  public void truncate_table_part_names() throws Exception {
-    CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
-    List<String> partNames = asList("year=2023");
-    doThrow(new TApplicationException("Error")).when(delegate).truncate_table(DB_NAME, TABLE_NAME, partNames);
-    thriftHiveMetastoreIface.truncate_table(DB_NAME, TABLE_NAME, partNames);
-    verify(delegate).drop_partition(DB_NAME, TABLE_NAME, partNames, false);
-  }
-
-  @Test
   public void add_unique_constraint() throws Exception {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     AddUniqueConstraintRequest req = new AddUniqueConstraintRequest();
