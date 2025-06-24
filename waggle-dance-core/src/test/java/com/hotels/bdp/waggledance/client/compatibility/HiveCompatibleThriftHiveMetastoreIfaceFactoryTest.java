@@ -192,9 +192,11 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactoryTest {
     CloseableThriftHiveMetastoreIface thriftHiveMetastoreIface = factory.newInstance(delegate);
     when(delegate.get_database(DB_NAME)).thenThrow(new TApplicationException("Error"));
     try {
+      // get_database doesn't exist in compatibility layer
       thriftHiveMetastoreIface.get_database(DB_NAME);
       fail("exception should have been thrown");
     } catch (TApplicationException e) {
+      //get original TApplicationException back.
       assertThat(e.getMessage(), is("Error"));
     }
   }

@@ -32,7 +32,7 @@ import org.apache.thrift.TException;
  * This interface contains methods that are missing from Hive 2.x.x but added in Hive 3.x.x
  * https://github.com/apache/hive/blob/rel/release-3.1.3/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/IMetaStoreClient.java
  */
-public interface HiveThriftMetaStoreIfaceCompatibility2xx {
+public interface HiveThriftMetaStoreIfaceCompatibility2x {
 
   void create_table_with_constraints(
       Table tbl,

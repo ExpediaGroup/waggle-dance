@@ -35,7 +35,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
   private static class ThriftMetaStoreClientInvocationHandler implements InvocationHandler {
 
     private final ThriftHiveMetastore.Client delegate;
-    private final HiveThriftMetaStoreIfaceCompatibility1xx compatibility;
+    private final HiveThriftMetaStoreIfaceCompatibility1x compatibility;
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

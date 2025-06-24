@@ -1,5 +1,7 @@
 
 ## [4.0.2] - TBD
+### Added
+- Added compatibility layer from WD to HMS 2 metastores. Implements a small subset of missing HMS3 methods to provide capabilities to use both HMS versions through WD. This is not a full compatible solution just a pragmatic way of making it easier to transition.
 ### Fix
 - Fixed metric reporting failed calls on expected exceptions.
 

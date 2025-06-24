@@ -32,7 +32,7 @@ import org.apache.thrift.TException;
 /**
  * This interface contains methods that are missing from Hive 1.x.x but added in later version of Hive
  */
-public interface HiveThriftMetaStoreIfaceCompatibility1xx {
+public interface HiveThriftMetaStoreIfaceCompatibility1x {
 
   /*
    * https://hive.apache.org/javadocs/r2.3.3/api/org/apache/hadoop/hive/metastore/api/ThriftHiveMetastore.Client.html#
