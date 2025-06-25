@@ -196,7 +196,10 @@ public class HMSCompatiblityImpl implements HiveThriftMetaStoreIfaceCompatiblity
    * Hive 3.x.x added methods that we don't implement in the compatibility layer. Leaving them here for potential future
    * fixes.
    */
-
+  // public void truncate_table(String dbName, String tableName, List<String> partNames) throws MetaException, TException {
+  // 
+  // }
+  //
   // public void create_catalog(CreateCatalogRequest createCatalogRequest)
   // throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
   //
