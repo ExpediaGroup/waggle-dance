@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.client.compatibility;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;

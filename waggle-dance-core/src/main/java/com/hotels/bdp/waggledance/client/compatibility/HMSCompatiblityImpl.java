@@ -63,7 +63,7 @@ import lombok.AllArgsConstructor;
  * 
  */
 @AllArgsConstructor
-public class HMSCompatiblityImpl implements HiveThriftMetaStoreIfaceCompatiblity {
+public class HMSCompatiblityImpl implements HiveThriftMetaStoreIfaceCompatibility {
 
   private final ThriftHiveMetastore.Client client;
 

@@ -35,7 +35,7 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
   private static class ThriftMetaStoreClientInvocationHandler implements InvocationHandler {
 
     private final ThriftHiveMetastore.Client delegate;
-    private final HiveThriftMetaStoreIfaceCompatibility1x compatibility;
+    private final HiveThriftMetaStoreIfaceCompatibility compatibility;
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -80,13 +80,13 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(ThriftHiveMetastore.Client delegate) {
-    HiveThriftMetaStoreIfaceCompatiblity compatibility = new HMSCompatiblityImpl(delegate);
+    HiveThriftMetaStoreIfaceCompatibility compatibility = new HMSCompatiblityImpl(delegate);
     return newInstance(delegate, compatibility);
   }
 
   private CloseableThriftHiveMetastoreIface newInstance(
       ThriftHiveMetastore.Client delegate,
-      HiveThriftMetaStoreIfaceCompatiblity compatibility) {
+      HiveThriftMetaStoreIfaceCompatibility compatibility) {
     ClassLoader classLoader = CloseableThriftHiveMetastoreIface.class.getClassLoader();
     Class<?>[] interfaces = new Class<?>[] { CloseableThriftHiveMetastoreIface.class };
     ThriftMetaStoreClientInvocationHandler handler = new ThriftMetaStoreClientInvocationHandler(delegate,
