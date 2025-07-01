@@ -61,11 +61,6 @@ public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
     return tableMetas;
   }
 
- /* @Override
-  public List<String> filterTableNames(String dbName, List<String> tableList) throws MetaException {
-    return tableList;
-  }*/
-
   @Override
   public Table filterTable(Table table) throws MetaException, NoSuchObjectException {
     setLocationPrefix(table);
@@ -108,30 +103,6 @@ public class PrefixingMetastoreFilter implements MetaStoreFilterHook {
     return partitionNames;
   }
 
-/*  @Override
-  public List<String> filterPartitionNames(String dbName, String tblName,
-      List<String> partitionNames) throws MetaException {
-    return partitionNames;
-  }
-
-  @Override
-  public ISchema filterIndex(ISchema iSchema) throws MetaException, NoSuchObjectException {
-    setLocationPrefix(iSchema.getSd());
-    return iSchema;
-  }
-
-  @Override
-  public List<String> filterIndexNames(String dbName, String tblName, List<String> indexList) throws MetaException {
-    return indexList;
-  }
-
-  @Override
-  public List<ISchema> filterIndexes(List<ISchema> iSchemaList) throws MetaException {
-    for (ISchema iSchema: iSchemaList) {
-      setLocationPrefix(iSchema.getSd());
-    }
-    return iSchemaList;
-  }*/
 
   private void setLocationPrefix(Table table) {
     setLocationPrefix(table.getSd());

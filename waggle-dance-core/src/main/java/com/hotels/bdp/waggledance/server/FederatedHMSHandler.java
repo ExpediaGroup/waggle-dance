@@ -21,11 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hive.metastore.HiveMetaStore;
-import org.apache.hadoop.hive.metastore.MetaStoreEventListener;
-import org.apache.hadoop.hive.metastore.RawStore;
-import org.apache.hadoop.hive.metastore.TransactionalMetaStoreEventListener;
-import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.AbortTxnRequest;
 import org.apache.hadoop.hive.metastore.api.AbortTxnsRequest;
 import org.apache.hadoop.hive.metastore.api.AddCheckConstraintRequest;
@@ -213,11 +208,7 @@ import org.apache.hadoop.hive.metastore.api.WMGetTriggersForResourePlanRequest;
 import org.apache.hadoop.hive.metastore.api.WMGetTriggersForResourePlanResponse;
 import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanRequest;
 import org.apache.hadoop.hive.metastore.api.WMValidateResourcePlanResponse;
-import org.apache.hadoop.hive.metastore.conf.MetastoreConf;
 import org.apache.hadoop.hive.metastore.security.HadoopThriftAuthBridge;
-import org.apache.hadoop.hive.metastore.txn.TxnStore;
-import org.apache.hadoop.hive.metastore.txn.TxnUtils;
-import org.apache.hadoop.hive.metastore.utils.MetaStoreUtils;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1576,72 +1567,6 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     this.conf = conf;
   }
 
-  @Override
-  public void init() throws MetaException {}
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public int getThreadId() {
-    return HiveMetaStore.HMSHandler.get();
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public RawStore getMS() throws MetaException {
-    return HiveMetaStore.HMSHandler.getRawStore();
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public TxnStore getTxnHandler() {
-    return TxnUtils.getTxnStore(conf);
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public Warehouse getWh() {
-    try {
-      return new Warehouse(conf);
-    } catch (MetaException e) {
-      log.error("Error Instantiating Warehouse", e);
-      return null;
-    }
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public Database get_database_core(String catalogName, String name) throws NoSuchObjectException, MetaException {
-    return HiveMetaStore.HMSHandler.getRawStore().getDatabase(catalogName, name);
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public Table get_table_core(String catName, String dbName, String tableName) throws MetaException, NoSuchObjectException {
-    return HiveMetaStore.HMSHandler.getRawStore().getTable(catName, dbName, tableName);
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public List<TransactionalMetaStoreEventListener> getTransactionalListeners() {
-    try{
-      return MetaStoreUtils.getMetaStoreListeners(TransactionalMetaStoreEventListener.class, conf,
-              MetastoreConf.getVar(conf, MetastoreConf.ConfVars.TRANSACTIONAL_EVENT_LISTENERS));
-    } catch (MetaException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
-  public List<MetaStoreEventListener> getListeners() {
-    try{
-      return MetaStoreUtils.getMetaStoreListeners(MetaStoreEventListener.class, conf,
-              MetastoreConf.getVar(conf, MetastoreConf.ConfVars.EVENT_LISTENERS));
-    } catch (MetaException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   // Hive 2.1.0 methods
   @Override
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
@@ -2297,7 +2222,7 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   public void update_creation_metadata(String catName, String dbName, String tableName, CreationMetadata creationMetadata) throws MetaException, InvalidOperationException, UnknownDBException, TException {
     DatabaseMapping databaseMapping = getDbMappingAndCheckTableAllowed(dbName, tableName);
     databaseMapping.getClient().update_creation_metadata(catName, databaseMapping.transformInboundDatabaseName(dbName),
-            tableName, creationMetadata);
+        tableName, creationMetadata);
   }
 
   @Override

@@ -18,7 +18,6 @@ package com.hotels.bdp.waggledance.server;
 import java.net.Socket;
 
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.hive.metastore.TSetIpAddressProcessor;
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
@@ -63,11 +62,11 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
         } catch (TException e) {
           throw new RuntimeException("Error creating TProcessor. Could not get status.", e);
         }
-        IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
+        CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
         transportMonitor.monitor(transport, baseHandler);
         return new TSetIpAddressProcessor<>(handler);
       } else {
-        IHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
+        CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
         transportMonitor.monitor(transport, baseHandler);
         return new TSetIpAddressProcessor<>(handler);
       }

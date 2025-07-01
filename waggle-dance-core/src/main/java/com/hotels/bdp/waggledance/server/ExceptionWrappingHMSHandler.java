@@ -23,7 +23,6 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.hive.metastore.IHMSHandler;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,16 +32,16 @@ import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 public class ExceptionWrappingHMSHandler implements InvocationHandler {
   private static Logger log = LoggerFactory.getLogger(ExceptionWrappingHMSHandler.class);
 
-  private final IHMSHandler baseHandler;
+  private final CloseableIHMSHandler baseHandler;
   private String user = "";
 
-  public static IHMSHandler newProxyInstance(IHMSHandler baseHandler) {
-    return (IHMSHandler) Proxy
-        .newProxyInstance(ExceptionWrappingHMSHandler.class.getClassLoader(), new Class[] { IHMSHandler.class },
-            new ExceptionWrappingHMSHandler(baseHandler));
+  public static CloseableIHMSHandler newProxyInstance(CloseableIHMSHandler baseHandler) {
+    return (CloseableIHMSHandler) Proxy
+        .newProxyInstance(ExceptionWrappingHMSHandler.class.getClassLoader(),
+            new Class[] { CloseableIHMSHandler.class }, new ExceptionWrappingHMSHandler(baseHandler));
   }
 
-  public ExceptionWrappingHMSHandler(IHMSHandler baseHandler) {
+  public ExceptionWrappingHMSHandler(CloseableIHMSHandler baseHandler) {
     this.baseHandler = baseHandler;
   }
 

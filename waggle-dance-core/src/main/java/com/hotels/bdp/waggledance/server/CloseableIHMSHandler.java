@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2019 Expedia, Inc.
+ * Copyright (C) 2016-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@ package com.hotels.bdp.waggledance.server;
 
 import java.io.Closeable;
 
-import org.apache.hadoop.hive.metastore.IHMSHandler;
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 
-public interface CloseableIHMSHandler extends IHMSHandler, Closeable {
-
+public interface CloseableIHMSHandler extends ThriftHiveMetastore.Iface, Configurable, Closeable {
+  
 }

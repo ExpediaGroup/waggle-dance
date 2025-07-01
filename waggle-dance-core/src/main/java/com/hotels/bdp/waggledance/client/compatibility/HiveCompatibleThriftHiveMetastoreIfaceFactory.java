@@ -57,37 +57,30 @@ public class HiveCompatibleThriftHiveMetastoreIfaceFactory {
           } else {
             throw compatibilityException.getCause();
           }
+        } catch (NoSuchMethodException e) {
+          log
+              .debug(
+                  "Compatibility layer has no such method '" + method.getName() + "'. Will rethrow original exception",
+                  e);
         } catch (Throwable t) {
           log
-              .warn(
-                  "Unable to invoke compatibility for metastore client method "+method.getName()+". Will rethrow original exception, logging exception from invocation handler",
-                   t);
+              .warn("Unable to invoke compatibility for metastore client method "
+                  + method.getName()
+                  + ". Will rethrow original exception, logging exception from invocation handler", t);
         }
         throw delegateException.getCause();
       }
     }
 
     private Object invokeCompatibility(Method method, Object[] args) throws Throwable {
-      Class<?>[] argTypes = getTypes(args);
-      Method compatibilityMethod = compatibility.getClass().getMethod(method.getName(), argTypes);
+      Method compatibilityMethod = compatibility.getClass().getMethod(method.getName(), method.getParameterTypes());
       return compatibilityMethod.invoke(compatibility, args);
-    }
-
-    private Class<?>[] getTypes(Object[] args) {
-      if (args == null) {
-        return new Class<?>[] {};
-      }
-      Class<?>[] argTypes = new Class<?>[args.length];
-      for (int i = 0; i < args.length; ++i) {
-        argTypes[i] = args[i].getClass();
-      }
-      return argTypes;
     }
 
   }
 
   public CloseableThriftHiveMetastoreIface newInstance(ThriftHiveMetastore.Client delegate) {
-    HiveThriftMetaStoreIfaceCompatibility compatibility = new HiveThriftMetaStoreIfaceCompatibility1xx(delegate);
+    HiveThriftMetaStoreIfaceCompatibility compatibility = new HMSCompatiblityImpl(delegate);
     return newInstance(delegate, compatibility);
   }
 
