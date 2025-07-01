@@ -1,5 +1,5 @@
 
-## [4.0.2] - TBD
+## [4.0.2] - 2025-07-01
 ### Added
 - Added HMS 3 compatibility layer from Waggle Dance to HMS 2 metastore. Implements a small subset of missing HMS3 methods to provide capabilities to use both HMS versions through WD. This is not a full compatible solution just a pragmatic way of making it easier to transition.
 ### Fix
