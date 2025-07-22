@@ -26,7 +26,7 @@ jobs:
         distribution: 'adopt'
         java-version: '8'
         java-package: jdk
-        server-id: sonatype-nexus-staging # Value of the distributionManagement/repository/id field of the pom.xml
+        server-id: central # Value of the distributionManagement/repository/id field of the pom.xml
         server-username: SONATYPE_USERNAME # env variable for username in deploy
         server-password: SONATYPE_PASSWORD # env variable for token in deploy
         # only signed artifacts will be released to maven central. this sets up things for the maven-gpg-plugin
@@ -55,6 +55,6 @@ jobs:
       # we are skipping the tests for releases, run a build step first.
       run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml -DskipTests -Darguments=-DskipTests --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
       env:
-        SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
-        SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
+        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         GPG_PASSPHRASE: ${{secrets.HCOM_GPG_PRIVATE_KEY_PASSPHRASE}}

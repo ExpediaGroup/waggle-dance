@@ -39,7 +39,7 @@ jobs:
         distribution: 'adopt'
         java-version: '8'
         java-package: jdk
-        server-id: sonatype-nexus-snapshots # Value of the distributionManagement/repository/id field of the pom.xml
+        server-id: central # Value of the distributionManagement/repository/id field of the pom.xml
         server-username: SONATYPE_USERNAME # env variable for username in deploy
         server-password: SONATYPE_PASSWORD # env variable for token in deploy
         # only signed artifacts will be released to maven central. this sets up things for the maven-gpg-plugin
@@ -62,6 +62,6 @@ jobs:
     - name: Run Maven Targets
       run: mvn deploy jacoco:report coveralls:report --settings $GITHUB_WORKSPACE/settings.xml --batch-mode --show-version --activate-profiles coveralls,sonatype-oss-release-github-actions -Dcoveralls.skip=$COVERALLS_SKIP -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
       env:
-        SONATYPE_PASSWORD: ${{ secrets.HCOM_SONATYPE_PASSWORD }}
-        SONATYPE_USERNAME: ${{ secrets.HCOM_SONATYPE_USERNAME }}
+        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         GPG_PASSPHRASE: ${{secrets.HCOM_GPG_PRIVATE_KEY_PASSPHRASE}}
