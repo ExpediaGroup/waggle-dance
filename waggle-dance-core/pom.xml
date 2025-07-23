@@ -121,7 +121,7 @@
 
     <!-- Waggle Dance -->
     <dependency>
-      <groupId>com.hotels</groupId>
+      <groupId>com.expediagroup</groupId>
       <artifactId>waggle-dance-api</artifactId>
       <version>${project.version}</version>
     </dependency>
