@@ -36,7 +36,7 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>com.hotels</groupId>
+                  <groupId>com.expediagroup</groupId>
                   <artifactId>waggle-dance</artifactId>
                   <version>${project.version}</version>
                   <classifier>bin</classifier>
