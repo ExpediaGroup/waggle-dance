@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.hotels</groupId>
+    <groupId>com.expediagroup</groupId>
     <artifactId>waggle-dance-parent</artifactId>
     <version>4.0.2-SNAPSHOT</version>
   </parent>
@@ -10,10 +10,12 @@
   <artifactId>waggle-dance-rpm</artifactId>
   <description>Packages Waggle Dance for deployment using RPM.</description>
   <packaging>pom</packaging>
+  <name>${project.groupId}:${project.artifactId}</name>
+
 
   <properties>
     <tmp.directory>${project.build.directory}/tmp-directory</tmp.directory>
-    <rpm.maven.plugin.version>2.2.0</rpm.maven.plugin.version>
+    <rpm.maven.plugin.version>2.3.0</rpm.maven.plugin.version>
     <rpm-sources.directory>${tmp.directory}/waggle-dance-${project.version}</rpm-sources.directory>
     <rpm.install.dir>/opt/waggle-dance</rpm.install.dir>
     <rpm.install.user>waggle-dance</rpm.install.user>

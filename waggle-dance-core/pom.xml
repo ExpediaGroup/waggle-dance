@@ -2,12 +2,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.hotels</groupId>
+    <groupId>com.expediagroup</groupId>
     <artifactId>waggle-dance-parent</artifactId>
     <version>4.0.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-core</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
 
   <properties>
     <aws.sdk.version>1.12.276</aws.sdk.version>

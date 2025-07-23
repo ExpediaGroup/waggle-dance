@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.hotels</groupId>
+    <groupId>com.expediagroup</groupId>
     <artifactId>waggle-dance-parent</artifactId>
     <version>4.0.2-SNAPSHOT</version>
   </parent>
@@ -10,6 +10,7 @@
   <artifactId>waggle-dance</artifactId>
   <description>Waggle Dance binaries</description>
   <packaging>pom</packaging>
+  <name>${project.groupId}:${project.artifactId}</name>
 
   <properties>
     <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
@@ -20,7 +21,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.hotels</groupId>
+      <groupId>com.expediagroup</groupId>
       <artifactId>waggle-dance-boot</artifactId>
       <version>${project.version}</version>
       <classifier>exec</classifier>
