@@ -19,7 +19,7 @@
       <outputFileNameMapping>waggle-dance-core-latest${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
       <useProjectArtifact>false</useProjectArtifact>
       <includes>
-        <include>com.hotels:waggle-dance-boot</include>
+        <include>com.expediagroup:waggle-dance-boot</include>
       </includes>
     </dependencySet>
   </dependencySets>

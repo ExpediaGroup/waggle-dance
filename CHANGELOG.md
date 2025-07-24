@@ -1,4 +1,8 @@
 
+## [4.0.3] - 2025-07-23
+### Fixed
+- Fixed missing jar in rpm package.
+
 ## [4.0.2] - 2025-07-23
 ### Changed
 - groupId (maven dependencies) changed from `com.hotels` to `com.expediagroup`.
