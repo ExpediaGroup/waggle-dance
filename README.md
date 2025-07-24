@@ -4,8 +4,8 @@
 
 You can obtain Waggle Dance from Maven Central:
 
-[![Maven Central TGZ](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance/badge.svg?subject=com.hotels:waggle-dance-bin.tgz)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance)
-[![Maven Central RPM](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm/badge.svg?subject=com.hotels:waggle-dance.rpm)](https://maven-badges.herokuapp.com/maven-central/com.hotels/waggle-dance-rpm) 
+[![Maven Central TGZ](https://maven-badges.herokuapp.com/maven-central/com.expediagroup/waggle-dance/badge.svg?subject=com.expediagroup:waggle-dance-bin.tgz)](https://maven-badges.herokuapp.com/maven-central/com.expediagroup/waggle-dance)
+[![Maven Central RPM](https://maven-badges.herokuapp.com/maven-central/com.expediagroup/waggle-dance-rpm/badge.svg?subject=com.expediagroup:waggle-dance.rpm)](https://maven-badges.herokuapp.com/maven-central/com.expediagroup/waggle-dance-rpm) 
 ![Build](https://github.com/HotelsDotCom/waggle-dance/workflows/Java%20CI/badge.svg?event=push) 
 [![Coverage Status](https://coveralls.io/repos/github/HotelsDotCom/waggle-dance/badge.svg?branch=main)](https://coveralls.io/github/HotelsDotCom/waggle-dance?branch=main) 
 ![GitHub license](https://img.shields.io/github/license/HotelsDotCom/waggle-dance.svg)
@@ -44,7 +44,7 @@ Waggle Dance is intended to be installed and set up as a service that is constan
 
 The TGZ package provides a "vanilla" version of Waggle Dance that is easy to get started with but will require some additional scaffolding in order to turn it into a fully-fledged service.
 
-[Download the TGZ](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.hotels&a=waggle-dance&p=tgz&v=RELEASE&c=bin) from Maven central and then uncompress the file by executing:
+[Download the TGZ](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.expediagroup&a=waggle-dance&p=tgz&v=RELEASE&c=bin) from Maven central and then uncompress the file by executing:
 
     tar -xzf waggle-dance-<version>-bin.tgz
 
@@ -66,7 +66,7 @@ Log messages will be output to the standard output by default.
 
 The RPM package provides a fully-fledged service version of Waggle Dance.
 
-[Download the RPM](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.hotels&a=waggle-dance-rpm&p=rpm&v=RELEASE) from Maven Central and install it using your distribution's packaging tool, e.g. `yum`:
+[Download the RPM](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.expediagroup&a=waggle-dance-rpm&p=rpm&v=RELEASE) from Maven Central and install it using your distribution's packaging tool, e.g. `yum`:
 
     sudo yum install <waggle-dance-rpm-file>
 

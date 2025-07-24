@@ -2,12 +2,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.hotels</groupId>
+    <groupId>com.expediagroup</groupId>
     <artifactId>waggle-dance-parent</artifactId>
     <version>4.0.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-rest</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
+
 
   <dependencies>
     <!-- Spring Boot -->
@@ -24,12 +26,12 @@
 
     <!-- Waggle Dance -->
     <dependency>
-      <groupId>com.hotels</groupId>
+      <groupId>com.expediagroup</groupId>
       <artifactId>waggle-dance-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.hotels</groupId>
+      <groupId>com.expediagroup</groupId>
       <artifactId>waggle-dance-core</artifactId>
       <version>${project.version}</version>
     </dependency>

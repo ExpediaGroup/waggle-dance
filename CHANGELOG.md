@@ -1,5 +1,7 @@
 
-## [4.0.2] - 2025-07-22
+## [4.0.2] - 2025-07-23
+### Changed
+- groupId (maven dependencies) changed from `com.hotels` to `com.expediagroup`.
 ### Added
 - Added HMS 3 compatibility layer from Waggle Dance to HMS 2 metastore. Implements a small subset of missing HMS3 methods to provide capabilities to use both HMS versions through WD. This is not a full compatible solution just a pragmatic way of making it easier to transition.
 ### Fix
