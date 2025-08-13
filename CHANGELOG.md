@@ -1,4 +1,8 @@
 
+## [4.0.4] - TBD
+### Fixed
+- Removed metastore uri config validation so it works with glue config. 
+
 ## [4.0.3] - 2025-07-23
 ### Fixed
 - Fixed missing jar in rpm package.
