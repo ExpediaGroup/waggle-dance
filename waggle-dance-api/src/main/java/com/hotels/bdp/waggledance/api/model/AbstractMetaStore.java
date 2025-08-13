@@ -51,7 +51,7 @@ public abstract class AbstractMetaStore {
   private @Valid List<MappedTables> mappedTables;
   private Map<String, String> databaseNameMapping = new HashMap<>();
   private @NotBlank String name;
-  private @NotBlank String remoteMetaStoreUris;
+  private String remoteMetaStoreUris;
   private @Valid MetastoreTunnel metastoreTunnel;
   private @NotNull AccessControlType accessControlType = AccessControlType.READ_ONLY;
   private transient @JsonProperty @NotNull MetaStoreStatus status = MetaStoreStatus.UNKNOWN;
