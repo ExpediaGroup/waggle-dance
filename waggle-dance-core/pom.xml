@@ -259,8 +259,14 @@
     <dependency>
       <groupId>com.amazonaws.glue</groupId>
       <artifactId>aws-glue-datacatalog-hive2-client</artifactId>
-      <version>1.10.0-WD</version>
+      <version>1.10.0-WD-1</version>
     </dependency>
+    <dependency> <!-- Also used by redis -->
+      <groupId>com.esotericsoftware</groupId>
+      <artifactId>kryo</artifactId>
+      <version>5.5.0</version>
+    </dependency>
+    <!-- END Glue dependency -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-aws</artifactId>

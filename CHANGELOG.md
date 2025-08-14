@@ -1,6 +1,7 @@
 
-## [4.0.4] - TBD
+## [4.0.4] - 2025-08-14
 ### Fixed
+- Fixed check for Hive version in Glue Delegation. 
 - Removed metastore uri config validation so it works with glue config. 
 
 ## [4.0.3] - 2025-07-23
