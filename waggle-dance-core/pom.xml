@@ -261,10 +261,10 @@
       <artifactId>aws-glue-datacatalog-hive2-client</artifactId>
       <version>1.10.0-WD-1</version>
     </dependency>
-    <dependency>
+    <dependency> <!-- Also used by redis -->
       <groupId>com.esotericsoftware</groupId>
       <artifactId>kryo</artifactId>
-      <version>4.0.2</version>
+      <version>5.5.0</version>
     </dependency>
     <!-- END Glue dependency -->
     <dependency>
