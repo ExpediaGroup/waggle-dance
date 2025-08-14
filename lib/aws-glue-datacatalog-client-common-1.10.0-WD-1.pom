@@ -4,11 +4,11 @@
     <parent>
         <groupId>com.amazonaws.glue</groupId>
         <artifactId>aws-glue-datacatalog-hive-client</artifactId>
-        <version>1.10.0-WD</version>
+        <version>1.10.0-WD-1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>AWSGlueDataCatalogHive2Client</name>
-    <artifactId>aws-glue-datacatalog-hive2-client</artifactId>
+    <name>AWSGlueDataCatalogClientCommon</name>
+    <artifactId>aws-glue-datacatalog-client-common</artifactId>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -36,28 +36,27 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws.glue</groupId>
-            <artifactId>aws-glue-datacatalog-client-common</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-glue</artifactId>
+            <version>${aws.sdk.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>provided</scope>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-core</artifactId>
+            <version>${aws.sdk.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${httpclient.version}</version>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sts</artifactId>
+            <version>${aws.sdk.version}</version>
+            <scope>compile</scope>
         </dependency>
-
-        <dependency> <!-- reuse src/test/java dependencies -->
-            <groupId>com.amazonaws.glue</groupId>
-            <artifactId>aws-glue-datacatalog-client-common</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-            <classifier>tests</classifier>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -77,43 +76,35 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws.glue</groupId>
+            <artifactId>shims-loader</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire.version}</version>
-                <configuration>
-                    <dependenciesToScan>
-                        <dependency>com.amazonaws.glue:aws-glue-datacatalog-spark-client</dependency>
-                    </dependenciesToScan>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <createDependencyReducedPom>false</createDependencyReducedPom>
-                </configuration>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.2</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
                         <goals>
-                            <goal>shade</goal>
+                            <goal>test-jar</goal>
                         </goals>
-                        <configuration>
-                            <artifactSet>
-                                <includes>
-                                    <include>com.amazonaws.glue:aws-glue-datacatalog-client-common</include>
-                                    <include>com.amazonaws.glue:shims-common</include>
-                                    <include>com.amazonaws.glue:hive2-shims</include>
-                                    <include>com.amazonaws.glue:shims-loader</include>
-                                    <include>com.amazonaws.glue:spark-hive-shims</include>
-                                </includes>
-                            </artifactSet>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
