@@ -31,6 +31,7 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 
 import com.hotels.bdp.waggledance.api.WaggleDanceException;
 import com.hotels.bdp.waggledance.api.model.AbstractMetaStore;
+import com.hotels.bdp.waggledance.api.model.GlueConfig;
 import com.hotels.bdp.waggledance.client.adapter.MetastoreIfaceAdapter;
 import com.hotels.bdp.waggledance.client.tunnelling.TunnelingMetaStoreClientFactory;
 import com.hotels.bdp.waggledance.conf.WaggleDanceConfiguration;
@@ -64,25 +65,31 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftCli
 
   public CloseableThriftHiveMetastoreIface newInstance(AbstractMetaStore metaStore) {
     Map<String, String> properties = new HashMap<>();
+    String name = metaStore.getName().toLowerCase(Locale.ROOT);
     if (waggleDanceConfiguration.getConfigurationProperties() != null) {
       properties.putAll(waggleDanceConfiguration.getConfigurationProperties());
     }
     if (metaStore.getConfigurationProperties() != null) {
       properties.putAll(metaStore.getConfigurationProperties());
     }
+    CloseableThriftHiveMetastoreIface readWrite = null;
     if (metaStore.getGlueConfig() != null) {
-      return newGlueInstance(metaStore, properties);
+      readWrite = newGlueInstance(name, metaStore.getGlueConfig(), new HashMap<>(properties));
+    } else {
+      readWrite = newHiveInstance(metaStore, name, metaStore.getRemoteMetaStoreUris(), new HashMap<>(properties));
     }
-    String name = metaStore.getName().toLowerCase(Locale.ROOT);
     if (metaStore.getReadOnlyRemoteMetaStoreUris() != null) {
-      CloseableThriftHiveMetastoreIface readWrite = newHiveInstance(metaStore, name, metaStore.getRemoteMetaStoreUris(),
-          properties);
       CloseableThriftHiveMetastoreIface readOnly = newHiveInstance(metaStore, name + "_ro",
-          metaStore.getReadOnlyRemoteMetaStoreUris(), properties);
+          metaStore.getReadOnlyRemoteMetaStoreUris(), new HashMap<>(properties));
       return splitTrafficMetaStoreClientFactory.newInstance(readWrite, readOnly);
 
     }
-    return newHiveInstance(metaStore, name, metaStore.getRemoteMetaStoreUris(), properties);
+    if (metaStore.getReadOnlyGlueConfig() != null) {
+      CloseableThriftHiveMetastoreIface readOnly = newGlueInstance(name + "_ro", metaStore.getReadOnlyGlueConfig(),
+          new HashMap<>(properties));
+      return splitTrafficMetaStoreClientFactory.newInstance(readWrite, readOnly);
+    }
+    return readWrite;
   }
 
   private CloseableThriftHiveMetastoreIface newHiveInstance(
@@ -101,25 +108,24 @@ public class CloseableThriftHiveMetastoreIfaceClientFactory implements ThriftCli
               connectionTimeout, waggleDanceConfiguration.getConfigurationProperties());
     }
     properties.put(ConfVars.METASTOREURIS.varname, uris);
-    properties.put(CommonBeans.IMPERSONATION_ENABLED_KEY,
-        String.valueOf(metaStore.isImpersonationEnabled()));
+    properties.put(CommonBeans.IMPERSONATION_ENABLED_KEY, String.valueOf(metaStore.isImpersonationEnabled()));
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
-    HiveConf hiveConf = cachedHiveConf.computeIfAbsent(uris, t-> confFactory.newInstance());
+    HiveConf hiveConf = cachedHiveConf.computeIfAbsent(uris, t -> confFactory.newInstance());
     return defaultMetaStoreClientFactory
-        .newInstance(hiveConf, "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY,
-            connectionTimeout);
+        .newInstance(hiveConf, "waggledance-" + name, DEFAULT_CLIENT_FACTORY_RECONNECTION_RETRY, connectionTimeout);
   }
 
   private CloseableThriftHiveMetastoreIface newGlueInstance(
-      AbstractMetaStore metaStore,
+      String name,
+      GlueConfig glueConfig,
       Map<String, String> properties) {
-    properties.putAll(metaStore.getGlueConfig().getConfigurationProperties());
+    properties.putAll(glueConfig.getConfigurationProperties());
     HiveConfFactory confFactory = new HiveConfFactory(Collections.emptyList(), properties);
     try {
       IMetaStoreClient client = glueClientFactory.newInstance(confFactory.newInstance(), null);
       return new MetastoreIfaceAdapter(client);
     } catch (MetaException e) {
-      throw new WaggleDanceException("Couldn't create Glue client for " + metaStore.getName(), e);
+      throw new WaggleDanceException("Couldn't create Glue client for " + name, e);
     }
   }
 }

@@ -1,4 +1,8 @@
 
+## [4.1.0] - 2025-09-18
+### Added
+- Added readOnlyGlueConfig support through TrafficControl.
+
 ## [4.0.4] - 2025-08-14
 ### Fixed
 - Fixed check for Hive version in Glue Delegation. 
