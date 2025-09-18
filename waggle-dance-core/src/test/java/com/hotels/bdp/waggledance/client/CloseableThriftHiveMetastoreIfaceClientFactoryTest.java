@@ -83,10 +83,12 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   public void defaultFactory() {
     ArgumentCaptor<HiveConf> hiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
     FederatedMetaStore fed1 = newFederatedInstance("fed1", THRIFT_URI);
-    fed1.setConfigurationProperties(Collections.singletonMap(ConfVars.METASTORE_KERBEROS_PRINCIPAL.varname, "hive/_HOST@HADOOP.COM"));
+    fed1
+        .setConfigurationProperties(
+            Collections.singletonMap(ConfVars.METASTORE_KERBEROS_PRINCIPAL.varname, "hive/_HOST@HADOOP.COM"));
     factory.newInstance(fed1);
-    verify(defaultMetaStoreClientFactory).newInstance(hiveConfCaptor.capture(), eq(
-        "waggledance-fed1"), eq(3), eq(2000));
+    verify(defaultMetaStoreClientFactory)
+        .newInstance(hiveConfCaptor.capture(), eq("waggledance-fed1"), eq(3), eq(2000));
     verifyNoInteractions(tunnelingMetaStoreClientFactory);
     HiveConf hiveConf = hiveConfCaptor.getValue();
     assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(THRIFT_URI));
@@ -101,22 +103,48 @@ public class CloseableThriftHiveMetastoreIfaceClientFactoryTest {
   @Test
   public void splitTrafficFactory() {
     PrimaryMetaStore metaStore = newPrimaryInstance("hms", THRIFT_URI);
-    metaStore.setReadOnlyRemoteMetaStoreUris(THRIFT_URI_READ_ONLY);   
+    metaStore.setReadOnlyRemoteMetaStoreUris(THRIFT_URI_READ_ONLY);
     CloseableThriftHiveMetastoreIface readWriteClient = mock(CloseableThriftHiveMetastoreIface.class);
-    //Using 'any(HiveConf.class); generic matcher because HiveConf doesn't implement equals.
-    when(defaultMetaStoreClientFactory
-        .newInstance(any(HiveConf.class), eq("waggledance-hms"), eq(3), eq(2000))).thenReturn(readWriteClient);
+    // Using 'any(HiveConf.class); generic matcher because HiveConf doesn't implement equals.
+    when(defaultMetaStoreClientFactory.newInstance(any(HiveConf.class), eq("waggledance-hms"), eq(3), eq(2000)))
+        .thenReturn(readWriteClient);
     CloseableThriftHiveMetastoreIface readOnlyclient = mock(CloseableThriftHiveMetastoreIface.class);
-    when(defaultMetaStoreClientFactory
-        .newInstance(any(HiveConf.class), eq("waggledance-hms_ro"), eq(3), eq(2000))).thenReturn(readOnlyclient);
+    when(defaultMetaStoreClientFactory.newInstance(any(HiveConf.class), eq("waggledance-hms_ro"), eq(3), eq(2000)))
+        .thenReturn(readOnlyclient);
 
     factory.newInstance(metaStore);
-
 
     verify(splitTrafficMetaStoreClientFactory).newInstance(readWriteClient, readOnlyclient);
     verifyNoInteractions(tunnelingMetaStoreClientFactory);
   }
-  
+
+  @Test
+  public void splitTrafficFactoryGlueConfig() throws Exception {
+    PrimaryMetaStore metaStore = newPrimaryInstance("hms", THRIFT_URI);
+    GlueConfig glueConfig = new GlueConfig();
+    String glueAccountId = "123456789012";
+    glueConfig.setGlueAccountId(glueAccountId);
+    String glueEndpoint = "glue.us-east-1.amazonaws.com";
+    glueConfig.setGlueEndpoint(glueEndpoint);
+    metaStore.setReadOnlyGlueConfig(glueConfig);
+    CloseableThriftHiveMetastoreIface readWriteClient = mock(CloseableThriftHiveMetastoreIface.class);
+
+    when(defaultMetaStoreClientFactory.newInstance(any(HiveConf.class), eq("waggledance-hms"), eq(3), eq(2000)))
+        .thenReturn(readWriteClient);
+    CloseableThriftHiveMetastoreIface readOnlyclient = mock(CloseableThriftHiveMetastoreIface.class);
+    ArgumentCaptor<HiveConf> glueHiveConfCaptor = ArgumentCaptor.forClass(HiveConf.class);
+    when(glueClientFactory.newInstance(glueHiveConfCaptor.capture(), eq(null))).thenReturn(glueClient);
+
+    factory.newInstance(metaStore);
+
+    HiveConf hiveConf = glueHiveConfCaptor.getValue();
+    assertThat(hiveConf.get("hive.metastore.glue.catalogid"), is(glueAccountId));
+    assertThat(hiveConf.get("aws.glue.endpoint"), is(glueEndpoint));
+    assertThat(hiveConf.getVar(ConfVars.METASTOREURIS), is(""));
+    verify(splitTrafficMetaStoreClientFactory).newInstance(eq(readWriteClient), any(MetastoreIfaceAdapter.class));
+    verifyNoInteractions(tunnelingMetaStoreClientFactory);
+  }
+
   @Test
   public void tunnelingFactory() {
     MetastoreTunnel metastoreTunnel = new MetastoreTunnel();

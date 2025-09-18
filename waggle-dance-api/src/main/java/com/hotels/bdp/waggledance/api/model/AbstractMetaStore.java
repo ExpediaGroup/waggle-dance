@@ -61,6 +61,7 @@ public abstract class AbstractMetaStore {
   private Map<String, String> configurationProperties = new HashMap<>();
   private GlueConfig glueConfig;
   private String readOnlyRemoteMetaStoreUris;
+  private GlueConfig readOnlyGlueConfig;
 
   public AbstractMetaStore() {}
 
@@ -238,6 +239,14 @@ public abstract class AbstractMetaStore {
     this.glueConfig = glueConfig;
   }
 
+  public GlueConfig getReadOnlyGlueConfig() {
+    return readOnlyGlueConfig;
+  }
+
+  public void setReadOnlyGlueConfig(GlueConfig readOnlyGlueConfig) {
+    this.readOnlyGlueConfig = readOnlyGlueConfig;
+  }
+  
   @Transient
   public HashBiMap<String, String> getDatabaseNameBiMapping() {
     return databaseNameBiMapping;
