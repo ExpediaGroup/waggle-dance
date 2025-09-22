@@ -9,7 +9,7 @@
 
   <groupId>com.expediagroup</groupId>
   <artifactId>waggle-dance-parent</artifactId>
-  <version>4.0.5-SNAPSHOT</version>
+  <version>4.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
