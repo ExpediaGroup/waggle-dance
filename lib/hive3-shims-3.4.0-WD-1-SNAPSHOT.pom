@@ -5,21 +5,21 @@
     <parent>
         <groupId>com.amazonaws.glue</groupId>
         <artifactId>shims</artifactId>
-        <version>1.10.0-WD-1</version>
+        <version>3.4.0-WD-1-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shims-common</artifactId>
+    <artifactId>hive3-shims</artifactId>
     <packaging>jar</packaging>
 
-    <name>ShimsCommon</name>
-    <description>Common shim interface</description>
+    <name>Hive3Shims</name>
+    <description>Shims for Hive-3.x compatibility</description>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
-            <version>${hive2.version}</version>
+            <version>${hive3.version}</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -29,23 +29,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-metastore</artifactId>
-            <version>${hive2.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-              <exclusion>
-                <groupId>jdk.tools</groupId>
-                <artifactId>jdk.tools</artifactId>
-              </exclusion>
-            </exclusions>
+            <groupId>com.amazonaws.glue</groupId>
+            <artifactId>shims-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
-
 </project>

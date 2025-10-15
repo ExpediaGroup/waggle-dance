@@ -4,17 +4,17 @@
     <parent>
         <groupId>com.amazonaws.glue</groupId>
         <artifactId>aws-glue-datacatalog-hive-client</artifactId>
-        <version>1.10.0-WD-1</version>
+        <version>3.4.0-WD-1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>AWSGlueDataCatalogHive2Client</name>
-    <artifactId>aws-glue-datacatalog-hive2-client</artifactId>
+    <name>AWSGlueDataCatalogHive3Client</name>
+    <artifactId>aws-glue-datacatalog-hive3-client</artifactId>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-metastore</artifactId>
-            <version>${hive2.version}</version>
+            <version>${hive3.version}</version>
             <scope>provided</scope>
             <exclusions>
               <exclusion>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
-            <version>${hive2.version}</version>
+            <version>${hive3.version}</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -52,6 +52,12 @@
             <version>${httpclient.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency> <!-- reuse src/test/java dependencies -->
             <groupId>com.amazonaws.glue</groupId>
             <artifactId>aws-glue-datacatalog-client-common</artifactId>
@@ -82,16 +88,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire.version}</version>
-                <configuration>
-                    <dependenciesToScan>
-                        <dependency>com.amazonaws.glue:aws-glue-datacatalog-spark-client</dependency>
-                    </dependenciesToScan>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
@@ -108,7 +104,7 @@
                                 <includes>
                                     <include>com.amazonaws.glue:aws-glue-datacatalog-client-common</include>
                                     <include>com.amazonaws.glue:shims-common</include>
-                                    <include>com.amazonaws.glue:hive2-shims</include>
+                                    <include>com.amazonaws.glue:hive3-shims</include>
                                     <include>com.amazonaws.glue:shims-loader</include>
                                     <include>com.amazonaws.glue:spark-hive-shims</include>
                                 </includes>

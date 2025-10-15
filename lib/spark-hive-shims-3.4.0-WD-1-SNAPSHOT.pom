@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.amazonaws.glue</groupId>
         <artifactId>shims</artifactId>
-        <version>1.10.0-WD-1</version>
+        <version>3.4.0-WD-1-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -16,7 +16,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.spark-project.hive</groupId>
+            <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
             <version>${spark-hive.version}</version>
             <scope>provided</scope>
@@ -28,10 +28,16 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.spark-project.hive</groupId>
+            <groupId>org.apache.hive</groupId>
             <artifactId>hive-metastore</artifactId>
             <version>${spark-hive.version}</version>
             <scope>provided</scope>
+            <exclusions>
+              <exclusion>
+                <groupId>jdk.tools</groupId>
+                <artifactId>jdk.tools</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.amazonaws.glue</groupId>

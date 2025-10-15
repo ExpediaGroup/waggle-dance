@@ -258,8 +258,8 @@
     <!-- See waggle-dance/lib/ for installing locally -->
     <dependency>
       <groupId>com.amazonaws.glue</groupId>
-      <artifactId>aws-glue-datacatalog-hive2-client</artifactId>
-      <version>1.10.0-WD-1</version>
+      <artifactId>aws-glue-datacatalog-hive3-client</artifactId>
+      <version>3.4.0-WD-1-SNAPSHOT</version>
     </dependency>
     <dependency> <!-- Also used by redis -->
       <groupId>com.esotericsoftware</groupId>
