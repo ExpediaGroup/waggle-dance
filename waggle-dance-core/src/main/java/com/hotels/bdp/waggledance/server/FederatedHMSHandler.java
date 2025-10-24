@@ -1556,13 +1556,11 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public Configuration getConf() {
     return conf;
   }
 
   @Override
-  @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public void setConf(Configuration conf) {
     this.conf = conf;
   }
