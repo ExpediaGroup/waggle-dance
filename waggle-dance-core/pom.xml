@@ -259,21 +259,21 @@
     <dependency>
       <groupId>com.amazonaws.glue</groupId>
       <artifactId>aws-glue-datacatalog-hive3-client</artifactId>
-      <version>3.4.0-WD-1-SNAPSHOT</version>
+      <version>3.4.0-WD-1</version>
     </dependency>
     <dependency> <!-- Also used by redis -->
       <groupId>com.esotericsoftware</groupId>
       <artifactId>kryo</artifactId>
       <version>5.5.0</version>
     </dependency>
-    <!-- END Glue dependency -->
+        <!-- END Glue dependency -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-aws</artifactId>
       <version>${hadoop.version}</version>
       <exclusions>
         <exclusion>
-          <!-- best to exclude as it comes bundled with jackon dependencies and we get conflicts. -->
+                    <!-- best to exclude as it comes bundled with jackon dependencies and we get conflicts. -->
           <groupId>com.amazonaws</groupId>
           <artifactId>aws-java-sdk-bundle</artifactId>
         </exclusion>
@@ -300,7 +300,7 @@
       <version>${aws.sdk.version}</version>
     </dependency>
 
-    <!-- Test -->
+        <!-- Test -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>

@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>com.amazonaws.glue</groupId>
         <artifactId>aws-glue-datacatalog-hive-client</artifactId>
-        <version>3.4.0-WD-1-SNAPSHOT</version>
+        <version>3.4.0-WD-1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>AWSGlueDataCatalogClientCommon</name>
-    <artifactId>aws-glue-datacatalog-client-common</artifactId>
-    <packaging>jar</packaging>
+    <name>AWSGlueDataCatalogSparkClient</name>
+
+    <artifactId>aws-glue-datacatalog-spark-client</artifactId>
     <dependencies>
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-metastore</artifactId>
-            <version>${hive3.version}</version>
+            <version>${spark-hive.version}</version>
             <scope>provided</scope>
             <exclusions>
               <exclusion>
@@ -26,7 +27,7 @@
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
-            <version>${hive3.version}</version>
+            <version>${spark-hive.version}</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -36,27 +37,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-glue</artifactId>
-            <version>${aws.sdk.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-core</artifactId>
-            <version>${aws.sdk.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-sts</artifactId>
-            <version>${aws.sdk.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
+            <groupId>com.amazonaws.glue</groupId>
+            <artifactId>aws-glue-datacatalog-client-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -65,17 +48,17 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws.glue</groupId>
-            <artifactId>shims-loader</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${httpclient.version}</version>
         </dependency>
 
-        <!-- test dependencies -->
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>${hadoop.version}</version>
+        <dependency> <!-- reuse src/test/java dependencies -->
+            <groupId>com.amazonaws.glue</groupId>
+            <artifactId>aws-glue-datacatalog-client-common</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
+            <classifier>tests</classifier>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -95,20 +78,7 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <version>${powermock.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>${powermock.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -120,6 +90,38 @@
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>**/SparkCatalogMetastoreClientTest.*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <include>com.amazonaws.glue:aws-glue-datacatalog-client-common</include>
+                                    <include>com.amazonaws.glue:shims-common</include>
+                                    <include>com.amazonaws.glue:hive3-shims</include>
+                                    <include>com.amazonaws.glue:shims-loader</include>
+                                    <include>com.amazonaws.glue:spark-hive-shims</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
