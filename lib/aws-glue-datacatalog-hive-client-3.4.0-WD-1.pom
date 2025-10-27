@@ -5,7 +5,7 @@
   <groupId>com.amazonaws.glue</groupId>
   <artifactId>aws-glue-datacatalog-hive-client</artifactId>
   <!-- Fork that compiles without patching Hive needed and used for https://github.com/ExpediaGroup/waggle-dance -->
-  <version>3.4.0-WD-1-SNAPSHOT</version>
+  <version>3.4.0-WD-1</version>
     <modules>
       <module>aws-glue-datacatalog-client-common</module>
       <module>aws-glue-datacatalog-spark-client</module>

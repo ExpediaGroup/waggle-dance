@@ -5,38 +5,27 @@
     <parent>
         <groupId>com.amazonaws.glue</groupId>
         <artifactId>shims</artifactId>
-        <version>3.4.0-WD-1-SNAPSHOT</version>
+        <version>3.4.0-WD-1</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>spark-hive-shims</artifactId>
+    <artifactId>hive3-shims</artifactId>
     <packaging>jar</packaging>
 
-    <name>spark-hive-shims</name>
+    <name>Hive3Shims</name>
+    <description>Shims for Hive-3.x compatibility</description>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
-            <version>${spark-hive.version}</version>
+            <version>${hive3.version}</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.pentaho</groupId>
                     <artifactId>pentaho-aggdesigner-algorithm</artifactId>
                 </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-metastore</artifactId>
-            <version>${spark-hive.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-              <exclusion>
-                <groupId>jdk.tools</groupId>
-                <artifactId>jdk.tools</artifactId>
-              </exclusion>
             </exclusions>
         </dependency>
         <dependency>
