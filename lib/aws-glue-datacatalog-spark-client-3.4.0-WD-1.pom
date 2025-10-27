@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>com.amazonaws.glue</groupId>
         <artifactId>aws-glue-datacatalog-hive-client</artifactId>
-        <version>1.10.0-WD-1</version>
+        <version>3.4.0-WD-1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>AWSGlueDataCatalogHive2Client</name>
-    <artifactId>aws-glue-datacatalog-hive2-client</artifactId>
-    <packaging>jar</packaging>
+    <name>AWSGlueDataCatalogSparkClient</name>
+
+    <artifactId>aws-glue-datacatalog-spark-client</artifactId>
     <dependencies>
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-metastore</artifactId>
-            <version>${hive2.version}</version>
+            <version>${spark-hive.version}</version>
             <scope>provided</scope>
             <exclusions>
               <exclusion>
@@ -26,7 +27,7 @@
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
-            <version>${hive2.version}</version>
+            <version>${spark-hive.version}</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -82,12 +83,19 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire.version}</version>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
-                    <dependenciesToScan>
-                        <dependency>com.amazonaws.glue:aws-glue-datacatalog-spark-client</dependency>
-                    </dependenciesToScan>
+                    <excludes>
+                        <exclude>**/SparkCatalogMetastoreClientTest.*</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
@@ -108,7 +116,7 @@
                                 <includes>
                                     <include>com.amazonaws.glue:aws-glue-datacatalog-client-common</include>
                                     <include>com.amazonaws.glue:shims-common</include>
-                                    <include>com.amazonaws.glue:hive2-shims</include>
+                                    <include>com.amazonaws.glue:hive3-shims</include>
                                     <include>com.amazonaws.glue:shims-loader</include>
                                     <include>com.amazonaws.glue:spark-hive-shims</include>
                                 </includes>

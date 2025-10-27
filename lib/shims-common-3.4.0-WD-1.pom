@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.amazonaws.glue</groupId>
         <artifactId>shims</artifactId>
-        <version>1.10.0-WD-1</version>
+        <version>3.4.0-WD-1</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
-            <version>${hive2.version}</version>
+            <version>${hive3.version}</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -37,7 +37,7 @@
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-metastore</artifactId>
-            <version>${hive2.version}</version>
+            <version>${hive3.version}</version>
             <scope>provided</scope>
             <exclusions>
               <exclusion>
