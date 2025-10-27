@@ -1,4 +1,8 @@
 
+## [4.1.1] - 2025-10-27
+### Added
+- Update Glue libs. See `libs/HOW_TO_INSTALL_MD`.
+
 ## [4.1.0] - 2025-09-18
 ### Added
 - Added readOnlyGlueConfig support through TrafficControl.
