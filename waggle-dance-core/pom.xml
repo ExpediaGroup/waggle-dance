@@ -149,7 +149,7 @@
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-exec</artifactId>
       <version>${hive.version}</version>
-      <classifier>core</classifier>
+<!--      <classifier>core</classifier>-->
       <exclusions>
         <exclusion>
           <groupId>log4j</groupId>
@@ -261,12 +261,17 @@
       <artifactId>aws-glue-datacatalog-hive3-client</artifactId>
       <version>3.4.0-WD-1</version>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>com.esotericsoftware</groupId>-->
+<!--      <artifactId>kryo-shaded</artifactId>-->
+<!--      <version>3.0.3</version>-->
+<!--    </dependency>-->
     <dependency> <!-- Also used by redis -->
       <groupId>com.esotericsoftware</groupId>
       <artifactId>kryo</artifactId>
       <version>5.5.0</version>
     </dependency>
-        <!-- END Glue dependency -->
+      <!-- END Glue dependency -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-aws</artifactId>
