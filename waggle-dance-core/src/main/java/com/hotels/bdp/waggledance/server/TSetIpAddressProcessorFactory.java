@@ -65,8 +65,6 @@ class TSetIpAddressProcessorFactory extends TProcessorFactory {
       }
       transportMonitor.monitor(transport, handler);
       TSetIpAddressProcessor<CloseableIHMSHandler> result = new TSetIpAddressProcessor<>(handler);
-      //TODO remove
-      log.debug("Created TSetIpAddressProcessor");
       return result;
     } catch (ReflectiveOperationException | RuntimeException e) {
       throw new RuntimeException("Error creating TProcessor", e);
