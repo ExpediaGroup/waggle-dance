@@ -1,4 +1,9 @@
 
+## [4.1.2] - 2025-10-29
+### Changed 
+- `hive-exec` dependency to use shaded jar to avoid Kryo conflicts.
+- Added section about Glue write support via Waggle Dance.
+
 ## [4.1.1] - 2025-10-27
 ### Added
 - Update Glue libs. See `libs/HOW_TO_INSTALL_MD`.
