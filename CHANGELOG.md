@@ -1,4 +1,9 @@
 
+## [4.1.2] - TBD
+### Changed
+- Lazy loading database mappping create to avoid doing work when tcp connections are being opened (e.g. from LoadBalancers).
+- Removed unnecessary logging in invocation logsfor setConf (it's a local call not a federated call).
+
 ## [4.1.1] - 2025-10-27
 ### Added
 - Update Glue libs. See `libs/HOW_TO_INSTALL_MD`.
