@@ -1,5 +1,5 @@
 
-## [4.1.2] - 2025-10-29
+## [4.1.2] - 2025-10-31
 ### Changed 
 - `hive-exec` dependency to use shaded jar to avoid Kryo conflicts.
 - Added section about Glue write support via Waggle Dance.
