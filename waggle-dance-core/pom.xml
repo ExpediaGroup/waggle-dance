@@ -146,10 +146,10 @@
       <artifactId>hive-standalone-metastore</artifactId>
     </dependency>
     <dependency>
+    <!-- using hive-exec shaded jar otherwise we get kryo conflicts with kryo dependency we need for Redis. -->
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-exec</artifactId>
       <version>${hive.version}</version>
-      <classifier>core</classifier>
       <exclusions>
         <exclusion>
           <groupId>log4j</groupId>
@@ -266,14 +266,14 @@
       <artifactId>kryo</artifactId>
       <version>5.5.0</version>
     </dependency>
-        <!-- END Glue dependency -->
+      <!-- END Glue dependency -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-aws</artifactId>
       <version>${hadoop.version}</version>
       <exclusions>
         <exclusion>
-                    <!-- best to exclude as it comes bundled with jackon dependencies and we get conflicts. -->
+<!-- best to exclude as it comes bundled with jackon dependencies and we get conflicts. -->
           <groupId>com.amazonaws</groupId>
           <artifactId>aws-java-sdk-bundle</artifactId>
         </exclusion>

@@ -280,9 +280,9 @@ The GlueConfig configuration should be used if federation to Glue is needed.
       glue-account-id: 1234566789012
       glue-endpoint: glue.us-east-1.amazonaws.com
 
-As with Hive federation, the IAM permissions need to be setup to read underlying data. IAM permissions are not setup by this code, but are usually setup by the Terraform code that deploys WaggleDance, such as (apiary-federation)[https://github.com/ExpediaGroup/apiary-federation].
+As with Hive federation, the IAM permissions need to be setup to read underlying data. IAM permissions are not setup by this code, but are usually setup by the Terraform code that deploys WaggleDance, such as [apiary-federation](https://github.com/ExpediaGroup/apiary-federation).
 
-If federating across AWS accounts, the correct (cross account federation permissions)[https://docs.aws.amazon.com/glue/latest/dg/cross-account-access.html] needs to be setup as well.       
+If federating across AWS accounts, the correct [cross account federation permissions](https://docs.aws.amazon.com/glue/latest/dg/cross-account-access.html) needs to be setup as well.
 The policy giving access to the role running Waggle Dance will need at least these IAM Glue actions:
 
      actions = [
@@ -297,6 +297,34 @@ The policy giving access to the role running Waggle Dance will need at least the
     "glue:GetUserDefinedFunction",
     "glue:GetUserDefinedFunctions"
     ]
+
+##### Federate to AWS Glue Catalog for writes
+
+Writes to Glue are supported as best effort via the same glue library as is used for reads.
+This maps the most common thrift methods to representative Glue calls. Not everything is support as Glue doesn't support the full thrift stacks as it's not HMS. In some cases it will be better to use direct glue access through EMR or connecting to HMS directly.
+
+Basic stuff is tested and works: creating tables, adding partitions, dropping tables, alter tables.
+
+Deployment changes to support this functionality:
+* Expand your Glue policy to allow for create/update operations, search AWS documentation for most up to date list.
+* Add an S3 policy that allows for object reading and creating. Similar permissions as HMS would have. This is needed because upon table creating the table location path will be created in S3. Note that this would normally happen in HMS and will now happen in Waggle Dance.
+
+Add for instance in the waggle-dance-server.yml configuration to support s3 FileSystem and set the correct credentials provider for example:
+
+```
+configuration-properties:
+    fs.s3.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+    fs.s3n.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+    fs.s3a.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+    fs.s3a.aws.credentials.provider: com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+```
+
+Note:
+Iceberg tables are also supported but iceberg out of the box comes with HMS locking and does calls that are not support by Glue. To workaround disable file locking in your client (See also: [Iceberg docs](https://iceberg.apache.org/docs/latest/configuration/#hadoop-configuration)):
+
+```
+--conf spark.hadoop.iceberg.engine.hive.lock-enabled=false
+```
 
 #### Configuring a SSH tunnel
 
