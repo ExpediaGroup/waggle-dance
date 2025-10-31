@@ -32,21 +32,27 @@ import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 public class ExceptionWrappingHMSHandler implements InvocationHandler {
   private static Logger log = LoggerFactory.getLogger(ExceptionWrappingHMSHandler.class);
 
-  private final CloseableIHMSHandler baseHandler;
+  private final FederatedHMSHandlerFactory federatedHMSHandlerFactory;
+  private CloseableIHMSHandler baseHandler;
   private String user = "";
 
-  public static CloseableIHMSHandler newProxyInstance(CloseableIHMSHandler baseHandler) {
+
+  public static CloseableIHMSHandler newProxyInstance(FederatedHMSHandlerFactory federatedHMSHandlerFactory) {
     return (CloseableIHMSHandler) Proxy
         .newProxyInstance(ExceptionWrappingHMSHandler.class.getClassLoader(),
-            new Class[] { CloseableIHMSHandler.class }, new ExceptionWrappingHMSHandler(baseHandler));
+            new Class[] { CloseableIHMSHandler.class }, new ExceptionWrappingHMSHandler(federatedHMSHandlerFactory));
   }
 
-  public ExceptionWrappingHMSHandler(CloseableIHMSHandler baseHandler) {
-    this.baseHandler = baseHandler;
+  public ExceptionWrappingHMSHandler(FederatedHMSHandlerFactory federatedHMSHandlerFactory) {
+    this.baseHandler = null;
+    this.federatedHMSHandlerFactory = federatedHMSHandlerFactory;
   }
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    if (baseHandler == null) {
+      baseHandler = federatedHMSHandlerFactory.create();
+    }
     if (method.getName().equals("set_ugi")) {
       user = (String) args[0];
     }

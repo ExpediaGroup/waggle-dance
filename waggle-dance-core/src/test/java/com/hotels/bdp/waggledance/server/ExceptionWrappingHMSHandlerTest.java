@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -32,39 +33,53 @@ import com.hotels.bdp.waggledance.server.security.NotAllowedException;
 public class ExceptionWrappingHMSHandlerTest {
 
   private @Mock CloseableIHMSHandler baseHandler;
+  private @Mock FederatedHMSHandlerFactory factory;
+
+  @Before
+  public void setup() throws Exception {
+    when(factory.create()).thenReturn(baseHandler);
+  }
 
   @Test
   public void get_databaseNoExceptions() throws Exception {
-    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
+    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(factory);
     handler.get_database("bdp");
     verify(baseHandler).get_database("bdp");
   }
 
   @Test
   public void get_databaseWaggleDanceServerException() throws Exception {
-    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
+    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(factory);
     when(baseHandler.get_database("bdp")).thenThrow(new WaggleDanceServerException("waggle waggle!"));
-    assertThrows(MetaException.class, () -> { handler.get_database("bdp");});
+    assertThrows(MetaException.class, () -> {
+      handler.get_database("bdp");
+    });
   }
 
   @Test
   public void get_databasNotAllowedException() throws Exception {
-    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
+    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(factory);
     when(baseHandler.get_database("bdp")).thenThrow(new NotAllowedException("waggle waggle!"));
-    assertThrows(MetaException.class, () -> { handler.get_database("bdp");});
+    assertThrows(MetaException.class, () -> {
+      handler.get_database("bdp");
+    });
   }
 
   @Test
   public void get_databaseRunTimeExceptionIsNotWrapped() throws Exception {
-    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
+    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(factory);
     when(baseHandler.get_database("bdp")).thenThrow(new RuntimeException("generic non waggle dance exception"));
-    assertThrows("generic non waggle dance exception",RuntimeException.class, () -> { handler.get_database("bdp");});
+    assertThrows("generic non waggle dance exception", RuntimeException.class, () -> {
+      handler.get_database("bdp");
+    });
   }
 
   @Test
   public void get_databaseCheckedExceptionIsNotWrapped() throws Exception {
-    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(baseHandler);
+    CloseableIHMSHandler handler = ExceptionWrappingHMSHandler.newProxyInstance(factory);
     when(baseHandler.get_database("bdp")).thenThrow(new NoSuchObjectException("Does not exist!"));
-    assertThrows("Does not exist!",NoSuchObjectException.class, () -> { handler.get_database("bdp");});
+    assertThrows("Does not exist!", NoSuchObjectException.class, () -> {
+      handler.get_database("bdp");
+    });
   }
 }

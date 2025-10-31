@@ -15,7 +15,6 @@
  */
 package com.hotels.bdp.waggledance.server;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.verify;
@@ -66,7 +65,8 @@ public class TSetIpAddressProcessorFactoryTest {
     ArgumentCaptor<Closeable> handlerCaptor = ArgumentCaptor.forClass(Closeable.class);
     verify(transportMonitor).monitor(transportCaptor.capture(), handlerCaptor.capture());
     assertThat(transportCaptor.getValue(), is(transport));
-    assertThat(handlerCaptor.getValue(), is(instanceOf(FederatedHMSHandler.class)));
+    handlerCaptor.getValue().close();
+    verify(federatedHMSHandler).close();
   }
 
   @Test
@@ -78,6 +78,7 @@ public class TSetIpAddressProcessorFactoryTest {
     ArgumentCaptor<Closeable> handlerCaptor = ArgumentCaptor.forClass(Closeable.class);
     verify(transportMonitor).monitor(transportCaptor.capture(), handlerCaptor.capture());
     assertThat(transportCaptor.getValue(), is(transport));
-    assertThat(handlerCaptor.getValue(), is(instanceOf(FederatedHMSHandler.class)));
+    handlerCaptor.getValue().close();
+    verify(federatedHMSHandler).close();
   }
 }
