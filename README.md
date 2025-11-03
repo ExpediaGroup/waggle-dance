@@ -307,7 +307,7 @@ Basic stuff is tested and works: creating tables, adding partitions, dropping ta
 
 Deployment changes to support this functionality:
 * Expand your Glue policy to allow for create/update operations, search AWS documentation for most up to date list.
-* Add an S3 policy that allows for object reading and creating. Similar permissions as HMS would have. This is needed because upon table creating the table location path will be created in S3. Note that this would normally happen in HMS and will now happen in Waggle Dance.
+* Add an S3 policy that allows for object reading and creating. Similar permissions as HMS would have. This is needed because upon table creation, the table location path will be created in S3. Note that this would normally happen in HMS and will now happen in Waggle Dance.
 
 Add for instance in the waggle-dance-server.yml configuration to support s3 FileSystem and set the correct credentials provider for example:
 
