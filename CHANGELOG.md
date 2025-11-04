@@ -1,6 +1,8 @@
 
-## [4.1.2] - TBD
-### Changed
+## [4.1.2] - 2025-11-03
+### Changed 
+- `hive-exec` dependency to use shaded jar to avoid Kryo conflicts.
+- Added section about Glue write support via Waggle Dance.
 - Lazy loading database mappping create to avoid doing work when tcp connections are being opened (e.g. from LoadBalancers).
 - Removed unnecessary logging in invocation logsfor setConf (it's a local call not a federated call).
 
