@@ -15,17 +15,20 @@
  */
 package com.hotels.bdp.waggledance.client;
 
+import static com.hotels.bdp.waggledance.client.HiveUgiArgsStub.TEST_ARGS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import static com.hotels.bdp.waggledance.client.HiveUgiArgsStub.TEST_ARGS;
-
 import java.util.List;
 
+import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
+import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
@@ -35,8 +38,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.collect.Lists;
-
-import com.hotels.hcommon.hive.metastore.exception.MetastoreUnavailableException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultMetaStoreClientFactoryTest {
@@ -104,6 +105,27 @@ public class DefaultMetaStoreClientFactoryTest {
   }
 
   @Test
+  public void manipulatingDataMethodCallThrowsTransportExceptionNoRetries() throws TException {
+    when(base.getClient()).thenReturn(client);
+    EnvironmentContext envContext = new EnvironmentContext();
+    Table table = new Table();
+    String dbName = "db";
+    String tableName = "table";
+    doThrow(new TTransportException("No connection"), new MetaException("Server Error"))
+        .when(client)
+        .alter_table_with_environment_context(dbName, tableName, table, envContext);
+
+    CloseableThriftHiveMetastoreIface iface = factory.newInstance("name", RECONNECTION_RETRIES, base);
+
+    try {
+      iface.alter_table_with_environment_context(dbName, tableName, table, envContext);
+      fail("Expected TTransportException");
+    } catch (TTransportException e) {
+      assertThat(e.getMessage(), is("No connection"));
+    }
+  }
+
+  @Test
   public void set_ugi_before_call() throws Exception {
     when(base.getClient()).thenReturn(client);
     when(client.getName()).thenThrow(new TTransportException()).thenReturn("ourName");
@@ -141,7 +163,7 @@ public class DefaultMetaStoreClientFactoryTest {
     assertThat(setUgiResult, is(Lists.newArrayList("users!")));
   }
 
-  @Test(expected = MetastoreUnavailableException.class)
+  @Test(expected = TTransportException.class)
   public void shutdownThrowsTransportExceptionNoRetry() throws TException {
     when(base.getClient()).thenReturn(client);
     doThrow(new TTransportException()).when(client).shutdown();
@@ -151,7 +173,7 @@ public class DefaultMetaStoreClientFactoryTest {
     iface.shutdown();
   }
 
-  @Test(expected = MetastoreUnavailableException.class)
+  @Test(expected = TTransportException.class)
   public void defaultMethodCallThrowsTransportExceptionNoRetriesLeft() throws TException {
     when(base.getClient()).thenReturn(client);
     when(client.getName()).thenThrow(new TTransportException());

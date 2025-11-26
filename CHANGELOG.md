@@ -1,4 +1,8 @@
 
+## [4.1.3] - 2025-11-26
+### Fixed
+- Fixed bug where alter statements are retried resulting incorrect behaviour due to them not being idempotent.
+
 ## [4.1.2] - 2025-11-03
 ### Changed 
 - `hive-exec` dependency to use shaded jar to avoid Kryo conflicts.
