@@ -61,37 +61,37 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
       int attempt = 0;
       // close() and isOpen() methods delegate to base HiveMetastoreClient
       switch (method.getName()) {
-      case "isOpen":
-        try {
-          reconnectIfDisconnected();
-          return base.isOpen();
-        } catch (Exception e) {
-          log.debug("Error re-opening client at isOpen(): {}", e.getMessage());
-          return false;
-        }
-      case "close":
-        if (base != null) {
-          base.close();
-        }
-        return null;
-      case "set_ugi":
-        String user = (String) args[0];
-        List<String> groups = (List<String>) args[1];
-        cachedUgi = new HiveUgiArgs(user, groups);
-        if (base.isOpen()) {
-          log
-              .info("calling #set_ugi (on already open client) for user '{}',  on metastore {}", cachedUgi.getUser(),
-                  name);
+        case "isOpen":
+          try {
+            reconnectIfDisconnected();
+            return base.isOpen();
+          } catch (Exception e) {
+            log.debug("Error re-opening client at isOpen(): {}", e.getMessage());
+            return false;
+          }
+        case "close":
+          if (base != null) {
+            base.close();
+          }
+          return null;
+        case "set_ugi":
+          String user = (String) args[0];
+          List<String> groups = (List<String>) args[1];
+          cachedUgi = new HiveUgiArgs(user, groups);
+          if (base.isOpen()) {
+            log
+                .info("calling #set_ugi (on already open client) for user '{}',  on metastore {}", cachedUgi.getUser(),
+                    name);
+            return doRealCall(method, args, attempt);
+          } else {
+            // delay call until we get the next non set_ugi call, this helps doing unnecessary calls to Federated
+            // Metastores.
+            return Lists.newArrayList(user);
+          }
+        default:
+          base.open(cachedUgi);
           return doRealCall(method, args, attempt);
-        } else {
-          // delay call until we get the next non set_ugi call, this helps doing unnecessary calls to Federated
-          // Metastores.
-          return Lists.newArrayList(user);
         }
-      default:
-        base.open(cachedUgi);
-        return doRealCall(method, args, attempt);
-      }
     }
 
     private Object doRealCall(Method method, Object[] args, int attempt) throws IllegalAccessException, Throwable {
@@ -102,7 +102,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
           Throwable realException = e.getTargetException();
           if (TTransportException.class.isAssignableFrom(realException.getClass())) {
             if (attempt < maxRetries && shouldRetry(method)) {
-              log.info("TTransportException captured in client {}. Reconnecting... ", name);
+              log.debug("TTransportException captured in client {}. Reconnecting... ", name);
               base.reconnect(cachedUgi);
               continue;
             }
