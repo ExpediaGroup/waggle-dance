@@ -91,7 +91,7 @@ public class DefaultMetaStoreClientFactory implements MetaStoreClientFactory {
         default:
           base.open(cachedUgi);
           return doRealCall(method, args, attempt);
-        }
+      }
     }
 
     private Object doRealCall(Method method, Object[] args, int attempt) throws IllegalAccessException, Throwable {
