@@ -1,4 +1,9 @@
 
+## [4.1.4] - 2026-02-24
+### Fixed
+- Waggledance includes an AWS library that treats AWS Glue Catalog as if it were an HMS federation. When writing into the table, current library doesn't use Glue versioning for the locking mechanism, so this version adds that logic (Before it was using hive db locks).
+- Upgrade AWS SDK so it can take latest glue version API spec.
+
 ## [4.1.3] - 2025-11-26
 ### Fixed
 - Fixed bug where alter statements are retried resulting incorrect behaviour due to them not being idempotent.
