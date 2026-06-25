@@ -364,8 +364,23 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
     log.debug("Fetching database {}", name);
     DatabaseMapping mapping = databaseMappingService.databaseMapping(name);
     log.debug("Mapping is '{}'", mapping.getDatabasePrefix());
-    Database result = mapping.getClient().get_database(mapping.transformInboundDatabaseName(name));
-    return mapping.transformOutboundDatabase(mapping.getMetastoreFilter().filterDatabase(result));
+    try {
+      Database result = mapping.getClient().get_database(mapping.transformInboundDatabaseName(name));
+      return mapping.transformOutboundDatabase(mapping.getMetastoreFilter().filterDatabase(result));
+    } catch (MetaException e) {
+      if (mapping.isGlueBackend() && isLakeFormationAccessDenied(e)) {
+        log.debug("Lake Formation returned AccessDeniedException for database '{}', translating to NoSuchObjectException", name, e);
+        throw new NoSuchObjectException(name);
+      }
+      throw e;
+    }
+  }
+
+  private static boolean isLakeFormationAccessDenied(MetaException e) {
+    String message = e.getMessage();
+    return message != null
+        && message.contains("AccessDeniedException")
+        && message.contains("Lake Formation permission");
   }
 
   @Override

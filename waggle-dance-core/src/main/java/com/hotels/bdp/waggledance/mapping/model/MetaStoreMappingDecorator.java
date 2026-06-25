@@ -109,4 +109,9 @@ public abstract class MetaStoreMappingDecorator implements MetaStoreMapping {
     return metaStoreMapping.getLatency();
   }
 
+  @Override
+  public boolean isGlueBackend() {
+    return metaStoreMapping.isGlueBackend();
+  }
+
 }

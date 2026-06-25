@@ -57,6 +57,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   private final ConnectionType connectionType;
   private final long latency;
   private final MetaStoreFilterHook metastoreFilter;
+  private final boolean glueBackend;
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
   MetaStoreMappingImpl(
@@ -66,7 +67,8 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
       AccessControlHandler accessControlHandler,
       ConnectionType connectionType,
       long latency,
-      MetaStoreFilterHook metastoreFilter) {
+      MetaStoreFilterHook metastoreFilter,
+      boolean glueBackend) {
     this.databasePrefix = databasePrefix;
     this.name = name;
     this.client = client;
@@ -74,6 +76,7 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
     this.connectionType = connectionType;
     this.latency = latency;
     this.metastoreFilter = metastoreFilter;
+    this.glueBackend = glueBackend;
   }
 
   @Override
@@ -175,6 +178,11 @@ class MetaStoreMappingImpl implements MetaStoreMapping {
   @Override
   public long getLatency() {
     return latency;
+  }
+
+  @Override
+  public boolean isGlueBackend() {
+    return glueBackend;
   }
 
 }

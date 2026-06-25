@@ -90,4 +90,8 @@ public interface MetaStoreMapping extends Closeable {
     throws AlreadyExistsException, InvalidObjectException, MetaException, TException;
 
   long getLatency();
+
+  default boolean isGlueBackend() {
+    return false;
+  }
 }

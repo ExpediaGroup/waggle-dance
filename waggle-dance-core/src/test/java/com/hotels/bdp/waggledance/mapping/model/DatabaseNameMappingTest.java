@@ -35,7 +35,7 @@ public class DatabaseNameMappingTest {
 
   private final MetaStoreMapping metaStoreMapping = new PrefixMapping(
       new MetaStoreMappingImpl("pre_", "mapping", null, null, DIRECT,
-          0L, new DefaultMetaStoreFilterHookImpl(new HiveConf())));
+          0L, new DefaultMetaStoreFilterHookImpl(new HiveConf()), false));
 
   @Test
   public void mapNames() throws Exception {

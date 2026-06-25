@@ -77,7 +77,7 @@ public class MetaStoreMappingFactoryImpl implements MetaStoreMappingFactory {
             metaStore.getRemoteMetaStoreUris());
     MetaStoreMapping metaStoreMapping = new MetaStoreMappingImpl(prefixNameFor(metaStore), metaStore.getName(),
         createClient(metaStore), accessControlHandlerFactory.newInstance(metaStore), metaStore.getConnectionType(),
-        metaStore.getLatency(), loadMetastoreFilterHook(metaStore));
+        metaStore.getLatency(), loadMetastoreFilterHook(metaStore), metaStore.getGlueConfig() != null);
     if (waggleDanceConfiguration.getDatabaseResolution() == DatabaseResolution.PREFIXED) {
       return new DatabaseNameMapping(new PrefixMapping(metaStoreMapping), metaStore.getDatabaseNameBiMapping());
     } else {

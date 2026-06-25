@@ -39,7 +39,7 @@ public class ASTQueryMappingTest {
   @Before
   public void setUp() {
     metaStoreMapping = new PrefixMapping(new MetaStoreMappingImpl(PREFIX, "mapping", null, null, DIRECT, LATENCY,
-        new DefaultMetaStoreFilterHookImpl(new HiveConf())));
+        new DefaultMetaStoreFilterHookImpl(new HiveConf()), false));
   }
 
   @Test

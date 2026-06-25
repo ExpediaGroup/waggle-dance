@@ -40,6 +40,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -144,6 +145,7 @@ import org.apache.hadoop.hive.metastore.api.LockRequest;
 import org.apache.hadoop.hive.metastore.api.LockResponse;
 import org.apache.hadoop.hive.metastore.api.LockType;
 import org.apache.hadoop.hive.metastore.api.MapSchemaVersionToSerdeRequest;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.NotNullConstraintsRequest;
 import org.apache.hadoop.hive.metastore.api.NotNullConstraintsResponse;
@@ -328,6 +330,32 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformOutboundDatabase(database)).thenReturn(outboundDB);
     Database result = handler.get_database(DB_P);
     assertThat(result, is(outboundDB));
+  }
+
+  @Test(expected = NoSuchObjectException.class)
+  public void get_database_glueBackendLakeFormationAccessDenied_throwsNoSuchObjectException() throws Exception {
+    when(primaryMapping.isGlueBackend()).thenReturn(true);
+    when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
+    when(primaryClient.get_database("inbound")).thenThrow(new MetaException(
+        "An error occurred (AccessDeniedException) when calling the GetDatabase operation: "
+            + "Insufficient Lake Formation permission(s): Required Describe on " + DB_P));
+    handler.get_database(DB_P);
+  }
+
+  @Test
+  public void get_database_nonGlueBackend_lakeFormationLikeMessage_rethrowsMetaException() throws Exception {
+    MetaException expected = new MetaException(
+        "An error occurred (AccessDeniedException) when calling the GetDatabase operation: "
+            + "Insufficient Lake Formation permission(s): Required Describe on " + DB_P);
+    when(primaryMapping.isGlueBackend()).thenReturn(false);
+    when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
+    when(primaryClient.get_database("inbound")).thenThrow(expected);
+    try {
+      handler.get_database(DB_P);
+      fail("Expected MetaException");
+    } catch (MetaException e) {
+      assertThat(e, is(sameInstance(expected)));
+    }
   }
 
   @Test
