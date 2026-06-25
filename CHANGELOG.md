@@ -1,4 +1,8 @@
 
+## [4.1.7] - 2026-06-25
+### Fixed
+- Updated bundled `aws-glue-data-catalog-client` jars to include fix for LakeFormation returning `AccessDeniedException` instead of `EntityNotFoundException` for non-existent resources when the caller lacks `CREATE_TABLE` permission. The fix translates these exceptions to `NoSuchObjectException` in `getDatabase()`, `getTable()`, and `tableExists()`. Opt-in via `aws.glue.lakeformation.access-denied-as-not-found=true` (default `false`). See [aws-glue-data-catalog-client-for-apache-hive-metastore#6](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/6).
+
 ## [4.1.4] - 2026-02-24
 ### Fixed
 - Waggledance includes an AWS library that treats AWS Glue Catalog as if it were an HMS federation. When writing into the table, current library doesn't use Glue versioning for the locking mechanism, so this version adds that logic (Before it was using hive db locks).
