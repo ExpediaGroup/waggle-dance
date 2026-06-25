@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2025 Expedia, Inc.
+ * Copyright (C) 2016-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -538,8 +538,16 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public Table get_table(String dbname, String tbl_name) throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(dbname, tbl_name);
-    Table table = mapping.getClient().get_table(mapping.transformInboundDatabaseName(dbname), tbl_name);
-    return mapping.transformOutboundTable(mapping.getMetastoreFilter().filterTable(table));
+    try {
+      Table table = mapping.getClient().get_table(mapping.transformInboundDatabaseName(dbname), tbl_name);
+      return mapping.transformOutboundTable(mapping.getMetastoreFilter().filterTable(table));
+    } catch (MetaException e) {
+      if (mapping.isGlueBackend() && isLakeFormationAccessDenied(e)) {
+        log.debug("Lake Formation returned AccessDeniedException for table '{}.{}', translating to NoSuchObjectException", dbname, tbl_name, e);
+        throw new NoSuchObjectException(dbname + "." + tbl_name);
+      }
+      throw e;
+    }
   }
 
   @Override
@@ -2203,9 +2211,17 @@ class FederatedHMSHandler extends FacebookBase implements CloseableIHMSHandler {
   @Loggable(value = Loggable.DEBUG, skipResult = true, name = INVOCATION_LOG_NAME)
   public GetTableResult get_table_req(GetTableRequest req) throws MetaException, NoSuchObjectException, TException {
     DatabaseMapping mapping = getDbMappingAndCheckTableAllowed(req.getDbName(), req.getTblName());
-    GetTableResult result = mapping.getClient().get_table_req(mapping.transformInboundGetTableRequest(req));
-    result.setTable(mapping.getMetastoreFilter().filterTable(result.getTable()));
-    return mapping.transformOutboundGetTableResult(result);
+    try {
+      GetTableResult result = mapping.getClient().get_table_req(mapping.transformInboundGetTableRequest(req));
+      result.setTable(mapping.getMetastoreFilter().filterTable(result.getTable()));
+      return mapping.transformOutboundGetTableResult(result);
+    } catch (MetaException e) {
+      if (mapping.isGlueBackend() && isLakeFormationAccessDenied(e)) {
+        log.debug("Lake Formation returned AccessDeniedException for table '{}.{}', translating to NoSuchObjectException", req.getDbName(), req.getTblName(), e);
+        throw new NoSuchObjectException(req.getDbName() + "." + req.getTblName());
+      }
+      throw e;
+    }
   }
 
   @Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2025 Expedia, Inc.
+ * Copyright (C) 2016-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -512,6 +512,32 @@ public class FederatedHMSHandlerTest {
     when(primaryMapping.transformOutboundTable(table)).thenReturn(outbound);
     Table result = handler.get_table(DB_P, "table");
     assertThat(result, is(outbound));
+  }
+
+  @Test(expected = NoSuchObjectException.class)
+  public void get_table_glueBackendLakeFormationAccessDenied_throwsNoSuchObjectException() throws Exception {
+    when(primaryMapping.isGlueBackend()).thenReturn(true);
+    when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
+    when(primaryClient.get_table("inbound", "table")).thenThrow(new MetaException(
+        "An error occurred (AccessDeniedException) when calling the GetTable operation: "
+            + "Insufficient Lake Formation permission(s): Required Describe on table"));
+    handler.get_table(DB_P, "table");
+  }
+
+  @Test
+  public void get_table_nonGlueBackend_lakeFormationLikeMessage_rethrowsMetaException() throws Exception {
+    MetaException expected = new MetaException(
+        "An error occurred (AccessDeniedException) when calling the GetTable operation: "
+            + "Insufficient Lake Formation permission(s): Required Describe on table");
+    when(primaryMapping.isGlueBackend()).thenReturn(false);
+    when(primaryMapping.transformInboundDatabaseName(DB_P)).thenReturn("inbound");
+    when(primaryClient.get_table("inbound", "table")).thenThrow(expected);
+    try {
+      handler.get_table(DB_P, "table");
+      fail("Expected MetaException");
+    } catch (MetaException e) {
+      assertThat(e, is(sameInstance(expected)));
+    }
   }
 
   @Test
@@ -1027,6 +1053,40 @@ public class FederatedHMSHandlerTest {
     GetTableResult result = handler.get_table_req(request);
     assertThat(result.getTable().getDbName(), is(DB_P));
     assertThat(result.getTable().getTableName(), is("table"));
+  }
+
+  @Test(expected = NoSuchObjectException.class)
+  public void get_table_req_glueBackendLakeFormationAccessDenied_throwsNoSuchObjectException() throws Exception {
+    when(primaryMapping.isGlueBackend()).thenReturn(true);
+    Table table = new Table();
+    table.setDbName(DB_P);
+    table.setTableName("table");
+    GetTableRequest request = new GetTableRequest(table.getDbName(), table.getTableName());
+    when(primaryMapping.transformInboundGetTableRequest(request)).thenReturn(request);
+    when(primaryClient.get_table_req(request)).thenThrow(new MetaException(
+        "An error occurred (AccessDeniedException) when calling the GetTable operation: "
+            + "Insufficient Lake Formation permission(s): Required Describe on table"));
+    handler.get_table_req(request);
+  }
+
+  @Test
+  public void get_table_req_nonGlueBackend_lakeFormationLikeMessage_rethrowsMetaException() throws Exception {
+    MetaException expected = new MetaException(
+        "An error occurred (AccessDeniedException) when calling the GetTable operation: "
+            + "Insufficient Lake Formation permission(s): Required Describe on table");
+    when(primaryMapping.isGlueBackend()).thenReturn(false);
+    Table table = new Table();
+    table.setDbName(DB_P);
+    table.setTableName("table");
+    GetTableRequest request = new GetTableRequest(table.getDbName(), table.getTableName());
+    when(primaryMapping.transformInboundGetTableRequest(request)).thenReturn(request);
+    when(primaryClient.get_table_req(request)).thenThrow(expected);
+    try {
+      handler.get_table_req(request);
+      fail("Expected MetaException");
+    } catch (MetaException e) {
+      assertThat(e, is(sameInstance(expected)));
+    }
   }
 
   @Test
