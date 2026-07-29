@@ -1,4 +1,8 @@
 
+## [4.1.8] - 2026-07-29
+### Fixed
+- Updated bundled `aws-glue-datacatalog-hive3-client` jar so `HiveTableValidator.notApplicableTableType()` also bypasses the required-StorageDescriptor-properties check when a table's `table_type` parameter is `ICEBERG`, not just when `storage_handler` is set. Fixes `InvalidObjectException: StorageDescriptor#InputFormat cannot be null` for Iceberg tables whose StorageDescriptor was stripped by an external process (e.g. Glue's managed column-statistics service).
+
 ## [4.1.7] - 2026-06-25
 ### Fixed
 - Updated bundled `aws-glue-data-catalog-client` jars to include fix for LakeFormation returning `AccessDeniedException` instead of `EntityNotFoundException` for non-existent resources when the caller lacks `CREATE_TABLE` permission. The fix translates these exceptions to `NoSuchObjectException` in `getDatabase()`, `getTable()`, and `tableExists()`. Opt-in via `aws.glue.lakeformation.access-denied-as-not-found=true` (default `false`). See [aws-glue-data-catalog-client-for-apache-hive-metastore#6](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/6).
