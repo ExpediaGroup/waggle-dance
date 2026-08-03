@@ -1,4 +1,8 @@
 
+## [4.1.10] - 2026-08-03
+### Changed
+- Increased the `central-publishing-maven-plugin` `waitMaxTime` used by `release.yml` from the default 1800s to 3600s. The 4.1.9 release job's `release:perform` step hit the default 30-minute timeout waiting for Sonatype Central to finish publishing, even though the deployment succeeded a few minutes later — the release itself was unaffected, but the GitHub Actions job reported failure.
+
 ## [4.1.9] - 2026-08-03
 ### Fixed
 - Updated bundled `aws-glue-datacatalog-hive3-client` jar to fix a `NullPointerException` when converting Iceberg tables whose `StorageDescriptor` is partially stripped (e.g. missing `SerdeInfo`, or with null `Compressed`/`NumberOfBuckets`/`StoredAsSubDirectories`). The 4.1.8 validator bypass let these fields through as null, but `BaseCatalogToHiveConverter` still assumed they were always present. See [aws-glue-data-catalog-client-for-apache-hive-metastore#8](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/commit/b52cbc9).
