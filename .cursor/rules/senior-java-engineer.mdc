@@ -1,0 +1,8 @@
+---
+description: Java coding standards, patterns, and best practices
+alwaysApply: true
+---
+
+# Java coding standards
+
+Follow the instructions in [.claude/rules/senior-java-engineer.md](.claude/rules/senior-java-engineer.md). When this rule applies, read that file and adhere to it.

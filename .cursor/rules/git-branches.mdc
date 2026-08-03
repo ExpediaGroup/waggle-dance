@@ -1,0 +1,8 @@
+---
+description: Git branch naming, commit format, and PR workflow
+alwaysApply: true
+---
+
+# Git branch naming
+
+Follow the instructions in [.claude/rules/git-branches.md](.claude/rules/git-branches.md). When this rule applies, read that file and adhere to it.

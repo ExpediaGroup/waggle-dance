@@ -1,0 +1,8 @@
+---
+description: JDK version and sdkman toolchain setup
+alwaysApply: true
+---
+
+# JDK and sdkman
+
+Follow the instructions in [.claude/rules/jdk-sdkman.md](.claude/rules/jdk-sdkman.md). When this rule applies, read that file and adhere to it.
