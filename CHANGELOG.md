@@ -1,4 +1,8 @@
 
+## [4.1.9] - 2026-08-03
+### Fixed
+- Updated bundled `aws-glue-datacatalog-hive3-client` jar to fix a `NullPointerException` when converting Iceberg tables whose `StorageDescriptor` is partially stripped (e.g. missing `SerdeInfo`, or with null `Compressed`/`NumberOfBuckets`/`StoredAsSubDirectories`). The 4.1.8 validator bypass let these fields through as null, but `BaseCatalogToHiveConverter` still assumed they were always present. See [aws-glue-data-catalog-client-for-apache-hive-metastore#8](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/commit/b52cbc9).
+
 ## [4.1.8] - 2026-07-29
 ### Fixed
 - Updated bundled `aws-glue-datacatalog-hive3-client` jar so `HiveTableValidator.notApplicableTableType()` also bypasses the required-StorageDescriptor-properties check when a table's `table_type` parameter is `ICEBERG`, not just when `storage_handler` is set. Fixes `InvalidObjectException: StorageDescriptor#InputFormat cannot be null` for Iceberg tables whose StorageDescriptor was stripped by an external process (e.g. Glue's managed column-statistics service).
