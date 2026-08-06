@@ -46,7 +46,11 @@ jobs:
 
     - name: Run Maven Targets
       # we are skipping the tests for releases, run a build step first.
-      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml -DskipTests -Darguments=-DskipTests --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
+      # waitMaxTime raised to 3600s (default 1800s): the central-publishing-maven-plugin's
+      # post-upload poll for Sonatype Central to finish publishing has hit the default
+      # timeout even though the deployment succeeds a few minutes later. It must be passed
+      # via -Darguments since release:perform forks a separate deploy build for publishing.
+      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml -DskipTests -Darguments="-DskipTests -DwaitMaxTime=3600" --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
       env:
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
