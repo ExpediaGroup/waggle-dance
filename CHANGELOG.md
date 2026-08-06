@@ -1,4 +1,8 @@
 
+## [4.1.10] - 2026-08-06
+### Fixed
+- Updated bundled `aws-glue-data-catalog-client` jars so partition filters quote bare date and timestamp literals before they reach Glue. Hive clients (notably Spark pushing down a partition-pruning predicate) emit `event_date >= 2026-02-02` unquoted, which Glue rejects with `InvalidInputException: Invalid partition expression!`; the client now rewrites it to `event_date >= '2026-02-02'`. `BETWEEN` ranges are handled too. This affected any Glue-federated table with a `date`-typed partition key queried through `get_partitions_by_filter`, and surfaced to clients only as the opaque `TApplicationException: Internal error processing get_partitions_by_filter`. See [aws-glue-data-catalog-client-for-apache-hive-metastore#9](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/9).
+
 ## [4.1.9] - 2026-08-03
 ### Fixed
 - Updated bundled `aws-glue-datacatalog-hive3-client` jar to fix a `NullPointerException` when converting Iceberg tables whose `StorageDescriptor` is partially stripped (e.g. missing `SerdeInfo`, or with null `Compressed`/`NumberOfBuckets`/`StoredAsSubDirectories`). The 4.1.8 validator bypass let these fields through as null, but `BaseCatalogToHiveConverter` still assumed they were always present. See [aws-glue-data-catalog-client-for-apache-hive-metastore#8](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/commit/b52cbc9).
