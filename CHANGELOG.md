@@ -1,4 +1,8 @@
 
+## [4.1.11] - 2026-10-05
+### Fixed
+- Updated bundled `aws-glue-data-catalog-client` jars to fix a time-of-check/time-of-use (TOCTOU) bug that could silently drop an Iceberg commit during `alterTable` optimistic locking. `alterTable` now re-reads the live Glue table and performs a compare-and-swap on `metadata_location` against the expected value before updating, throwing `InvalidOperationException` on a stale commit instead of overwriting it; the same freshly-read table is reused for the `versionId` optimistic lock, closing the check-then-act gap. See [aws-glue-data-catalog-client-for-apache-hive-metastore#10](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/10).
+
 ## [4.1.10] - 2026-08-06
 ### Fixed
 - Updated bundled `aws-glue-data-catalog-client` jars so partition filters quote bare date and timestamp literals before they reach Glue. Hive clients (notably Spark pushing down a partition-pruning predicate) emit `event_date >= 2026-02-02` unquoted, which Glue rejects with `InvalidInputException: Invalid partition expression!`; the client now rewrites it to `event_date >= '2026-02-02'`. `BETWEEN` ranges are handled too. This affected any Glue-federated table with a `date`-typed partition key queried through `get_partitions_by_filter`, and surfaced to clients only as the opaque `TApplicationException: Internal error processing get_partitions_by_filter`. See [aws-glue-data-catalog-client-for-apache-hive-metastore#9](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/9).
