@@ -1,4 +1,8 @@
 
+## [4.1.12] - 2026-10-08
+### Fixed
+- Updated bundled `aws-glue-data-catalog-client` jars so `alterTable` sends the table's current Glue `VersionId` on `UpdateTable` for all tables, not just Iceberg. Glue now rejects an alter if another writer committed in between, instead of silently overwriting it, and `UpdateTable` CloudTrail events carry `versionId` so downstream consumers can resolve the previous table version exactly. The conflict surfaces as `InvalidOperationException` with a message Iceberg treats as a retryable commit failure. Concurrent alters on Hive tables that previously both succeeded now fail for the second writer. See [aws-glue-data-catalog-client-for-apache-hive-metastore#11](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/11).
+
 ## [4.1.11] - 2026-10-05
 ### Fixed
 - Updated bundled `aws-glue-data-catalog-client` jars to fix a time-of-check/time-of-use (TOCTOU) bug that could silently drop an Iceberg commit during `alterTable` optimistic locking. `alterTable` now re-reads the live Glue table and performs a compare-and-swap on `metadata_location` against the expected value before updating, throwing `InvalidOperationException` on a stale commit instead of overwriting it; the same freshly-read table is reused for the `versionId` optimistic lock, closing the check-then-act gap. See [aws-glue-data-catalog-client-for-apache-hive-metastore#10](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/10).
