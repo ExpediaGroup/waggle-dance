@@ -1,6 +1,7 @@
 
 ## [4.1.12] - 2026-10-08
 ### Fixed
+- Release and CI workflows use Maven 3.9.16 instead of the runner's Maven 3.10.0, whose Central bundles were rejected with "Bundle has content that does NOT have a .pom file". The earlier 4.1.12 and 4.1.13 release attempts were not published. See [central-publishing-maven-plugin#78](https://github.com/mavenplugins/central-publishing-maven-plugin/issues/78).
 - Updated bundled `aws-glue-data-catalog-client` jars so `alterTable` sends the table's current Glue `VersionId` on `UpdateTable` for all tables, not just Iceberg. Glue now rejects an alter if another writer committed in between, instead of silently overwriting it, and `UpdateTable` CloudTrail events carry `versionId` so downstream consumers can resolve the previous table version exactly. The conflict surfaces as `InvalidOperationException` with a message Iceberg treats as a retryable commit failure. Concurrent alters on Hive tables that previously both succeeded now fail for the second writer. See [aws-glue-data-catalog-client-for-apache-hive-metastore#11](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/11).
 
 ## [4.1.11] - 2026-10-05
