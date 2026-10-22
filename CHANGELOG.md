@@ -1,4 +1,8 @@
 
+## [4.1.13] - 2026-10-21
+### Fixed
+- Updated bundled `aws-glue-data-catalog-client` jars so the AWS SDK no longer retries non-idempotent Glue writes. A retried `UpdateTable` reused a stale `VersionId` after an ambiguous failure (e.g. `OperationTimeoutException`) that Glue had already applied, so the retry failed with `ConcurrentModificationException` and Iceberg deleted the `metadata.json` the table already pointed to. Reads and throttled requests are still retried; any other failed write now reaches the caller with its original error, so Iceberg checks the commit state instead of deleting the file. See [aws-glue-data-catalog-client-for-apache-hive-metastore#12](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/12).
+
 ## [4.1.12] - 2026-10-08
 ### Fixed
 - Release and CI workflows use Maven 3.9.16 instead of the runner's Maven 3.10.0, whose Central bundles were rejected with "Bundle has content that does NOT have a .pom file". The earlier 4.1.12 and 4.1.13 release attempts were not published. See [central-publishing-maven-plugin#78](https://github.com/mavenplugins/central-publishing-maven-plugin/issues/78).
