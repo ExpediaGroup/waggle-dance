@@ -1,4 +1,8 @@
 
+## [4.1.14] - 2026-10-28
+### Fixed
+- Updated bundled `aws-glue-data-catalog-client` jars so partition values are quoted for parameterised partition key types such as `varchar(10)` and `char(1)`. The client quoted a value only when the key type exactly matched `varchar`, `char`, etc., so lookups by partition values (`get_partitions_ps`, `get_partitions_ps_with_auth`, `get_partition_names_ps`) sent e.g. `(dq_check_date_utc=2026-03-01)`, which Glue rejects with `InvalidInputException: Invalid partition expression!`. This broke Spark `ALTER TABLE ... DROP PARTITION` on such tables, surfacing only as `TApplicationException: Internal error processing get_partitions_ps_with_auth`. See [aws-glue-data-catalog-client-for-apache-hive-metastore#13](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/13).
+
 ## [4.1.13] - 2026-10-21
 ### Fixed
 - Updated bundled `aws-glue-data-catalog-client` jars so the AWS SDK no longer retries non-idempotent Glue writes. A retried `UpdateTable` reused a stale `VersionId` after an ambiguous failure (e.g. `OperationTimeoutException`) that Glue had already applied, so the retry failed with `ConcurrentModificationException` and Iceberg deleted the `metadata.json` the table already pointed to. Reads and throttled requests are still retried; any other failed write now reaches the caller with its original error, so Iceberg checks the commit state instead of deleting the file. See [aws-glue-data-catalog-client-for-apache-hive-metastore#12](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/12).
