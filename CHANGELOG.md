@@ -1,4 +1,8 @@
 
+## [4.1.15] - 2026-11-02
+### Fixed
+- Updated bundled `aws-glue-data-catalog-client` jars so column statistics for `date` and `decimal` columns without a min/max convert without a `NullPointerException`. A column that is all NULL has no min/max: writers such as Trino leave Hive's `lowValue`/`highValue` unset, and Glue's `MinimumValue`/`MaximumValue` are optional, but the converters dereferenced them in both directions (Hive to Glue when writing stats, Glue to Hive when reading them). See [aws-glue-data-catalog-client-for-apache-hive-metastore#15](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/15).
+
 ## [4.1.14] - 2026-10-28
 ### Fixed
 - Updated bundled `aws-glue-data-catalog-client` jars so partition values are quoted for parameterised partition key types such as `varchar(10)` and `char(1)`. The client quoted a value only when the key type exactly matched `varchar`, `char`, etc., so lookups by partition values (`get_partitions_ps`, `get_partitions_ps_with_auth`, `get_partition_names_ps`) sent e.g. `(event_date=2026-03-01)`, which Glue rejects with `InvalidInputException: Invalid partition expression!`. This broke Spark `ALTER TABLE ... DROP PARTITION` on such tables, surfacing only as `TApplicationException: Internal error processing get_partitions_ps_with_auth`. The serialised-expression path (`get_partitions_by_expr`) now uses the same type check; Hive already quoted these values there, so its behaviour is unchanged. See [aws-glue-data-catalog-client-for-apache-hive-metastore#13](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/13) and [#14](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/14).
