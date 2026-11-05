@@ -1,4 +1,11 @@
 
+## [4.1.16] - 2026-11-05
+### Added
+- Updated bundled `aws-glue-data-catalog-client` jars with an opt-in property, `aws.glue.avro.schema-from-url.enable` (default `false`). When it is `true`, `get_fields`/`get_schema` (and their `_with_environment_context` variants) for an Avro table with `avro.schema.url` or `avro.schema.literal` return the columns from that schema, as Hive's metastore does, instead of the copy stored in Glue, which can be stale. A schema URL is read on every call, so WaggleDance needs a filesystem for its scheme and read access to it; if the schema can't be read, the stored columns are returned and a warning is logged. Set it per Glue metastore under `configuration-properties`. See [aws-glue-data-catalog-client-for-apache-hive-metastore#17](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/17).
+
+### Fixed
+- Updated bundled `aws-glue-data-catalog-client` jars so `double` column statistics with an unset or non-finite (`NaN`, `Infinity`) min/max convert correctly. Hive to Glue, the bound is now omitted: Glue's JSON API can't carry `NaN` or `Infinity`, and an unset bound was sent as `0.0`. Glue to Hive, a missing `MinimumValue`/`MaximumValue` no longer throws a `NullPointerException` on unboxing. See [aws-glue-data-catalog-client-for-apache-hive-metastore#16](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/16).
+
 ## [4.1.15] - 2026-11-02
 ### Fixed
 - Updated bundled `aws-glue-data-catalog-client` jars so column statistics for `date` and `decimal` columns without a min/max convert without a `NullPointerException`. A column that is all NULL has no min/max: writers such as Trino leave Hive's `lowValue`/`highValue` unset, and Glue's `MinimumValue`/`MaximumValue` are optional, but the converters dereferenced them in both directions (Hive to Glue when writing stats, Glue to Hive when reading them). See [aws-glue-data-catalog-client-for-apache-hive-metastore#15](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/15).
