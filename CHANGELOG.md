@@ -7,7 +7,7 @@
 - Updated bundled `aws-glue-data-catalog-client` jars so `double` column statistics with an unset or non-finite (`NaN`, `Infinity`) min/max convert correctly. Hive to Glue, the bound is now omitted: Glue's JSON API can't carry `NaN` or `Infinity`, and an unset bound was sent as `0.0`. Glue to Hive, a missing `MinimumValue`/`MaximumValue` no longer throws a `NullPointerException` on unboxing. See [aws-glue-data-catalog-client-for-apache-hive-metastore#16](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/16).
 
 ## [4.1.16] - 2026-11-05
-Tagged but not published to Maven Central: the release tripped Expedia Group's org-wide monthly publish-size limit on Sonatype Central (the grace period had ended). The same changes were published as 4.1.17.
+Failed to publish. The same changes were released as 4.1.17.
 
 ## [4.1.15] - 2026-11-02
 ### Fixed
