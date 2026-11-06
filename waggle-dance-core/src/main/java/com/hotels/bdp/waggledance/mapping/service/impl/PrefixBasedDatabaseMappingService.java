@@ -179,7 +179,18 @@ public class PrefixBasedDatabaseMappingService implements MappingEventListener {
   }
 
   @Override
-  public DatabaseMapping databaseMapping(@NotNull String databaseName) {
+  public DatabaseMapping databaseMapping(@NotNull String databaseName) throws NoSuchObjectException {
+    DatabaseMapping databaseMapping = mappingForDatabaseName(databaseName);
+    // mapped-databases applies to calls that name a database, not only to listings
+    String mappedName = databaseMapping.transformInboundDatabaseName(databaseName);
+    if (!isDbAllowed(databaseMapping.getDatabasePrefix(), mappedName)) {
+      log.debug("Database Name `{}` is not in mapped-databases", databaseName);
+      throw new NoSuchObjectException(String.format("%s database not found in any mappings", databaseName));
+    }
+    return databaseMapping;
+  }
+
+  private DatabaseMapping mappingForDatabaseName(String databaseName) {
     // Find a Metastore with a prefix
     synchronized (mappingsByPrefix) {
       for (Entry<String, DatabaseMapping> entry : mappingsByPrefix.entrySet()) {

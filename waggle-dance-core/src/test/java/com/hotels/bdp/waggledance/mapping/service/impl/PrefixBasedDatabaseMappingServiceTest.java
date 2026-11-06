@@ -223,13 +223,43 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void databaseMappingMapsToEmptyPrefix() {
+  public void databaseMappingMapsToEmptyPrefix() throws NoSuchObjectException {
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
     assertThat(databaseMapping.getDatabasePrefix(), is(""));
   }
 
   @Test
-  public void databaseMappingDefaultsToPrimaryWhenNothingMatches() {
+  public void databaseMappingAllowsMappedDatabase() throws NoSuchObjectException {
+    federatedMetastore.setMappedDatabases(Lists.newArrayList("^(?!lz_).*$"));
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+    when(metaStoreMappingFederated.transformInboundDatabaseName(DB_PREFIX + FEDERATED_DB)).thenReturn(FEDERATED_DB);
+
+    DatabaseMapping databaseMapping = service.databaseMapping(DB_PREFIX + FEDERATED_DB);
+    assertThat(databaseMapping.getDatabasePrefix(), is(DB_PREFIX));
+  }
+
+  @Test(expected = NoSuchObjectException.class)
+  public void databaseMappingRejectsDatabaseNotInMappedDatabases() throws NoSuchObjectException {
+    federatedMetastore.setMappedDatabases(Lists.newArrayList("^(?!lz_).*$"));
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+    when(metaStoreMappingFederated.transformInboundDatabaseName(DB_PREFIX + "lz_content")).thenReturn("lz_content");
+
+    service.databaseMapping(DB_PREFIX + "lz_content");
+  }
+
+  @Test(expected = NoSuchObjectException.class)
+  public void databaseMappingRejectsPrimaryDatabaseNotInMappedDatabases() throws NoSuchObjectException {
+    primaryMetastore.setMappedDatabases(Lists.newArrayList(PRIMARY_DB));
+    service = new PrefixBasedDatabaseMappingService(metaStoreMappingFactory,
+        Arrays.asList(primaryMetastore, federatedMetastore), queryMapping);
+
+    service.databaseMapping("another_db_that_is_not_mapped");
+  }
+
+  @Test
+  public void databaseMappingDefaultsToPrimaryWhenNothingMatches() throws NoSuchObjectException {
     String prefix = "primary_";
     init(true, prefix);
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
@@ -237,7 +267,7 @@ public class PrefixBasedDatabaseMappingServiceTest {
   }
 
   @Test
-  public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() {
+  public void databaseMappingDefaultsToPrimaryEvenWhenNothingMatchesAndUnavailable() throws NoSuchObjectException {
     String prefix = "primary_";
     init(false, prefix);
     DatabaseMapping databaseMapping = service.databaseMapping("some_unknown_prefix_db");
