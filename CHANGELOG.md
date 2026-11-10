@@ -1,4 +1,11 @@
 
+## [4.1.18] - 2026-11-10
+### Added
+- Updated bundled `aws-glue-data-catalog-client` jars with an opt-in property, `aws.glue.iceberg.rename.enable` (default `false`). When it is `true`, `alter_table` that changes an Iceberg table's name (`table_type=ICEBERG`) renames it the way Iceberg's `GlueCatalog#renameTable` does: create the new Glue table from the source with its current `metadata_location`, check the source wasn't committed to meanwhile, then delete the source. It is not atomic; with Lake Formation the caller needs CREATE_TABLE on the database and DROP on the source table. Set it per Glue metastore under `configuration-properties`. See [aws-glue-data-catalog-client-for-apache-hive-metastore#18](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/18).
+
+### Fixed
+- Renaming a table on a Glue metastore no longer drops the client connection. The Glue client threw an `UnsupportedOperationException`, which Thrift can't return, so clients saw only `TTransportException` / `Socket is closed by peer`. Hive tables, cross-database renames, and Iceberg renames with the flag off now fail with an `InvalidOperationException` that reaches the client.
+
 ## [4.1.17] - 2026-11-06
 ### Added
 - Updated bundled `aws-glue-data-catalog-client` jars with an opt-in property, `aws.glue.avro.schema-from-url.enable` (default `false`). When it is `true`, `get_fields`/`get_schema` (and their `_with_environment_context` variants) for an Avro table with `avro.schema.url` or `avro.schema.literal` return the columns from that schema, as Hive's metastore does, instead of the copy stored in Glue, which can be stale. A schema URL is read on every call, so WaggleDance needs a filesystem for its scheme and read access to it; if the schema can't be read, the stored columns are returned and a warning is logged. Set it per Glue metastore under `configuration-properties`. See [aws-glue-data-catalog-client-for-apache-hive-metastore#17](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/17).
