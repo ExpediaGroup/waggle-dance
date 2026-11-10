@@ -9,7 +9,7 @@
 
   <groupId>com.expediagroup</groupId>
   <artifactId>waggle-dance-parent</artifactId>
-  <version>4.1.18-SNAPSHOT</version>
+  <version>4.2.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Waggle Dance Parent</name>
   <description>Hive Metastore federation service.</description>
@@ -57,6 +57,8 @@
     <lombok.version>1.18.24</lombok.version>
     <apache.commons.version>3.12.0</apache.commons.version>
     <curator.version>2.13.0</curator.version>
+    <central.publishing.maven.plugin.version>0.12.0</central.publishing.maven.plugin.version>
+    <central.skipPublishing>false</central.skipPublishing>
   </properties>
 
   <dependencyManagement>
@@ -689,4 +691,24 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <profiles>
+    <profile>
+      <id>sonatype-oss-release-github-actions</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>${central.publishing.maven.plugin.version}</version>
+            <extensions>true</extensions>
+            <configuration>
+              <checksums>required</checksums>
+              <skipPublishing>${central.skipPublishing}</skipPublishing>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

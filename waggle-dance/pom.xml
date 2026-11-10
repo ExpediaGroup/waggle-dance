@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.expediagroup</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>4.1.18-SNAPSHOT</version>
+    <version>4.2.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance</artifactId>
@@ -17,6 +17,7 @@
     <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
     <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
     <artifact.location>${project.build.directory}/waggle-dance-${project.version}-bin.tgz</artifact.location>
+    <central.skipPublishing>true</central.skipPublishing>
   </properties>
 
   <dependencies>

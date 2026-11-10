@@ -1,4 +1,10 @@
 
+## [4.2.0] - TBD
+### Changed
+- The TGZ (`waggle-dance-<version>-bin.tgz`) and RPM (`waggle-dance-rpm-<version>.rpm`) packages are published as [GitHub Release](https://github.com/ExpediaGroup/waggle-dance/releases) assets, with a signed `SHA256SUMS`, instead of to Maven Central. Together with the Spring Boot exec jar (`waggle-dance-boot-<version>-exec.jar`), which is no longer published, they made each release about 640MB, far above Maven Central's monthly publishing limit. Anyone downloading the TGZ or RPM from Maven Central must switch to GitHub Releases from this version; versions up to 4.1.17 stay on Maven Central. The library jars (`waggle-dance-core`, `-api`, `-rest`, `-extensions`, `-integration-tests`) are still published to Maven Central.
+- Snapshot builds are no longer published to Maven Central; CI on `main` and pull requests runs `mvn verify`.
+- Upgraded `central-publishing-maven-plugin` from 0.8.0 to 0.12.0, and Central bundles now carry only the required MD5 and SHA1 checksums.
+
 ## [4.1.17] - 2026-11-06
 ### Added
 - Updated bundled `aws-glue-data-catalog-client` jars with an opt-in property, `aws.glue.avro.schema-from-url.enable` (default `false`). When it is `true`, `get_fields`/`get_schema` (and their `_with_environment_context` variants) for an Avro table with `avro.schema.url` or `avro.schema.literal` return the columns from that schema, as Hive's metastore does, instead of the copy stored in Glue, which can be stale. A schema URL is read on every call, so WaggleDance needs a filesystem for its scheme and read access to it; if the schema can't be read, the stored columns are returned and a warning is logged. Set it per Glue metastore under `configuration-properties`. See [aws-glue-data-catalog-client-for-apache-hive-metastore#17](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/17).
