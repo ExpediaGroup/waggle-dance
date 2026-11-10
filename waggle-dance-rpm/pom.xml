@@ -20,7 +20,7 @@
     <rpm.install.dir>/opt/waggle-dance</rpm.install.dir>
     <rpm.install.user>waggle-dance</rpm.install.user>
     <rpm.install.group>waggle-dance</rpm.install.group>
-    <central.skipPublishing>true</central.skipPublishing>
+    <central.publishing.skip>true</central.publishing.skip>
   </properties>
 
   <build>

@@ -13,7 +13,7 @@
 
   <properties>
     <spring-boot-maven-plugin.version>1.5.7.RELEASE</spring-boot-maven-plugin.version>
-    <central.skipPublishing>true</central.skipPublishing>
+    <central.publishing.skip>true</central.publishing.skip>
   </properties>
 
   <dependencies>
