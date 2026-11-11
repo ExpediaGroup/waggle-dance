@@ -3,7 +3,7 @@
 ### Changed
 - The TGZ (`waggle-dance-<version>-bin.tgz`) and RPM (`waggle-dance-rpm-<version>.rpm`) packages are published as [GitHub Release](https://github.com/ExpediaGroup/waggle-dance/releases) assets, with a signed `SHA256SUMS`, instead of to Maven Central. Together with the Spring Boot exec jar (`waggle-dance-boot-<version>-exec.jar`), which is no longer published, they made each release about 640MB, far above Maven Central's monthly publishing limit. Anyone downloading the TGZ or RPM from Maven Central must switch to GitHub Releases from this version; versions up to 4.1.17 stay on Maven Central. The library jars (`waggle-dance-core`, `-api`, `-rest`, `-extensions`, `-integration-tests`) are still published to Maven Central.
 - Snapshot builds are no longer published to Maven Central; CI on `main` and pull requests runs `mvn verify`.
-- Upgraded `eg-oss-parent` from 3.0.1 to 3.1.0, which upgrades `central-publishing-maven-plugin` from 0.8.0 to 0.12.0. Central bundles now carry only the required MD5 and SHA1 checksums.
+- Upgraded `eg-oss-parent` from 3.0.1 to 3.1.1, which upgrades `central-publishing-maven-plugin` from 0.8.0 to 0.12.0. Central bundles now carry only the required MD5 and SHA1 checksums.
 
 ## [4.1.17] - 2026-11-06
 ### Added

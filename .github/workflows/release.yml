@@ -73,8 +73,9 @@ jobs:
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         GPG_PASSPHRASE: ${{secrets.HCOM_GPG_PRIVATE_KEY_PASSPHRASE}}
 
-    # The tgz, rpm and Spring Boot exec jar are too large for Maven Central's publishing limits,
-    # so they are excluded from the Central bundle (central.skipPublishing) and attached here instead.
+    # The tgz, rpm and Spring Boot exec jar are too large for Maven Central's publishing limits, so they are
+    # excluded from the Central bundle (central.publishing.skip). The tgz and rpm are attached here instead;
+    # both already contain the exec jar (service/waggle-dance-core-latest-exec.jar), so it isn't attached on its own.
     - name: Publish GitHub Release
       run: |
         TAG=$(git describe --tags --abbrev=0 --match 'waggle-dance-parent-*')
