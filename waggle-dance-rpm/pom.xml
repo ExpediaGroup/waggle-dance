@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.expediagroup</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>4.1.18-SNAPSHOT</version>
+    <version>4.2.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-rpm</artifactId>
@@ -20,6 +20,7 @@
     <rpm.install.dir>/opt/waggle-dance</rpm.install.dir>
     <rpm.install.user>waggle-dance</rpm.install.user>
     <rpm.install.group>waggle-dance</rpm.install.group>
+    <central.publishing.skip>true</central.publishing.skip>
   </properties>
 
   <build>

@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.expediagroup</groupId>
     <artifactId>waggle-dance-parent</artifactId>
-    <version>4.1.18-SNAPSHOT</version>
+    <version>4.2.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>waggle-dance-boot</artifactId>
@@ -13,6 +13,7 @@
 
   <properties>
     <spring-boot-maven-plugin.version>1.5.7.RELEASE</spring-boot-maven-plugin.version>
+    <central.publishing.skip>true</central.publishing.skip>
   </properties>
 
   <dependencies>

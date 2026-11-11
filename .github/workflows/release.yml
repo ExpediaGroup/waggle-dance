@@ -8,8 +8,10 @@ on:
         default: "main"
 jobs:
   release:
-    name: Release to Maven Central
+    name: Release to Maven Central and GitHub Releases
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout source code
@@ -70,3 +72,22 @@ jobs:
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         GPG_PASSPHRASE: ${{secrets.HCOM_GPG_PRIVATE_KEY_PASSPHRASE}}
+
+    # The tgz, rpm and Spring Boot exec jar are too large for Maven Central's publishing limits, so they are
+    # excluded from the Central bundle (central.publishing.skip). The tgz and rpm are attached here instead;
+    # both already contain the exec jar (service/waggle-dance-core-latest-exec.jar), so it isn't attached on its own.
+    - name: Publish GitHub Release
+      run: |
+        TAG=$(git describe --tags --abbrev=0 --match 'waggle-dance-parent-*')
+        VERSION=${TAG#waggle-dance-parent-}
+        DIST_DIR="$RUNNER_TEMP/dist"
+        mkdir -p "$DIST_DIR"
+        cp target/checkout/waggle-dance/target/waggle-dance-${VERSION}-bin.tgz "$DIST_DIR/"
+        cp target/checkout/waggle-dance-rpm/target/rpm/waggle-dance-rpm/RPMS/noarch/waggle-dance-rpm-*.rpm "$DIST_DIR/waggle-dance-rpm-${VERSION}.rpm"
+        cd "$DIST_DIR"
+        sha256sum * > SHA256SUMS
+        gpg --batch --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --armor --detach-sign SHA256SUMS
+        gh release create "$TAG" * --repo "$GITHUB_REPOSITORY" --title "Release ${VERSION}" --notes "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/CHANGELOG.md)."
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GPG_PASSPHRASE: ${{ secrets.HCOM_GPG_PRIVATE_KEY_PASSPHRASE }}
