@@ -37,10 +37,10 @@ jobs:
         # this creates a settings.xml with the following server
         settings-path: ${{ github.workspace }}
 
-    # Maven 3.10 (GitHub runner images from October 2026) leaves maven-metadata-local.xml in the
-    # central-publishing-maven-plugin bundle and Central rejects it with "Bundle has content that does
-    # NOT have a .pom file". Remove once the plugin supports Maven 3.10:
-    # https://github.com/mavenplugins/central-publishing-maven-plugin/issues/78
+    # Releases built with Maven 3.10 (GitHub runner images from October 2026) are rejected by Central with
+    # "Invalid signature ... Could not find a public key by the key fingerprint", whatever the
+    # central-publishing-maven-plugin version; the same key is accepted with Maven 3.9.16. See the 3.1.x
+    # releases of https://github.com/ExpediaGroup/eg-oss-parent.
     - name: Set up Maven 3.9.16
       env:
         MAVEN_VERSION: 3.9.16
