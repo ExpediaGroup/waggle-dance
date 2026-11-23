@@ -1,4 +1,11 @@
 
+## [4.2.1] - 2026-11-23
+### Added
+Updated bundled `aws-glue-data-catalog-client` jars with three opt-in settings, all off by default:
+- `aws.glue.event.listeners`: call Hive `MetaStoreEventListener`s (e.g. `ApiarySnsListener`) after Glue table and partition drops, so tools like Beekeeper get drop events again. See [#20](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/20).
+- `aws.glue.iceberg.rename.enable`: rename Iceberg tables. See [#18](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/18).
+- `aws.glue.iceberg.hide-non-current-columns.enable`: hide columns of fields dropped from an Iceberg table's schema. See [#19](https://github.com/ExpediaGroup/aws-glue-data-catalog-client-for-apache-hive-metastore/pull/19).
+
 ## [4.2.0] - 2026-11-17
 ### Changed
 - The TGZ (`waggle-dance-<version>-bin.tgz`) and RPM (`waggle-dance-rpm-<version>.rpm`) packages are published as [GitHub Release](https://github.com/ExpediaGroup/waggle-dance/releases) assets, with a signed `SHA256SUMS`, instead of to Maven Central. Together with the Spring Boot exec jar (`waggle-dance-boot-<version>-exec.jar`), which is no longer published, they made each release about 640MB, far above Maven Central's monthly publishing limit. Anyone downloading the TGZ or RPM from Maven Central must switch to GitHub Releases from this version; versions up to 4.1.17 stay on Maven Central. The library jars (`waggle-dance-core`, `-api`, `-rest`, `-extensions`, `-integration-tests`) are still published to Maven Central.
