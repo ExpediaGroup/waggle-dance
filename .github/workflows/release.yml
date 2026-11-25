@@ -19,8 +19,8 @@ jobs:
       with:
         fetch-depth: 0
         ref: ${{ github.event.inputs.branch }}
-        # We need a personal access token to be able to push to a protected branch
-        token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+        # The release commits and tag are pushed with the job's GITHUB_TOKEN (contents: write).
+        # The org secret GH_PERSONAL_ACCESS_TOKEN was revoked; main is not a protected branch.
 
     - name: Set up JDK
       uses: actions/setup-java@v2
